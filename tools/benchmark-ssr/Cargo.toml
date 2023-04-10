@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 yew = { path = "../../packages/yew", features = ["ssr"] }
 function_router = { path = "../../examples/function_router" }
-tokio = { version = "1.26", features = ["full"] }
+tokio = { version = "1.27", features = ["full"] }
 jemallocator = "0.5.0"
 average = "0.13.1"
 tabled = "0.8.0"

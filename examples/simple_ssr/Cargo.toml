@@ -26,7 +26,7 @@ wasm-logger = "0.2"
 log = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.26.0", features = ["full"] }
+tokio = { version = "1.27.0", features = ["full"] }
 warp = "0.3"
 clap = { version = "3.1.7", features = ["derive"] }
 
