@@ -1,7 +1,7 @@
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
  --> tests/function_component_attr/hook_location-fail.rs:9:9
   |
@@ -11,7 +11,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
   --> tests/function_component_attr/hook_location-fail.rs:14:9
    |
@@ -21,7 +21,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
   --> tests/function_component_attr/hook_location-fail.rs:19:9
    |
@@ -31,7 +31,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
   --> tests/function_component_attr/hook_location-fail.rs:22:26
    |
@@ -41,7 +41,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
   --> tests/function_component_attr/hook_location-fail.rs:23:9
    |
@@ -51,7 +51,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
   --> tests/function_component_attr/hook_location-fail.rs:27:20
    |
@@ -61,7 +61,7 @@ error: hooks cannot be called at this position.
 error: hooks cannot be called at this position.
 
          = help: move hooks to the top-level of your function.
-         = note: see: https://yew.rs/docs/next/concepts/function-components/hooks
+         = note: see: https://yew.rs/docs/concepts/function-components/hooks
 
   --> tests/function_component_attr/hook_location-fail.rs:34:9
    |

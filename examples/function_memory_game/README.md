@@ -6,7 +6,7 @@ This is an implementation of [Memory Game](https://github.com/bradlygreen/Memory
 
 ## Concepts
 
-- Uses [`function_components`](https://yew.rs/docs/next/concepts/function-components)
+- Uses [`function_components`](https://yew.rs/docs/concepts/function-components)
 - Uses [`gloo::storage`](https://docs.rs/gloo-storage/0.2.0/gloo_storage/index.html) to persist the state
 - Uses [`gloo::timers`](https://docs.rs/gloo-timers/0.2.2/gloo_timers/index.html) to schedule asynchronous callback
 
