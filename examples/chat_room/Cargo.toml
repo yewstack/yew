@@ -1,0 +1,17 @@
+[package]
+name = "chat-room"
+version = "0.1.0"
+authors = ["Mahmoud Harmouch <business@wiseai.dev>"]
+
+[dependencies]
+log = "0.4.17"
+serde = "1.0.160"
+serde_derive = "1.0.160"
+serde_json = "1.0.95"
+stdweb = "0.4.20"
+strum = "0.24.1"
+strum_macros = "0.24.3"
+wasm-bindgen = "0.2.84"
+web-sys = "0.3.61"
+web_logger = "0.2.0"
+yew = { version = "0.20.0", features = ["csr"] }
