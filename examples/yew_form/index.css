@@ -1,0 +1,82 @@
+body {
+  background-color: #1e1e1e;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+form {
+  background-color: #333;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  text-align: center;
+  margin-top: 0;
+  font-weight: normal;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: calc(100% - 24px);
+  padding: 12px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #555;
+  color: #fff;
+  font-size: 16px;
+}
+
+input[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4caf50;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #3e8e41;
+}
+
+.bottom-container {
+  text-align: left;
+}
+
+.bottom-container p {
+  margin-top: 15px;
+}
+
+.bottom-container p a {
+  color: #2196f3;
+  margin-left: 5px;
+  text-decoration: none;
+}
+
+.error {
+  background-color: #ff4136;
+  color: #fff;
+  padding: 12px;
+  font-weight: 700;
+  border-radius: 5px;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.forget-password-container {
+  text-align: right;
+  margin-bottom: 15px;
+}
+
+.forget-password-container a {
+  color: #2196f3;
+  text-decoration: none;
+}

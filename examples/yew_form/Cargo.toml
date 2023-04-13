@@ -1,0 +1,17 @@
+[package]
+name = "login-form"
+version = "0.1.0"
+authors = ["Mahmoud Harmouch <business@wiseai.dev>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwasm = "0.5.0"
+serde = "1.0.160"
+serde_json = "1.0.96"
+wasm-bindgen = "0.2.84"
+wasm-bindgen-futures = "0.4.34"
+web-sys = "0.3.61"
+yew-router = "0.17.0"
+yew = { version = "0.20.0", features = ["csr"] }
