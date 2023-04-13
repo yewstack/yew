@@ -1,9 +1,9 @@
-use crate::api::auth::login_user;
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 use wasm_bindgen_futures::spawn_local;
-use web_sys::HtmlInputElement;
-use web_sys::{ console, Window };
+use web_sys::{console, HtmlInputElement, Window};
 use yew::prelude::*;
+
+use crate::api::auth::login_user;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 struct LoginUserSchema {
@@ -78,47 +78,47 @@ pub fn login_form() -> Html {
     });
 
     html! {
-          <div>
-              <form
-               onsubmit={onsubmit}
-              >
-                if error.len() > 0 {
-                  <div class="error">{error}</div>
-                }
-                <h1>{"Login"}</h1>
-                <label for="username">{"Username"}</label>
-                <div>
-                <input
-                    class="form-control form-control-lg"
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Email"
-                    ref={input_email_ref}
-                    oninput={on_email_change}
-                />
-                </div>
-                <label for="password">{"Password"}</label>
-                <input
-                    class="form-control form-control-lg"
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Password"
-                    ref={input_password_ref}
-                    oninput={on_password_change}
-                />
-                <div class="forget-password-container">
-                    <a href="#">{"Forgot Password?"}</a>
-                </div>
-                <input type="submit" value="Login" />
-                <div class="bottom-container">
-                  <p>
-                    {"Don't have an account?"}
-                    <a href="#">{"Sign up"}</a>
-                  </p>
-                </div>
-              </form>
-          </div>
-      }
+        <div>
+            <form
+             onsubmit={onsubmit}
+            >
+              if error.len() > 0 {
+                <div class="error">{error}</div>
+              }
+              <h1>{"Login"}</h1>
+              <label for="username">{"Username"}</label>
+              <div>
+              <input
+                  class="form-control form-control-lg"
+                  type="text"
+                  id="username"
+                  name="username"
+                  placeholder="Email"
+                  ref={input_email_ref}
+                  oninput={on_email_change}
+              />
+              </div>
+              <label for="password">{"Password"}</label>
+              <input
+                  class="form-control form-control-lg"
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Password"
+                  ref={input_password_ref}
+                  oninput={on_password_change}
+              />
+              <div class="forget-password-container">
+                  <a href="#">{"Forgot Password?"}</a>
+              </div>
+              <input type="submit" value="Login" />
+              <div class="bottom-container">
+                <p>
+                  {"Don't have an account?"}
+                  <a href="#">{"Sign up"}</a>
+                </p>
+              </div>
+            </form>
+        </div>
+    }
 }

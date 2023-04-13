@@ -1,6 +1,6 @@
+use reqwasm::http::{Request, RequestCredentials};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
-use serde::{ Deserialize, Serialize };
-use reqwasm::http::{ Request, RequestCredentials };
 
 const BASE_URL: &str = "http://localhost:8080/api/v1";
 
@@ -17,17 +17,18 @@ pub struct ErrorResponse {
 }
 
 pub async fn login_user(username: String, password: String) -> Result<UserLoginResponse, String> {
-    let response = match
-        Request::post(&format!("{}/auth/login", BASE_URL))
-            .header("Content-Type", "application/json")
-            .credentials(RequestCredentials::Include)
-            .body(
-                json!({
+    let response = match Request::post(&format!("{}/auth/login", BASE_URL))
+        .header("Content-Type", "application/json")
+        .credentials(RequestCredentials::Include)
+        .body(
+            json!({
                 "username": username,
                 "password": password
-            }).to_string()
-            )
-            .send().await
+            })
+            .to_string(),
+        )
+        .send()
+        .await
     {
         Ok(res) => res,
         Err(_) => {

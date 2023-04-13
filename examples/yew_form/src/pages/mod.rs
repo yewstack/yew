@@ -1,2 +1,2 @@
-pub mod login;
 pub mod error;
+pub mod login;
