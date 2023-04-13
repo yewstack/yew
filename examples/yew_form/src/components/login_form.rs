@@ -71,7 +71,7 @@ pub fn login_form() -> Html {
                     let _ = location.set_href("/error");
                 }
                 Err(err) => {
-                    error_handle.set(err.to_string());
+                    error_handle.set(err);
                 }
             }
         });
@@ -82,7 +82,7 @@ pub fn login_form() -> Html {
             <form
              onsubmit={onsubmit}
             >
-              if error.len() > 0 {
+              if !error.is_empty() {
                 <div class="error">{error}</div>
               }
               <h1>{"Login"}</h1>
