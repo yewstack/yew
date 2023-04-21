@@ -64,6 +64,7 @@ mod feat_ssr_hydration {
     /// This indicates a kind that can be collected from fragment to be processed at a later time
     pub enum Collectable {
         Component(ComponentName),
+        Raw,
         Suspense,
     }
 
@@ -79,6 +80,7 @@ mod feat_ssr_hydration {
         pub fn open_start_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "<[",
+                Self::Raw => "<#",
                 Self::Suspense => "<?",
             }
         }
@@ -86,6 +88,7 @@ mod feat_ssr_hydration {
         pub fn close_start_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "</[",
+                Self::Raw => "</#",
                 Self::Suspense => "</?",
             }
         }
@@ -93,6 +96,7 @@ mod feat_ssr_hydration {
         pub fn end_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "]>",
+                Self::Raw => ">",
                 Self::Suspense => ">",
             }
         }
@@ -104,6 +108,7 @@ mod feat_ssr_hydration {
                 Self::Component(m) => format!("Component({m})").into(),
                 #[cfg(not(debug_assertions))]
                 Self::Component(_) => "Component".into(),
+                Self::Raw => "Raw".into(),
                 Self::Suspense => "Suspense".into(),
             }
         }
@@ -130,6 +135,7 @@ mod feat_ssr {
                 Self::Component(type_name) => {
                     let _ = w.write_str(type_name);
                 }
+                Self::Raw => {}
                 Self::Suspense => {}
             }
 
@@ -146,6 +152,7 @@ mod feat_ssr {
                 Self::Component(type_name) => {
                     let _ = w.write_str(type_name);
                 }
+                Self::Raw => {}
                 Self::Suspense => {}
             }
 
