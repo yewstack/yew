@@ -71,12 +71,12 @@ mod feat_ssr_hydration {
         #[cfg(not(debug_assertions))]
         #[inline(always)]
         pub fn for_component<T: 'static>() -> Self {
+            use std::marker::PhantomData;
             // This suppresses the clippy lint about unused generic.
             // We inline this function
             // so the function body is copied to its callee and generics get optimised away.
-            let _comp_type: std::marker::PhantomData<T> = std::marker::PhantomData;
-            let comp_name = std::marker::PhantomData;
-            Self::Component(comp_name)
+            let _comp_type: PhantomData<T> = PhantomData;
+            Self::Component(PhantomData)
         }
 
         #[cfg(debug_assertions)]
