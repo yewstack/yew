@@ -74,7 +74,7 @@ mod feat_ssr_hydration {
             use std::marker::PhantomData;
             // This suppresses the clippy lint about unused generic.
             // We inline this function
-            // so the function body is copied to its callee and generics get optimised away.
+            // so the function body is copied to its caller and generics get optimised away.
             let _comp_type: PhantomData<T> = PhantomData;
             Self::Component(PhantomData)
         }
