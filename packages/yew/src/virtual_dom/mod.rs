@@ -69,11 +69,20 @@ mod feat_ssr_hydration {
     }
 
     impl Collectable {
+        #[cfg(not(debug_assertions))]
+        #[inline(always)]
         pub fn for_component<T: 'static>() -> Self {
-            #[cfg(debug_assertions)]
+            use std::marker::PhantomData;
+            // This suppresses the clippy lint about unused generic.
+            // We inline this function
+            // so the function body is copied to its caller and generics get optimised away.
+            let _comp_type: PhantomData<T> = PhantomData;
+            Self::Component(PhantomData)
+        }
+
+        #[cfg(debug_assertions)]
+        pub fn for_component<T: 'static>() -> Self {
             let comp_name = std::any::type_name::<T>();
-            #[cfg(not(debug_assertions))]
-            let comp_name = std::marker::PhantomData;
             Self::Component(comp_name)
         }
 
