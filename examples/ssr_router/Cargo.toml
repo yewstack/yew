@@ -29,7 +29,7 @@ axum = "0.6"
 tower = { version = "0.4", features = ["make"] }
 tower-http = { version = "0.3", features = ["fs"] }
 env_logger = "0.10"
-clap = { version = "3.1.7", features = ["derive"] }
+clap = { version = "4.2.5", features = ["derive"] }
 hyper = { version = "0.14", features = ["server", "http1"] }
 jemallocator = "0.5"
 
