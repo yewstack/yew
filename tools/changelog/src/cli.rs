@@ -81,25 +81,30 @@ impl Cli {
         let log_lines = create_log_lines(from_ref, to, package_labels, token)?;
 
         // categorize logs
-        let (fixes, features): (Vec<_>, Vec<_>) = log_lines
+        let (breaking_changes, filtered_log_lines): (Vec<_>, Vec<_>) = log_lines
             .into_iter()
-            .partition(|log_line| log_line.message.to_lowercase().contains("fix"));
+            .partition(|log_line| log_line.is_breaking_change);
+        
+        let (fixes, features): (Vec<_>, Vec<_>) = filtered_log_lines
+            .into_iter()
+            .partition(|filtered_log_line| filtered_log_line.message.to_lowercase().contains("fix"));
 
         // create displayable log lines
         let fixes_logs = write_log_lines(fixes)?;
         let features_logs = write_log_lines(features)?;
+        let breaking_changes_logs = write_log_lines(breaking_changes)?;
 
         if !skip_file_write {
             // create version changelog
             let version_changelog =
-                write_changelog_file(&fixes_logs, &features_logs, package, next_version)?;
+                write_changelog_file(&fixes_logs, &features_logs,  &breaking_changes_logs, package, next_version)?;
 
             // write changelog
             write_changelog(&changelog_path, &version_changelog)?;
         }
 
         // stdout changelog meant for tag description
-        stdout_tag_description_changelog(&fixes_logs, &features_logs)?;
+        stdout_tag_description_changelog(&fixes_logs, &features_logs, &breaking_changes_logs)?;
 
         Ok(())
     }
