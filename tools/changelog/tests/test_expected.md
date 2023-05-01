@@ -15,7 +15,7 @@
 
 ### 🛠 Fixes
 
-- Fix defaulted type parameter.. [[@futursolo](https://github.com/futursolo), [#2284](https://github.com/yewstack/yew/pull/2284)]
+- Fix defaulted type parameter.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2284](https://github.com/yewstack/yew/pull/2284)]
 
 ### ⚡️ Features
 

@@ -84,10 +84,13 @@ impl Cli {
         let (breaking_changes, filtered_log_lines): (Vec<_>, Vec<_>) = log_lines
             .into_iter()
             .partition(|log_line| log_line.is_breaking_change);
-        
-        let (fixes, features): (Vec<_>, Vec<_>) = filtered_log_lines
-            .into_iter()
-            .partition(|filtered_log_line| filtered_log_line.message.to_lowercase().contains("fix"));
+
+        let (fixes, features): (Vec<_>, Vec<_>) =
+            filtered_log_lines
+                .into_iter()
+                .partition(|filtered_log_line| {
+                    filtered_log_line.message.to_lowercase().contains("fix")
+                });
 
         // create displayable log lines
         let fixes_logs = write_log_lines(fixes)?;
@@ -96,8 +99,13 @@ impl Cli {
 
         if !skip_file_write {
             // create version changelog
-            let version_changelog =
-                write_changelog_file(&fixes_logs, &features_logs,  &breaking_changes_logs, package, next_version)?;
+            let version_changelog = write_changelog_file(
+                &fixes_logs,
+                &features_logs,
+                &breaking_changes_logs,
+                package,
+                next_version,
+            )?;
 
             // write changelog
             write_changelog(&changelog_path, &version_changelog)?;
