@@ -1016,7 +1016,7 @@ dependencies = [
  "gloo-storage",
  "gloo-timers",
  "gloo-utils",
- "gloo-worker 0.2.1",
+ "gloo-worker",
 ]
 
 [[package]]
@@ -1147,23 +1147,6 @@ dependencies = [
  "js-sys",
  "serde",
  "serde_json",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "gloo-worker"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09110b5555bcafe508cee0fb94308af9aac7a85f980d3c88b270d117c6c6911d"
-dependencies = [
- "anymap2",
- "bincode",
- "gloo-console",
- "gloo-utils",
- "js-sys",
- "serde",
- "slab",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -3427,7 +3410,7 @@ dependencies = [
 name = "yew-agent"
 version = "0.2.0"
 dependencies = [
- "gloo-worker 0.1.2",
+ "gloo-worker",
  "serde",
  "yew",
 ]
