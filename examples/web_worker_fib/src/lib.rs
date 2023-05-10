@@ -55,11 +55,9 @@ impl Component for App {
                     if n > 186 {
                         self.fibonacci_output = format!("Number is too large !!!");
                     } else {
-                        self.worker.send(WorkerInput {
-                            n
-                        });
+                        self.worker.send(WorkerInput { n });
                     }
-                 }
+                }
             }
             Self::Message::WorkerMsg(output) => {
                 // the worker is done!
