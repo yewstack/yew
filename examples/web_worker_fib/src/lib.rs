@@ -51,9 +51,12 @@ impl Component for App {
             Self::Message::RunWorker => {
                 if let Some(input) = self.input_ref.cast::<HtmlInputElement>() {
                     // start the worker off!
-                    self.worker.send(WorkerInput {
-                        n: input.value_as_number() as u32,
-                    });
+                    let n = input.value_as_number() as u128;
+                    if n > 186 {
+                        self.fibonacci_output = "Number is too large !!!".to_string();
+                    } else {
+                        self.worker.send(WorkerInput { n });
+                    }
                 }
             }
             Self::Message::WorkerMsg(output) => {
@@ -73,7 +76,7 @@ impl Component for App {
                 <p>{ "Large numbers will take some time!" }</p>
                 <h3>{ "Output: " } { &self.fibonacci_output }</h3>
                 <br />
-                <input ref={self.input_ref.clone()} type="number" value="44" max="50"/>
+                <input ref={self.input_ref.clone()} type="number" max="186"/>
                 <button onclick={ctx.link().callback(|_| Message::RunWorker)}>{ "submit" }</button>
                 <br /> <br />
                 <h3>{ "Main thread value: " } { self.clicker_value }</h3>

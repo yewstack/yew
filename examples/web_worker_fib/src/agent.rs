@@ -7,12 +7,12 @@ pub struct Worker {
 
 #[derive(Serialize, Deserialize)]
 pub struct WorkerInput {
-    pub n: u32,
+    pub n: u128,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct WorkerOutput {
-    pub value: u32,
+    pub value: u128,
 }
 
 impl yew_agent::Worker for Worker {
@@ -36,12 +36,16 @@ impl yew_agent::Worker for Worker {
 
         let n = msg.n;
 
-        fn fib(n: u32) -> u32 {
-            if n <= 1 {
-                1
-            } else {
-                fib(n - 1) + fib(n - 2)
+        fn fib(n: u128) -> u128 {
+            let mut sum = 0;
+            let mut last = 0;
+            let mut curr = 1;
+            for _i in 1..n {
+                sum = last + curr;
+                last = curr;
+                curr = sum;
             }
+            sum
         }
 
         let output = Self::Output { value: fib(n) };
