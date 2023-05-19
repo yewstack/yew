@@ -237,23 +237,55 @@ impl HtmlChildrenTree {
 
     pub fn to_build_vec_token_stream(&self) -> TokenStream {
         let Self(children) = self;
-
         if self.only_single_node_children() {
             // optimize for the common case where all children are single nodes (only using literal
             // html).
-            let children_into = children
-                .iter()
-                .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
-            return quote! {
-                ::std::vec![#(#children_into),*]
-            };
+            let children_into = children.iter().map(|child| {
+                if let HtmlTree::If(if_clause) = child {
+                    html_if::HtmlIfIterItem(if_clause.as_ref())
+                        .to_node_iterator_stream()
+                        .unwrap()
+                } else {
+                    quote_spanned! {child.span()=> ::std::option::Option::Some(::std::convert::Into::into(#child)) }
+                }
+            });
+
+            return quote! {{
+                use ::std::iter::IntoIterator;
+                use ::std::iter::Iterator;
+                [#(#children_into),*].into_iter().filter(|x: &::std::option::Option<_>| x.is_some()).map(|x| x.unwrap()).collect::<::std::vec::Vec<_>>()
+            }};
         }
 
         let vec_ident = Ident::new("__yew_v", Span::mixed_site());
         let add_children_streams = children.iter().map(|child| {
             if let Some(node_iterator_stream) = child.to_node_iterator_stream() {
-                quote! {
-                    ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
+                if let HtmlTree::If(if_clause) = child {
+                    let tokens = html_if::HtmlIfIterItem(if_clause.as_ref())
+                        .to_node_iterator_stream()
+                        .unwrap();
+
+                    quote! {
+                        if let ::std::option::Option::Some(iter) = #tokens {
+                            ::std::iter::Extend::extend(&mut #vec_ident, iter)
+                        } else {
+                            #vec_ident
+                        }
+                    }
+                } else {
+                    quote! {
+                        ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
+                    }
+                }
+            } else if let HtmlTree::If(if_clause) = child {
+                let tokens = html_if::HtmlIfIterItem(if_clause.as_ref())
+                    .to_node_iterator_stream()
+                    .unwrap();
+
+                quote_spanned! {child.span()=>
+                    if let ::std::option::Option::Some(iter) = ::std::convert::Into::into(#tokens) {
+                        #vec_ident.push(iter)
+                    }
                 }
             } else {
                 quote_spanned! {child.span()=>

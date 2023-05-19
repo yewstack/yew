@@ -1,6 +1,6 @@
 use boolinator::Boolinator;
 use proc_macro2::TokenStream;
-use quote::{quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -136,6 +136,38 @@ impl ToTokens for HtmlRootBracedOrIf {
         match self {
             Self::Branch(x) => x.to_tokens(tokens),
             Self::If(x) => x.to_tokens(tokens),
+        }
+    }
+}
+
+pub struct HtmlIfIterItem<'a>(pub &'a HtmlIf);
+
+impl<'a> ToNodeIterator for HtmlIfIterItem<'a> {
+    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
+        let HtmlIf {
+            if_token,
+            cond,
+            then_branch,
+            else_branch,
+            ..
+        } = &self.0;
+
+        if else_branch.is_none() {
+            // This slightly awkward syntax is necessary to defeat stable's
+            // [`clippy::manual_map`] lint.
+            let new_tokens = quote_spanned! {if_token.span()=>
+                if #cond {
+                    let _x = ::std::convert::Into::into(#then_branch);
+                    ::std::option::Option::Some(_x)
+                } else {
+                    ::std::option::Option::None
+                }
+            };
+
+            Some(new_tokens)
+        } else {
+            let new_tokens = self.0.to_node_iterator_stream().unwrap();
+            Some(quote! { ::std::option::Option::Some(#new_tokens) })
         }
     }
 }

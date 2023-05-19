@@ -1175,7 +1175,6 @@ mod tests_without_browser {
             },
             html! {
                 <div>
-                    <></>
                 </div>
             },
         );
@@ -1265,7 +1264,7 @@ mod tests_without_browser {
                     }
                 </div>
             },
-            html! { <div><></></div> },
+            html! { <div></div> },
         );
     }
 }
