@@ -82,6 +82,9 @@ description: 'Community projects built using yew'
 -   [Yew Form](https://github.com/jfbilodeau/yew_form) - Components to simplify handling forms with Yew.
 -   [yew-component-size](https://github.com/AircastDev/yew-component-size) - A Yew component that emits events when the parent component changes width/height.
 -   [yew-virtual-scroller](https://github.com/AircastDev/yew-virtual-scroller) - A Yew component for virtual scrolling / scroll windowing.
+-   [yew-autoprops](https://crates.io/crates/yew-autoprops) - proc-macro to automatically derive Properties structs from args for Yew components.
+
+
 
 ### Hooks
 
