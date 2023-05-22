@@ -84,8 +84,6 @@ description: 'Community projects built using yew'
 -   [yew-virtual-scroller](https://github.com/AircastDev/yew-virtual-scroller) - A Yew component for virtual scrolling / scroll windowing.
 -   [yew-autoprops](https://crates.io/crates/yew-autoprops) - proc-macro to automatically derive Properties structs from args for Yew components.
 
-
-
 ### Hooks
 
 -   [yew-hooks](https://github.com/jetli/yew-hooks) - Custom Hooks library for Yew, inspired by [streamich/react-use](https://github.com/streamich/react-use) and [alibaba/hooks](https://github.com/alibaba/hooks).
