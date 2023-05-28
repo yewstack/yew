@@ -1,12 +1,15 @@
 # Security Policy
 
-## Reporting a Vulnerability
+### Reporting a Vulnerability
 
-To report a security vulnerability, please email the maintainers at `maintainers@yew.rs`. Please do not create a Github issue
-for security vulnerabilities.
+To report a security vulnerability, please reach out to the maintainers at maintainers@yew.rs via email. 
 
-If you can, please include the following details:
-* An MCVE (minimum complete verifiable example) – this is a short code snippet which demonstrates the error in the 
-the simplest possible (or just a simple) way.
-* Which versions of Yew the vulnerability is present in
-* What effects the vulnerability has and how serious the vulnerability is
+We kindly request that you refrain from creating a GitHub issue for security vulnerabilities.
+
+When reporting the vulnerability, please provide the following information, if possible:
+
+- **MCVE (Minimum Complete Verifiable Example)**: Please include a concise code snippet that demonstrates the error in a simplified manner.
+
+- **Versions of Yew**: Specify the versions of Yew in which the vulnerability is present. This helps us narrow down the scope of the issue and assess its impact accurately.
+
+- **Impact and Severity**: Describe the effects of the vulnerability and its seriousness. Provide details about any potential risks, security breaches, or the impact it may have on the system.
