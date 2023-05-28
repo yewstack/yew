@@ -1,6 +1,6 @@
 # Security Policy
 
-### Reporting a Vulnerability
+## Reporting a Vulnerability
 
 To report a security vulnerability, please reach out to the maintainers at maintainers@yew.rs via email. 
 
