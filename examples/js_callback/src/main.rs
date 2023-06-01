@@ -11,7 +11,7 @@ static WASM_BINDGEN_SNIPPETS_PATH: OnceCell<String> = OnceCell::new();
 
 #[function_component]
 fn Important() -> Html {
-    let msg = use_memo(|_| bindings::hello(), ());
+    let msg = use_memo((), |_| bindings::hello());
     html! {
         <>
             <h2>{"Important"}</h2>

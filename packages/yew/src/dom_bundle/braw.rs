@@ -125,6 +125,34 @@ impl Reconcilable for VRaw {
     }
 }
 
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use super::*;
+    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::virtual_dom::Collectable;
+
+    impl Hydratable for VRaw {
+        fn hydrate(
+            self,
+            _root: &BSubtree,
+            _parent_scope: &AnyScope,
+            parent: &Element,
+            fragment: &mut Fragment,
+        ) -> Self::Bundle {
+            let collectable = Collectable::Raw;
+            let fallback_fragment = Fragment::collect_between(fragment, &collectable, parent);
+
+            let Self { html } = self;
+
+            BRaw {
+                children_count: fallback_fragment.len(),
+                reference: fallback_fragment.iter().next().cloned(),
+                html,
+            }
+        }
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {

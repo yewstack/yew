@@ -4,7 +4,7 @@ use web_sys::{Element, Node};
 
 use super::VNode;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VPortal {
     /// The element under which the content is inserted.
     pub host: Element,

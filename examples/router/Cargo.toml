@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 instant = { version = "0.1", features = ["wasm-bindgen"] }
-lipsum = "0.8.2"
+lipsum = "0.9.0"
 log = "0.4"
 getrandom = { version = "0.2", features = ["js"] }
 rand = { version = "0.8", features = ["small_rng"] }

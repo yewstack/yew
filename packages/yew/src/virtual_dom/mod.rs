@@ -64,21 +64,32 @@ mod feat_ssr_hydration {
     /// This indicates a kind that can be collected from fragment to be processed at a later time
     pub enum Collectable {
         Component(ComponentName),
+        Raw,
         Suspense,
     }
 
     impl Collectable {
+        #[cfg(not(debug_assertions))]
+        #[inline(always)]
         pub fn for_component<T: 'static>() -> Self {
-            #[cfg(debug_assertions)]
+            use std::marker::PhantomData;
+            // This suppresses the clippy lint about unused generic.
+            // We inline this function
+            // so the function body is copied to its caller and generics get optimised away.
+            let _comp_type: PhantomData<T> = PhantomData;
+            Self::Component(PhantomData)
+        }
+
+        #[cfg(debug_assertions)]
+        pub fn for_component<T: 'static>() -> Self {
             let comp_name = std::any::type_name::<T>();
-            #[cfg(not(debug_assertions))]
-            let comp_name = std::marker::PhantomData;
             Self::Component(comp_name)
         }
 
         pub fn open_start_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "<[",
+                Self::Raw => "<#",
                 Self::Suspense => "<?",
             }
         }
@@ -86,6 +97,7 @@ mod feat_ssr_hydration {
         pub fn close_start_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "</[",
+                Self::Raw => "</#",
                 Self::Suspense => "</?",
             }
         }
@@ -93,6 +105,7 @@ mod feat_ssr_hydration {
         pub fn end_mark(&self) -> &'static str {
             match self {
                 Self::Component(_) => "]>",
+                Self::Raw => ">",
                 Self::Suspense => ">",
             }
         }
@@ -104,6 +117,7 @@ mod feat_ssr_hydration {
                 Self::Component(m) => format!("Component({m})").into(),
                 #[cfg(not(debug_assertions))]
                 Self::Component(_) => "Component".into(),
+                Self::Raw => "Raw".into(),
                 Self::Suspense => "Suspense".into(),
             }
         }
@@ -130,6 +144,7 @@ mod feat_ssr {
                 Self::Component(type_name) => {
                     let _ = w.write_str(type_name);
                 }
+                Self::Raw => {}
                 Self::Suspense => {}
             }
 
@@ -146,6 +161,7 @@ mod feat_ssr {
                 Self::Component(type_name) => {
                     let _ = w.write_str(type_name);
                 }
+                Self::Raw => {}
                 Self::Suspense => {}
             }
 

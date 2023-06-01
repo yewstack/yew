@@ -492,6 +492,11 @@ serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen-futures = "0.4"
 ```
 
+:::note
+When choosing dependencies make sure they are `wasm32` compatible!
+Otherwise you won't be able to run your application.
+:::
+
 Update the `Video` struct to derive the `Deserialize` trait:
 
 ```rust ,ignore {1, 3-4}
@@ -520,7 +525,7 @@ fn app() -> Html {
 +    let videos = use_state(|| vec![]);
 +    {
 +        let videos = videos.clone();
-+        use_effect_with_deps(move |_| {
++        use_effect_with((), move |_| {
 +            let videos = videos.clone();
 +            wasm_bindgen_futures::spawn_local(async move {
 +                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
@@ -533,7 +538,7 @@ fn app() -> Html {
 +                videos.set(fetched_videos);
 +            });
 +            || ()
-+        }, ());
++        });
 +    }
 
     // ...

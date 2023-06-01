@@ -43,14 +43,11 @@ async fn multiple_use_state_setters() {
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
-        use_effect_with_deps(
-            move |_| {
-                // 1st location
-                counter_clone.set(*counter_clone + 1);
-                || {}
-            },
-            (),
-        );
+        use_effect_with((), move |_| {
+            // 1st location
+            counter_clone.set(*counter_clone + 1);
+            || {}
+        });
         let another_scope = {
             let counter = counter.clone();
             move || {

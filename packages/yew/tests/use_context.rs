@@ -240,8 +240,8 @@ async fn use_context_update_works() {
         html! {
             <MyContextProvider context={Rc::new((*ctx).clone())}>
                 <RenderCounter id="test-0">
-                    <ContextOutlet id="test-1"/>
-                    <ContextOutlet id="test-2" {magic}/>
+                    <ContextOutlet id="test-1" />
+                    <ContextOutlet id="test-2" {magic} />
                 </RenderCounter>
             </MyContextProvider>
         }
@@ -254,8 +254,8 @@ async fn use_context_update_works() {
 
     sleep(Duration::ZERO).await;
 
-    // 1 initial render + 3 update steps
-    assert_eq!(obtain_result_by_id("test-0"), "total: 4");
+    // 1 initial render + 1 magic
+    assert_eq!(obtain_result_by_id("test-0"), "total: 2");
 
     // 1 initial + 2 context update
     assert_eq!(

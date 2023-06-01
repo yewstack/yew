@@ -24,12 +24,12 @@ wasm-bindgen-futures = "0.4"
 wasm-logger = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.26.0", features = ["full"] }
-axum = "0.5"
+tokio = { version = "1.28.1", features = ["full"] }
+axum = "0.6"
 tower = { version = "0.4", features = ["make"] }
 tower-http = { version = "0.3", features = ["fs"] }
-env_logger = "0.9"
-clap = { version = "3.1.7", features = ["derive"] }
+env_logger = "0.10"
+clap = { version = "4", features = ["derive"] }
 hyper = { version = "0.14", features = ["server", "http1"] }
 jemallocator = "0.5"
 

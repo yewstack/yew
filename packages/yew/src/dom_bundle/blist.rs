@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
+use std::rc::Rc;
 
 use web_sys::Element;
 
@@ -20,6 +21,22 @@ pub(super) struct BList {
     /// All [BNode]s in the BList have keys
     fully_keyed: bool,
     key: Option<Key>,
+}
+
+impl VList {
+    // Splits a VList for creating / reconciling to a BList.
+    fn split_for_blist(self) -> (Option<Key>, bool, Vec<VNode>) {
+        let fully_keyed = self.fully_keyed();
+
+        let children = self
+            .children
+            .map(Rc::try_unwrap)
+            .unwrap_or_else(|| Ok(Vec::new()))
+            // Rc::unwrap_or_clone is not stable yet.
+            .unwrap_or_else(|m| m.to_vec());
+
+        (self.key, fully_keyed, children)
+    }
 }
 
 impl Deref for BList {
@@ -397,7 +414,7 @@ impl Reconcilable for VList {
     }
 
     fn reconcile(
-        mut self,
+        self,
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: &Element,
@@ -412,16 +429,16 @@ impl Reconcilable for VList {
         // The left items are known since we want to insert them
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
+        let (key, mut fully_keyed, mut lefts) = self.split_for_blist();
 
-        if self.children.is_empty() {
+        if lefts.is_empty() {
             // Without a placeholder the next element becomes first
             // and corrupts the order of rendering
             // We use empty text element to stake out a place
-            self.add_child(VText::new("").into());
+            lefts.push(VText::new("").into());
+            fully_keyed = false;
         }
 
-        let fully_keyed = self.fully_keyed();
-        let lefts = self.children;
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
@@ -435,7 +452,7 @@ impl Reconcilable for VList {
             BList::apply_unkeyed(root, parent_scope, parent, slot, lefts, rights)
         };
         blist.fully_keyed = fully_keyed;
-        blist.key = self.key;
+        blist.key = key;
         test_log!("result: {:?}", rights);
         first
     }
@@ -454,8 +471,8 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
         ) -> Self::Bundle {
-            let fully_keyed = self.fully_keyed();
-            let vchildren = self.children;
+            let (key, fully_keyed, vchildren) = self.split_for_blist();
+
             let mut children = Vec::with_capacity(vchildren.len());
 
             for child in vchildren.into_iter() {
@@ -469,7 +486,7 @@ mod feat_hydration {
             BList {
                 rev_children: children,
                 fully_keyed,
-                key: self.key,
+                key,
             }
         }
     }

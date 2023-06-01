@@ -116,10 +116,10 @@ fn NavButton() -> Html {
 
 #[function_component]
 fn App() -> Html {
-    let theme = use_memo(|_| Theme {
+    let theme = use_memo((), |_| Theme {
         foreground: "yellow".to_owned(),
         background: "pink".to_owned(),
-    }, ());
+    });
 
     html! {
         <ContextProvider<Rc<Theme>> context={theme}>

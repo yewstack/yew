@@ -8,7 +8,8 @@ use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
-use tabled::{Style, TableIteratorExt, Tabled};
+use tabled::settings::Style;
+use tabled::{Table, Tabled};
 use tokio::task::{spawn_local, LocalSet};
 use yew::platform::time::sleep;
 use yew::prelude::*;
@@ -77,6 +78,56 @@ async fn bench_router_app() -> Duration {
         })
         .render()
         .await;
+    }
+
+    start_time.elapsed()
+}
+
+async fn bench_many_providers() -> Duration {
+    static TOTAL: usize = 250_000;
+
+    #[derive(Properties, PartialEq, Clone)]
+    struct ProviderProps {
+        children: Children,
+    }
+
+    #[function_component]
+    fn Provider(props: &ProviderProps) -> Html {
+        let ProviderProps { children } = props.clone();
+
+        html! {<>{children}</>}
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        // Let's make 10 providers.
+        html! {
+            <Provider>
+                <Provider>
+                    <Provider>
+                        <Provider>
+                            <Provider>
+                                <Provider>
+                                    <Provider>
+                                        <Provider>
+                                            <Provider>
+                                                <Provider>{"Hello, World!"}</Provider>
+                                            </Provider>
+                                        </Provider>
+                                    </Provider>
+                                </Provider>
+                            </Provider>
+                        </Provider>
+                    </Provider>
+                </Provider>
+            </Provider>
+        }
+    }
+
+    let start_time = Instant::now();
+
+    for _ in 0..TOTAL {
+        yew::LocalServerRenderer::<App>::new().render().await;
     }
 
     start_time.elapsed()
@@ -214,12 +265,13 @@ async fn main() {
     let args = Args::parse();
 
     // Tests in each round.
-    static TESTS: usize = 4;
+    static TESTS: usize = 5;
 
     let mut baseline_results = Vec::with_capacity(args.rounds);
     let mut hello_world_results = Vec::with_capacity(args.rounds);
     let mut function_router_results = Vec::with_capacity(args.rounds);
     let mut concurrent_tasks_results = Vec::with_capacity(args.rounds);
+    let mut many_provider_results = Vec::with_capacity(args.rounds);
 
     let bar = (!args.no_term).then(|| create_progress(TESTS, args.rounds));
 
@@ -266,6 +318,14 @@ async fn main() {
                         bar.inc(1);
                     }
                 }
+
+                let dur = bench_many_providers().await;
+                if i > 0 {
+                    many_provider_results.push(dur);
+                    if let Some(ref bar) = bar {
+                        bar.inc(1);
+                    }
+                }
             }
         })
         .await;
@@ -280,9 +340,10 @@ async fn main() {
         Statistics::from_results("Hello World", args.rounds, hello_world_results),
         Statistics::from_results("Function Router", args.rounds, function_router_results),
         Statistics::from_results("Concurrent Task", args.rounds, concurrent_tasks_results),
+        Statistics::from_results("Many Providers", args.rounds, many_provider_results),
     ];
 
-    println!("{}", output.as_ref().table().with(Style::rounded()));
+    println!("{}", Table::new(&output).with(Style::rounded()));
 
     if let Some(ref p) = args.output_path {
         let mut f = File::create(p).expect("failed to write output.");

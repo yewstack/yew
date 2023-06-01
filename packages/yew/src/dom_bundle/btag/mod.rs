@@ -4,6 +4,8 @@ mod attributes;
 mod listeners;
 
 use std::borrow::Cow;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
@@ -15,7 +17,7 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BList, BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, SVG_NAMESPACE};
+use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
 
@@ -232,6 +234,7 @@ impl Reconcilable for VTag {
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
         let tag = self.tag();
+
         if tag == "svg"
             || parent
                 .namespace_uri()
@@ -241,10 +244,41 @@ impl VTag {
             document()
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
-        } else {
+        } else if tag == "math"
+            || parent
+                .namespace_uri()
+                .map_or(false, |ns| ns == MATHML_NAMESPACE)
+        {
+            let namespace = Some(MATHML_NAMESPACE);
             document()
-                .create_element(tag)
-                .expect("can't create element for vtag")
+                .create_element_ns(namespace, tag)
+                .expect("can't create namespaced element for vtag")
+        } else {
+            thread_local! {
+                static CACHED_ELEMENTS: RefCell<HashMap<String, Element>> = RefCell::new(HashMap::with_capacity(32));
+            }
+
+            CACHED_ELEMENTS.with(|cache| {
+                let mut cache = cache.borrow_mut();
+                let cached = cache.get(tag).map(|el| {
+                    el.clone_node()
+                        .expect("couldn't clone cached element")
+                        .unchecked_into::<Element>()
+                });
+                cached.unwrap_or_else(|| {
+                    let to_be_cached = document()
+                        .create_element(tag)
+                        .expect("can't create element for vtag");
+                    cache.insert(
+                        tag.to_string(),
+                        to_be_cached
+                            .clone_node()
+                            .expect("couldn't clone node to be cached")
+                            .unchecked_into(),
+                    );
+                    to_be_cached
+                })
+            })
         }
     }
 }
@@ -586,6 +620,19 @@ mod tests {
         let g_tag = assert_vtag(g_node);
         let (_, g_tag) = g_tag.attach(&root, &scope, &svg_el, DomSlot::at_end());
         assert_namespace(&g_tag, SVG_NAMESPACE);
+    }
+
+    #[test]
+    fn supports_mathml() {
+        let (root, scope, parent) = setup_parent();
+        let mfrac_node = html! { <mfrac> </mfrac> };
+        let math_node = html! { <math>{mfrac_node}</math> };
+
+        let math_tag = assert_vtag(math_node);
+        let (_, math_tag) = math_tag.attach(&root, &scope, &parent, DomSlot::at_end());
+        assert_namespace(&math_tag, MATHML_NAMESPACE);
+        let mfrac_tag = assert_btag_ref(math_tag.children().get(0).unwrap());
+        assert_namespace(mfrac_tag, MATHML_NAMESPACE);
     }
 
     #[test]
