@@ -34,7 +34,7 @@ jobs:
         run: ./ci/build-examples.sh
 
       - name: Deploy to Firebase
-        uses: siku2/action-hosting-deploy@v0
+        uses: siku2/action-hosting-deploy@v1
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"

@@ -81,28 +81,22 @@ pub fn ProgressDelay(props: &Props) -> Html {
 
     {
         let value = value.clone();
-        use_effect_with_deps(
-            move |_| {
-                let interval = (duration_ms / RESOLUTION).min(MIN_INTERVAL_MS);
-                let interval = Interval::new(interval, move || value.dispatch(ValueAction::Tick));
+        use_effect_with((), move |_| {
+            let interval = (duration_ms / RESOLUTION).min(MIN_INTERVAL_MS);
+            let interval = Interval::new(interval, move || value.dispatch(ValueAction::Tick));
 
-                || {
-                    let _interval = interval;
-                }
-            },
-            (),
-        );
+            || {
+                let _interval = interval;
+            }
+        });
     }
 
     {
         let value = value.clone();
-        use_effect_with_deps(
-            move |props| {
-                value.dispatch(ValueAction::Props(props.clone()));
-                || {}
-            },
-            props.clone(),
-        );
+        use_effect_with(props.clone(), move |props| {
+            value.dispatch(ValueAction::Props(props.clone()));
+            || {}
+        });
     }
 
     let value = &value.value;

@@ -91,6 +91,8 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
         "reversed",
         "selected",
         "truespeed",
+        // Not-yet-standardized
+        "webkitdirectory",
     ]
     .into()
 });

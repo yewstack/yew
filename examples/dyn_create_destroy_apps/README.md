@@ -2,20 +2,14 @@
 
 An example of how to create and destroy Yew apps on demand.
 
-## Running
-
-Run a debug version of this application:
-
-```bash
-trunk serve
-```
-
-Run a release version of this application:
-
-```bash
-trunk serve --release
-```
-
 ## Concepts
 
 Demonstrates the use of the Yew app handle by dynamically creating and destroying apps.
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

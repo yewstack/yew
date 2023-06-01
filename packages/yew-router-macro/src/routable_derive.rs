@@ -65,7 +65,7 @@ fn parse_variants_attributes(
         let attrs = &variant.attrs;
         let at_attrs = attrs
             .iter()
-            .filter(|attr| attr.path.is_ident(AT_ATTR_IDENT))
+            .filter(|attr| attr.path().is_ident(AT_ATTR_IDENT))
             .collect::<Vec<_>>();
 
         let attr = match at_attrs.len() {
@@ -104,7 +104,7 @@ fn parse_variants_attributes(
         ats.push(lit);
 
         for attr in attrs.iter() {
-            if attr.path.is_ident(NOT_FOUND_ATTR_IDENT) {
+            if attr.path().is_ident(NOT_FOUND_ATTR_IDENT) {
                 not_found_attrs.push(attr);
                 not_founds.push(variant.ident.clone())
             }

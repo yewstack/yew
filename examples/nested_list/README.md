@@ -13,3 +13,11 @@ This example shows a nested list and displays which item was last hovered.
 
 - `ListItem` Component has a `hide` prop which is currently only used statically.
   It should be possible to make the hidden items visible by pressing a button.
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

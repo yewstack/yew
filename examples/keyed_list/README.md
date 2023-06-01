@@ -4,13 +4,9 @@
 
 This example consists of a list which can be manipulated in various ways.
 
-## Running
+### Notes
 
-Because this example is a performance demonstration you should use it with the `--release` flag:
-
-```bash
-trunk serve --release
-```
+If you would like to view this example as a performance demonstation, run this example in `release` mode.
 
 ## Concepts
 
@@ -21,3 +17,11 @@ Demonstrates how using keyed elements improves the performance of comparing chan
 - Improve the name and address generation so that they don't look like gibberish
 - Show the time it took to update the DOM on the page instead of just the console
 - Improve the presentation of the example with CSS
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

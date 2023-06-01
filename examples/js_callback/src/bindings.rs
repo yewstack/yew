@@ -1,9 +1,12 @@
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
+// https://github.com/rustwasm/wasm-bindgen/issues/3208
+#[wasm_bindgen(inline_js = "export function import2(path) { return import(path); }")]
 extern "C" {
     // this should be in js-sys but is not. see https://github.com/rustwasm/wasm-bindgen/issues/2865
-    pub fn import(s: &str) -> js_sys::Promise;
+    // pub fn import(s: &str) -> js_sys::Promise;
+    #[wasm_bindgen(js_name = "import2")]
+    pub fn import(name: &str) -> js_sys::Promise;
 
     pub type Window;
 

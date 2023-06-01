@@ -15,7 +15,8 @@ use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, Suspension, SuspensionResult};
-use yew::{Renderer, ServerRenderer};
+use yew::virtual_dom::VNode;
+use yew::{function_component, Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -91,6 +92,60 @@ async fn hydration_works() {
     assert_eq!(
         result,
         r#"<div><div>Counter: 1<button class="increase">+1</button></div></div>"#
+    );
+}
+
+#[wasm_bindgen_test]
+async fn hydration_with_raw() {
+    #[function_component(Content)]
+    fn content() -> Html {
+        let vnode = VNode::from_html_unchecked("<div><p>Hello World</p></div>".into());
+
+        html! {
+            <div class="content-area">
+                {vnode}
+            </div>
+        }
+    }
+
+    #[function_component(App)]
+    fn app() -> Html {
+        html! {
+            <div id="result">
+                <Content />
+            </div>
+        }
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    sleep(Duration::from_millis(10)).await;
+
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    let result = obtain_result();
+
+    // still hydrating, during hydration, the server rendered result is shown.
+    assert_eq!(
+        result.as_str(),
+        r#"<!--<[hydration::hydration_with_raw::{{closure}}::Content]>--><div class="content-area"><!--<#>--><div><p>Hello World</p></div><!--</#>--></div><!--</[hydration::hydration_with_raw::{{closure}}::Content]>-->"#
+    );
+
+    sleep(Duration::from_millis(50)).await;
+
+    let result = obtain_result();
+
+    // hydrated.
+    assert_eq!(
+        result.as_str(),
+        r#"<div class="content-area"><div><p>Hello World</p></div></div>"#
     );
 }
 
@@ -922,13 +977,10 @@ async fn hydration_props_blocked_until_hydrated() {
         let range = use_state(|| 0u32..2);
         {
             let range = range.clone();
-            use_effect_with_deps(
-                move |_| {
-                    range.set(0..3);
-                    || ()
-                },
-                (),
-            );
+            use_effect_with((), move |_| {
+                range.set(0..3);
+                || ()
+            });
         }
 
         html! {
@@ -985,13 +1037,10 @@ async fn hydrate_empty() {
         let trigger = use_state(|| false);
         {
             let trigger = trigger.clone();
-            use_effect_with_deps(
-                move |_| {
-                    trigger.set(true);
-                    || {}
-                },
-                (),
-            );
+            use_effect_with((), move |_| {
+                trigger.set(true);
+                || {}
+            });
         }
         if *trigger {
             html! { <div>{"after"}</div> }

@@ -52,6 +52,7 @@ description: 'Community projects built using yew'
 -   [viz.rs](https://github.com/viz-rs/viz-rs.github.io) - A website for viz web framework, [Live Demo](https://viz.rs/).
 -   [hurlurl](https://github.com/lucasmerlin/hurlurl) - A randomizing link shortener, [Live Demo](https://hurlurl.com/).
 -   [Macige](https://github.com/tramlinehq/macige) - CI workflow generator for mobile app development, [Live Demo](https://macige.tramline.app).
+-   [Spaceman](https://github.com/eliaperantoni/spaceman) - A cross-platform and graphical client for the gRPC communication protocol.
 
 ## Templates
 

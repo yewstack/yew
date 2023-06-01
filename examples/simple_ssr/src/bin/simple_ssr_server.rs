@@ -13,7 +13,7 @@ type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 #[derive(Parser, Debug)]
 struct Opt {
     /// the "dist" created by trunk directory to be served for hydration.
-    #[structopt(short, long, parse(from_os_str))]
+    #[structopt(short, long)]
     dir: PathBuf,
 }
 
