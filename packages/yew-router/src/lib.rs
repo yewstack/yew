@@ -80,7 +80,6 @@ pub mod utils;
 pub use routable::{AnyRoute, Routable};
 pub use router::{BrowserRouter, HashRouter, Router};
 pub use switch::Switch;
-pub use urlencoding::encode as encode_for_url;
 
 pub mod history {
     //! A module that provides universal session history and location information.

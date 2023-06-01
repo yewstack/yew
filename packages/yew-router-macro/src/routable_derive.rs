@@ -176,7 +176,7 @@ impl Routable {
                     }
 
                     quote! {
-                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = ::yew_router::encode_for_url(&::std::format!("{}", #fields))),*)
+                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = ::yew_router::__macro::encode_for_url(&::std::format!("{}", #fields))),*)
                     }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked
