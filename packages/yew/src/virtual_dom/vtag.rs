@@ -621,4 +621,27 @@ mod ssr_tests {
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
+
+    #[test]
+    async fn test_style_gt() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! {
+                <>
+                    <style>{"body > a {color: #cc0;}"}</style>
+                    <p>{"This is a test : > it works ?"}</p>
+                </>
+            }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(
+            s,
+            r#"<style>body > a {color: #cc0;}</style><p>This is a test : > it works ?</p>"#
+        );
+    }
 }
