@@ -8,7 +8,8 @@ use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
-use tabled::{Style, TableIteratorExt, Tabled};
+use tabled::settings::Style;
+use tabled::{Table, Tabled};
 use tokio::task::{spawn_local, LocalSet};
 use yew::platform::time::sleep;
 use yew::prelude::*;
@@ -341,7 +342,7 @@ async fn main() {
         Statistics::from_results("Many Providers", args.rounds, many_provider_results),
     ];
 
-    println!("{}", output.as_ref().table().with(Style::rounded()));
+    println!("{}", Table::new(&output).with(Style::rounded()));
 
     if let Some(ref p) = args.output_path {
         let mut f = File::create(p).expect("failed to write output.");

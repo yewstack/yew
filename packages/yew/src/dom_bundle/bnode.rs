@@ -267,9 +267,7 @@ mod feat_hydration {
                 VNode::VSuspense(vsuspense) => vsuspense
                     .hydrate(root, parent_scope, parent, fragment)
                     .into(),
-                VNode::VRaw(_) => {
-                    panic!("VRaw is not hydratable (raw HTML string cannot be hydrated)")
-                }
+                VNode::VRaw(vraw) => vraw.hydrate(root, parent_scope, parent, fragment).into(),
             }
         }
     }

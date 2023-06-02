@@ -39,14 +39,11 @@ async fn use_effect_destroys_on_component_drop() {
     fn use_effect_comp(props: &FunctionProps) -> Html {
         let effect_called = props.effect_called.clone();
         let destroy_called = props.destroy_called.clone();
-        use_effect_with_deps(
-            move |_| {
-                effect_called();
-                #[allow(clippy::redundant_closure)] // Otherwise there is a build error
-                move || destroy_called()
-            },
-            (),
-        );
+        use_effect_with((), move |_| {
+            effect_called();
+            #[allow(clippy::redundant_closure)] // Otherwise there is a build error
+            move || destroy_called()
+        });
         html! {}
     }
 
@@ -87,15 +84,12 @@ async fn use_effect_works_many_times() {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
 
-        use_effect_with_deps(
-            move |_| {
-                if *counter_clone < 4 {
-                    counter_clone.set(*counter_clone + 1);
-                }
-                || {}
-            },
-            *counter,
-        );
+        use_effect_with(*counter, move |_| {
+            if *counter_clone < 4 {
+                counter_clone.set(*counter_clone + 1);
+            }
+            || {}
+        });
 
         html! {
             <div>
@@ -123,13 +117,10 @@ async fn use_effect_works_once() {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
 
-        use_effect_with_deps(
-            move |_| {
-                counter_clone.set(*counter_clone + 1);
-                || panic!("Destructor should not have been called")
-            },
-            (),
-        );
+        use_effect_with((), move |_| {
+            counter_clone.set(*counter_clone + 1);
+            || panic!("Destructor should not have been called")
+        });
 
         html! {
             <div>
@@ -161,24 +152,21 @@ async fn use_effect_refires_on_dependency_change() {
         let number_ref2_c = number_ref2.clone();
         let arg = *number_ref.borrow_mut().deref_mut();
         let counter = use_state(|| 0);
-        use_effect_with_deps(
-            move |dep| {
-                let mut ref_mut = number_ref_c.borrow_mut();
-                let inner_ref_mut = ref_mut.deref_mut();
-                if *inner_ref_mut < 1 {
-                    *inner_ref_mut += 1;
-                    assert_eq!(dep, &0);
-                } else {
-                    assert_eq!(dep, &1);
-                }
-                counter.set(10); // we just need to make sure it does not panic
-                move || {
-                    counter.set(11);
-                    *number_ref2_c.borrow_mut().deref_mut() += 1;
-                }
-            },
-            arg,
-        );
+        use_effect_with(arg, move |dep| {
+            let mut ref_mut = number_ref_c.borrow_mut();
+            let inner_ref_mut = ref_mut.deref_mut();
+            if *inner_ref_mut < 1 {
+                *inner_ref_mut += 1;
+                assert_eq!(dep, &0);
+            } else {
+                assert_eq!(dep, &1);
+            }
+            counter.set(10); // we just need to make sure it does not panic
+            move || {
+                counter.set(11);
+                *number_ref2_c.borrow_mut().deref_mut() += 1;
+            }
+        });
         html! {
             <div>
                 {"The test result is"}

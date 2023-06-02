@@ -40,13 +40,10 @@ async fn use_reducer_works() {
         let counter = use_reducer(|| CounterState { counter: 10 });
 
         let counter_clone = counter.clone();
-        use_effect_with_deps(
-            move |_| {
-                counter_clone.dispatch(1);
-                || {}
-            },
-            (),
-        );
+        use_effect_with((), move |_| {
+            counter_clone.dispatch(1);
+            || {}
+        });
         html! {
             <div>
                 {"The test result is"}

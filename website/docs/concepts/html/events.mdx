@@ -369,7 +369,7 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 [supported events listed here](#event-types).
 
 In order to add an event listener to one of elements manually we need the help of
-[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with_deps` we can add a listener using the
+[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with` we can add a listener using the
 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 
@@ -394,7 +394,8 @@ use yew::prelude::*;
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
-    use_effect_with_deps(
+    use_effect_with(
+        div_node_ref.clone(),
         {
             let div_node_ref = div_node_ref.clone();
 
@@ -425,8 +426,7 @@ fn MyComponent() -> Html {
 
                 move || drop(custard_listener)
             }
-        },
-        div_node_ref.clone()
+        }
     );
 
     html! {
@@ -461,7 +461,8 @@ use gloo::events::EventListener;
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
-    use_effect_with_deps(
+    use_effect_with(
+        div_node_ref.clone(),
         {
             let div_node_ref = div_node_ref.clone();
 
@@ -486,8 +487,7 @@ fn MyComponent() -> Html {
 
                 move || drop(custard_listener)
             }
-        },
-        div_node_ref.clone()
+        }
     );
 
     html! {

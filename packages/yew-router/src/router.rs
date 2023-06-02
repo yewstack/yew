@@ -84,26 +84,23 @@ fn base_router(props: &RouterProps) -> Html {
     {
         let loc_ctx_dispatcher = loc_ctx.dispatcher();
 
-        use_effect_with_deps(
-            move |history| {
+        use_effect_with(history, move |history| {
+            let history = history.clone();
+            // Force location update when history changes.
+            loc_ctx_dispatcher.dispatch(history.location());
+
+            let history_cb = {
                 let history = history.clone();
-                // Force location update when history changes.
-                loc_ctx_dispatcher.dispatch(history.location());
+                move || loc_ctx_dispatcher.dispatch(history.location())
+            };
 
-                let history_cb = {
-                    let history = history.clone();
-                    move || loc_ctx_dispatcher.dispatch(history.location())
-                };
+            let listener = history.listen(history_cb);
 
-                let listener = history.listen(history_cb);
-
-                // We hold the listener in the destructor.
-                move || {
-                    std::mem::drop(listener);
-                }
-            },
-            history,
-        );
+            // We hold the listener in the destructor.
+            move || {
+                std::mem::drop(listener);
+            }
+        });
     }
 
     html! {

@@ -178,7 +178,7 @@ where
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
 ///
 /// Whenever the dependencies are changed, the effect callback is called again.
-/// To detect changes, dependencies must implement `PartialEq`.
+/// To detect changes, dependencies must implement [`PartialEq`].
 ///
 /// # Note
 /// The destructor also runs when dependencies change.
@@ -186,7 +186,7 @@ where
 /// # Example
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html, Properties};
+/// use yew::{function_component, html, use_effect_with, Html, Properties};
 /// # use gloo::console::log;
 ///
 /// #[derive(Properties, PartialEq)]
@@ -198,14 +198,13 @@ where
 /// fn HelloWorld(props: &Props) -> Html {
 ///     let is_loading = props.is_loading.clone();
 ///
-///     use_effect_with_deps(
-///         move |_| {
-///             log!(" Is loading prop changed!");
-///         },
-///         is_loading,
-///     );
+///     use_effect_with(is_loading, move |_| {
+///         log!(" Is loading prop changed!");
+///     });
 ///
-///     html! { <>{"Am I loading? - "}{is_loading}</> }
+///     html! {
+///         <>{"Am I loading? - "}{is_loading}</>
+///     }
 /// }
 /// ```
 ///
@@ -217,17 +216,14 @@ where
 /// render of a component.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html};
+/// use yew::{function_component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             log!("I got rendered, yay!");
-///         },
-///         (),
-///     );
+///     use_effect_with((), move |_| {
+///         log!("I got rendered, yay!");
+///     });
 ///
 ///     html! { "Hello" }
 /// }
@@ -239,19 +235,17 @@ where
 /// It will only get called when the component is removed from view / gets destroyed.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html};
+/// use yew::{function_component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             || {
-///                 log!("Noo dont kill me, ahhh!");
-///             }
-///         },
-///         (),
-///     );
+///     use_effect_with((), move |_| {
+///         || {
+///             log!("Noo dont kill me, ahhh!");
+///         }
+///     });
+///
 ///     html! { "Hello" }
 /// }
 /// ```
@@ -261,8 +255,7 @@ where
 /// ### Tip
 ///
 /// The callback can return [`()`] if there is no destructor to run.
-#[hook]
-pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
+pub fn use_effect_with<T, F, D>(deps: T, f: F) -> impl Hook<Output = ()>
 where
     T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,

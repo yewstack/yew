@@ -52,6 +52,7 @@ description: 'Community projects built using yew'
 -   [viz.rs](https://github.com/viz-rs/viz-rs.github.io) - A website for viz web framework, [Live Demo](https://viz.rs/).
 -   [hurlurl](https://github.com/lucasmerlin/hurlurl) - A randomizing link shortener, [Live Demo](https://hurlurl.com/).
 -   [Macige](https://github.com/tramlinehq/macige) - CI workflow generator for mobile app development, [Live Demo](https://macige.tramline.app).
+-   [Spaceman](https://github.com/eliaperantoni/spaceman) - A cross-platform and graphical client for the gRPC communication protocol.
 
 ## Templates
 
@@ -81,6 +82,7 @@ description: 'Community projects built using yew'
 -   [Yew Form](https://github.com/jfbilodeau/yew_form) - Components to simplify handling forms with Yew.
 -   [yew-component-size](https://github.com/AircastDev/yew-component-size) - A Yew component that emits events when the parent component changes width/height.
 -   [yew-virtual-scroller](https://github.com/AircastDev/yew-virtual-scroller) - A Yew component for virtual scrolling / scroll windowing.
+-   [yew-autoprops](https://crates.io/crates/yew-autoprops) - proc-macro to automatically derive Properties structs from args for Yew components.
 
 ### Hooks
 
