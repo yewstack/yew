@@ -1,8 +1,8 @@
 //! This module contains the implementation of abstract virtual node.
 
 use std::cmp::PartialEq;
-use std::fmt;
 use std::iter::FromIterator;
+use std::{fmt, mem};
 
 use web_sys::Node;
 
@@ -12,7 +12,7 @@ use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag>),
@@ -43,7 +43,7 @@ impl VNode {
             VNode::VTag(vtag) => vtag.key.as_ref(),
             VNode::VText(_) => None,
             VNode::VPortal(vportal) => vportal.node.key(),
-            VNode::VSuspense(vsuspense) => vsuspense.key.as_ref(),
+            VNode::VSuspense(_) => None,
             VNode::VRaw(_) => None,
         }
     }
@@ -51,6 +51,20 @@ impl VNode {
     /// Returns true if the [VNode] has a key.
     pub fn has_key(&self) -> bool {
         self.key().is_some()
+    }
+
+    /// Acquires a mutable reference of current VNode as a VList.
+    ///
+    /// Creates a VList with the current node as the first child if current VNode is not a VList.
+    pub fn to_vlist_mut(&mut self) -> &mut VList {
+        loop {
+            match *self {
+                Self::VList(ref mut m) => return m,
+                _ => {
+                    *self = VNode::VList(VList::with_children(vec![mem::take(self)], None));
+                }
+            }
+        }
     }
 
     /// Create a [`VNode`] from a string of HTML
@@ -111,7 +125,7 @@ impl From<VList> for VNode {
 impl From<VTag> for VNode {
     #[inline]
     fn from(vtag: VTag) -> Self {
-        VNode::VTag(Box::new(vtag))
+        VNode::VTag(vtag.into())
     }
 }
 
@@ -171,6 +185,21 @@ impl fmt::Debug for VNode {
             VNode::VPortal(ref vportal) => vportal.fmt(f),
             VNode::VSuspense(ref vsuspense) => vsuspense.fmt(f),
             VNode::VRaw(ref vraw) => write!(f, "VRaw {{ {} }}", vraw.html),
+        }
+    }
+}
+
+impl PartialEq for VNode {
+    fn eq(&self, other: &VNode) -> bool {
+        match (self, other) {
+            (VNode::VTag(a), VNode::VTag(b)) => a == b,
+            (VNode::VText(a), VNode::VText(b)) => a == b,
+            (VNode::VList(a), VNode::VList(b)) => a == b,
+            (VNode::VRef(a), VNode::VRef(b)) => a == b,
+            // TODO: Need to improve PartialEq for VComp before enabling.
+            (VNode::VComp(_), VNode::VComp(_)) => false,
+            (VNode::VRaw(a), VNode::VRaw(b)) => a.html == b.html,
+            _ => false,
         }
     }
 }

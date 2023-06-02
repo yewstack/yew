@@ -3,7 +3,7 @@
 use std::fmt;
 
 use crate::html::Html;
-use crate::virtual_dom::VChild;
+use crate::virtual_dom::{VChild, VList};
 use crate::Properties;
 
 /// A type used for accepting children elements in Component::Properties.
@@ -230,6 +230,27 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.children.into_iter()
+    }
+}
+
+impl From<ChildrenRenderer<Html>> for Html {
+    fn from(mut val: ChildrenRenderer<Html>) -> Self {
+        if val.children.len() == 1 {
+            if let Some(m) = val.children.pop() {
+                return m;
+            }
+        }
+
+        Html::VList(val.into())
+    }
+}
+
+impl From<ChildrenRenderer<Html>> for VList {
+    fn from(val: ChildrenRenderer<Html>) -> Self {
+        if val.is_empty() {
+            return VList::new();
+        }
+        VList::with_children(val.children, None)
     }
 }
 

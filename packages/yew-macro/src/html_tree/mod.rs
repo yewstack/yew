@@ -29,6 +29,8 @@ use html_list::HtmlList;
 use html_node::HtmlNode;
 use tag::TagTokens;
 
+use self::html_block::BlockContent;
+
 pub enum HtmlType {
     Block,
     Component,
@@ -279,6 +281,62 @@ impl HtmlChildrenTree {
         }
 
         Ok(children)
+    }
+
+    pub fn to_children_renderer_tokens(&self) -> Option<TokenStream> {
+        if self.0.is_empty() {
+            return None;
+        }
+
+        if let [HtmlTree::Block(ref m)] = self.0[..] {
+            if let HtmlBlock {
+                content: BlockContent::Node(children),
+                ..
+            } = m.as_ref()
+            {
+                return Some(quote! { #children });
+            }
+        }
+
+        if let [HtmlTree::Component(ref children)] = self.0[..] {
+            return Some(quote! { #children });
+        }
+
+        if let [HtmlTree::Element(ref children)] = self.0[..] {
+            return Some(quote! { #children });
+        }
+
+        Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
+    }
+
+    pub fn to_vnode_tokens(&self) -> TokenStream {
+        if self.0.is_empty() {
+            return quote! {::std::default::Default::default() };
+        }
+
+        if let [HtmlTree::Block(ref m)] = self.0[..] {
+            if let HtmlBlock {
+                content: BlockContent::Node(children),
+                ..
+            } = m.as_ref()
+            {
+                return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
+            }
+        }
+
+        if let [HtmlTree::Component(ref children)] = self.0[..] {
+            return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
+        }
+
+        if let [HtmlTree::Element(ref children)] = self.0[..] {
+            return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
+        }
+
+        quote! {
+            ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                ::yew::html::ChildrenRenderer::new(#self)
+            )
+        }
     }
 }
 

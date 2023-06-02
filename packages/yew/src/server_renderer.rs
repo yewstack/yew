@@ -92,9 +92,10 @@ where
     }
 
     /// Renders Yew Application into a string Stream
+    #[allow(clippy::let_with_type_underscore)]
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
-        name = "render",
+        name = "render_stream",
         skip(self),
         fields(hydratable = self.hydratable),
     )]

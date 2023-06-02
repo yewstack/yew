@@ -4,8 +4,6 @@ mod attributes;
 mod listeners;
 
 use std::borrow::Cow;
-use std::cell::RefCell;
-use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
@@ -15,7 +13,7 @@ pub use listeners::Registry;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
-use super::{BList, BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
@@ -52,8 +50,8 @@ enum BTagInner {
     Other {
         /// A tag of the element.
         tag: Cow<'static, str>,
-        /// List of child nodes
-        child_bundle: BList,
+        /// Child node.
+        child_bundle: BNode,
     },
 }
 
@@ -254,31 +252,9 @@ impl VTag {
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
-            thread_local! {
-                static CACHED_ELEMENTS: RefCell<HashMap<String, Element>> = RefCell::new(HashMap::with_capacity(32));
-            }
-
-            CACHED_ELEMENTS.with(|cache| {
-                let mut cache = cache.borrow_mut();
-                let cached = cache.get(tag).map(|el| {
-                    el.clone_node()
-                        .expect("couldn't clone cached element")
-                        .unchecked_into::<Element>()
-                });
-                cached.unwrap_or_else(|| {
-                    let to_be_cached = document()
-                        .create_element(tag)
-                        .expect("can't create element for vtag");
-                    cache.insert(
-                        tag.to_string(),
-                        to_be_cached
-                            .clone_node()
-                            .expect("couldn't clone node to be cached")
-                            .unchecked_into(),
-                    );
-                    to_be_cached
-                })
-            })
+            document()
+                .create_element(tag)
+                .expect("can't create element for vtag")
         }
     }
 }
@@ -297,10 +273,10 @@ impl BTag {
 
     #[cfg(target_arch = "wasm32")]
     #[cfg(test)]
-    fn children(&self) -> &[BNode] {
+    fn children(&self) -> Option<&BNode> {
         match &self.inner {
-            BTagInner::Other { child_bundle, .. } => child_bundle,
-            _ => &[],
+            BTagInner::Other { child_bundle, .. } => Some(child_bundle),
+            _ => None,
         }
     }
 
@@ -610,7 +586,7 @@ mod tests {
         let svg_tag = assert_vtag(svg_node);
         let (_, svg_tag) = svg_tag.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_namespace(&svg_tag, SVG_NAMESPACE);
-        let path_tag = assert_btag_ref(svg_tag.children().get(0).unwrap());
+        let path_tag = assert_btag_ref(svg_tag.children().unwrap());
         assert_namespace(path_tag, SVG_NAMESPACE);
 
         let g_tag = assert_vtag(g_node.clone());
