@@ -401,13 +401,13 @@ mod test {
             html! {
                 <div>
                     <header>
-                        {header}
+                        {for header}
                     </header>
                     <main>
                         {children}
                     </main>
                     <footer>
-                        {footer}
+                        {for footer}
                     </footer>
                 </div>
             }
