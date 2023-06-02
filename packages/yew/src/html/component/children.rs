@@ -3,8 +3,8 @@
 use std::fmt;
 
 use crate::html::Html;
-use crate::virtual_dom::{VChild, VList};
-use crate::Properties;
+use crate::virtual_dom::{VChild, VComp, VList, VNode};
+use crate::{BaseComponent, Properties};
 
 /// A type used for accepting children elements in Component::Properties.
 ///
@@ -251,6 +251,21 @@ impl From<ChildrenRenderer<Html>> for VList {
             return VList::new();
         }
         VList::with_children(val.children, None)
+    }
+}
+
+impl<COMP> From<ChildrenRenderer<VChild<COMP>>> for ChildrenRenderer<Html>
+where
+    COMP: BaseComponent,
+{
+    fn from(value: ChildrenRenderer<VChild<COMP>>) -> Self {
+        Self::new(
+            value
+                .into_iter()
+                .map(VComp::from)
+                .map(VNode::from)
+                .collect(),
+        )
     }
 }
 

@@ -211,6 +211,16 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
     }
 }
 
+// impl<COMP> IntoPropValue<VNode> for ChildrenRenderer<VChild<COMP>>
+// where
+//     COMP: BaseComponent,
+// {
+//     #[inline]
+//     fn into_prop_value(self) -> VNode {
+//         html! {<>{for self}</>}
+//     }
+// }
+
 impl IntoPropValue<ChildrenRenderer<VNode>> for VNode {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
