@@ -63,7 +63,7 @@ fn generate_yew_changelog_file() -> Result<()> {
 
     for (i, (expected_line, after_line)) in lines.enumerate() {
         if i == 2 || i == 13 {
-            // third line has dynamic things that may break the tests
+            // these lines have dynamic things that may break the tests
             let expected_line_updated = expected_line?.replace(
                 "date_goes_here",
                 Utc::now().format("%Y-%m-%d").to_string().as_str(),
