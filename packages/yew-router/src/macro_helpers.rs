@@ -1,6 +1,7 @@
+pub use urlencoding::encode as encode_for_url;
+
 use crate::utils::strip_slash_suffix;
 use crate::Routable;
-pub use urlencoding::encode as encode_for_url;
 
 // re-export Router because the macro needs to access it
 pub type Router = route_recognizer::Router<String>;
