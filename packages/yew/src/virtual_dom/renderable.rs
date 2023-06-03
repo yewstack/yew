@@ -103,7 +103,7 @@ macro_rules! impl_renderable_via_display {
             }
         }
 
-        // Children implementation until things are sorted...
+        // Mirror Renderable to Children implementation.
         impl IntoPropValue<ChildrenRenderer<VNode>> for $from_ty {
             #[inline(always)]
             fn into_prop_value(self) -> ChildrenRenderer<VNode> {
