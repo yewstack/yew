@@ -21,6 +21,10 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
+mod renderable;
+
+pub use renderable::Renderable;
+
 use std::hint::unreachable_unchecked;
 
 use indexmap::IndexMap;

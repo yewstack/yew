@@ -42,6 +42,12 @@ impl Filter {
     }
 }
 
+impl Renderable for Filter {
+    fn into_html(self) -> Html {
+        html! {<>{self.to_string()}</>}
+    }
+}
+
 pub enum Action {
     Add(String),
     Edit((usize, String)),
