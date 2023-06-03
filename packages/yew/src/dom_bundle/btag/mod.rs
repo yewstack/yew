@@ -631,7 +631,7 @@ mod tests {
         let math_tag = assert_vtag(math_node);
         let (_, math_tag) = math_tag.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_namespace(&math_tag, MATHML_NAMESPACE);
-        let mfrac_tag = assert_btag_ref(math_tag.children().get(0).unwrap());
+        let mfrac_tag = assert_btag_ref(math_tag.children().unwrap());
         assert_namespace(mfrac_tag, MATHML_NAMESPACE);
     }
 
