@@ -9,7 +9,7 @@ pub struct Props {
     pub on_hover: Callback<Hovered>,
     pub name: String,
     #[prop_or_default]
-    pub children: Html,
+    pub children: Children,
 }
 
 pub struct ListItem;
@@ -40,7 +40,7 @@ impl Component for ListItem {
 }
 
 impl ListItem {
-    fn view_details(children: &Html) -> Html {
+    fn view_details(children: &Children) -> Html {
         if children.is_empty() {
             html! {}
         } else {
