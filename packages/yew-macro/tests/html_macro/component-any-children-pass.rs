@@ -148,7 +148,7 @@ mod scoped {
     ::std::clone::Clone, ::yew::Properties, ::std::default::Default, ::std::cmp::PartialEq,
 )]
 pub struct RenderPropProps {
-    // You can use Html as Children.
+    // You can use Callback<()> as Children.
     #[prop_or_default]
     pub children: ::yew::Callback<()>,
 }
