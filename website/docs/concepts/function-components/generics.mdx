@@ -23,11 +23,11 @@ where
 #[function_component]
 pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
 where
-    T: PartialEq + Display,
+    T: PartialEq + Clone + Renderable,
 {
     html! {
         <p>
-            { &props.data }
+            { props.data.clone() }
         </p>
     }
 }
