@@ -143,7 +143,7 @@ impl Filter {
 }
 
 impl Renderable for Filter {
-    fn into_html(self) -> yew::Html {
+    fn to_html(&self) -> yew::Html {
         html! { <>{self.to_string()}</> }
     }
 }

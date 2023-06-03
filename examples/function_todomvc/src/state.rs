@@ -43,7 +43,7 @@ impl Filter {
 }
 
 impl Renderable for Filter {
-    fn into_html(self) -> Html {
+    fn to_html(&self) -> Html {
         html! {<>{self.to_string()}</>}
     }
 }
