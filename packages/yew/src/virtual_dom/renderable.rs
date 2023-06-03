@@ -42,6 +42,20 @@ where
     }
 }
 
+impl Renderable for Option<VNode> {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        self.unwrap_or_default()
+    }
+}
+
+impl Renderable for Vec<VNode> {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        Html::VList(VList::with_children(self, None))
+    }
+}
+
 impl Renderable for VText {
     #[inline(always)]
     fn into_html(self) -> Html {
@@ -70,6 +84,13 @@ where
     #[inline(always)]
     fn into_html(self) -> Html {
         VNode::VComp(self.into())
+    }
+}
+
+impl Renderable for () {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        VNode::default()
     }
 }
 

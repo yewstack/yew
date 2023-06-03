@@ -1,15 +1,15 @@
-use crate::html::{Children, Properties};
+use crate::html::{Html, Properties};
 
 /// Properties for [Suspense].
 #[derive(Properties, PartialEq, Debug, Clone)]
 pub struct SuspenseProps {
     /// The Children of the current Suspense Component.
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 
     /// The Fallback UI of the current Suspense Component.
     #[prop_or_default]
-    pub fallback: Children,
+    pub fallback: Html,
 }
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
