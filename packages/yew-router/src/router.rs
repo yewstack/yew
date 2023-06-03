@@ -11,7 +11,8 @@ use crate::utils::{base_url, strip_slash_suffix};
 /// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]
 pub struct RouterProps {
-    pub children: Children,
+    #[prop_or_default]
+    pub children: Html,
     pub history: AnyHistory,
     #[prop_or_default]
     pub basename: Option<AttrValue>,
@@ -129,7 +130,7 @@ pub fn router(props: &RouterProps) -> Html {
 /// Props for [`BrowserRouter`] and [`HashRouter`].
 #[derive(Properties, PartialEq, Clone)]
 pub struct ConcreteRouterProps {
-    pub children: Children,
+    pub children: Html,
     #[prop_or_default]
     pub basename: Option<AttrValue>,
 }
