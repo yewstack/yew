@@ -43,7 +43,7 @@ impl VNode {
             VNode::VTag(vtag) => vtag.key.as_ref(),
             VNode::VText(_) => None,
             VNode::VPortal(vportal) => vportal.node.key(),
-            VNode::VSuspense(_) => None,
+            VNode::VSuspense(vsuspense) => vsuspense.key.as_ref(),
             VNode::VRaw(_) => None,
         }
     }
