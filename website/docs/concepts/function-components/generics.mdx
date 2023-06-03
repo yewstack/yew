@@ -10,7 +10,7 @@ The `#[function_component]` attribute also works with generic functions for crea
 
 ```rust
 use std::fmt::Display;
-use yew::{function_component, html, Properties, Html};
+use yew::{function_component, html, Properties, Html, Renderable};
 
 #[derive(Properties, PartialEq)]
 pub struct Props<T>
