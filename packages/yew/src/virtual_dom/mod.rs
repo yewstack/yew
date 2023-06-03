@@ -23,11 +23,10 @@ pub mod vtext;
 
 mod renderable;
 
-pub use renderable::Renderable;
-
 use std::hint::unreachable_unchecked;
 
 use indexmap::IndexMap;
+pub use renderable::Renderable;
 
 #[doc(inline)]
 pub use self::key::Key;
