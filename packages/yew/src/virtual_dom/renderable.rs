@@ -48,7 +48,10 @@ where
 {
     #[inline(always)]
     fn to_html(&self) -> Html {
-        self.clone().into_html()
+        Html::VList(VList::with_children(
+            self.iter().map(Renderable::to_html).collect(),
+            None,
+        ))
     }
 
     #[inline(always)]
@@ -179,6 +182,7 @@ macro_rules! impl_renderable_via_display {
 impl_renderable_via_display!(bool);
 impl_renderable_via_display!(char);
 impl_renderable_via_display!(String);
+impl_renderable_via_display!(&str);
 impl_renderable_via_display!(Rc<str>);
 impl_renderable_via_display!(Rc<String>);
 impl_renderable_via_display!(Arc<str>);
