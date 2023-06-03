@@ -4,6 +4,8 @@ mod attributes;
 mod listeners;
 
 use std::borrow::Cow;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 use std::ops::DerefMut;
 
@@ -252,9 +254,31 @@ impl VTag {
                 .create_element_ns(namespace, tag)
                 .expect("can't create namespaced element for vtag")
         } else {
-            document()
-                .create_element(tag)
-                .expect("can't create element for vtag")
+            thread_local! {
+                static CACHED_ELEMENTS: RefCell<HashMap<String, Element>> = RefCell::new(HashMap::with_capacity(32));
+            }
+
+            CACHED_ELEMENTS.with(|cache| {
+                let mut cache = cache.borrow_mut();
+                let cached = cache.get(tag).map(|el| {
+                    el.clone_node()
+                        .expect("couldn't clone cached element")
+                        .unchecked_into::<Element>()
+                });
+                cached.unwrap_or_else(|| {
+                    let to_be_cached = document()
+                        .create_element(tag)
+                        .expect("can't create element for vtag");
+                    cache.insert(
+                        tag.to_string(),
+                        to_be_cached
+                            .clone_node()
+                            .expect("couldn't clone node to be cached")
+                            .unchecked_into(),
+                    );
+                    to_be_cached
+                })
+            })
         }
     }
 }
