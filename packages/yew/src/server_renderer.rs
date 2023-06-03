@@ -91,15 +91,7 @@ where
         }
     }
 
-    /// Renders Yew Application into a string Stream
-    #[allow(clippy::let_with_type_underscore)]
-    #[tracing::instrument(
-        level = tracing::Level::DEBUG,
-        name = "render_stream",
-        skip(self),
-        fields(hydratable = self.hydratable),
-    )]
-    pub fn render_stream(self) -> impl Stream<Item = String> {
+    fn render_stream_inner(self) -> impl Stream<Item = String> {
         let scope = Scope::<COMP>::new(None);
 
         let outer_span = tracing::Span::current();
@@ -111,6 +103,35 @@ where
                 .instrument(render_span)
                 .await;
         })
+    }
+
+    // The duplicate implementation below is to selectively suppress clippy lints.
+
+    /// Renders Yew Application into a string Stream
+    #[rustversion::since(1.70)]
+    #[allow(clippy::let_with_type_underscore)]
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        name = "render_stream",
+        skip(self),
+        fields(hydratable = self.hydratable),
+    )]
+    #[inline(always)]
+    pub fn render_stream(self) -> impl Stream<Item = String> {
+        self.render_stream_inner()
+    }
+
+    /// Renders Yew Application into a string Stream
+    #[rustversion::before(1.70)]
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        name = "render_stream",
+        skip(self),
+        fields(hydratable = self.hydratable),
+    )]
+    #[inline(always)]
+    pub fn render_stream(self) -> impl Stream<Item = String> {
+        self.render_stream_inner()
     }
 }
 
