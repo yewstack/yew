@@ -49,10 +49,24 @@ impl Renderable for Option<VNode> {
     }
 }
 
+impl Renderable for &Option<VNode> {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        self.clone().unwrap_or_default()
+    }
+}
+
 impl Renderable for Vec<VNode> {
     #[inline(always)]
     fn into_html(self) -> Html {
         Html::VList(VList::with_children(self, None))
+    }
+}
+
+impl Renderable for &Vec<VNode> {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        Html::VList(VList::with_children(self.clone(), None))
     }
 }
 
@@ -63,6 +77,13 @@ impl Renderable for VText {
     }
 }
 
+impl Renderable for &VText {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        Html::VText(self.clone())
+    }
+}
+
 impl Renderable for VList {
     #[inline(always)]
     fn into_html(self) -> Html {
@@ -70,10 +91,24 @@ impl Renderable for VList {
     }
 }
 
+impl Renderable for &VList {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        Html::VList(self.clone())
+    }
+}
+
 impl Renderable for ChildrenRenderer<VNode> {
     #[inline(always)]
     fn into_html(self) -> Html {
         self.into()
+    }
+}
+
+impl Renderable for &ChildrenRenderer<VNode> {
+    #[inline(always)]
+    fn into_html(self) -> Html {
+        self.clone().into()
     }
 }
 
