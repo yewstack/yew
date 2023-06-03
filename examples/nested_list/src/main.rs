@@ -69,12 +69,6 @@ impl Renderable for Hovered {
     }
 }
 
-impl Renderable for &'_ Hovered {
-    fn into_html(self) -> yew::Html {
-        html! {<>{self.to_string()}</>}
-    }
-}
-
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<app::App>::new().render();
