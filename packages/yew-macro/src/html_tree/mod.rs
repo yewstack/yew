@@ -284,29 +284,26 @@ impl HtmlChildrenTree {
     }
 
     pub fn to_children_renderer_tokens(&self) -> Option<TokenStream> {
-        if self.0.is_empty() {
-            return None;
-        }
-
-        if let [HtmlTree::Block(ref m)] = self.0[..] {
-            if let HtmlBlock {
-                content: BlockContent::Node(children),
-                ..
-            } = m.as_ref()
-            {
-                return Some(quote! { #children });
+        match self.0[..] {
+            [] => None,
+            [HtmlTree::Component(ref children)] => Some(quote! { #children }),
+            [HtmlTree::Element(ref children)] => Some(quote! { #children }),
+            [HtmlTree::Block(ref m)] => {
+                // We only want to process `{vnode}` and not `{for vnodes}`.
+                // This should be converted into a if let guard once https://github.com/rust-lang/rust/issues/51114 is stable.
+                // Or further nested once deref pattern (https://github.com/rust-lang/rust/issues/87121) is stable.
+                if let HtmlBlock {
+                    content: BlockContent::Node(children),
+                    ..
+                } = m.as_ref()
+                {
+                    Some(quote! { #children })
+                } else {
+                    Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
+                }
             }
+            _ => Some(quote! { ::yew::html::ChildrenRenderer::new(#self) }),
         }
-
-        if let [HtmlTree::Component(ref children)] = self.0[..] {
-            return Some(quote! { #children });
-        }
-
-        if let [HtmlTree::Element(ref children)] = self.0[..] {
-            return Some(quote! { #children });
-        }
-
-        Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
     }
 
     pub fn to_vnode_tokens(&self) -> TokenStream {
