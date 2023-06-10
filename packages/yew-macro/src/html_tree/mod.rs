@@ -307,32 +307,37 @@ impl HtmlChildrenTree {
     }
 
     pub fn to_vnode_tokens(&self) -> TokenStream {
-        if self.0.is_empty() {
-            return quote! {::std::default::Default::default() };
-        }
-
-        if let [HtmlTree::Block(ref m)] = self.0[..] {
-            if let HtmlBlock {
-                content: BlockContent::Node(children),
-                ..
-            } = m.as_ref()
-            {
-                return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
+        match self.0[..] {
+            [] => quote! {::std::default::Default::default() },
+            [HtmlTree::Component(ref children)] => {
+                quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
             }
-        }
-
-        if let [HtmlTree::Component(ref children)] = self.0[..] {
-            return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
-        }
-
-        if let [HtmlTree::Element(ref children)] = self.0[..] {
-            return quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) };
-        }
-
-        quote! {
-            ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
-                ::yew::html::ChildrenRenderer::new(#self)
-            )
+            [HtmlTree::Element(ref children)] => {
+                quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+            }
+            [HtmlTree::Block(ref m)] => {
+                // We only want to process `{vnode}` and not `{for vnodes}`.
+                // This should be converted into a if let guard once https://github.com/rust-lang/rust/issues/51114 is stable.
+                // Or further nested once deref pattern (https://github.com/rust-lang/rust/issues/87121) is stable.
+                if let HtmlBlock {
+                    content: BlockContent::Node(children),
+                    ..
+                } = m.as_ref()
+                {
+                    quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+                } else {
+                    quote! {
+                        ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                            ::yew::html::ChildrenRenderer::new(#self)
+                        )
+                    }
+                }
+            }
+            _ => quote! {
+                ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                    ::yew::html::ChildrenRenderer::new(#self)
+                )
+            },
         }
     }
 }
