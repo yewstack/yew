@@ -21,12 +21,9 @@ pub mod vtag;
 #[doc(hidden)]
 pub mod vtext;
 
-mod to_html;
-
 use std::hint::unreachable_unchecked;
 
 use indexmap::IndexMap;
-pub use to_html::ToHtml;
 
 #[doc(inline)]
 pub use self::key::Key;

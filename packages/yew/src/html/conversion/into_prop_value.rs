@@ -3,9 +3,10 @@ use std::rc::Rc;
 use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
-use super::super::callback::Callback;
-use super::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, ToHtml, VChild, VNode, VText};
+use super::ToHtml;
+use crate::callback::Callback;
+use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
+use crate::virtual_dom::{AttrValue, VChild, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}

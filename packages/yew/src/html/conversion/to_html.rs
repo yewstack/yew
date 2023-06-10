@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use super::{VChild, VList, VNode, VText};
 use crate::html::{ChildrenRenderer, IntoPropValue};
+use crate::virtual_dom::{VChild, VList, VNode, VText};
 use crate::{AttrValue, BaseComponent, Html};
 
 /// A trait implemented for types be rendered as a part of a Html.
