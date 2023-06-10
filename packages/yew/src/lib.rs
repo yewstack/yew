@@ -340,7 +340,7 @@ pub mod prelude {
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;
-    pub use crate::virtual_dom::{AttrValue, Renderable};
+    pub use crate::virtual_dom::{AttrValue, ToHtml};
 }
 
 pub use self::prelude::*;

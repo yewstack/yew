@@ -8,11 +8,9 @@ use crate::{AttrValue, BaseComponent, Html};
 
 /// A trait implemented for types be rendered as a part of a Html.
 ///
-/// Previously, a blanket implementation is given to `std::fmt::Display`
-/// and that is always converted to a `VText`.
-/// This trait allows types to define a virtual dom layout that itself should be rendered into via
-/// `html!`.
-pub trait Renderable {
+/// Types that implements this trait can define a virtual dom layout that itself should be rendered
+/// into via `html!` and can be referenced / consumed as `{value}` in an `html!` macro invocation.
+pub trait ToHtml {
     /// Converts this type to a [`Html`].
     fn to_html(&self) -> Html;
 
@@ -27,29 +25,29 @@ pub trait Renderable {
 
 // Implementations for common data types.
 
-impl<T> Renderable for Option<T>
+impl<T> ToHtml for Option<T>
 where
-    T: Renderable,
+    T: ToHtml,
 {
     #[inline(always)]
     fn to_html(&self) -> Html {
-        self.as_ref().map(Renderable::to_html).unwrap_or_default()
+        self.as_ref().map(ToHtml::to_html).unwrap_or_default()
     }
 
     #[inline(always)]
     fn into_html(self) -> Html {
-        self.map(Renderable::into_html).unwrap_or_default()
+        self.map(ToHtml::into_html).unwrap_or_default()
     }
 }
 
-impl<T> Renderable for Vec<T>
+impl<T> ToHtml for Vec<T>
 where
-    T: Renderable,
+    T: ToHtml,
 {
     #[inline(always)]
     fn to_html(&self) -> Html {
         Html::VList(VList::with_children(
-            self.iter().map(Renderable::to_html).collect(),
+            self.iter().map(ToHtml::to_html).collect(),
             None,
         ))
     }
@@ -57,13 +55,13 @@ where
     #[inline(always)]
     fn into_html(self) -> Html {
         Html::VList(VList::with_children(
-            self.into_iter().map(Renderable::into_html).collect(),
+            self.into_iter().map(ToHtml::into_html).collect(),
             None,
         ))
     }
 }
 
-impl Renderable for Option<VNode> {
+impl ToHtml for Option<VNode> {
     #[inline(always)]
     fn to_html(&self) -> Html {
         self.clone().into_html()
@@ -75,7 +73,7 @@ impl Renderable for Option<VNode> {
     }
 }
 
-impl Renderable for Vec<VNode> {
+impl ToHtml for Vec<VNode> {
     #[inline(always)]
     fn to_html(&self) -> Html {
         self.clone().into_html()
@@ -87,7 +85,7 @@ impl Renderable for Vec<VNode> {
     }
 }
 
-impl Renderable for VText {
+impl ToHtml for VText {
     #[inline(always)]
     fn to_html(&self) -> Html {
         self.clone().into()
@@ -99,7 +97,7 @@ impl Renderable for VText {
     }
 }
 
-impl Renderable for VList {
+impl ToHtml for VList {
     #[inline(always)]
     fn to_html(&self) -> Html {
         self.clone().into()
@@ -111,7 +109,7 @@ impl Renderable for VList {
     }
 }
 
-impl Renderable for ChildrenRenderer<VNode> {
+impl ToHtml for ChildrenRenderer<VNode> {
     #[inline(always)]
     fn to_html(&self) -> Html {
         self.clone().into()
@@ -123,7 +121,7 @@ impl Renderable for ChildrenRenderer<VNode> {
     }
 }
 
-impl<T> Renderable for VChild<T>
+impl<T> ToHtml for VChild<T>
 where
     T: BaseComponent,
 {
@@ -138,7 +136,7 @@ where
     }
 }
 
-impl Renderable for () {
+impl ToHtml for () {
     #[inline(always)]
     fn to_html(&self) -> Html {
         VNode::default()
@@ -150,25 +148,25 @@ impl Renderable for () {
     }
 }
 
-impl<T> Renderable for &'_ T
+impl<T> ToHtml for &'_ T
 where
-    T: Renderable,
+    T: ToHtml,
 {
     fn to_html(&self) -> Html {
         (*self).to_html()
     }
 }
 
-macro_rules! impl_renderable_via_display {
+macro_rules! impl_to_html_via_display {
     ($from_ty: ty) => {
-        impl Renderable for $from_ty {
+        impl ToHtml for $from_ty {
             #[inline(always)]
             fn to_html(&self) -> Html {
-                Html::VText(self.into())
+                Html::VText(VText::from(self))
             }
         }
 
-        // Mirror Renderable to Children implementation.
+        // Mirror ToHtml to Children implementation.
         impl IntoPropValue<ChildrenRenderer<VNode>> for $from_ty {
             #[inline(always)]
             fn into_prop_value(self) -> ChildrenRenderer<VNode> {
@@ -179,27 +177,27 @@ macro_rules! impl_renderable_via_display {
 }
 
 // These are a selection of types implemented via display.
-impl_renderable_via_display!(bool);
-impl_renderable_via_display!(char);
-impl_renderable_via_display!(String);
-impl_renderable_via_display!(&str);
-impl_renderable_via_display!(Rc<str>);
-impl_renderable_via_display!(Rc<String>);
-impl_renderable_via_display!(Arc<str>);
-impl_renderable_via_display!(Arc<String>);
-impl_renderable_via_display!(AttrValue);
-impl_renderable_via_display!(Cow<'_, str>);
-impl_renderable_via_display!(u8);
-impl_renderable_via_display!(u16);
-impl_renderable_via_display!(u32);
-impl_renderable_via_display!(u64);
-impl_renderable_via_display!(u128);
-impl_renderable_via_display!(usize);
-impl_renderable_via_display!(i8);
-impl_renderable_via_display!(i16);
-impl_renderable_via_display!(i32);
-impl_renderable_via_display!(i64);
-impl_renderable_via_display!(i128);
-impl_renderable_via_display!(isize);
-impl_renderable_via_display!(f32);
-impl_renderable_via_display!(f64);
+impl_to_html_via_display!(bool);
+impl_to_html_via_display!(char);
+impl_to_html_via_display!(String);
+impl_to_html_via_display!(&str);
+impl_to_html_via_display!(Rc<str>);
+impl_to_html_via_display!(Rc<String>);
+impl_to_html_via_display!(Arc<str>);
+impl_to_html_via_display!(Arc<String>);
+impl_to_html_via_display!(AttrValue);
+impl_to_html_via_display!(Cow<'_, str>);
+impl_to_html_via_display!(u8);
+impl_to_html_via_display!(u16);
+impl_to_html_via_display!(u32);
+impl_to_html_via_display!(u64);
+impl_to_html_via_display!(u128);
+impl_to_html_via_display!(usize);
+impl_to_html_via_display!(i8);
+impl_to_html_via_display!(i16);
+impl_to_html_via_display!(i32);
+impl_to_html_via_display!(i64);
+impl_to_html_via_display!(i128);
+impl_to_html_via_display!(isize);
+impl_to_html_via_display!(f32);
+impl_to_html_via_display!(f64);

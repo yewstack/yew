@@ -10,7 +10,7 @@ The `#[function_component]` attribute also works with generic functions for crea
 
 ```rust
 use std::fmt::Display;
-use yew::{function_component, html, Properties, Html, Renderable};
+use yew::{function_component, html, Properties, Html, ToHtml};
 
 #[derive(Properties, PartialEq)]
 pub struct Props<T>
@@ -23,11 +23,11 @@ where
 #[function_component]
 pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
 where
-    T: PartialEq + Clone + Renderable,
+    T: PartialEq + ToHtml,
 {
     html! {
         <p>
-            { props.data.clone() }
+            { &props.data }
         </p>
     }
 }

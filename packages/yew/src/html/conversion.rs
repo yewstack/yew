@@ -5,7 +5,7 @@ pub use implicit_clone::ImplicitClone;
 
 use super::super::callback::Callback;
 use super::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, Renderable, VChild, VNode, VText};
+use crate::virtual_dom::{AttrValue, ToHtml, VChild, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -130,7 +130,7 @@ where
 
 impl<T> IntoPropValue<VNode> for T
 where
-    T: Renderable,
+    T: ToHtml,
 {
     #[inline]
     fn into_prop_value(self) -> VNode {

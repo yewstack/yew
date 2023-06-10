@@ -63,7 +63,7 @@ impl fmt::Display for Hovered {
     }
 }
 
-impl Renderable for Hovered {
+impl ToHtml for Hovered {
     fn to_html(&self) -> yew::Html {
         html! {<>{self.to_string()}</>}
     }
