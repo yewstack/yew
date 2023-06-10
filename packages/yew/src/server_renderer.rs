@@ -106,6 +106,7 @@ where
     }
 
     // The duplicate implementation below is to selectively suppress clippy lints.
+    // These implementations should be merged once https://github.com/tokio-rs/tracing/issues/2503 is resolved.
 
     /// Renders Yew Application into a string Stream
     #[rustversion::since(1.70)]
