@@ -4,12 +4,12 @@ title: 'Children'
 
 :::caution
 
-Inspecting and Manipulating `Children` and `ChildrenRenderer` can often result in surprising and hard-to-explain behaviours in your application.
-Trying to interpret and manipulate the `Children` can lead to edge cases and often do not yield expected result.
+Inspecting and manipulating `Children` can often result in surprising and hard-to-explain behaviours in your application.
+This can lead to edge cases and often does not yield expected result.
 You should consider other approaches if you are trying to manipulate `Children`.
 
 Yew now supports using `Html` as the type of the children prop.
-You should use `Html` in your component if you do not need `Children` or `ChildrenRenderer`.
+You should use `Html` as children if you do not need `Children` or `ChildrenRenderer`.
 It doesn't have the drawbacks of `Children` and has a lower performance overhead.
 
 :::
@@ -21,12 +21,12 @@ what type of children the component has. In such cases, the below example will
 suffice.
 
 ```rust
-use yew::{html, Children, Component, Context, Html, Properties};
+use yew::{html, Component, Context, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct ListProps {
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 }
 
 pub struct List;
@@ -42,7 +42,7 @@ impl Component for List {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="list">
-                { for ctx.props().children.iter() }
+                {ctx.props().children.clone()}
             </div>
         }
     }
