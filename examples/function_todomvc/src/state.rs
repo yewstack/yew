@@ -42,6 +42,12 @@ impl Filter {
     }
 }
 
+impl ToHtml for Filter {
+    fn to_html(&self) -> Html {
+        html! {<>{self.to_string()}</>}
+    }
+}
+
 pub enum Action {
     Add(String),
     Edit((usize, String)),

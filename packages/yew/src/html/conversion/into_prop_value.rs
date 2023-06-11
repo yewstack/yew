@@ -3,9 +3,10 @@ use std::rc::Rc;
 use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
-use super::super::callback::Callback;
-use super::{BaseComponent, Children, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VNode};
+use super::ToHtml;
+use crate::callback::Callback;
+use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
+use crate::virtual_dom::{AttrValue, VChild, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -81,63 +82,74 @@ where
     }
 }
 
-impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for VChild<T>
+impl<T, C> IntoPropValue<ChildrenRenderer<C>> for VChild<T>
 where
     T: BaseComponent,
+    C: Clone + Into<VNode>,
+    VChild<T>: Into<C>,
 {
     #[inline]
-    fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
+    fn into_prop_value(self) -> ChildrenRenderer<C> {
+        ChildrenRenderer::new(vec![self.into()])
+    }
+}
+
+impl<T, C> IntoPropValue<Option<ChildrenRenderer<C>>> for VChild<T>
+where
+    T: BaseComponent,
+    C: Clone + Into<VNode>,
+    VChild<T>: Into<C>,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<C>> {
+        Some(ChildrenRenderer::new(vec![self.into()]))
+    }
+}
+
+impl<T, C> IntoPropValue<Option<ChildrenRenderer<C>>> for Option<VChild<T>>
+where
+    T: BaseComponent,
+    C: Clone + Into<VNode>,
+    VChild<T>: Into<C>,
+{
+    #[inline]
+    fn into_prop_value(self) -> Option<ChildrenRenderer<C>> {
+        self.map(|m| ChildrenRenderer::new(vec![m.into()]))
+    }
+}
+
+impl<T, R> IntoPropValue<ChildrenRenderer<R>> for Vec<T>
+where
+    T: Into<R>,
+    R: Clone + Into<VNode>,
+{
+    #[inline]
+    fn into_prop_value(self) -> ChildrenRenderer<R> {
+        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect())
+    }
+}
+
+impl<T> IntoPropValue<VNode> for T
+where
+    T: ToHtml,
+{
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        self.into_html()
+    }
+}
+
+impl IntoPropValue<ChildrenRenderer<VNode>> for VNode {
+    #[inline]
+    fn into_prop_value(self) -> ChildrenRenderer<VNode> {
         ChildrenRenderer::new(vec![self])
     }
 }
 
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for VChild<T>
-where
-    T: BaseComponent,
-{
+impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
     #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        Some(ChildrenRenderer::new(vec![self]))
-    }
-}
-
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<VChild<T>>
-where
-    T: BaseComponent,
-{
-    #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        self.map(|m| ChildrenRenderer::new(vec![m]))
-    }
-}
-
-impl<T> IntoPropValue<ChildrenRenderer<VChild<T>>> for Vec<VChild<T>>
-where
-    T: BaseComponent,
-{
-    #[inline]
-    fn into_prop_value(self) -> ChildrenRenderer<VChild<T>> {
-        ChildrenRenderer::new(self)
-    }
-}
-
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Vec<VChild<T>>
-where
-    T: BaseComponent,
-{
-    #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        Some(ChildrenRenderer::new(self))
-    }
-}
-
-impl<T> IntoPropValue<Option<ChildrenRenderer<VChild<T>>>> for Option<Vec<VChild<T>>>
-where
-    T: BaseComponent,
-{
-    #[inline]
-    fn into_prop_value(self) -> Option<ChildrenRenderer<VChild<T>>> {
-        self.map(ChildrenRenderer::new)
+    fn into_prop_value(self) -> ChildrenRenderer<VNode> {
+        ChildrenRenderer::new(vec![self.into()])
     }
 }
 
@@ -171,14 +183,9 @@ macro_rules! impl_into_prop {
 
 // implemented with literals in mind
 impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
-
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
-impl_into_prop!(|value: VNode| -> Children { Children::new(vec![value]) });
-impl_into_prop!(|value: &'static str| -> VNode { crate::html!(value) });
-impl_into_prop!(|value: String| -> VNode { crate::html!(value) });
-impl_into_prop!(|value: AttrValue| -> VNode { crate::html!(value) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
@@ -309,13 +316,13 @@ mod test {
             html! {
                 <div>
                     <header>
-                        {header}
+                        {for header}
                     </header>
                     <main>
                         {children}
                     </main>
                     <footer>
-                        {footer}
+                        {for footer}
                     </footer>
                 </div>
             }

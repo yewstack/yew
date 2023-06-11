@@ -32,6 +32,12 @@ impl PartialEq for VText {
     }
 }
 
+impl<T: ToString> From<T> for VText {
+    fn from(value: T) -> Self {
+        VText::new(value.to_string())
+    }
+}
+
 #[cfg(feature = "ssr")]
 mod feat_ssr {
 

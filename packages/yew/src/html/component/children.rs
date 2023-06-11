@@ -3,8 +3,8 @@
 use std::fmt;
 
 use crate::html::Html;
-use crate::virtual_dom::VChild;
-use crate::Properties;
+use crate::virtual_dom::{VChild, VComp, VList, VNode};
+use crate::{BaseComponent, Properties};
 
 /// A type used for accepting children elements in Component::Properties.
 ///
@@ -233,12 +233,48 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
     }
 }
 
+impl From<ChildrenRenderer<Html>> for Html {
+    fn from(mut val: ChildrenRenderer<Html>) -> Self {
+        if val.children.len() == 1 {
+            if let Some(m) = val.children.pop() {
+                return m;
+            }
+        }
+
+        Html::VList(val.into())
+    }
+}
+
+impl From<ChildrenRenderer<Html>> for VList {
+    fn from(val: ChildrenRenderer<Html>) -> Self {
+        if val.is_empty() {
+            return VList::new();
+        }
+        VList::with_children(val.children, None)
+    }
+}
+
+impl<COMP> From<ChildrenRenderer<VChild<COMP>>> for ChildrenRenderer<Html>
+where
+    COMP: BaseComponent,
+{
+    fn from(value: ChildrenRenderer<VChild<COMP>>) -> Self {
+        Self::new(
+            value
+                .into_iter()
+                .map(VComp::from)
+                .map(VNode::from)
+                .collect(),
+        )
+    }
+}
+
 /// A [Properties] type with Children being the only property.
 #[derive(Debug, Properties, PartialEq)]
 pub struct ChildrenProps {
     /// The Children of a Component.
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 }
 
 #[cfg(test)]
