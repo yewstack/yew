@@ -60,8 +60,7 @@ async fn url_encoded_roundtrip() {
         gloo::utils::window()
             .location()
             .pathname()
-            .unwrap()
-            .to_string(),
+            .unwrap(),
         "/search/a%2Fb"
     )
 }
