@@ -1,5 +1,4 @@
-pub use urlencoding::encode as encode_for_url;
-pub use urlencoding::decode as decode_for_url;
+pub use urlencoding::{decode as decode_for_url, encode as encode_for_url};
 
 use crate::utils::strip_slash_suffix;
 use crate::Routable;

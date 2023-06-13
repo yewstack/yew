@@ -129,7 +129,7 @@ impl Routable {
                 Fields::Unit => quote! { Self::#ident },
                 Fields::Named(field) => {
                     let fields = field.named.iter().map(|it| {
-                        //named fields have idents
+                        // named fields have idents
                         it.ident.as_ref().unwrap()
                     });
                     quote! { Self::#ident { #(#fields: {

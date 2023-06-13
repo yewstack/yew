@@ -16,7 +16,6 @@ fn router_always_404() {
         NotFound,
     }
 
-
     assert_eq!(
         Some(AppRoute::NotFound),
         AppRoute::recognize("/not/matched/route")

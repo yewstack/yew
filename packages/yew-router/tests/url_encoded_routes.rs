@@ -1,14 +1,13 @@
 use std::time::Duration;
+
 use yew::platform::time::sleep;
-use yew_router::prelude::*;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 mod utils;
 use utils::*;
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 wasm_bindgen_test_configure!(run_in_browser);
-
-
 
 #[derive(Routable, Debug, Clone, PartialEq)]
 enum AppRoute {
@@ -20,20 +19,18 @@ enum AppRoute {
 
 #[function_component]
 fn Comp() -> Html {
-    let switch = move |routes: AppRoute| {
-        match routes {
-            AppRoute::Root => html! {
-                <>
-                    <h1>{ "Root" }</h1>
-                    <Link<AppRoute> to={AppRoute::Search { query: "a/b".to_string() }}>
-                        {"Click me"}
-                    </Link<AppRoute>>
-                </>
-            },
-            AppRoute::Search { query } => html! {
-                <p id="q">{ query }</p>
-            },
-        }
+    let switch = move |routes: AppRoute| match routes {
+        AppRoute::Root => html! {
+            <>
+                <h1>{ "Root" }</h1>
+                <Link<AppRoute> to={AppRoute::Search { query: "a/b".to_string() }}>
+                    {"Click me"}
+                </Link<AppRoute>>
+            </>
+        },
+        AppRoute::Search { query } => html! {
+            <p id="q">{ query }</p>
+        },
     };
     html! {
         <Switch<AppRoute> render={switch} />
@@ -49,7 +46,6 @@ fn root() -> Html {
     }
 }
 
-
 #[test]
 async fn url_encoded_roundtrip() {
     yew::Renderer::<Root>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
@@ -61,7 +57,11 @@ async fn url_encoded_roundtrip() {
     assert_eq!(res, "a/b");
 
     assert_eq!(
-        gloo::utils::window().location().pathname().unwrap().to_string(),
+        gloo::utils::window()
+            .location()
+            .pathname()
+            .unwrap()
+            .to_string(),
         "/search/a%2Fb"
     )
 }
