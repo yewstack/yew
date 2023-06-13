@@ -132,7 +132,12 @@ impl Routable {
                         //named fields have idents
                         it.ident.as_ref().unwrap()
                     });
-                    quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?,)* } }
+                    quote! { Self::#ident { #(#fields: {
+                        let param = params.get(stringify!(#fields))?;
+                        let param = &*::yew_router::__macro::decode_for_url(param).ok()?;
+                        let param = param.parse().ok()?;
+                        param
+                    },)* } }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked
             };
