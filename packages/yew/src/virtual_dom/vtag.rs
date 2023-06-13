@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
-use super::{ApplyAttributeAs, AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
+use super::{ApplyAttributeAs, AttrValue, Attributes, Key, Listener, Listeners, VNode};
 use crate::html::{IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
@@ -112,8 +112,8 @@ pub(crate) enum VTagInner {
     Other {
         /// A tag of the element.
         tag: Cow<'static, str>,
-        /// List of child nodes
-        children: VList,
+        /// children of the element.
+        children: VNode,
     },
 }
 
@@ -232,7 +232,7 @@ impl VTag {
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
         listeners: Listeners,
-        children: VList,
+        children: VNode,
     ) -> Self {
         VTag::new_base(
             VTagInner::Other { tag, children },
@@ -274,45 +274,41 @@ impl VTag {
     /// Add [VNode] child.
     pub fn add_child(&mut self, child: VNode) {
         if let VTagInner::Other { children, .. } = &mut self.inner {
-            children.add_child(child)
+            children.to_vlist_mut().add_child(child)
         }
     }
 
     /// Add multiple [VNode] children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
         if let VTagInner::Other { children: dst, .. } = &mut self.inner {
-            dst.add_children(children)
+            dst.to_vlist_mut().add_children(children)
         }
     }
 
-    /// Returns a reference to the children of this [VTag]
-    pub fn children(&self) -> &VList {
+    /// Returns a reference to the children of this [VTag], if the node can have
+    /// children
+    pub fn children(&self) -> Option<&VNode> {
         match &self.inner {
-            VTagInner::Other { children, .. } => children,
-            _ => {
-                // This is mutable because the VList is not Sync
-                static mut EMPTY: VList = VList::new();
-
-                // SAFETY: The EMPTY value is always read-only
-                unsafe { &EMPTY }
-            }
+            VTagInner::Other { children, .. } => Some(children),
+            _ => None,
         }
     }
 
     /// Returns a mutable reference to the children of this [VTag], if the node can have
     /// children
-    pub fn children_mut(&mut self) -> Option<&mut VList> {
+    pub fn children_mut(&mut self) -> Option<&mut VNode> {
         match &mut self.inner {
             VTagInner::Other { children, .. } => Some(children),
             _ => None,
         }
     }
 
-    /// Returns the children of this [VTag]
-    pub fn into_children(self) -> VList {
+    /// Returns the children of this [VTag], if the node can have
+    /// children
+    pub fn into_children(self) -> Option<VNode> {
         match self.inner {
-            VTagInner::Other { children, .. } => children,
-            _ => VList::new(),
+            VTagInner::Other { children, .. } => Some(children),
+            _ => None,
         }
     }
 
@@ -530,7 +526,13 @@ mod feat_ssr {
                         let _ = w.write_str(">");
                     } else {
                         // We don't write children of void elements nor closing tags.
-                        debug_assert!(children.is_empty(), "{tag} cannot have any children!");
+                        debug_assert!(
+                            match children {
+                                VNode::VList(m) => m.is_empty(),
+                                _ => false,
+                            },
+                            "{tag} cannot have any children!"
+                        );
                     }
                 }
             }

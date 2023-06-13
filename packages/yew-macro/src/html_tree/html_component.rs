@@ -133,11 +133,7 @@ impl ToTokens for HtmlComponent {
 
         let ty_span = ty.span().resolved_at(Span::call_site());
         let props_ty = quote_spanned!(ty_span=> <#ty as ::yew::html::BaseComponent>::Properties);
-        let children_renderer = if children.is_empty() {
-            None
-        } else {
-            Some(quote! { ::yew::html::ChildrenRenderer::new(#children) })
-        };
+        let children_renderer = children.to_children_renderer_tokens();
         let build_props = props.build_properties_tokens(&props_ty, children_renderer);
         let key = props.special().wrap_key_attr();
         let use_close_tag = close

@@ -20,7 +20,7 @@ pub type MessageContext = UseReducerHandle<Message>;
 #[derive(Properties, Debug, PartialEq)]
 pub struct MessageProviderProps {
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 }
 
 #[function_component]

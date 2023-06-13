@@ -12,7 +12,7 @@ tokio = { version = "1.28", features = ["full"] }
 jemallocator = "0.5.0"
 average = "0.13.1"
 tabled = "0.12.0"
-indicatif = "0.17.3"
+indicatif = "0.17.5"
 serde = { version = "1.0.162", features = ["derive"] }
 serde_json = "1.0.96"
 clap = { version = "4", features = ["derive"] }

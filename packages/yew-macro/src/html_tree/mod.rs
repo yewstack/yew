@@ -29,6 +29,8 @@ use html_list::HtmlList;
 use html_node::HtmlNode;
 use tag::TagTokens;
 
+use self::html_block::BlockContent;
+
 pub enum HtmlType {
     Block,
     Component,
@@ -279,6 +281,64 @@ impl HtmlChildrenTree {
         }
 
         Ok(children)
+    }
+
+    pub fn to_children_renderer_tokens(&self) -> Option<TokenStream> {
+        match self.0[..] {
+            [] => None,
+            [HtmlTree::Component(ref children)] => Some(quote! { #children }),
+            [HtmlTree::Element(ref children)] => Some(quote! { #children }),
+            [HtmlTree::Block(ref m)] => {
+                // We only want to process `{vnode}` and not `{for vnodes}`.
+                // This should be converted into a if let guard once https://github.com/rust-lang/rust/issues/51114 is stable.
+                // Or further nested once deref pattern (https://github.com/rust-lang/rust/issues/87121) is stable.
+                if let HtmlBlock {
+                    content: BlockContent::Node(children),
+                    ..
+                } = m.as_ref()
+                {
+                    Some(quote! { #children })
+                } else {
+                    Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
+                }
+            }
+            _ => Some(quote! { ::yew::html::ChildrenRenderer::new(#self) }),
+        }
+    }
+
+    pub fn to_vnode_tokens(&self) -> TokenStream {
+        match self.0[..] {
+            [] => quote! {::std::default::Default::default() },
+            [HtmlTree::Component(ref children)] => {
+                quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+            }
+            [HtmlTree::Element(ref children)] => {
+                quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+            }
+            [HtmlTree::Block(ref m)] => {
+                // We only want to process `{vnode}` and not `{for vnodes}`.
+                // This should be converted into a if let guard once https://github.com/rust-lang/rust/issues/51114 is stable.
+                // Or further nested once deref pattern (https://github.com/rust-lang/rust/issues/87121) is stable.
+                if let HtmlBlock {
+                    content: BlockContent::Node(children),
+                    ..
+                } = m.as_ref()
+                {
+                    quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+                } else {
+                    quote! {
+                        ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                            ::yew::html::ChildrenRenderer::new(#self)
+                        )
+                    }
+                }
+            }
+            _ => quote! {
+                ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                    ::yew::html::ChildrenRenderer::new(#self)
+                )
+            },
+        }
     }
 }
 
