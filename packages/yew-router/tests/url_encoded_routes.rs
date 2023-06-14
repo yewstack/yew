@@ -57,10 +57,7 @@ async fn url_encoded_roundtrip() {
     assert_eq!(res, "a/b");
 
     assert_eq!(
-        gloo::utils::window()
-            .location()
-            .pathname()
-            .unwrap(),
+        gloo::utils::window().location().pathname().unwrap(),
         "/search/a%2Fb"
     )
 }
