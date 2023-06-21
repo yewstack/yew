@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687356592385,
+  "lastUpdate": 1687356749881,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -12545,6 +12545,208 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/yewstack/yew/commit/0099921647780045d820091b987bff66e5ca36ab"
         },
         "date": 1687356589987,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.19.3-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "0099921647780045d820091b987bff66e5ca36ab",
+          "message": "Bump js-sys from 0.3.63 to 0.3.64 (#3306)\n\nBumps [js-sys](https://github.com/rustwasm/wasm-bindgen) from 0.3.63 to 0.3.64.\r\n- [Release notes](https://github.com/rustwasm/wasm-bindgen/releases)\r\n- [Changelog](https://github.com/rustwasm/wasm-bindgen/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/wasm-bindgen/commits)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: js-sys\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2023-06-21T13:38:57Z",
+          "url": "https://github.com/yewstack/yew/commit/0099921647780045d820091b987bff66e5ca36ab"
+        },
+        "date": 1687356747163,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
