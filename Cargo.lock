@@ -762,7 +762,7 @@ dependencies = [
  "rand",
  "serde",
  "strum",
- "strum_macros",
+ "strum_macros 0.24.3",
  "web-sys",
  "yew",
 ]
@@ -791,7 +791,7 @@ dependencies = [
  "gloo",
  "serde",
  "strum",
- "strum_macros",
+ "strum_macros 0.24.3",
  "web-sys",
  "yew",
 ]
@@ -2407,11 +2407,11 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "strum"
-version = "0.24.1"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "063e6045c0e62079840579a7e47a355ae92f60eb74daaf156fb1e84ba164e63f"
+checksum = "290d54ea6f91c969195bdbcd7442c8c2a2ba87da8bf60a7ee86a235d4bc1e125"
 dependencies = [
- "strum_macros",
+ "strum_macros 0.25.0",
 ]
 
 [[package]]
@@ -2425,6 +2425,19 @@ dependencies = [
  "quote",
  "rustversion",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe9f3bd7d2e45dcc5e265fbb88d6513e4747d8ef9444cf01a533119bce28a157"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.18",
 ]
 
 [[package]]
@@ -2601,7 +2614,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "strum",
- "strum_macros",
+ "strum_macros 0.24.3",
  "web-sys",
  "yew",
 ]
