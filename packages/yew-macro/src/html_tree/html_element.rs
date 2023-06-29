@@ -403,7 +403,7 @@ impl ToTokens for HtmlElement {
                     let source_file = span.source_file().path();
                     let source_file = source_file.display();
                     let start = span.start();
-                    format!("[{}:{}:{}] ", source_file, start.line, start.column)
+                    format!("[{}:{}:{}] ", source_file, start.line(), start.column())
                 };
 
                 #[cfg(not(nightly_yew))]
