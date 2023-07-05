@@ -313,12 +313,7 @@ impl ToTokens for HtmlElement {
 
         // TODO: if none of the children have possibly None expressions or literals as keys, we can
         // compute `VList.fully_keyed` at compile time.
-        let child_list = quote! {
-            ::yew::virtual_dom::VList::with_children(
-                #children,
-                ::std::option::Option::None,
-            )
-        };
+        let children = children.to_vnode_tokens();
 
         tokens.extend(match &name {
             TagName::Lit(dashedname) => {
@@ -370,7 +365,7 @@ impl ToTokens for HtmlElement {
                                     #key,
                                     #attributes,
                                     #listeners,
-                                    #child_list,
+                                    #children,
                                 ),
                             )
                         }
@@ -392,6 +387,8 @@ impl ToTokens for HtmlElement {
                 let expr = &name.expr;
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
 
+                let void_children = Ident::new("__yew_void_children", Span::mixed_site());
+
                 // handle special attribute value
                 let handle_value_attr = props.value.as_ref().map(|prop| {
                     let v = prop.value.optimize_literals();
@@ -406,7 +403,7 @@ impl ToTokens for HtmlElement {
                     let source_file = span.source_file().path();
                     let source_file = source_file.display();
                     let start = span.start();
-                    format!("[{}:{}:{}] ", source_file, start.line, start.column)
+                    format!("[{}:{}:{}] ", source_file, start.line(), start.column())
                 };
 
                 #[cfg(not(nightly_yew))]
@@ -455,7 +452,7 @@ impl ToTokens for HtmlElement {
                                 #key,
                                 #attributes,
                                 #listeners,
-                                #child_list,
+                                #children,
                             );
 
                             #handle_value_attr
@@ -468,7 +465,10 @@ impl ToTokens for HtmlElement {
                     // For literal tags this is already done at compile-time.
                     //
                     // check void element
-                    if !#vtag.children().is_empty() {
+                    if !::std::matches!(
+                        ::yew::virtual_dom::VTag::children(&#vtag),
+                        ::std::option::Option::Some(::yew::virtual_dom::VNode::VList(ref #void_children)) if ::std::vec::Vec::is_empty(#void_children)
+                    ) {
                         ::std::debug_assert!(
                             !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
                                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"

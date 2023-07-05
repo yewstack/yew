@@ -41,15 +41,6 @@ impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
     }
 }
 
-impl<IN: Into<OUT>, OUT> From<ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
-    fn from(val: ChildrenRenderer<IN>) -> Self {
-        Self(
-            val.into_iter().map(|x| x.into()).collect(),
-            PhantomData::default(),
-        )
-    }
-}
-
 impl<IN: Into<OUT> + Clone, OUT> From<&ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
     fn from(val: &ChildrenRenderer<IN>) -> Self {
         Self(

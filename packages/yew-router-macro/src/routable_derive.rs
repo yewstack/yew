@@ -129,10 +129,15 @@ impl Routable {
                 Fields::Unit => quote! { Self::#ident },
                 Fields::Named(field) => {
                     let fields = field.named.iter().map(|it| {
-                        //named fields have idents
+                        // named fields have idents
                         it.ident.as_ref().unwrap()
                     });
-                    quote! { Self::#ident { #(#fields: params.get(stringify!(#fields))?.parse().ok()?,)* } }
+                    quote! { Self::#ident { #(#fields: {
+                        let param = params.get(stringify!(#fields))?;
+                        let param = &*::yew_router::__macro::decode_for_url(param).ok()?;
+                        let param = param.parse().ok()?;
+                        param
+                    },)* } }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked
             };
@@ -176,7 +181,7 @@ impl Routable {
                     }
 
                     quote! {
-                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = #fields),*)
+                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = ::yew_router::__macro::encode_for_url(&::std::format!("{}", #fields))),*)
                     }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked

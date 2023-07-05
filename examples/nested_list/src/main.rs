@@ -8,7 +8,8 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use yew::html::{Component, ImplicitClone, Scope};
+use yew::html::{ImplicitClone, Scope};
+use yew::prelude::*;
 
 pub struct WeakComponentLink<COMP: Component>(Rc<RefCell<Option<Scope<COMP>>>>);
 
@@ -59,6 +60,12 @@ impl fmt::Display for Hovered {
                 Hovered::None => "Nothing",
             }
         )
+    }
+}
+
+impl ToHtml for Hovered {
+    fn to_html(&self) -> yew::Html {
+        html! {<>{self.to_string()}</>}
     }
 }
 
