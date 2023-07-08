@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use std::borrow::Cow;
+use std::rc::Rc;
 
 use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
