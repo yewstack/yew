@@ -451,7 +451,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
    |                      required by a bound introduced by this call
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<&'a str> as IntoPropValue<Option<String>>>
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<Cow<'a, str>> as IntoPropValue<Option<Rc<str>>>>
              <Option<Cow<'a, str>> as IntoPropValue<Option<String>>>
@@ -549,7 +549,7 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    |                         required by a bound introduced by this call
    |
    = help: the following implementations were found:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<&'a str> as IntoPropValue<Option<String>>>
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<Cow<'a, str>> as IntoPropValue<Option<Rc<str>>>>
              <Option<Cow<'a, str>> as IntoPropValue<Option<String>>>
