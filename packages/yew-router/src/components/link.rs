@@ -9,9 +9,10 @@ use crate::{utils, Routable};
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R, Q = ()>
+pub struct LinkProps<R, S = (), Q = ()>
 where
     R: Routable,
+    S: Clone + PartialEq,
     Q: Clone + PartialEq + Serialize,
 {
     /// CSS classes to add to the anchor element (optional).
@@ -19,6 +20,9 @@ where
     pub classes: Classes,
     /// Route that will be pushed when the anchor is clicked.
     pub to: R,
+    /// Route state data
+    #[prop_or_default]
+    pub state: Option<S>,
     /// Route query data
     #[prop_or_default]
     pub query: Option<Q>,
@@ -33,9 +37,10 @@ where
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
 #[function_component]
-pub fn Link<R, Q = ()>(props: &LinkProps<R, Q>) -> Html
+pub fn Link<R, S = (), Q = ()>(props: &LinkProps<R, S, Q>) -> Html
 where
     R: Routable + 'static,
+    S: Clone + PartialEq + 'static,
     Q: Clone + PartialEq + Serialize + 'static,
 {
     let LinkProps {
@@ -43,6 +48,7 @@ where
         to,
         children,
         disabled,
+        state,
         query,
         anchor_ref,
     } = props.clone();
@@ -52,6 +58,7 @@ where
     let onclick = {
         let navigator = navigator.clone();
         let to = to.clone();
+        let state = state.clone();
         let query = query.clone();
 
         Callback::from(move |e: MouseEvent| {
@@ -59,14 +66,22 @@ where
                 return;
             }
             e.prevent_default();
-            match query {
-                None => {
+            match (&state, &query) {
+                (None, None) => {
                     navigator.push(&to);
                 }
-                Some(ref data) => {
+                (Some(state), None) => {
+                    navigator.push_with_state(&to, state.clone());
+                }
+                (None, Some(query)) => {
                     navigator
-                        .push_with_query(&to, data)
+                        .push_with_query(&to, query)
                         .expect_throw("failed push history with query");
+                }
+                (Some(state), Some(query)) => {
+                    navigator
+                        .push_with_query_and_state(&to, query, state.clone())
+                        .expect_throw("failed push history with query and state");
                 }
             }
         })
