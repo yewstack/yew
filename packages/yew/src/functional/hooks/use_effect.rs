@@ -2,11 +2,27 @@ use std::cell::RefCell;
 
 use crate::functional::{hook, Effect, Hook, HookContext};
 
+/// Trait describing the destructor of [`use_effect`] hook.
+pub trait TearDown: Sized + 'static {
+    /// The function that is executed when destructor is called
+    fn tear_down(self);
+}
+
+impl TearDown for () {
+    fn tear_down(self) {}
+}
+
+impl<F: FnOnce() + 'static> TearDown for F {
+    fn tear_down(self) {
+        self()
+    }
+}
+
 struct UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     runner_with_deps: Option<(T, F)>,
     destructor: Option<D>,
@@ -18,7 +34,7 @@ impl<T, F, D> Effect for RefCell<UseEffectBase<T, F, D>>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     fn rendered(&self) {
         let mut this = self.borrow_mut();
@@ -29,7 +45,7 @@ where
             }
 
             if let Some(de) = this.destructor.take() {
-                de();
+                de.tear_down();
             }
 
             let new_destructor = runner(&deps);
@@ -44,11 +60,11 @@ impl<T, F, D> Drop for UseEffectBase<T, F, D>
 where
     F: FnOnce(&T) -> D + 'static,
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     fn drop(&mut self) {
         if let Some(destructor) = self.destructor.take() {
-            destructor()
+            destructor.tear_down()
         }
     }
 }
@@ -60,13 +76,13 @@ fn use_effect_base<T, D>(
 ) -> impl Hook<Output = ()>
 where
     T: 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     struct HookProvider<T, F, D>
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
-        D: FnOnce() + 'static,
+        D: TearDown,
     {
         runner: F,
         deps: T,
@@ -77,7 +93,7 @@ where
     where
         F: FnOnce(&T) -> D + 'static,
         T: 'static,
-        D: FnOnce() + 'static,
+        D: TearDown,
     {
         type Output = ();
 
@@ -125,10 +141,10 @@ where
 ///     let counter_one = counter.clone();
 ///     use_effect(move || {
 ///         // Make a call to DOM API after component is rendered
-///         gloo_utils::document().set_title(&format!("You clicked {} times", *counter_one));
+///         gloo::utils::document().set_title(&format!("You clicked {} times", *counter_one));
 ///
 ///         // Perform the cleanup
-///         || gloo_utils::document().set_title(&format!("You clicked 0 times"))
+///         || gloo::utils::document().set_title(&format!("You clicked 0 times"))
 ///     });
 ///
 ///     let onclick = {
@@ -141,11 +157,20 @@ where
 ///     }
 /// }
 /// ```
+///
+/// # Destructor
+///
+/// Any type implementing [`TearDown`] can be used as destructor, which is called when the component
+/// is re-rendered
+///
+/// ## Tip
+///
+/// The callback can return [`()`] if there is no destructor to run.
 #[hook]
 pub fn use_effect<F, D>(f: F)
 where
     F: FnOnce() -> D + 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     use_effect_base(|_| f(), (), |_, _| true);
 }
@@ -153,7 +178,7 @@ where
 /// This hook is similar to [`use_effect`] but it accepts dependencies.
 ///
 /// Whenever the dependencies are changed, the effect callback is called again.
-/// To detect changes, dependencies must implement `PartialEq`.
+/// To detect changes, dependencies must implement [`PartialEq`].
 ///
 /// # Note
 /// The destructor also runs when dependencies change.
@@ -161,7 +186,7 @@ where
 /// # Example
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html, Properties};
+/// use yew::{function_component, html, use_effect_with, Html, Properties};
 /// # use gloo::console::log;
 ///
 /// #[derive(Properties, PartialEq)]
@@ -173,15 +198,13 @@ where
 /// fn HelloWorld(props: &Props) -> Html {
 ///     let is_loading = props.is_loading.clone();
 ///
-///     use_effect_with_deps(
-///         move |_| {
-///             log!(" Is loading prop changed!");
-///             || ()
-///         },
-///         is_loading,
-///     );
+///     use_effect_with(is_loading, move |_| {
+///         log!(" Is loading prop changed!");
+///     });
 ///
-///     html! { <>{"Am I loading? - "}{is_loading}</> }
+///     html! {
+///         <>{"Am I loading? - "}{is_loading}</>
+///     }
 /// }
 /// ```
 ///
@@ -193,18 +216,14 @@ where
 /// render of a component.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html};
+/// use yew::{function_component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             log!("I got rendered, yay!");
-///             || ()
-///         },
-///         (),
-///     );
+///     use_effect_with((), move |_| {
+///         log!("I got rendered, yay!");
+///     });
 ///
 ///     html! { "Hello" }
 /// }
@@ -216,28 +235,31 @@ where
 /// It will only get called when the component is removed from view / gets destroyed.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with_deps, Html};
+/// use yew::{function_component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
 /// #[function_component]
 /// fn HelloWorld() -> Html {
-///     use_effect_with_deps(
-///         move |_| {
-///             || {
-///                 log!("Noo dont kill me, ahhh!");
-///             }
-///         },
-///         (),
-///     );
+///     use_effect_with((), move |_| {
+///         || {
+///             log!("Noo dont kill me, ahhh!");
+///         }
+///     });
+///
 ///     html! { "Hello" }
 /// }
 /// ```
-#[hook]
-pub fn use_effect_with_deps<T, F, D>(f: F, deps: T)
+///
+/// Any type implementing [`TearDown`] can be used as destructor
+///
+/// ### Tip
+///
+/// The callback can return [`()`] if there is no destructor to run.
+pub fn use_effect_with<T, F, D>(deps: T, f: F) -> impl Hook<Output = ()>
 where
     T: PartialEq + 'static,
     F: FnOnce(&T) -> D + 'static,
-    D: FnOnce() + 'static,
+    D: TearDown,
 {
     use_effect_base(f, deps, |lhs, rhs| lhs != rhs)
 }

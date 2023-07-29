@@ -1,35 +1,42 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
+use std::future::Future;
 use std::path::PathBuf;
 
-use axum::body::{Body, StreamBody};
+use axum::body::StreamBody;
 use axum::error_handling::HandleError;
-use axum::extract::Query;
-use axum::handler::Handler;
-use axum::http::{Request, StatusCode};
+use axum::extract::{Query, State};
+use axum::handler::HandlerWithoutStateExt;
+use axum::http::{StatusCode, Uri};
 use axum::response::IntoResponse;
 use axum::routing::get;
-use axum::{Extension, Router};
+use axum::Router;
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use futures::stream::{self, StreamExt};
+use hyper::server::Server;
 use tower::ServiceExt;
 use tower_http::services::ServeDir;
+use yew::platform::Runtime;
+
+// We use jemalloc as it produces better performance.
+#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 /// A basic example
 #[derive(Parser, Debug)]
 struct Opt {
     /// the "dist" created by trunk directory to be served for hydration.
-    #[clap(short, long, parse(from_os_str))]
+    #[clap(short, long)]
     dir: PathBuf,
 }
 
 async fn render(
-    Extension((index_html_before, index_html_after)): Extension<(String, String)>,
-    url: Request<Body>,
+    url: Uri,
     Query(queries): Query<HashMap<String, String>>,
+    State((index_html_before, index_html_after)): State<(String, String)>,
 ) -> impl IntoResponse {
-    let url = url.uri().to_string();
+    let url = url.to_string();
 
     let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
         url: url.into(),
@@ -38,14 +45,38 @@ async fn render(
 
     StreamBody::new(
         stream::once(async move { index_html_before })
-            .chain(renderer.render_stream().await)
+            .chain(renderer.render_stream())
             .chain(stream::once(async move { index_html_after }))
             .map(Result::<_, Infallible>::Ok),
     )
 }
 
+// An executor to process requests on the Yew runtime.
+//
+// By spawning requests on the Yew runtime,
+// it processes request on the same thread as the rendering task.
+//
+// This increases performance in some environments (e.g.: in VM).
+#[derive(Clone, Default)]
+struct Executor {
+    inner: Runtime,
+}
+
+impl<F> hyper::rt::Executor<F> for Executor
+where
+    F: Future + Send + 'static,
+{
+    fn execute(&self, fut: F) {
+        self.inner.spawn_pinned(move || async move {
+            fut.await;
+        });
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    let exec = Executor::default();
+
     env_logger::init();
 
     let opts = Opt::parse();
@@ -63,30 +94,26 @@ async fn main() {
     let handle_error = |e| async move {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("error occurred: {}", e),
+            format!("error occurred: {e}"),
         )
     };
 
-    let app = Router::new()
-        .route("/api/test", get(|| async move { "Hello World" }))
-        .fallback(HandleError::new(
-            ServeDir::new(opts.dir)
-                .append_index_html_on_directories(false)
-                .fallback(
-                    render
-                        .layer(Extension((
-                            index_html_before.clone(),
-                            index_html_after.clone(),
-                        )))
-                        .into_service()
-                        .map_err(|err| -> std::io::Error { match err {} }),
-                ),
-            handle_error,
-        ));
+    let app = Router::new().fallback_service(HandleError::new(
+        ServeDir::new(opts.dir)
+            .append_index_html_on_directories(false)
+            .fallback(
+                get(render)
+                    .with_state((index_html_before.clone(), index_html_after.clone()))
+                    .into_service()
+                    .map_err(|err| -> std::io::Error { match err {} }),
+            ),
+        handle_error,
+    ));
 
     println!("You can view the website at: http://localhost:8080/");
 
-    axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
+    Server::bind(&"127.0.0.1:8080".parse().unwrap())
+        .executor(exec)
         .serve(app.into_make_service())
         .await
         .unwrap();

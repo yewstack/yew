@@ -45,9 +45,10 @@ impl Component for App {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Add(description) => {
+                let description = description.trim();
                 if !description.is_empty() {
                     let entry = Entry {
-                        description: description.trim().to_string(),
+                        description: description.to_string(),
                         completed: false,
                         editing: false,
                     };
@@ -65,7 +66,14 @@ impl Component for App {
                 self.state.filter = filter;
             }
             Msg::ToggleEdit(idx) => {
-                self.state.edit_value = self.state.entries[idx].description.clone();
+                let entry = self
+                    .state
+                    .entries
+                    .iter()
+                    .filter(|e| self.state.filter.fits(e))
+                    .nth(idx)
+                    .unwrap();
+                self.state.edit_value = entry.description.clone();
                 self.state.clear_all_edit();
                 self.state.toggle_edit(idx);
             }

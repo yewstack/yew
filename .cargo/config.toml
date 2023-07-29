@@ -1,6 +1,7 @@
 [target.'cfg(target_arch = "wasm32")']
 runner = 'wasm-bindgen-test-runner'
 
+# This section needs to be last.
+# GitHub Actions modifies this section.
 [unstable]
 doctest-xcompile = true
-# [unstable] must be the last section -- ci/write-optimisation-flags.sh relies on it

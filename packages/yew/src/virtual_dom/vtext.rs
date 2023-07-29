@@ -32,22 +32,30 @@ impl PartialEq for VText {
     }
 }
 
+impl<T: ToString> From<T> for VText {
+    fn from(value: T) -> Self {
+        VText::new(value.to_string())
+    }
+}
+
 #[cfg(feature = "ssr")]
 mod feat_ssr {
 
+    use std::fmt::Write;
+
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::BufWrite;
+    use crate::platform::fmt::BufWriter;
 
     impl VText {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut BufWriter,
             _parent_scope: &AnyScope,
             _hydratable: bool,
         ) {
             let s = html_escape::encode_text(&self.text);
-            w.write(s);
+            let _ = w.write_str(&s);
         }
     }
 }

@@ -6,8 +6,8 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use common::obtain_result_by_id;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -65,7 +65,7 @@ async fn use_context_scoping_works() {
     }
 
     yew::Renderer::<UseContextComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 
@@ -148,7 +148,7 @@ async fn use_context_works_with_multiple_types() {
     }
 
     yew::Renderer::<TestComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 
@@ -240,22 +240,22 @@ async fn use_context_update_works() {
         html! {
             <MyContextProvider context={Rc::new((*ctx).clone())}>
                 <RenderCounter id="test-0">
-                    <ContextOutlet id="test-1"/>
-                    <ContextOutlet id="test-2" {magic}/>
+                    <ContextOutlet id="test-1" />
+                    <ContextOutlet id="test-2" {magic} />
                 </RenderCounter>
             </MyContextProvider>
         }
     }
 
     yew::Renderer::<TestComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 
     sleep(Duration::ZERO).await;
 
-    // 1 initial render + 3 update steps
-    assert_eq!(obtain_result_by_id("test-0"), "total: 4");
+    // 1 initial render + 1 magic
+    assert_eq!(obtain_result_by_id("test-0"), "total: 2");
 
     // 1 initial + 2 context update
     assert_eq!(

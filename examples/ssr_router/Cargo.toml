@@ -5,23 +5,33 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "ssr_router_hydrate"
+required-features = ["hydration"]
+
+[[bin]]
+name = "ssr_router_server"
+required-features = ["ssr"]
+
 [dependencies]
 yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
 log = "0.4"
-futures = "0.3"
+futures = { version = "0.3", features = ["std"], default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
 wasm-logger = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.15.0", features = ["full"] }
-axum = "0.5"
+tokio = { version = "1.29.0", features = ["full"] }
+axum = "0.6"
 tower = { version = "0.4", features = ["make"] }
 tower-http = { version = "0.3", features = ["fs"] }
-env_logger = "0.9"
-clap = { version = "3.1.7", features = ["derive"] }
+env_logger = "0.10"
+clap = { version = "4", features = ["derive"] }
+hyper = { version = "0.14", features = ["server", "http1"] }
+jemallocator = "0.5"
 
 [features]
 ssr = ["yew/ssr"]

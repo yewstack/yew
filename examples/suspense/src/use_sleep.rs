@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::time::Duration;
 
-use gloo_timers::future::sleep;
+use gloo::timers::future::sleep;
 use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 

@@ -39,6 +39,13 @@ error[E0425]: cannot find value `invalid` in this scope
   |
 7 |     html! { invalid };
   |             ^^^^^^^ not found in this scope
+  |
+help: consider importing one of these items
+  |
+1 | use core::ptr::invalid;
+  |
+1 | use std::ptr::invalid;
+  |
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> tests/html_macro/node-fail.rs:6:13
@@ -48,6 +55,16 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   |
   = help: the trait `std::fmt::Display` is not implemented for `()`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = help: the following other types implement trait `From<T>`:
+            <VNode as From<ChildrenRenderer<VNode>>>
+            <VNode as From<T>>
+            <VNode as From<VChild<COMP>>>
+            <VNode as From<yew::virtual_dom::VComp>>
+            <VNode as From<yew::virtual_dom::VList>>
+            <VNode as From<yew::virtual_dom::VPortal>>
+            <VNode as From<yew::virtual_dom::VSuspense>>
+            <VNode as From<yew::virtual_dom::VTag>>
+            <VNode as From<yew::virtual_dom::VText>>
   = note: required because of the requirements on the impl of `ToString` for `()`
   = note: required because of the requirements on the impl of `From<()>` for `VNode`
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
@@ -60,6 +77,16 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = help: the following other types implement trait `From<T>`:
+             <VNode as From<ChildrenRenderer<VNode>>>
+             <VNode as From<T>>
+             <VNode as From<VChild<COMP>>>
+             <VNode as From<yew::virtual_dom::VComp>>
+             <VNode as From<yew::virtual_dom::VList>>
+             <VNode as From<yew::virtual_dom::VPortal>>
+             <VNode as From<yew::virtual_dom::VSuspense>>
+             <VNode as From<yew::virtual_dom::VTag>>
+             <VNode as From<yew::virtual_dom::VText>>
    = note: required because of the requirements on the impl of `ToString` for `()`
    = note: required because of the requirements on the impl of `From<()>` for `VNode`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

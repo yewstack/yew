@@ -1,4 +1,4 @@
-#![cfg_attr(feature = "nightly", feature(proc_macro_span))]
+#![cfg_attr(nightly_yew, feature(proc_macro_span))]
 
 //! This crate provides Yew's procedural macro `html!` which allows using JSX-like syntax
 //! for generating html and the `Properties` derive macro for deriving the `Properties` trait
@@ -96,6 +96,13 @@ fn join_errors(mut it: impl Iterator<Item = syn::Error>) -> syn::Result<()> {
         }
         Err(err)
     })
+}
+
+fn is_ide_completion() -> bool {
+    match std::env::var_os("RUST_IDE_PROC_MACRO_COMPLETION_DUMMY_IDENTIFIER") {
+        None => false,
+        Some(dummy_identifier) => !dummy_identifier.is_empty(),
+    }
 }
 
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]

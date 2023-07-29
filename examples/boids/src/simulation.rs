@@ -25,7 +25,6 @@ pub struct Props {
 pub struct Simulation {
     boids: Vec<Boid>,
     interval: Interval,
-    settings: Settings,
     generation: usize,
 }
 impl Component for Simulation {
@@ -49,7 +48,6 @@ impl Component for Simulation {
         Self {
             boids,
             interval,
-            settings,
             generation,
         }
     }
@@ -73,10 +71,10 @@ impl Component for Simulation {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
         let props = ctx.props();
-        let should_reset = self.settings != props.settings || self.generation != props.generation;
-        self.settings = props.settings.clone();
+        let should_reset =
+            old_props.settings != props.settings || self.generation != props.generation;
         self.generation = props.generation;
         if should_reset {
             self.boids.clear();

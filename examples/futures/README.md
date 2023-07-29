@@ -18,3 +18,11 @@ It also contains a Markdown renderer which manually creates `Html` without using
 - Since this features a Markdown renderer it should be possible to render more than just one document.
 
 [`linkfuture`]: https://docs.rs/yewtil/latest/yewtil/future/trait.LinkFuture.html
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

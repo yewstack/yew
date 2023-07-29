@@ -7,12 +7,12 @@ use crate::content::PostMeta;
 use crate::generator::Generated;
 use crate::Route;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub seed: u32,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct PostMetaState {
     inner: PostMeta,
 }
@@ -38,14 +38,11 @@ pub fn PostCard(props: &Props) -> Html {
 
     {
         let post_dispatcher = post.dispatcher();
-        use_effect_with_deps(
-            move |seed| {
-                post_dispatcher.dispatch(*seed);
+        use_effect_with(seed, move |seed| {
+            post_dispatcher.dispatch(*seed);
 
-                || {}
-            },
-            seed,
-        );
+            || {}
+        });
     }
 
     let post = &post.inner;

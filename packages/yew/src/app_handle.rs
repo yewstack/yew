@@ -5,11 +5,10 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::BSubtree;
-use crate::html::{BaseComponent, NodeRef, Scope, Scoped};
+use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
+use crate::html::{BaseComponent, Scope, Scoped};
 
 /// An instance of an application.
-#[cfg_attr(documenting, doc(cfg(feature = "csr")))]
 #[derive(Debug)]
 pub struct AppHandle<COMP: BaseComponent> {
     /// `Scope` holder
@@ -24,6 +23,11 @@ where
     /// similarly to the `program` function in Elm. You should provide an initial model, `update`
     /// function which will update the state of the model and a `view` function which
     /// will render the model to a virtual DOM tree.
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        name = "mount",
+        skip(props),
+    )]
     pub(crate) fn mount_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
         clear_element(&host);
         let app = Self {
@@ -33,15 +37,34 @@ where
         app.scope.mount_in_place(
             hosting_root,
             host,
-            NodeRef::default(),
-            NodeRef::default(),
+            DomSlot::at_end(),
+            DynamicDomSlot::new_debug_trapped(),
             props,
         );
 
         app
     }
 
+    /// Update the properties of the app's root component.
+    ///
+    /// This can be an alternative to sending and handling messages. The existing component will be
+    /// reused and have its properties updates. This will presumably trigger a re-render, refer to
+    /// the [`changed`] lifecycle for details.
+    ///
+    /// [`changed`]: crate::Component::changed
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        skip_all,
+    )]
+    pub fn update(&mut self, new_props: COMP::Properties) {
+        self.scope.reuse(Rc::new(new_props), DomSlot::at_end())
+    }
+
     /// Schedule the app for destruction
+    #[tracing::instrument(
+        level = tracing::Level::DEBUG,
+        skip_all,
+    )]
     pub fn destroy(self) {
         self.scope.destroy(false)
     }
@@ -65,7 +88,6 @@ fn clear_element(host: &Element) {
     }
 }
 
-#[cfg_attr(documenting, doc(cfg(feature = "hydration")))]
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
@@ -75,6 +97,11 @@ mod feat_hydration {
     where
         COMP: BaseComponent,
     {
+        #[tracing::instrument(
+            level = tracing::Level::DEBUG,
+            name = "hydrate",
+            skip(props),
+        )]
         pub(crate) fn hydrate_with_props(host: Element, props: Rc<COMP::Properties>) -> Self {
             let app = Self {
                 scope: Scope::new(None),
@@ -87,11 +114,11 @@ mod feat_hydration {
                 hosting_root,
                 host.clone(),
                 &mut fragment,
-                NodeRef::default(),
+                DynamicDomSlot::new_debug_trapped(),
                 Rc::clone(&props),
             );
             #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-            app.scope.reuse(props, NodeRef::default());
+            app.scope.reuse(props, DomSlot::at_end());
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.

@@ -1,4 +1,4 @@
-use gloo_console as console;
+use gloo::console;
 use js_sys::Date;
 use yew::{html, Component, Context, Html};
 

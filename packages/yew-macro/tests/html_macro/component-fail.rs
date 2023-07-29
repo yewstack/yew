@@ -65,6 +65,20 @@ fn compile_fail() {
     html! { <Child value=1 ref={()} ..props ref={()} /> };
     html! { <Child ref={()} ref={()} value=1  with props  /> };
     html! { <Child ref={()} ref={()} value=1 ..props  /> };
+    html! { <Child with props r#ref={()} r#ref={()} /> };
+    html! { <Child ..props r#ref={()} r#ref={()} /> };
+    html! { <Child with props r#ref={()} r#ref={()} value=1 /> };
+    html! { <Child ..props r#ref={()} r#ref={()} value=1 /> };
+    html! { <Child with props r#ref={()} value=1 r#ref={()} /> };
+    html! { <Child ..props r#ref={()} value=1 r#ref={()} /> };
+    html! { <Child with props value=1 r#ref={()}  r#ref={()} /> };
+    html! { <Child ..props value=1 r#ref={()}  r#ref={()} /> };
+    html! { <Child value=1 with props  r#ref={()}  r#ref={()} /> };
+    html! { <Child value=1 ..props  r#ref={()}  r#ref={()} /> };
+    html! { <Child value=1 r#ref={()} with props r#ref={()} /> };
+    html! { <Child value=1 r#ref={()} ..props r#ref={()} /> };
+    html! { <Child r#ref={()} r#ref={()} value=1  with props  /> };
+    html! { <Child r#ref={()} r#ref={()} value=1 ..props  /> };
     html! { <Child ..blah /> };
     html! { <Child value=1 ..props /> };
     html! { <Child .. props value=1 /> };
@@ -79,6 +93,8 @@ fn compile_fail() {
     html! { <Child int=1 string={3} /> };
     html! { <Child int=1 ref={()} /> };
     html! { <Child int=1 ref={()} ref={()} /> };
+    html! { <Child int=1 r#ref={()} /> };
+    html! { <Child int=1 r#ref={()} r#ref={()} /> };
     html! { <Child int=0u32 /> };
     html! { <Child string="abc" /> };
     html! { </Child> };
@@ -130,6 +146,36 @@ fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemente
 fn not_expressions() {
     html! { <HtmlInProps header={macro_rules! declare { }} /> };
     html! { <HtmlInProps header={format!("ending with semi");} /> };
+}
+
+fn mismatch_closing_tags() {
+    pub struct A;
+    impl Component for A {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            unimplemented!()
+        }
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            unimplemented!()
+        }
+    }
+
+    pub struct B;
+    impl Component for B {
+        type Message = ();
+        type Properties = ();
+
+        fn create(_ctx: &Context<Self>) -> Self {
+            unimplemented!()
+        }
+        fn view(&self, _ctx: &Context<Self>) -> Html {
+            unimplemented!()
+        }
+    }
+    let _ = html! { <A></B> };
+    let _ = html! { <A></> };
 }
 
 fn main() {}

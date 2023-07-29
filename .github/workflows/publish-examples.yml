@@ -2,9 +2,9 @@ name: Publish Examples
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "website/**"
+    paths:
+      - 'ci/**'
+      - 'examples/**'
 
 jobs:
   publish:
@@ -15,21 +15,18 @@ jobs:
       RUSTUP_TOOLCHAIN: nightly
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown
           components: rust-src
-          override: true
-          profile: minimal
 
-      - name: Write optimisation flags
-        run: ./ci/write-optimisation-flags.sh
+      - uses: Swatinem/rust-cache@v2
 
-      - uses: Swatinem/rust-cache@v1
-
-      - uses: jetli/trunk-action@v0.1.0
+      - uses: jetli/trunk-action@v0.4.0
         with:
           version: 'latest'
 
@@ -37,7 +34,7 @@ jobs:
         run: ./ci/build-examples.sh
 
       - name: Deploy to Firebase
-        uses: siku2/action-hosting-deploy@v0
+        uses: siku2/action-hosting-deploy@v1
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseToken: "${{ secrets.FIREBASE_TOKEN }}"

@@ -48,6 +48,15 @@ pub fn entry(props: &EntryProps) -> Html {
         move |_| onremove.emit(id)
     };
 
+    let onedit = {
+        let onedit = props.onedit.clone();
+        let edit_toggle = edit_toggle.clone();
+        move |value| {
+            edit_toggle.clone().toggle();
+            onedit.emit(value)
+        }
+    };
+
     html! {
         <li {class}>
             <div class="view">
@@ -62,7 +71,7 @@ pub fn entry(props: &EntryProps) -> Html {
                 </label>
                 <button class="destroy" onclick={onremove} />
             </div>
-            <EntryEdit entry={props.entry.clone()} onedit={props.onedit.clone()} editing={is_editing} />
+            <EntryEdit entry={props.entry.clone()} onedit={onedit} editing={is_editing} />
         </li>
     }
 }

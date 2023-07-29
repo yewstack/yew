@@ -2,65 +2,21 @@ name: Main Checks
 
 on:
   pull_request:
+    paths:
+      - ".github/workflows/main-checks.yml"
+      - "ci/**"
+      - "packages/**/*"
+      - "Cargo.toml"
+      - "Cargo.lock"
   push:
     branches: [master]
 
 jobs:
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: clippy
-
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --features "csr,ssr,hydration,tokio" -- -D warnings
-
-      - name: Lint feature soundness
-        run: bash ../../ci/feature-soundness.sh
-        working-directory: packages/yew
-
-
-  clippy-release:
-    name: Clippy on release profile
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: clippy
-
-      - uses: Swatinem/rust-cache@v1
-
-      - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --features "csr,ssr,hydration,tokio" --release -- -D warnings
-
-      - name: Lint feature soundness
-        run: bash ../../ci/feature-soundness-release.sh
-        working-directory: packages/yew
-
   spell_check:
     name: spellcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check spelling
         run: |
           sudo apt-get install aspell
@@ -70,93 +26,76 @@ jobs:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: Swatinem/rust-cache@v1
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
 
-      - uses: actions-rs/toolchain@v1
+      # for wasm-bindgen-cli, always use stable rust
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          override: true
-          profile: minimal
 
-      - name: Install wasm-bindgen-test-runner
-        run: cargo install --git https://github.com/hamza1311/wasm-bindgen --branch respect-rustdoc-tmp-paths wasm-bindgen-cli
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
+          targets: wasm32-unknown-unknown
 
       - uses: browser-actions/setup-geckodriver@latest
-      - uses: nanasess/setup-chromedriver@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: nanasess/setup-chromedriver@v2
 
       - name: Run doctest
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --doc --workspace --exclude yew --exclude changelog --exclude website-test --exclude ssr_router --exclude simple_ssr --exclude benchmark-ssr --target wasm32-unknown-unknown
-
-      - name: Run website code snippet tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p website-test --target wasm32-unknown-unknown
-
-      - name: Run doctest - yew with features
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p yew --doc --all-features --target wasm32-unknown-unknown
+        run: |
+          ls packages | xargs -I {} \
+            cargo test \
+              -p {} \
+              --doc \
+              --all-features \
+              --target wasm32-unknown-unknown
 
   integration_tests:
     name: Integration Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         toolchain:
-          # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.60.0 # MSRV
+          - 1.64.0
           - stable
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        # for wasm-bindgen-cli, always use stable rust
+      - uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+
+      # for wasm-bindgen-cli, always use stable rust
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          profile: minimal
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.toolchain }}
-          target: wasm32-unknown-unknown
-          override: true
-          profile: minimal
-
-      - uses: browser-actions/setup-geckodriver@latest
-      - uses: nanasess/setup-chromedriver@v1
-
-      - uses: Swatinem/rust-cache@v1
 
       - name: Install wasm-bindgen-cli
         shell: bash
-        run: |
-          if [ ! -f "Cargo.lock" ]; then
-            cargo fetch
-          fi
-          
-          VERSION=$(cargo pkgid --frozen wasm-bindgen | cut -d ":" -f 3)
+        run: ./ci/install-wasm-bindgen-cli.sh
 
-          # Cargo decided to change syntax after 1.61
-          if [ "$VERSION" = "" ]; then
-            VERSION=$(cargo pkgid --frozen wasm-bindgen | cut -d "@" -f 2)
-          fi
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          targets: wasm32-unknown-unknown
 
-          cargo +stable install --version $VERSION wasm-bindgen-cli
+      - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: nanasess/setup-chromedriver@v2
 
       - name: Run tests - yew
         run: |
@@ -174,54 +113,54 @@ jobs:
     name: Unit Tests on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         toolchain:
-          # anyway to dynamically grep the MSRV from Cargo.toml?
-          - 1.60.0 # MSRV
+          - 1.64.0
           - stable
           - nightly
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions-rs/toolchain@v1
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-          override: true
-          profile: minimal
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Run native tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-targets --workspace --exclude yew --exclude website-test --exclude ssr_router --exclude simple_ssr
+        env:
+          # workaround for lack of ternary operator
+          # see https://github.com/orgs/community/discussions/25725
+          RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
+        run: ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
 
       - name: Run native tests for yew
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p yew --features "csr,ssr,hydration,tokio"
+        env:
+          # workaround for lack of ternary operator
+          # see https://github.com/orgs/community/discussions/25725
+          RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
+        run: cargo test -p yew --all-features
 
   test-lints:
     name: Test lints on nightly
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
-          override: true
-          profile: minimal
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p yew-macro test_html_lints --features lints
+        env:
+          RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
+        run: cargo test -p yew-macro test_html_lints

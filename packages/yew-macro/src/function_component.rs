@@ -102,7 +102,7 @@ impl Parse for FunctionComponent {
 
                     if ty.mutability.is_some() {
                         return Err(syn::Error::new_spanned(
-                            &ty.mutability,
+                            ty.mutability,
                             "reference must not be mutable",
                         ));
                     }
@@ -158,7 +158,7 @@ impl FunctionComponent {
         self.attrs
             .iter()
             .filter_map(|m| {
-                m.path
+                m.path()
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
                         "doc" | "allow" => Some(m.clone()),
@@ -173,7 +173,7 @@ impl FunctionComponent {
         self.attrs
             .iter()
             .filter_map(|m| {
-                m.path
+                m.path()
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
                         "allow" => Some(m.clone()),
@@ -298,7 +298,7 @@ impl FunctionComponent {
                 }
 
                 #[inline]
-                fn changed(&mut self, _ctx: &::yew::html::Context<Self>) -> ::std::primitive::bool {
+                fn changed(&mut self, _ctx: &::yew::html::Context<Self>, _old_props: &Self::Properties) -> ::std::primitive::bool {
                     true
                 }
 
@@ -332,7 +332,7 @@ impl FunctionComponent {
         let component_name = self.component_name();
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-        let component_name_lit = LitStr::new(&format!("{}<_>", component_name), Span::mixed_site());
+        let component_name_lit = LitStr::new(&format!("{component_name}<_>"), Span::mixed_site());
 
         quote! {
             #[automatically_derived]

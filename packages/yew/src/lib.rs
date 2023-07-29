@@ -1,10 +1,8 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc(html_logo_url = "https://yew.rs/img/logo.png")]
 #![cfg_attr(documenting, feature(doc_cfg))]
-#![cfg_attr(
-    feature = "nightly",
-    feature(fn_traits, async_closure, unboxed_closures)
-)]
+#![cfg_attr(documenting, feature(doc_auto_cfg))]
+#![cfg_attr(nightly_yew, feature(fn_traits, async_closure, unboxed_closures))]
 
 //! # Yew Framework - API Documentation
 //!
@@ -28,7 +26,6 @@
 //! - `csr`: Enables Client-side Rendering support and [`Renderer`]. Only enable this feature if you
 //!   are making a Yew application (not a library).
 //! - `ssr`: Enables Server-side Rendering support and [`ServerRenderer`].
-//! - `tokio`: Enables future-based APIs on non-wasm32 targets with tokio runtime.
 //! - `hydration`: Enables Hydration support.
 //!
 //! ## Example
@@ -307,7 +304,8 @@ pub mod events {
     #[doc(no_inline)]
     pub use web_sys::{
         AnimationEvent, DragEvent, ErrorEvent, Event, FocusEvent, InputEvent, KeyboardEvent,
-        MouseEvent, PointerEvent, ProgressEvent, TouchEvent, TransitionEvent, UiEvent, WheelEvent,
+        MouseEvent, PointerEvent, ProgressEvent, SubmitEvent, TouchEvent, TransitionEvent, UiEvent,
+        WheelEvent,
     };
 
     #[cfg(feature = "csr")]
@@ -338,7 +336,7 @@ pub mod prelude {
     pub use crate::functional::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
-        Html, HtmlResult, NodeRef, Properties,
+        Html, HtmlResult, NodeRef, Properties, ToHtml,
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;

@@ -22,13 +22,10 @@ fn app() -> Html {
     });
 
     // Effect
-    use_effect_with_deps(
-        move |state| {
-            LocalStorage::set(KEY, &state.clone().entries).expect("failed to set");
-            || ()
-        },
-        state.clone(),
-    );
+    use_effect_with(state.clone(), move |state| {
+        LocalStorage::set(KEY, &state.clone().entries).expect("failed to set");
+        || ()
+    });
 
     // Callbacks
     let onremove = {
@@ -135,7 +132,7 @@ fn app() -> Html {
                         }) }
                     </ul>
                     <button class="clear-completed" onclick={onclear_completed}>
-                        { format!("Clear completed ({})", completed) }
+                        { format!("Clear completed ({completed})") }
                     </button>
                 </footer>
             </section>

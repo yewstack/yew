@@ -30,25 +30,29 @@ description: 'Community projects built using yew'
 -   [DevAndDev](https://github.com/alepez/devand) - A website where developers can find pair-programming partners. Written in Rust, Yew frontend.
 -   [yew-octicons](https://github.com/io12/yew-octicons) - An easy interface for using Octicons in Yew projects.
 -   [Pipe](https://github.com/pipe-fun/pipe) - This is a Rust / Wasm client web app which is a task control center.
--   [note-to-yew](https://github.com/GalAster/note-to-yew) - Convert your markups into Yew macro online, which is also made by Yew.
+-   [note-to-yew](https://github.com/oovm/note-to-yew) - Convert your markups into Yew macro online, which is also made by Yew.
 -   [ASCII-Hangman](https://github.com/getreu/ascii-hangman) - Configurable Hangman game for children with ASCII-art rewarding.
 -   [dotdotyew](https://github.com/shaunbennett/dotdotyew) - [Dot-voting](https://en.wikipedia.org/wiki/Dot-voting) using Yew, with Rust powering the backend API.
 -   [wasm-2048](https://github.com/dev-family/wasm-2048) - 2048 game implemented with Rust and Yew and compiled to Wasm.
 -   [website-wasm](https://github.com/kamiyaa/website-wasm) - My personal website written in Rust via Yew/Wasm.
 -   [KeyPress](https://github.com/rayylee/keypress) - A Rust WebAssembly Website example for practising english for chinese.
 -   [yew-train-ticket](https://github.com/anthhub/yew-train-ticket) - A Rust WebAssembly Webapp example basing Yew newest hooks and functional API, the code style is extremely like React Function Component.
--   [yew-d3-example](https://github.com/i-schuetz/yew-d3-example) - Showing a d3 chart with Yew.
+-   [yew-d3-example](https://github.com/ivanschuetz/yew-d3-example) - Showing a d3 chart with Yew.
 -   [Oxfeed](https://github.com/sanpii/oxfeed) - A feed reader written in Rust with a Yew frontend.
 -   [Flow.er](https://github.com/LighghtEeloo/flow.er) - A notebook app integrated with todo lists utility. Developed with Rust, WebAssembly, Yew and Trunk.
 -   [Fullstack-Rust](https://github.com/vascokk/fullstack-rust) - A Full Stack Rust application (Connect5 game) with Actix-web, Yew, Bulma CSS and Diesel.
 -   [Sea_battle](https://github.com/MAE664128/sea_battle) - A simple example of a sea battle game. Rust + Yew.
 -   [tide-async-graphql-mongodb](https://github.com/zzy/tide-async-graphql-mongodb) - Clean boilerplate for graphql services, with wasm/yew frontend.
--   [surfer](https://github.com/zzy/surfer) - A blog built on yew + graphql, with [live demo site](https://gaiding.com). Backend for graphql services, and frontend for web application.
+-   [surfer](https://github.com/zzy/surfer) - A blog built on yew + graphql, with [live demo site](https://niqin.com). Backend for graphql services, and frontend for web application.
 -   [qubit](https://abhimanyu003.github.io/qubit) - A handy calculator, based on Rust and WebAssembly, [Live Demo](https://abhimanyu003.github.io/qubit/).
 -   [Paudle](https://github.com/pmsanford/paudle) - A reimplementation of the excellent word game Wordle by Josh Wardle.
 -   [Rust algorithms](https://github.com/Jondolf/rust-algorithms) - A website with interactive implementations of various algorithms (only sorting algorithms for now).
 -   [Marc Portfolio](https://gitlab.com/marcempunkt/maeurerdev) - A software developer portfolio, [Live Demo](https://maeurer.dev/).
--   [zzhack](https://github.com/youncccat/zzhack) - A personal blog, based on Rust & Yew, [Live Demo](https://www.zzhack.fun/technology).
+-   [zzhack](https://github.com/zzhack-stack/zzhack) - A personal blog, based on Rust & Yew, [Live Demo](https://www.zzhack.fun/technology).
+-   [viz.rs](https://github.com/viz-rs/viz-rs.github.io) - A website for viz web framework, [Live Demo](https://viz.rs/).
+-   [hurlurl](https://github.com/lucasmerlin/hurlurl) - A randomizing link shortener, [Live Demo](https://hurlurl.com/).
+-   [Macige](https://github.com/tramlinehq/macige) - CI workflow generator for mobile app development, [Live Demo](https://macige.tramline.app).
+-   [Spaceman](https://github.com/eliaperantoni/spaceman) - A cross-platform and graphical client for the gRPC communication protocol.
 
 ## Templates
 
@@ -78,6 +82,7 @@ description: 'Community projects built using yew'
 -   [Yew Form](https://github.com/jfbilodeau/yew_form) - Components to simplify handling forms with Yew.
 -   [yew-component-size](https://github.com/AircastDev/yew-component-size) - A Yew component that emits events when the parent component changes width/height.
 -   [yew-virtual-scroller](https://github.com/AircastDev/yew-virtual-scroller) - A Yew component for virtual scrolling / scroll windowing.
+-   [yew-autoprops](https://crates.io/crates/yew-autoprops) - proc-macro to automatically derive Properties structs from args for Yew components.
 
 ### Hooks
 

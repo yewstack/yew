@@ -16,7 +16,7 @@ below, see [Manual event listener](#manual-event-listener).
 :::tip
 All the event types mentioned in the following table are re-exported under `yew::events`.
 Using the types from `yew::events` makes it easier to ensure version compatibility than
-if you were to manually include `web-sys` as a dependency in your crate because you won't
+if you were to manually include `web-sys` as a dependency in your crate because you will not
 end up using a version which conflicts with the version that Yew specifies.
 :::
 
@@ -41,8 +41,8 @@ listens for `click` events. See the end of this page for a [full list of availab
 Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase
 is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual
 DOM hierarchy. The distinction is important when working with [portals](../../advanced-topics/portals.mdx) and other
-more advanced techniques. The intuition for well implemented components should be that events bubble from children
-to parents, so that the hierarchy in your coded `html!` is the one observed by event handlers.
+more advanced techniques. The intuition for well-implemented components should be that events bubble from children
+to parents. In this way the hierarchy in your coded `html!` is the one observed by event handlers.
 
 If you are not interested in event bubbling, you can turn it off by calling
 
@@ -50,20 +50,20 @@ If you are not interested in event bubbling, you can turn it off by calling
 yew::set_event_bubbling(false);
 ```
 
-_before_ starting your app. This speeds up event handling, but some components may break from not receiving events they expect.
+_before_ starting your app. This speeds up event handling, but some components may break from not receiving the events they expect.
 Use this with care!
 
 ## Event delegation
 
 It can be surprising that event listeners are _not_ directly registered on the element where they are rendered. Instead, events
 are delegated from the subtree root of the Yew app. Still, events are delivered in their native form, and no synthetic
-form is created. This can lead to mismatches between the event you'd expect in html listeners and those showing up in Yew.
+form is created. This can lead to mismatches between the event you would expect in HTML listeners and those showing up in Yew.
 
 -   [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
     [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
 -   [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
     phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
-    the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners are not supported by Yew.
+    the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners is not supported by Yew.
 
     This also means that events registered by Yew will usually fire before other event listeners.
 
@@ -88,8 +88,8 @@ them here. Calling [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bi
 on an event returns an optional [`web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html)
 type, which might not seem very useful when you want to know the value of your input element.
 
-In all the approaches below we are going to tackle the same problem, so it's clear where the approach
-differs opposed to the problem at hand.
+In all the approaches below we are going to tackle the same problem, so it is clear where the approach
+differs as opposed to the problem at hand.
 
 **The Problem:**
 
@@ -369,7 +369,7 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 [supported events listed here](#event-types).
 
 In order to add an event listener to one of elements manually we need the help of
-[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with_deps` we can add a listener using the
+[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with` we can add a listener using the
 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 
@@ -394,7 +394,8 @@ use yew::prelude::*;
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
-    use_effect_with_deps(
+    use_effect_with(
+        div_node_ref.clone(),
         {
             let div_node_ref = div_node_ref.clone();
 
@@ -425,8 +426,7 @@ fn MyComponent() -> Html {
 
                 move || drop(custard_listener)
             }
-        },
-        div_node_ref.clone()
+        }
     );
 
     html! {
@@ -461,7 +461,8 @@ use gloo::events::EventListener;
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
-    use_effect_with_deps(
+    use_effect_with(
+        div_node_ref.clone(),
         {
             let div_node_ref = div_node_ref.clone();
 
@@ -486,8 +487,7 @@ fn MyComponent() -> Html {
 
                 move || drop(custard_listener)
             }
-        },
-        div_node_ref.clone()
+        }
     );
 
     html! {
@@ -561,7 +561,7 @@ For more information on `EventListener`, see the
 | `onselect`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onslotchange`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onstalled`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onsubmit`                  | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
+| `onsubmit`                  | [SubmitEvent](https://docs.rs/web-sys/latest/web_sys/struct.SubmitEvent.html)         |
 | `onsuspend`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `ontimeupdate`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `ontoggle`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |

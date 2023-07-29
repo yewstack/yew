@@ -1,6 +1,6 @@
 ---
 name: Documentation
-about: Report an issue relating to this project's documetation.
+about: Report an issue relating to this project's documentation.
 title: ''
 labels: documentation
 assignees: ''

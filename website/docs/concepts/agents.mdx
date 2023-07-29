@@ -36,7 +36,7 @@ The code can be found in the <desc> tag of the svgs.
 
 -   Private - Spawn a new agent in a web worker for every new bridge. This is good for moving shared but
     independent behavior that communicates with the browser out of components. When
-    the the connected bridge is dropped, the agent will disappear.
+    the connected bridge is dropped, the agent will disappear.
 
 -   Global \(WIP\)
 
@@ -61,4 +61,4 @@ with other threads, so the cost is substantially higher than just calling a func
 ## Further reading
 
 -   The [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) example shows how
-    components can send message to and receive message from agents.
+    components can send messages to and receive messages from agents.

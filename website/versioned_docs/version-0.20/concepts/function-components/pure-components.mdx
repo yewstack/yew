@@ -1,0 +1,39 @@
+---
+title: 'Pure Components'
+---
+
+A function component is considered [pure] when the returned `Html` is deterministically derived
+from its props, and its view function mutates no state or has other side-effects.
+
+[pure]: https://en.wikipedia.org/wiki/Pure_function
+
+For example below is a pure component. For a given prop `is_loading` it will always result in the same `Html` without any side effects.
+
+```rust
+use yew::{Properties, function_component, Html, html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    if props.is_loading {
+        html! { "Loading" }
+    } else {
+        html! { "Hello world" }
+    }
+}
+```
+
+:::note
+If you have an internal pure component that makes no use of hooks and other component machinery, you can often write it instead
+as a normal function returning `Html` and avoid a bit of overhead for Yew, related to running the component lifecycle. Use
+[expression syntax](concepts/html/literals-and-expressions.mdx#expressions) to render them in `html!`.
+:::
+
+## Impure components
+
+You might wonder if a component can be impure if it does not use any globals, since its just a function that is called every render.
+This is where the next topic comes in - [hooks](./hooks)

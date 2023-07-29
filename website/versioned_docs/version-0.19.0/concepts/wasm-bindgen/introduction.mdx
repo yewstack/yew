@@ -164,14 +164,14 @@ method is a checked cast that returns an `Option<&T>` which means the original t
 can be used again if the cast failed and thus returned `None`. The
 [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 method will consume `self`, as per convention for into methods in Rust, and the type returned is
-`Result<T, Self>` this means if the casting fails then the value in `Err` is so you can try again
+`Result<T, Self>`. If the casting fails, the original `Self` value is returned in `Err`. You can try again
 or do something else with the original type.
 
 _[`JsCast` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)._
 
 ### [`Closure`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)
 
-The `Closure` type provides a way to transfer Rust closures to JavaScript, the closures past to
+The `Closure` type provides a way to transfer Rust closures to JavaScript, the closures passed to
 JavaScript must have a `'static` lifetime for soundness reasons.
 
 This type is a "handle" in the sense that whenever it is dropped it will invalidate the JS

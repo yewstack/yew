@@ -48,3 +48,26 @@ fn router_trailing_slash() {
         AppRoute::recognize("/category/cooking-recipes/")
     );
 }
+
+#[test]
+fn router_url_encoding() {
+    #[derive(Routable, Debug, Clone, PartialEq)]
+    enum AppRoute {
+        #[at("/")]
+        Root,
+        #[at("/search/:query")]
+        Search { query: String },
+    }
+
+    assert_eq!(
+        yew_router::__macro::decode_for_url("/search/a%2Fb/").unwrap(),
+        "/search/a/b/"
+    );
+
+    assert_eq!(
+        Some(AppRoute::Search {
+            query: "a/b".to_string()
+        }),
+        AppRoute::recognize("/search/a%2Fb/")
+    );
+}

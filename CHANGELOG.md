@@ -1,5 +1,132 @@
 # Changelog
 
+## ✨ yew **0.20.0** *(2022-11-xx)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fix onsubmit event type in docs. [[@Allan](https://github.com/Allan), [#2926](https://github.com/yewstack/yew/pull/2926)]
+  - Fix issues with tuples in closing tag. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2886](https://github.com/yewstack/yew/pull/2886)]
+  - Fix checked property being reset. [[@WorldSEnder](https://github.com/WorldSEnder), [#2907](https://github.com/yewstack/yew/pull/2907)]
+  - Fix VList Stream in SSR. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2801](https://github.com/yewstack/yew/pull/2801)]
+  - Fixed `NodeRef` not being implicitly cloned with components. [[@wdcocq](https://github.com/wdcocq), [#2775](https://github.com/yewstack/yew/pull/2775)]
+  - Attributes: Fix apply_diff_index_maps. [[@Dietmar Maurer](https://github.com/Dietmar Maurer), [#2653](https://github.com/yewstack/yew/pull/2653)]
+  - Fix bubbling of events originating in shadow dom. [[@WorldSEnder](https://github.com/WorldSEnder), [#2627](https://github.com/yewstack/yew/pull/2627)]
+  - Fix some Hook edge cases. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2592](https://github.com/yewstack/yew/pull/2592)]
+  - Fix issue with node refs and hydration. [[@WorldSEnder](https://github.com/WorldSEnder), [#2597](https://github.com/yewstack/yew/pull/2597)]
+  - Fix macro hygiene issues. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2585](https://github.com/yewstack/yew/pull/2585)]
+  - Fix casing of dynamic tags. [[@WorldSEnder](https://github.com/WorldSEnder), [#2578](https://github.com/yewstack/yew/pull/2578)]
+  - Automatically convert closure to callback for component properties. [[@Finn Bear](https://github.com/Finn Bear), [#2554](https://github.com/yewstack/yew/pull/2554)]
+  - Fix a problem with NodeRefs and VTags, ref. [[@WorldSEnder](https://github.com/WorldSEnder), [#2279](https://github.com/yewstack/yew/pull/2279)]
+  - Fix defaulted type parameter.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2284](https://github.com/yewstack/yew/pull/2284)]
+  - Use Ref::filter_map if rustc is later than 1.63. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2904](https://github.com/yewstack/yew/pull/2904)]
+  - Evaluate props in the order they're defined. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2887](https://github.com/yewstack/yew/pull/2887)]
+  - Context: Avoid storing a copy of children. [[@Dietmar Maurer](https://github.com/Dietmar Maurer), [#2885](https://github.com/yewstack/yew/pull/2885)]
+  - Various improvements to Classes, oriented around reducing allocations. [[@Nathan West](https://github.com/Nathan West), [#2870](https://github.com/yewstack/yew/pull/2870)]
+  - Resume Suspension upon unmount. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2874](https://github.com/yewstack/yew/pull/2874)]
+  - Make fn update() re-render the component by default. [[@Cecile Tonglet](https://github.com/Cecile Tonglet), [#2786](https://github.com/yewstack/yew/pull/2786)]
+  - Do not detach child elements if parent element is about to be detached. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2420](https://github.com/yewstack/yew/pull/2420)]
+  - remove some unsafes by using atomics. [[@WorldSEnder](https://github.com/WorldSEnder), [#2186](https://github.com/yewstack/yew/pull/2186)]
+  - `use_prepared_state` & `use_transitive_state`. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2650](https://github.com/yewstack/yew/pull/2650)]
+  - Silence some warnings from derive(Properties). [[@WorldSEnder](https://github.com/WorldSEnder), [#2266](https://github.com/yewstack/yew/pull/2266)]
+  - onsubmit should be a SubmitEvent. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2816](https://github.com/yewstack/yew/pull/2816)]
+
+- #### ⚡️ Features
+
+  - Add VNode::from_html_unchecked. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2842](https://github.com/yewstack/yew/pull/2842)]
+  - Make Yew lints opt-in. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2882](https://github.com/yewstack/yew/pull/2882)]
+  - Allow skipping a callback when reforming. [[@Jens Reimann](https://github.com/Jens Reimann), [#2864](https://github.com/yewstack/yew/pull/2864)]
+  - Polled SSR Stream. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2824](https://github.com/yewstack/yew/pull/2824)]
+  - Add send_stream method for Scope. [[@laizy](https://github.com/laizy), [#2619](https://github.com/yewstack/yew/pull/2619)]
+  - Allow functions returning unit in `use_effect`. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2849](https://github.com/yewstack/yew/pull/2849)]
+  - Configurable Runtime. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2772](https://github.com/yewstack/yew/pull/2772)]
+  - Pinned Channels. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2811](https://github.com/yewstack/yew/pull/2811)]
+  - Bind to properties instead of attributes by default. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2819](https://github.com/yewstack/yew/pull/2819)]
+  - Convert nightly from a feature flag to a compiler flag. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2827](https://github.com/yewstack/yew/pull/2827)]
+  - Reduce SSR Buffers in VList. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2826](https://github.com/yewstack/yew/pull/2826)]
+  - Allow keywords after dash in element and attribute names. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2820](https://github.com/yewstack/yew/pull/2820)]
+  - Replace custom logging by tracing. [[@WorldSEnder](https://github.com/WorldSEnder), [#2814](https://github.com/yewstack/yew/pull/2814)]
+  - Implement sleep and interval for Yew Platform. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2784](https://github.com/yewstack/yew/pull/2784)]
+  - Remove component NodeRef. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2783](https://github.com/yewstack/yew/pull/2783)]
+  - Prepared States dependency should be Reference Counted. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2769](https://github.com/yewstack/yew/pull/2769)]
+  - Document features automatically.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2780](https://github.com/yewstack/yew/pull/2780)]
+  - Streamed SSR Response. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2697](https://github.com/yewstack/yew/pull/2697)]
+  - Nightly features. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2743](https://github.com/yewstack/yew/pull/2743)]
+  - Allow VNode props to be converted to Children.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2749](https://github.com/yewstack/yew/pull/2749)]
+  - Redo derive(Properties), take 2. [[@WorldSEnder](https://github.com/WorldSEnder), [#2729](https://github.com/yewstack/yew/pull/2729)]
+  - `Callback::reform()` should return `Callback<T, OUT>`. [[@orzogc](https://github.com/orzogc), [#2719](https://github.com/yewstack/yew/pull/2719)]
+  - Span hygiene and editor UX. [[@WorldSEnder](https://github.com/WorldSEnder), [#2702](https://github.com/yewstack/yew/pull/2702)]
+  - Block props update during hydration. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2665](https://github.com/yewstack/yew/pull/2665)]
+  - Point to `callback_future` in `callback` docs. [[@Shadlock0133](https://github.com/Shadlock0133), [#2674](https://github.com/yewstack/yew/pull/2674)]
+  - Change access to VList children to a wrapper. [[@WorldSEnder](https://github.com/WorldSEnder), [#2673](https://github.com/yewstack/yew/pull/2673)]
+  - Partially undo #2673, different approach for the DerefMut impl of VList. [[@WorldSEnder](https://github.com/WorldSEnder), [#2692](https://github.com/yewstack/yew/pull/2692)]
+  - Rework a bunch of cfg(feature) flags to be more principled. [[@WorldSEnder](https://github.com/WorldSEnder), [#2666](https://github.com/yewstack/yew/pull/2666)]
+  - Delay Hydration second render until all assistive nodes have been removed. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2629](https://github.com/yewstack/yew/pull/2629)]
+  - Allow to consume deps in use_callback. [[@Jet Li](https://github.com/Jet Li), [#2617](https://github.com/yewstack/yew/pull/2617)]
+  - Add `use_future` hook to make consuming futures as suspense easier. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2609](https://github.com/yewstack/yew/pull/2609)]
+  - Add the ability to use non-literal string as attribute names. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2593](https://github.com/yewstack/yew/pull/2593)]
+  - Introduce a dedicated use_force_update hook. [[@WorldSEnder](https://github.com/WorldSEnder), [#2586](https://github.com/yewstack/yew/pull/2586)]
+  - Impl ImplicitClone for Rc<T> where T: Sized. [[@Nano](https://github.com/Nano), [#2594](https://github.com/yewstack/yew/pull/2594)]
+  - SSR Hydration. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2552](https://github.com/yewstack/yew/pull/2552)]
+  - Add use_callback hook. [[@Jet Li](https://github.com/Jet Li), [#2566](https://github.com/yewstack/yew/pull/2566)]
+  - Introduce additional information in SSR artifact to facilitate Hydration. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2540](https://github.com/yewstack/yew/pull/2540)]
+  - Scoped event handlers. [[@WorldSEnder](https://github.com/WorldSEnder), [#2510](https://github.com/yewstack/yew/pull/2510)]
+  - An ever Increasing Component ID. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2537](https://github.com/yewstack/yew/pull/2537)]
+  - Prevents Fallback UI from becoming suspended. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2532](https://github.com/yewstack/yew/pull/2532)]
+  - `#[cfg(feature = "render")]` and `yew::Renderer`. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2498](https://github.com/yewstack/yew/pull/2498)]
+  - Introduce explicit internal datastructures modeling dom state. [[@WorldSEnder](https://github.com/WorldSEnder), [#2330](https://github.com/yewstack/yew/pull/2330)]
+  - Improve AnyScope API. [[@Aaron Erhardt](https://github.com/Aaron Erhardt), [#2445](https://github.com/yewstack/yew/pull/2445)]
+  - Automatic Message Batching. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2421](https://github.com/yewstack/yew/pull/2421)]
+  - Add Other variant to the ListenerKind. [[@Alexander Mescheryakov](https://github.com/Alexander Mescheryakov), [#2417](https://github.com/yewstack/yew/pull/2417)]
+  - Function Components & Hooks V2. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2401](https://github.com/yewstack/yew/pull/2401)]
+  - Add ContextHandle in yew::prelude. [[@Anuvrat Singh](https://github.com/Anuvrat Singh), [#2372](https://github.com/yewstack/yew/pull/2372)]
+  - Separate scheduler rendered call from create and render. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2374](https://github.com/yewstack/yew/pull/2374)]
+  - Update to edition 2021. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2354](https://github.com/yewstack/yew/pull/2354)]
+  - Server-side Rendering (without hydration). [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2335](https://github.com/yewstack/yew/pull/2335)]
+  - Make BaseComponent Sealed.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2359](https://github.com/yewstack/yew/pull/2359)]
+  - Remove start_app_as_body.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2346](https://github.com/yewstack/yew/pull/2346)]
+  - Bump minimal supported rust version (MSRV) to 1.56. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2334](https://github.com/yewstack/yew/pull/2334)]
+  - Suspense Support. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2212](https://github.com/yewstack/yew/pull/2212)]
+  - make layout testing code public. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2310](https://github.com/yewstack/yew/pull/2310)]
+  - Refactor and simplify `Callback`. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2301](https://github.com/yewstack/yew/pull/2301)]
+  - Add pending event listener on the VTag. [[@Alexander Mescheryakov](https://github.com/Alexander Mescheryakov), [#2300](https://github.com/yewstack/yew/pull/2300)]
+  - constify VList::new. [[@Alexander Mescheryakov](https://github.com/Alexander Mescheryakov), [#2293](https://github.com/yewstack/yew/pull/2293)]
+  - Allow `function_component` creation based on function name. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2292](https://github.com/yewstack/yew/pull/2292)]
+  - Implement IntoPropValue for Rc<str>. [[@Zachary Stewart](https://github.com/Zachary Stewart), [#2285](https://github.com/yewstack/yew/pull/2285)]
+  - Raw field names in property structs. [[@WorldSEnder](https://github.com/WorldSEnder), [#2273](https://github.com/yewstack/yew/pull/2273)]
+
+## ✨ yew-router **0.17.0** *(2022-11-xx)*
+
+#### Changelog
+
+- #### 🛠 Fixes
+
+  - Fix basename handling in router. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2297](https://github.com/yewstack/yew/pull/2297)]
+
+- #### ⚡️ Features
+
+  - Simple `NodeRef` passing to `<Link>` for yew-router. [[@Athan Clark](https://github.com/Athan Clark), [#2877](https://github.com/yewstack/yew/pull/2877)]
+  - Make Switch to accept a closure as render function directly. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2659](https://github.com/yewstack/yew/pull/2659)]
+  - `#[cfg(feature = "render")]` and `yew::Renderer`. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2498](https://github.com/yewstack/yew/pull/2498)]
+  - Includes query parameters in rendered Link component. [[@Yuki Kodama](https://github.com/Yuki Kodama), [#2464](https://github.com/yewstack/yew/pull/2464)]
+  - Update to edition 2021. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2354](https://github.com/yewstack/yew/pull/2354)]
+  - Support named wildcards when deriving Routable.. [[@Jonathan Bailey](https://github.com/Jonathan Bailey), [#2345](https://github.com/yewstack/yew/pull/2345)]
+  - Add HashRouter, basename and use gloo-history. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2239](https://github.com/yewstack/yew/pull/2239)]
+
+
+## ✨ yew-agent **0.2.0** *(2022-11-xx)*
+
+#### Changelog
+
+- #### ⚡️ Features
+
+  - add `use_bridge` docs. [[@Shrey Sudhir](https://github.com/Shrey Sudhir), [#2722](https://github.com/yewstack/yew/pull/2722)]
+  - Update to edition 2021. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2354](https://github.com/yewstack/yew/pull/2354)]
+  - Move yew-agent to gloo. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#2326](https://github.com/yewstack/yew/pull/2326)]
+  - Implement PrivateAgent. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2318](https://github.com/yewstack/yew/pull/2318)]
+  - Remove context & job agent. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2295](https://github.com/yewstack/yew/pull/2295)]
+
 ## ✨ yew **0.19.0** *(2021-11-26)*
 
 #### Changelog

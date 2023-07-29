@@ -1,11 +1,11 @@
-use crate::html::{Children, Html, Properties};
+use crate::html::{Html, Properties};
 
 /// Properties for [Suspense].
 #[derive(Properties, PartialEq, Debug, Clone)]
 pub struct SuspenseProps {
     /// The Children of the current Suspense Component.
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 
     /// The Fallback UI of the current Suspense Component.
     #[prop_or_default]
@@ -15,7 +15,7 @@ pub struct SuspenseProps {
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
     use super::*;
-    use crate::html::{Children, Component, Context, Html, Scope};
+    use crate::html::{Component, Context, Html, Scope};
     use crate::suspense::Suspension;
     #[cfg(feature = "hydration")]
     use crate::suspense::SuspensionHandle;
@@ -24,7 +24,7 @@ mod feat_csr_ssr {
 
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
-        pub children: Children,
+        pub children: Html,
         pub fallback: Option<Html>,
     }
 
@@ -36,7 +36,6 @@ mod feat_csr_ssr {
 
     #[derive(Debug)]
     pub(crate) struct BaseSuspense {
-        link: Scope<Self>,
         suspensions: Vec<Suspension>,
         #[cfg(feature = "hydration")]
         hydration_handle: Option<SuspensionHandle>,
@@ -46,7 +45,7 @@ mod feat_csr_ssr {
         type Message = BaseSuspenseMsg;
         type Properties = BaseSuspenseProps;
 
-        fn create(ctx: &Context<Self>) -> Self {
+        fn create(_ctx: &Context<Self>) -> Self {
             #[cfg(not(feature = "hydration"))]
             let suspensions = Vec::new();
 
@@ -56,9 +55,9 @@ mod feat_csr_ssr {
                 use crate::callback::Callback;
                 use crate::html::RenderMode;
 
-                match ctx.creation_mode() {
+                match _ctx.creation_mode() {
                     RenderMode::Hydration => {
-                        let link = ctx.link().clone();
+                        let link = _ctx.link().clone();
                         let (s, handle) = Suspension::new();
                         s.listen(Callback::from(move |s| {
                             link.send_message(BaseSuspenseMsg::Resume(s));
@@ -70,7 +69,6 @@ mod feat_csr_ssr {
             };
 
             Self {
-                link: ctx.link().clone(),
                 suspensions,
                 #[cfg(feature = "hydration")]
                 hydration_handle,
@@ -86,6 +84,11 @@ mod feat_csr_ssr {
                     );
 
                     if m.resumed() {
+                        return false;
+                    }
+
+                    // If a suspension already exists, ignore it.
+                    if self.suspensions.iter().any(|n| n == &m) {
                         return false;
                     }
 
@@ -133,12 +136,12 @@ mod feat_csr_ssr {
     }
 
     impl BaseSuspense {
-        pub(crate) fn suspend(&self, s: Suspension) {
-            self.link.send_message(BaseSuspenseMsg::Suspend(s));
+        pub(crate) fn suspend(scope: &Scope<Self>, s: Suspension) {
+            scope.send_message(BaseSuspenseMsg::Suspend(s));
         }
 
-        pub(crate) fn resume(&self, s: Suspension) {
-            self.link.send_message(BaseSuspenseMsg::Resume(s));
+        pub(crate) fn resume(scope: &Scope<Self>, s: Suspension) {
+            scope.send_message(BaseSuspenseMsg::Resume(s));
         }
     }
 
@@ -148,7 +151,7 @@ mod feat_csr_ssr {
         let SuspenseProps { children, fallback } = props.clone();
 
         let fallback = html! {
-            <BaseSuspense fallback={None}>
+            <BaseSuspense>
                 {fallback}
             </BaseSuspense>
         };

@@ -9,11 +9,14 @@ use std::rc::Rc;
 
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
-use super::{AttrValue, Attributes, Key, Listener, Listeners, VList, VNode};
+use super::{ApplyAttributeAs, AttrValue, Attributes, Key, Listener, Listeners, VNode};
 use crate::html::{IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
+
+/// MathML namespace string used for creating MathML elements
+pub const MATHML_NAMESPACE: &str = "http://www.w3.org/1998/Math/MathML";
 
 /// Default namespace for html elements
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
@@ -62,7 +65,7 @@ pub(crate) struct InputFields {
     /// It exists to override standard behavior of `checked` attribute, because
     /// in original HTML it sets `defaultChecked` value of `InputElement`, but for reactive
     /// frameworks it's more useful to control `checked` value of an `InputElement`.
-    pub(crate) checked: bool,
+    pub(crate) checked: Option<bool>,
 }
 
 impl Deref for InputFields {
@@ -81,7 +84,7 @@ impl DerefMut for InputFields {
 
 impl InputFields {
     /// Crate new attributes for an [InputElement] element
-    fn new(value: Option<AttrValue>, checked: bool) -> Self {
+    fn new(value: Option<AttrValue>, checked: Option<bool>) -> Self {
         Self {
             value: Value::new(value),
             checked,
@@ -109,8 +112,8 @@ pub(crate) enum VTagInner {
     Other {
         /// A tag of the element.
         tag: Cow<'static, str>,
-        /// List of child nodes
-        children: VList,
+        /// children of the element.
+        children: VNode,
     },
 }
 
@@ -164,7 +167,7 @@ impl VTag {
     #[allow(clippy::too_many_arguments)]
     pub fn __new_input(
         value: Option<AttrValue>,
-        checked: bool,
+        checked: Option<bool>,
         node_ref: NodeRef,
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
@@ -229,7 +232,7 @@ impl VTag {
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
         listeners: Listeners,
-        children: VList,
+        children: VNode,
     ) -> Self {
         VTag::new_base(
             VTagInner::Other { tag, children },
@@ -271,45 +274,41 @@ impl VTag {
     /// Add [VNode] child.
     pub fn add_child(&mut self, child: VNode) {
         if let VTagInner::Other { children, .. } = &mut self.inner {
-            children.add_child(child)
+            children.to_vlist_mut().add_child(child)
         }
     }
 
     /// Add multiple [VNode] children.
     pub fn add_children(&mut self, children: impl IntoIterator<Item = VNode>) {
         if let VTagInner::Other { children: dst, .. } = &mut self.inner {
-            dst.add_children(children)
+            dst.to_vlist_mut().add_children(children)
         }
     }
 
-    /// Returns a reference to the children of this [VTag]
-    pub fn children(&self) -> &VList {
+    /// Returns a reference to the children of this [VTag], if the node can have
+    /// children
+    pub fn children(&self) -> Option<&VNode> {
         match &self.inner {
-            VTagInner::Other { children, .. } => children,
-            _ => {
-                // This is mutable because the VList is not Sync
-                static mut EMPTY: VList = VList::new();
-
-                // SAFETY: The EMPTY value is always read-only
-                unsafe { &EMPTY }
-            }
+            VTagInner::Other { children, .. } => Some(children),
+            _ => None,
         }
     }
 
     /// Returns a mutable reference to the children of this [VTag], if the node can have
     /// children
-    pub fn children_mut(&mut self) -> Option<&mut VList> {
+    pub fn children_mut(&mut self) -> Option<&mut VNode> {
         match &mut self.inner {
             VTagInner::Other { children, .. } => Some(children),
             _ => None,
         }
     }
 
-    /// Returns the children of this [VTag]
-    pub fn into_children(self) -> VList {
+    /// Returns the children of this [VTag], if the node can have
+    /// children
+    pub fn into_children(self) -> Option<VNode> {
         match self.inner {
-            VTagInner::Other { children, .. } => children,
-            _ => VList::new(),
+            VTagInner::Other { children, .. } => Some(children),
+            _ => None,
         }
     }
 
@@ -341,20 +340,29 @@ impl VTag {
 
     /// Returns `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// (Not a value of node's attribute).
-    pub fn checked(&self) -> bool {
+    /// (Does not affect the value of the node's attribute).
+    pub fn checked(&self) -> Option<bool> {
         match &self.inner {
             VTagInner::Input(f) => f.checked,
-            _ => false,
+            _ => None,
         }
     }
 
     /// Sets `checked` property of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
-    /// (Not a value of node's attribute).
+    /// (Does not affect the value of the node's attribute).
     pub fn set_checked(&mut self, value: bool) {
         if let VTagInner::Input(f) = &mut self.inner {
-            f.checked = value;
+            f.checked = Some(value);
+        }
+    }
+
+    /// Keeps the current value of the `checked` property of an
+    /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
+    /// (Does not affect the value of the node's attribute).
+    pub fn preserve_checked(&mut self) {
+        if let VTagInner::Input(f) = &mut self.inner {
+            f.checked = None;
         }
     }
 
@@ -363,9 +371,20 @@ impl VTag {
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `value` and `checked`.
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
-        self.attributes
-            .get_mut_index_map()
-            .insert(AttrValue::Static(key), value.into());
+        self.attributes.get_mut_index_map().insert(
+            AttrValue::Static(key),
+            (value.into(), ApplyAttributeAs::Attribute),
+        );
+    }
+
+    /// Set the given key as property on the element
+    ///
+    /// [`js_sys::Reflect`] is used for setting properties.
+    pub fn add_property(&mut self, key: &'static str, value: impl Into<AttrValue>) {
+        self.attributes.get_mut_index_map().insert(
+            AttrValue::Static(key),
+            (value.into(), ApplyAttributeAs::Property),
+        );
     }
 
     /// Sets attributes to a virtual node.
@@ -378,9 +397,10 @@ impl VTag {
 
     #[doc(hidden)]
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
-        self.attributes
-            .get_mut_index_map()
-            .insert(AttrValue::from(key), value.into_prop_value());
+        self.attributes.get_mut_index_map().insert(
+            AttrValue::from(key),
+            (value.into_prop_value(), ApplyAttributeAs::Property),
+        );
     }
 
     /// Add event listener on the [VTag]'s  [Element](web_sys::Element).
@@ -428,9 +448,11 @@ impl PartialEq for VTag {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+
     use super::*;
     use crate::html::AnyScope;
-    use crate::platform::fmt::BufWrite;
+    use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
@@ -442,21 +464,21 @@ mod feat_ssr {
     impl VTag {
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {
-            w.write("<".into());
-            w.write(self.tag().into());
+            let _ = w.write_str("<");
+            let _ = w.write_str(self.tag());
 
-            let write_attr = |w: &mut dyn BufWrite, name: &str, val: Option<&str>| {
-                w.write(" ".into());
-                w.write(name.into());
+            let write_attr = |w: &mut BufWriter, name: &str, val: Option<&str>| {
+                let _ = w.write_str(" ");
+                let _ = w.write_str(name);
 
                 if let Some(m) = val {
-                    w.write("=\"".into());
-                    w.write(html_escape::encode_double_quoted_attribute(m));
-                    w.write("\"".into());
+                    let _ = w.write_str("=\"");
+                    let _ = w.write_str(&html_escape::encode_double_quoted_attribute(m));
+                    let _ = w.write_str("\"");
                 }
             };
 
@@ -465,7 +487,9 @@ mod feat_ssr {
                     write_attr(w, "value", Some(m));
                 }
 
-                if self.checked() {
+                // Setting is as an attribute sets the `defaultChecked` property. Only emit this
+                // if it's explicitly set to checked.
+                if self.checked() == Some(true) {
                     write_attr(w, "checked", None);
                 }
             }
@@ -474,7 +498,7 @@ mod feat_ssr {
                 write_attr(w, k, Some(v));
             }
 
-            w.write(">".into());
+            let _ = w.write_str(">");
 
             match self.inner {
                 VTagInner::Input(_) => {}
@@ -485,7 +509,7 @@ mod feat_ssr {
                             .await;
                     }
 
-                    w.write("</textarea>".into());
+                    let _ = w.write_str("</textarea>");
                 }
                 VTagInner::Other {
                     ref tag,
@@ -497,12 +521,18 @@ mod feat_ssr {
                             .render_into_stream(w, parent_scope, hydratable)
                             .await;
 
-                        w.write(Cow::Borrowed("</"));
-                        w.write(Cow::Borrowed(tag));
-                        w.write(Cow::Borrowed(">"));
+                        let _ = w.write_str("</");
+                        let _ = w.write_str(tag);
+                        let _ = w.write_str(">");
                     } else {
                         // We don't write children of void elements nor closing tags.
-                        debug_assert!(children.is_empty(), "{} cannot have any children!", tag);
+                        debug_assert!(
+                            match children {
+                                VNode::VList(m) => m.is_empty(),
+                                _ => false,
+                            },
+                            "{tag} cannot have any children!"
+                        );
                     }
                 }
             }

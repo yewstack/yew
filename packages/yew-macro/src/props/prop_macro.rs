@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use syn::token::Brace;
 use syn::{Expr, Token, TypePath};
 
-use super::{ComponentProps, Prop, Props, SortedPropList};
+use super::{ComponentProps, Prop, PropList, Props};
 use crate::html_tree::HtmlDashedName;
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
@@ -61,7 +61,11 @@ impl Parse for PropValue {
 impl From<PropValue> for Prop {
     fn from(prop_value: PropValue) -> Prop {
         let PropValue { label, value } = prop_value;
-        Prop { label, value }
+        Prop {
+            label,
+            value,
+            directive: None,
+        }
     }
 }
 
@@ -86,7 +90,7 @@ impl Parse for PropsExpr {
 
         let content;
         let brace_token = syn::braced!(content in input);
-        let fields = content.parse_terminated(PropValue::parse)?;
+        let fields = content.parse_terminated(PropValue::parse, Token![,])?;
         Ok(Self {
             ty,
             _brace_token: brace_token,
@@ -102,7 +106,7 @@ pub struct PropsMacroInput {
 impl Parse for PropsMacroInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let PropsExpr { ty, fields, .. } = input.parse()?;
-        let prop_list = SortedPropList::new(fields.into_iter().map(Into::into).collect());
+        let prop_list = PropList::new(fields.into_iter().map(Into::into).collect());
         let props: Props = prop_list.try_into()?;
         props.special.check_all(|prop| {
             let label = &prop.label;

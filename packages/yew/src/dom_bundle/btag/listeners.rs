@@ -66,7 +66,7 @@ impl Apply for Listeners {
             (Pending(pending), Registered(ref id)) => {
                 // Reuse the ID
                 test_log!("reusing listeners for {}", id);
-                root.with_listener_registry(|reg| reg.patch(root, id, &*pending));
+                root.with_listener_registry(|reg| reg.patch(root, id, &pending));
             }
             (Pending(pending), bundle @ NoReg) => {
                 *bundle = ListenerRegistration::register(root, el, &pending);
@@ -202,10 +202,10 @@ mod tests {
     use std::marker::PhantomData;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-    use web_sys::{Event, EventInit, HtmlElement, MouseEvent};
+    use web_sys::{Event, EventInit, FocusEvent, HtmlElement, MouseEvent};
     wasm_bindgen_test_configure!(run_in_browser);
 
-    use gloo_utils::document;
+    use gloo::utils::document;
     use wasm_bindgen::JsCast;
     use yew::Callback;
 
@@ -536,6 +536,45 @@ mod tests {
         assert_count(&el, 2);
     }
 
+    #[test]
+    fn non_bubbling() {
+        #[derive(Default, PartialEq, Properties)]
+        struct NonBubbling;
+
+        impl Mixin for NonBubbling {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let onfocus = ctx.link().callback(|_| Message::Action);
+                let onfocus_inner = ctx.link().callback(|e: FocusEvent| {
+                    assert!(!e.bubbles(), "event should be non-bubbling");
+                    Message::Action
+                });
+
+                html! {
+                    <div {onfocus}>
+                        <button onfocus={onfocus_inner} ref={&ctx.props().state_ref}>
+                            {state.action}
+                        </button>
+                    </div>
+                }
+            }
+        }
+        // Should only trigger the inner listener, not also the outer one
+        let (_, el) = init::<NonBubbling>();
+
+        assert_count(&el, 0);
+        el.get()
+            .unwrap()
+            .dyn_into::<HtmlElement>()
+            .unwrap()
+            .focus()
+            .unwrap();
+        scheduler::start_now();
+        assert_count(&el, 1);
+    }
+
     /// Here an event is being delivered to a DOM node which is contained
     /// in a portal. It should bubble through the portal and reach the containing
     /// element.
@@ -709,5 +748,44 @@ mod tests {
             )
             .unwrap()
         })
+    }
+
+    #[test]
+    fn reentrant_listener() {
+        #[derive(PartialEq, Properties, Default)]
+        struct Reetrant {
+            secondary_target_ref: NodeRef,
+        }
+        impl Mixin for Reetrant {
+            fn view<C>(ctx: &Context<C>, state: &State) -> Html
+            where
+                C: Component<Message = Message, Properties = MixinProps<Self>>,
+            {
+                let targetref = &ctx.props().wrapped.secondary_target_ref;
+                let onclick = {
+                    let targetref = targetref.clone();
+                    ctx.link().callback(move |_| {
+                        // Note: `click` (and dispatchEvent for that matter) swallows errors thrown
+                        // from listeners and reports them as uncaught to the console. Hence, we
+                        // assert that we got to the second event listener instead, by dispatching a
+                        // second Message::Action
+                        click(&targetref);
+                        Message::Action
+                    })
+                };
+                let onclick2 = ctx.link().callback(move |_| Message::Action);
+                html! {
+                    <div>
+                        <button {onclick} ref={&ctx.props().state_ref}>{state.action}</button>
+                        <a onclick={onclick2} ref={targetref}></a>
+                    </div>
+                }
+            }
+        }
+        let (_, el) = init::<Reetrant>();
+
+        assert_count(&el, 0);
+        click(&el);
+        assert_count(&el, 2);
     }
 }

@@ -14,21 +14,21 @@ It should only be used for testing the release build during development
 
 ## Server configuration
 
-### Serving `index.html` as fallback
+### Serving `index.html` as a fallback
 
 If the application uses the [Yew router](concepts/router.mdx), you must configure the server to return the `index.html` when asked for a file that it does not have.
 
 An application with Yew router is built as a [Single Page Application (SPA)](https://developer.mozilla.org/en-US/docs/Glossary/SPA). When the user navigates to a URL from within a running client, the router interprets the URL and routes to that page.
 
-But on a fresh load, such as when navigating to the page by entering it in the address bar or refreshing the page, all of these actions are handled by the browser itself, outside the running application. The browser makes a direct request to the server for that URL, bypassing the router. A wrongly configured server would return with status 404 - Not Found.
+But on a fresh load, such as when navigating to the page by entering it in the address bar or refreshing the page, all of these actions are handled by the browser itself, outside the running application. The browser makes a direct request to the server for that URL, bypassing the router. A wrongly configured server would return with the status 404 - Not Found.
 
-By returning `index.html` instead, the app loads as it normally would as if request was for `/`, until the router notices that the the route is `/show/42` and displays the appropriate contents.
+By returning `index.html` instead, the app loads as it normally would, as if the request was for `/` until the router notices that the route is `/show/42` and displays the appropriate contents.
 
 ### Configuring correct MIME-type for Web Assembly asset.
 
 The WASM files must be served with the [Content-Type header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) set to `application/wasm` MIME-type.
 
-Most servers and hosting services already do this by default. If yours doesn't, consult its documentation. An incorrect MIME-type will, in most web browsers, result in an error similar to the following:
+Most servers and hosting services already do this by default. If yours does not, consult its documentation. An incorrect MIME type will, in most web browsers, result in an error similar to the following:
 
 ```ignore
 `WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:
@@ -41,5 +41,5 @@ By default, trunk will assume that your site is being served at `/` and build th
 
 ## Customizing behavior using environment variables
 
-It's common to customize the build environment by using environment variables. Since the app is run in browser, we can't read the environment variables at runtime.
-The [`std::env!`](https://doc.rust-lang.org/std/macro.env.html) macro can be used to obtain a value of an environment variables at compile time.
+It is common to customize the build environment by using environment variables. Since the app is run in a browser, we cannot read the environment variables at runtime.
+The [`std::env!`](https://doc.rust-lang.org/std/macro.env.html) macro can be used to obtain a value of an environment variable at compile time.

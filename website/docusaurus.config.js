@@ -6,12 +6,12 @@ const editUrl = 'https://github.com/yewstack/yew/blob/master/website/'
 module.exports = {
     title: 'Yew',
     tagline:
-        'Yew is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly.',
+        'A framework for creating reliable and efficient web applications.',
     url: 'https://yew.rs',
     baseUrl: '/',
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
-    favicon: 'img/logo.png',
+    favicon: 'img/logo.svg',
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
     themeConfig: {
@@ -24,7 +24,7 @@ module.exports = {
             title: 'Yew',
             logo: {
                 alt: 'Yew Logo',
-                src: 'img/logo.png',
+                src: 'img/logo.svg',
             },
             items: [
                 {
@@ -130,6 +130,7 @@ module.exports = {
     },
     plugins: [
         'content-pages',
+        'docusaurus-plugin-sass',
         [
             '@docusaurus/theme-classic',
             {

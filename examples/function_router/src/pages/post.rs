@@ -12,7 +12,7 @@ pub struct Props {
     pub seed: u32,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct PostState {
     pub inner: content::Post,
 }
@@ -38,14 +38,11 @@ pub fn Post(props: &Props) -> Html {
 
     {
         let post_dispatcher = post.dispatcher();
-        use_effect_with_deps(
-            move |seed| {
-                post_dispatcher.dispatch(*seed);
+        use_effect_with(seed, move |seed| {
+            post_dispatcher.dispatch(*seed);
 
-                || {}
-            },
-            seed,
-        );
+            || {}
+        });
     }
 
     let post = &post.inner;

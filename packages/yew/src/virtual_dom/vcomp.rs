@@ -1,6 +1,6 @@
 //! This module contains the implementation of a virtual component (`VComp`).
 
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::fmt;
 use std::rc::Rc;
 
@@ -10,31 +10,31 @@ use futures::future::{FutureExt, LocalBoxFuture};
 use web_sys::Element;
 
 use super::Key;
-#[cfg(feature = "csr")]
-use crate::dom_bundle::BSubtree;
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
+#[cfg(feature = "csr")]
+use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
+use crate::html::BaseComponent;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
-use crate::html::{BaseComponent, NodeRef};
 #[cfg(feature = "ssr")]
-use crate::platform::fmt::BufWrite;
+use crate::platform::fmt::BufWriter;
 
 /// A virtual component.
 pub struct VComp {
     pub(crate) type_id: TypeId,
     pub(crate) mountable: Box<dyn Mountable>,
-    pub(crate) node_ref: NodeRef,
     pub(crate) key: Option<Key>,
+    // for some reason, this reduces the bundle size by ~2-3 KBs
+    _marker: u32,
 }
 
 impl fmt::Debug for VComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("VComp")
             .field("type_id", &self.type_id)
-            .field("node_ref", &self.node_ref)
             .field("mountable", &"..")
             .field("key", &self.key)
             .finish()
@@ -46,8 +46,8 @@ impl Clone for VComp {
         Self {
             type_id: self.type_id,
             mountable: self.mountable.copy(),
-            node_ref: self.node_ref.clone(),
             key: self.key.clone(),
+            _marker: 0,
         }
     }
 }
@@ -55,23 +55,26 @@ impl Clone for VComp {
 pub(crate) trait Mountable {
     fn copy(&self) -> Box<dyn Mountable>;
 
+    fn mountable_eq(&self, rhs: &dyn Mountable) -> bool;
+    fn as_any(&self) -> &dyn Any;
+
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
+        slot: DomSlot,
+        internal_ref: DynamicDomSlot,
     ) -> Box<dyn Scoped>;
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef);
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomSlot);
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut dyn BufWrite,
+        w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()>;
@@ -82,7 +85,7 @@ pub(crate) trait Mountable {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
+        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped>;
 }
@@ -105,31 +108,42 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         Box::new(wrapper)
     }
 
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn mountable_eq(&self, rhs: &dyn Mountable) -> bool {
+        rhs.as_any()
+            .downcast_ref::<Self>()
+            .map(|rhs| self.props == rhs.props)
+            .unwrap_or(false)
+    }
+
     #[cfg(feature = "csr")]
     fn mount(
         self: Box<Self>,
         root: &BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
-        next_sibling: NodeRef,
+        slot: DomSlot,
+        internal_ref: DynamicDomSlot,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, next_sibling, internal_ref, self.props);
+        scope.mount_in_place(root.clone(), parent, slot, internal_ref, self.props);
 
         Box::new(scope)
     }
 
     #[cfg(feature = "csr")]
-    fn reuse(self: Box<Self>, scope: &dyn Scoped, next_sibling: NodeRef) {
+    fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomSlot) {
         let scope: Scope<COMP> = scope.to_any().downcast::<COMP>();
-        scope.reuse(self.props, next_sibling);
+        scope.reuse(self.props, slot);
     }
 
     #[cfg(feature = "ssr")]
     fn render_into_stream<'a>(
         &'a self,
-        w: &'a mut dyn BufWrite,
+        w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
     ) -> LocalBoxFuture<'a, ()> {
@@ -149,7 +163,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: NodeRef,
+        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
     ) -> Box<dyn Scoped> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
@@ -164,7 +178,6 @@ pub struct VChild<COMP: BaseComponent> {
     /// The component properties
     pub props: Rc<COMP::Properties>,
     /// Reference to the mounted node
-    node_ref: NodeRef,
     key: Option<Key>,
 }
 
@@ -172,7 +185,6 @@ impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
             props: Rc::clone(&self.props),
-            node_ref: self.node_ref.clone(),
             key: self.key.clone(),
         }
     }
@@ -192,10 +204,9 @@ where
     COMP: BaseComponent,
 {
     /// Creates a child component that can be accessed and modified by its parent.
-    pub fn new(props: COMP::Properties, node_ref: NodeRef, key: Option<Key>) -> Self {
+    pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
         Self {
             props: Rc::new(props),
-            node_ref,
             key,
         }
     }
@@ -206,28 +217,30 @@ where
     COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
-        VComp::new::<COMP>(vchild.props, vchild.node_ref, vchild.key)
+        VComp::new::<COMP>(vchild.props, vchild.key)
     }
 }
 
 impl VComp {
     /// Creates a new `VComp` instance.
-    pub fn new<COMP>(props: Rc<COMP::Properties>, node_ref: NodeRef, key: Option<Key>) -> Self
+    pub fn new<COMP>(props: Rc<COMP::Properties>, key: Option<Key>) -> Self
     where
         COMP: BaseComponent,
     {
         VComp {
             type_id: TypeId::of::<COMP>(),
-            node_ref,
             mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
+            _marker: 0,
         }
     }
 }
 
 impl PartialEq for VComp {
     fn eq(&self, other: &VComp) -> bool {
-        self.type_id == other.type_id
+        self.key == other.key
+            && self.type_id == other.type_id
+            && self.mountable.mountable_eq(other.mountable.as_ref())
     }
 }
 
@@ -246,7 +259,7 @@ mod feat_ssr {
         #[inline]
         pub(crate) async fn render_into_stream(
             &self,
-            w: &mut dyn BufWrite,
+            w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
         ) {

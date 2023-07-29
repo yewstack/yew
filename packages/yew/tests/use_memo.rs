@@ -7,8 +7,8 @@ mod common;
 use std::time::Duration;
 
 use common::obtain_result;
-use gloo::timers::future::sleep;
 use wasm_bindgen_test::*;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
@@ -19,18 +19,15 @@ async fn use_memo_works() {
     fn use_memo_comp() -> Html {
         let state = use_state(|| 0);
 
-        let memoed_val = use_memo(
-            |_| {
-                static CTR: AtomicBool = AtomicBool::new(false);
+        let memoed_val = use_memo((), |_| {
+            static CTR: AtomicBool = AtomicBool::new(false);
 
-                if CTR.swap(true, Ordering::Relaxed) {
-                    panic!("multiple times rendered!");
-                }
+            if CTR.swap(true, Ordering::Relaxed) {
+                panic!("multiple times rendered!");
+            }
 
-                "true"
-            },
-            (),
-        );
+            "true"
+        });
 
         use_effect(move || {
             if *state < 5 {
@@ -50,7 +47,7 @@ async fn use_memo_works() {
     }
 
     yew::Renderer::<UseMemoComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
 

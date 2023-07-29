@@ -12,3 +12,11 @@ The example illustrates how to use `yew-agent` to send tasks to a worker thread 
 
 - [insou22](https://github.com/insou22) for writing up the demo.
 - [https://github.com/yvt/img2text](https://github.com/yvt/img2text) -- for how to make web workers compile in wasm
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

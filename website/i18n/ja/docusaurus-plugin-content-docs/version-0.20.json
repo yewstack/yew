@@ -1,0 +1,86 @@
+{
+  "version.label": {
+    "message": "0.20",
+    "description": "The label for version 0.20"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "Getting Started",
+    "description": "The label for category Getting Started in sidebar docs"
+  },
+  "sidebar.docs.category.Concepts": {
+    "message": "Concepts",
+    "description": "The label for category Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Concepts.link.generated-index.title": {
+    "message": "Yew concepts",
+    "description": "The generated-index page title for category Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Concepts.link.generated-index.description": {
+    "message": "Learn about the important Yew concepts!",
+    "description": "The generated-index page description for category Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Using Basic Web Technologies In Yew": {
+    "message": "Using Basic Web Technologies In Yew",
+    "description": "The label for category Using Basic Web Technologies In Yew in sidebar docs"
+  },
+  "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.title": {
+    "message": "Yew's Take on Basic Web Technologies",
+    "description": "The generated-index page title for category Using Basic Web Technologies In Yew in sidebar docs"
+  },
+  "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.description": {
+    "message": "Yew centrally operates on the idea of keeping everything that a reusable piece of UI may needin one place - rust files, while also keeping the underlying technology accessible where necessary. Explore further to fully grasp what we mean by these statements:",
+    "description": "The generated-index page description for category Using Basic Web Technologies In Yew in sidebar docs"
+  },
+  "sidebar.docs.category.Components": {
+    "message": "Components",
+    "description": "The label for category Components in sidebar docs"
+  },
+  "sidebar.docs.category.Hooks": {
+    "message": "Hooks",
+    "description": "The label for category Hooks in sidebar docs"
+  },
+  "sidebar.docs.category.HTML": {
+    "message": "HTML",
+    "description": "The label for category HTML in sidebar docs"
+  },
+  "sidebar.docs.category.Advanced topics": {
+    "message": "Advanced topics",
+    "description": "The label for category Advanced topics in sidebar docs"
+  },
+  "sidebar.docs.category.Advanced topics.link.generated-index.title": {
+    "message": "Advanced topics",
+    "description": "The generated-index page title for category Advanced topics in sidebar docs"
+  },
+  "sidebar.docs.category.Advanced topics.link.generated-index.description": {
+    "message": "Learn about the advanced topics and inner workings of Yew!",
+    "description": "The generated-index page description for category Advanced topics in sidebar docs"
+  },
+  "sidebar.docs.category.Struct Components": {
+    "message": "Struct Components",
+    "description": "The label for category Struct Components in sidebar docs"
+  },
+  "sidebar.docs.category.More": {
+    "message": "More",
+    "description": "The label for category More in sidebar docs"
+  },
+  "sidebar.docs.category.More.link.generated-index.title": {
+    "message": "Miscellaneous",
+    "description": "The generated-index page title for category More in sidebar docs"
+  },
+  "sidebar.docs.category.Migration guides": {
+    "message": "Migration guides",
+    "description": "The label for category Migration guides in sidebar docs"
+  },
+  "sidebar.docs.category.yew": {
+    "message": "yew",
+    "description": "The label for category yew in sidebar docs"
+  },
+  "sidebar.docs.category.yew-agent": {
+    "message": "yew-agent",
+    "description": "The label for category yew-agent in sidebar docs"
+  },
+  "sidebar.docs.category.yew-router": {
+    "message": "yew-router",
+    "description": "The label for category yew-router in sidebar docs"
+  }
+}

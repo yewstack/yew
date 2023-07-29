@@ -13,7 +13,7 @@ type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 #[derive(Parser, Debug)]
 struct Opt {
     /// the "dist" created by trunk directory to be served for hydration.
-    #[structopt(short, long, parse(from_os_str))]
+    #[structopt(short, long)]
     dir: PathBuf,
 }
 
@@ -25,7 +25,7 @@ async fn render(
 
     Box::new(
         stream::once(async move { index_html_before })
-            .chain(renderer.render_stream().await)
+            .chain(renderer.render_stream())
             .chain(stream::once(async move { index_html_after }))
             .map(|m| Result::<_, BoxedError>::Ok(m.into())),
     )
@@ -54,6 +54,5 @@ async fn main() {
     let routes = html.or(warp::fs::dir(opts.dir));
 
     println!("You can view the website at: http://localhost:8080/");
-
     warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }

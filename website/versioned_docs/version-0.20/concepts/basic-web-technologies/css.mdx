@@ -1,0 +1,101 @@
+---
+title: 'CSS with classes!'
+description: 'A handy macro to handle classes'
+comment: 'Keep this file as short and simple as possible. Its purpose is to ease in the reader into components in Yew instead of providing proper API docs'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+Yew does not natively provide a css in rust solution, but helps with styling by providing
+programmatic ways to interact with the html `class` attribute.
+
+## Classes
+
+The `classes!` macro and associated `Classes` struct simplify the use of HTML classes:
+
+<Tabs>
+  <TabItem value="Literal" label="Literal">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("container")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Multiple" label="Multiple">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("class-1", "class-2")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="String" label="String">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(String::from("class-1 class-2"))}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Optional" label="Optional">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(Some("class"))} />
+};
+```
+
+  </TabItem>
+  <TabItem value="Vector" label="Vector">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(vec!["class-1", "class-2"])}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Slice" label="Slice">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(["class-1", "class-2"].as_ref())}></div>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+We will expand upon this concept in [more CSS](../../more/css).
+
+## Inline Styles
+
+Currently Yew does not provide any special help with inline styles specified via the `styles` attribute,
+but you can use it like any other html attribute:
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div style="color: red;"></div>
+};
+```
+
+We will expand upon this concept in [more CSS](../../more/css).

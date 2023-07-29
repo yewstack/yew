@@ -1,0 +1,179 @@
+.page {
+    min-height: 100vh;
+    min-width: 100vw;
+
+    line-height: 1.5;
+    tab-size: 4;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-feature-settings: normal;
+
+    margin: 0;
+    line-height: inherit;
+}
+
+.grandparent {
+    color: rgb(244 244 245);
+    background-color: rgb(24 24 27);
+
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    display: flex;
+
+    min-height: 100vh;
+    min-width: 100vw;
+}
+
+.title {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    font-weight: inherit;
+
+    margin: 0;
+    margin-bottom: 2rem;
+}
+
+// Bodies
+
+.grandparent-body, .parent-body, .child-body {
+    border-width: 4px;
+    border-radius: 1rem;
+
+    border-style: solid;
+}
+
+.grandparent-body {
+    border-color: rgb(22 163 74);
+}
+
+.parent-body, .child-body {
+    flex-grow: 1;
+}
+
+.parent-body {
+    border-color: rgb(249 115 22);
+}
+
+.child-body {
+    border-color: rgb(147 51 234);
+
+    margin-top: 0.5rem;
+}
+
+.child-body > div:nth-child(2) {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+.child-body > div:nth-child(2) > span {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.child-body > div:nth-child(2) > span > span {
+    font-weight: 700;
+}
+
+// Tags
+
+.grandparent-tag, .parent-tag, .child-tag {
+    font-weight: 500;
+
+    padding-bottom: 0.25rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+
+    line-height: 24px;
+}
+
+.grandparent-tag {
+    background-color: rgb(22 163 74);
+}
+
+.parent-tag {
+    background-color: rgb(249 115 22);
+}
+
+.child-tag {
+    background-color: rgb(147 51 234);
+}
+
+// Content
+
+.grandparent-content {
+    padding-top: 0.75rem;
+    padding-bottom: 1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+
+    flex-direction: column;
+    display: flex;
+}
+
+.grandparent-content > span {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.grandparent-content > span:nth-child(2) {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.grandparent-content > span > span {
+    font-weight: 700;
+}
+
+.parent-content {
+    padding-top: 0.75rem;
+    padding-bottom: 1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+
+    column-gap: 1.25rem;
+    display: flex;
+}
+
+.child-content {
+    padding-bottom: 1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+
+    justify-content: space-between;
+    align-items: center;
+    display: flex;
+}
+
+.child-content > span {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.child-content > button {
+    font-weight: 500;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    text-transform: none;
+    font-family: inherit;
+
+    padding-top: 0.25rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+
+    background-color: rgb(147 51 234);
+
+    border-radius: 0.75rem;
+    border-width: 0;
+    color: rgb(244 244 245);
+    cursor: pointer;
+}
+
+.child-content > button:hover {
+    background-color: rgb(107 33 168);
+}

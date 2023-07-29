@@ -1,4 +1,4 @@
-error: expected identifier
+error: expected identifier, found keyword `let`
  --> tests/function_component_attr/bad-name-fail.rs:8:22
   |
 8 | #[function_component(let)]

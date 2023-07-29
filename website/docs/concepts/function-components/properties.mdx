@@ -18,9 +18,9 @@ A type has to implement the `Properties` trait before it can be used as the prop
 
 ## Reactivity
 
-Yew checks if props have changed when reconciling the vdom during rerendering, to know if nested components needs to be rerendered.
-This way Yew can be considered a very reactive framework as changes from the parent will always be propagated downwards
-and the view will never be out of sync from the data coming from props/state.
+Yew checks if props have changed when reconciling the Virtual DOM during re-rendering, to know if nested components need to be re-rendered.
+This way Yew can be considered a very reactive framework, as changes from the parent will always be propagated downward,
+and the view will never be out of sync with the data coming from props/state.
 
 :::tip
 
@@ -102,7 +102,7 @@ fn App() -> Html {
 ## Derive macro field attributes
 
 When deriving `Properties` all fields are required by default.
-The following attributes allow you to give your props default values which will be used when parent has not set them.
+The following attributes allow you to give your props default values which will be used when the parent has not set them.
 
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
@@ -262,3 +262,43 @@ fn App() -> Html {
     html! {<HelloWorld ..pre_made_props />}
 }
 ```
+
+## Evaluation Order
+
+Props are evaluated in the order they're specified, as shown by the following example:
+
+```rust
+#[derive(yew::Properties, PartialEq)]
+struct Props { first: usize, second: usize, last: usize }
+
+fn main() {
+    let mut g = 1..=3;
+    let props = yew::props!(Props { first: g.next().unwrap(), second: g.next().unwrap(), last: g.next().unwrap() });
+
+    assert_eq!(props.first, 1);
+    assert_eq!(props.second, 2);
+    assert_eq!(props.last, 3);
+}
+```
+
+## Anti Patterns
+
+While almost any Rust type can be passed as properties, there are some anti-patterns that should be avoided.
+These include, but are not limited to:
+
+1. Using `String` type instead of `AttrValue`. <br />
+   **Why is this bad?** `String` can be expensive to clone.
+   Cloning is often needed when the prop value is used with hooks and callbacks. `AttrValue` is either
+   a reference-counted string (`Rc<str>`) or a `&'static str`, thus very cheap to clone.<br />
+   **Note**: `AttrValue` internally is `IString` from [implicit-clone](https://crates.io/crates/implicit-clone)
+   See that crate to learn more.
+2. Using interior mutability. <br />
+   **Why is this bad?** Interior mutability (such as with `RefCell`, `Mutex`, etc.) should
+   _generally_ be avoided. It can cause problems with re-renders (Yew doesn't know when the state has changed)
+   so you may have to manually force a render. Like all things, it has its place. Use it with caution.
+3. You tell us. Did you run into an edge-case you wish you knew about earlier? Feel free to create an issue
+   or PR a fix to this documentation.
+
+## yew-autoprops
+
+[yew-autoprops](https://crates.io/crates/yew-autoprops) is an experimental package that allows one to create the Props struct on the fly out of the arguments of your function. Might be useful, if the properties struct is never reused.

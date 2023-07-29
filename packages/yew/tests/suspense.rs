@@ -2,20 +2,21 @@
 
 mod common;
 
-use common::obtain_result;
-use wasm_bindgen_test::*;
-use yew::prelude::*;
-
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
-use gloo::timers::future::TimeoutFuture;
+use common::obtain_result;
 use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
+use yew::platform::spawn_local;
+use yew::platform::time::sleep;
+use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
+use yew::UseStateHandle;
+
+wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn suspense_works() {
@@ -29,7 +30,7 @@ async fn suspense_works() {
             let (s, handle) = Suspension::new();
 
             spawn_local(async move {
-                TimeoutFuture::new(50).await;
+                sleep(Duration::from_millis(50)).await;
 
                 handle.resume();
             });
@@ -97,14 +98,14 @@ async fn suspense_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -112,9 +113,9 @@ async fn suspense_works() {
         r#"<div class="content-area"><div class="actual-result">0</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -122,9 +123,9 @@ async fn suspense_works() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(0).await;
+    sleep(Duration::ZERO).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -132,7 +133,7 @@ async fn suspense_works() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(1).await;
+    sleep(Duration::from_millis(1)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -140,7 +141,7 @@ async fn suspense_works() {
         r#"<div class="content-area"><div class="actual-result">2</div><button class="increase">increase</button><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break")
         .unwrap()
         .unwrap()
@@ -148,11 +149,11 @@ async fn suspense_works() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -181,7 +182,7 @@ async fn suspense_not_suspended_at_start() {
             let (s, handle) = Suspension::new();
 
             spawn_local(async move {
-                TimeoutFuture::new(50).await;
+                sleep(Duration::from_millis(50)).await;
 
                 handle.resume();
             });
@@ -247,17 +248,17 @@ async fn suspense_not_suspended_at_start() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
 
     let result = obtain_result();
     assert_eq!(
         result.as_str(),
         r#"<div class="content-area"><textarea></textarea><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break")
         .unwrap()
         .unwrap()
@@ -265,11 +266,11 @@ async fn suspense_not_suspended_at_start() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -290,7 +291,7 @@ async fn suspense_nested_suspense_works() {
             let (s, handle) = Suspension::new();
 
             spawn_local(async move {
-                TimeoutFuture::new(50).await;
+                sleep(Duration::from_millis(50)).await;
 
                 handle.resume();
             });
@@ -366,14 +367,14 @@ async fn suspense_nested_suspense_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...(outer)</div>");
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -381,7 +382,7 @@ async fn suspense_nested_suspense_works() {
         r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><div>wait...(inner)</div></div>"#
     );
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -389,7 +390,7 @@ async fn suspense_nested_suspense_works() {
         r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><div class="content-area"><div class="action-area"><button class="take-a-break2">Take a break!</button></div></div></div>"#
     );
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break2")
         .unwrap()
         .unwrap()
@@ -397,14 +398,14 @@ async fn suspense_nested_suspense_works() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(
         result.as_str(),
         r#"<div class="content-area"><div class="action-area"><button class="take-a-break">Take a break!</button></div><div>wait...(inner)</div></div>"#
     );
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -425,7 +426,7 @@ async fn effects_not_run_when_suspended() {
             let (s, handle) = Suspension::new();
 
             spawn_local(async move {
-                TimeoutFuture::new(50).await;
+                sleep(Duration::from_millis(50)).await;
 
                 handle.resume();
             });
@@ -523,17 +524,17 @@ async fn effects_not_run_when_suspended() {
     };
 
     yew::Renderer::<App>::with_root_and_props(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
         props,
     )
     .render();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
     assert_eq!(*counter.borrow(), 0); // effects not called.
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -542,9 +543,9 @@ async fn effects_not_run_when_suspended() {
     );
     assert_eq!(*counter.borrow(), 1); // effects ran 1 time.
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -552,9 +553,9 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(0).await;
+    sleep(Duration::ZERO).await;
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".increase")
         .unwrap()
         .unwrap()
@@ -562,7 +563,7 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(0).await;
+    sleep(Duration::from_millis(0)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -571,7 +572,7 @@ async fn effects_not_run_when_suspended() {
     );
     assert_eq!(*counter.borrow(), 3); // effects ran 3 times.
 
-    gloo_utils::document()
+    gloo::utils::document()
         .query_selector(".take-a-break")
         .unwrap()
         .unwrap()
@@ -579,12 +580,12 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
     assert_eq!(*counter.borrow(), 3); // effects ran 3 times.
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(
@@ -599,7 +600,7 @@ async fn use_suspending_future_works() {
     #[function_component(Content)]
     fn content() -> HtmlResult {
         let _sleep_handle = use_future(|| async move {
-            TimeoutFuture::new(50).await;
+            sleep(Duration::from_millis(50)).await;
         })?;
 
         Ok(html! {
@@ -622,14 +623,14 @@ async fn use_suspending_future_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), r#"<div>Content</div>"#);
@@ -639,14 +640,14 @@ async fn use_suspending_future_works() {
 async fn use_suspending_future_with_deps_works() {
     #[derive(PartialEq, Properties)]
     struct ContentProps {
-        delay_millis: u32,
+        delay_millis: u64,
     }
 
     #[function_component(Content)]
     fn content(ContentProps { delay_millis }: &ContentProps) -> HtmlResult {
         let delayed_result = use_future_with_deps(
             |delay_millis| async move {
-                TimeoutFuture::new(*delay_millis).await;
+                sleep(Duration::from_millis(*delay_millis)).await;
                 42
             },
             *delay_millis,
@@ -672,15 +673,150 @@ async fn use_suspending_future_with_deps_works() {
         }
     }
 
-    yew::Renderer::<App>::with_root(gloo_utils::document().get_element_by_id("output").unwrap())
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
 
-    TimeoutFuture::new(10).await;
+    sleep(Duration::from_millis(10)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "<div>wait...</div>");
 
-    TimeoutFuture::new(50).await;
+    sleep(Duration::from_millis(50)).await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), r#"<div>42</div>"#);
+}
+
+#[wasm_bindgen_test]
+async fn test_suspend_forever() {
+    /// A component that its suspension never resumes.
+    /// We test that this can be used with to trigger a suspension and unsuspend upon unmount.
+    #[function_component]
+    fn SuspendForever() -> HtmlResult {
+        let (s, handle) = Suspension::new();
+        use_state(move || handle);
+        Err(s.into())
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let page = use_state(|| 1);
+
+        {
+            let page_setter = page.setter();
+            use_effect_with((), move |_| {
+                spawn_local(async move {
+                    sleep(Duration::from_secs(1)).await;
+                    page_setter.set(2);
+                });
+            });
+        }
+
+        let content = if *page == 1 {
+            html! { <SuspendForever /> }
+        } else {
+            html! { <div id="result">{"OK"}</div> }
+        };
+
+        html! {
+            <Suspense fallback={html! {<div>{"Loading..."}</div>}}>
+                {content}
+            </Suspense>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(1500)).await;
+
+    let result = obtain_result();
+    assert_eq!(result.as_str(), r#"OK"#);
+}
+
+#[wasm_bindgen_test]
+async fn resume_after_unmount() {
+    #[derive(Clone, Properties, PartialEq)]
+    struct ContentProps {
+        state: UseStateHandle<bool>,
+    }
+
+    #[function_component(Content)]
+    fn content(ContentProps { state }: &ContentProps) -> HtmlResult {
+        let state = state.clone();
+        let _sleep_handle = use_future(|| async move {
+            sleep(Duration::from_millis(50)).await;
+            state.set(false);
+            sleep(Duration::from_millis(50)).await;
+        })?;
+
+        Ok(html! {
+            <div>{"Content"}</div>
+        })
+    }
+
+    #[function_component(App)]
+    fn app() -> Html {
+        let fallback = html! {<div>{"wait..."}</div>};
+        let state = use_state(|| true);
+
+        html! {
+            <div id="result">
+            if *state {
+                <Suspense {fallback}>
+                    <Content {state} />
+                </Suspense>
+            } else {
+                <div>{"Content replacement"}</div>
+            }
+            </div>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(25)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>wait...</div>");
+
+    sleep(Duration::from_millis(50)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "<div>Content replacement</div>");
+}
+
+#[wasm_bindgen_test]
+async fn test_duplicate_suspension() {
+    use yew::html::ChildrenProps;
+
+    #[function_component]
+    fn FetchingProvider(props: &ChildrenProps) -> HtmlResult {
+        use_future(|| async {
+            sleep(Duration::ZERO).await;
+        })?;
+        Ok(html! { <>{props.children.clone()}</> })
+    }
+
+    #[function_component]
+    fn Child() -> Html {
+        html! {<div id="result">{"hello!"}</div>}
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let fallback = Html::default();
+        html! {
+           <Suspense {fallback}>
+                <FetchingProvider>
+                    <Child />
+                </FetchingProvider>
+           </Suspense>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+
+    sleep(Duration::from_millis(50)).await;
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "hello!");
 }

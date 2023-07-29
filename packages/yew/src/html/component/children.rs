@@ -3,8 +3,8 @@
 use std::fmt;
 
 use crate::html::Html;
-use crate::virtual_dom::{VChild, VNode};
-use crate::Properties;
+use crate::virtual_dom::{VChild, VComp, VList, VNode};
+use crate::{BaseComponent, Properties};
 
 /// A type used for accepting children elements in Component::Properties.
 ///
@@ -163,7 +163,7 @@ impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
 
 impl<T> ChildrenRenderer<T>
 where
-    T: Clone + Into<VNode>,
+    T: Clone,
 {
     /// Create children
     pub fn new(children: Vec<T>) -> Self {
@@ -185,6 +185,28 @@ where
         // clone each child lazily.
         // This way `self.iter().next()` only has to clone a single node.
         self.children.iter().cloned()
+    }
+
+    /// Convert the children elements to another object (if there are any).
+    ///
+    /// ```
+    /// # let children = Children::new(Vec::new());
+    /// # use yew::{classes, html, Children};
+    /// children.map(|children| {
+    ///     html! {
+    ///         <div class={classes!("container")}>
+    ///             {children}
+    ///         </div>
+    ///     }
+    /// })
+    /// # ;
+    /// ```
+    pub fn map<OUT: Default>(&self, closure: impl FnOnce(&Self) -> OUT) -> OUT {
+        if self.is_empty() {
+            Default::default()
+        } else {
+            closure(self)
+        }
     }
 }
 
@@ -211,10 +233,61 @@ impl<T> IntoIterator for ChildrenRenderer<T> {
     }
 }
 
+impl From<ChildrenRenderer<Html>> for Html {
+    fn from(mut val: ChildrenRenderer<Html>) -> Self {
+        if val.children.len() == 1 {
+            if let Some(m) = val.children.pop() {
+                return m;
+            }
+        }
+
+        Html::VList(val.into())
+    }
+}
+
+impl From<ChildrenRenderer<Html>> for VList {
+    fn from(val: ChildrenRenderer<Html>) -> Self {
+        if val.is_empty() {
+            return VList::new();
+        }
+        VList::with_children(val.children, None)
+    }
+}
+
+impl<COMP> From<ChildrenRenderer<VChild<COMP>>> for ChildrenRenderer<Html>
+where
+    COMP: BaseComponent,
+{
+    fn from(value: ChildrenRenderer<VChild<COMP>>) -> Self {
+        Self::new(
+            value
+                .into_iter()
+                .map(VComp::from)
+                .map(VNode::from)
+                .collect(),
+        )
+    }
+}
+
 /// A [Properties] type with Children being the only property.
 #[derive(Debug, Properties, PartialEq)]
 pub struct ChildrenProps {
     /// The Children of a Component.
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn children_map() {
+        let children = Children::new(vec![]);
+        let res = children.map(|children| Some(children.clone()));
+        assert!(res.is_none());
+        let children = Children::new(vec![Default::default()]);
+        let res = children.map(|children| Some(children.clone()));
+        assert!(res.is_some());
+    }
 }

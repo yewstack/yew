@@ -4,11 +4,11 @@ use std::collections::HashSet;
 use std::rc::Rc;
 use std::time::Duration;
 
-use gloo::timers::future::sleep;
-use gloo_utils::document;
+use gloo::utils::document;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
+use yew::platform::time::sleep;
 use yew::prelude::*;
 
 mod common;
@@ -40,13 +40,10 @@ async fn use_reducer_works() {
         let counter = use_reducer(|| CounterState { counter: 10 });
 
         let counter_clone = counter.clone();
-        use_effect_with_deps(
-            move |_| {
-                counter_clone.dispatch(1);
-                || {}
-            },
-            (),
-        );
+        use_effect_with((), move |_| {
+            counter_clone.dispatch(1);
+            || {}
+        });
         html! {
             <div>
                 {"The test result is"}
@@ -57,7 +54,7 @@ async fn use_reducer_works() {
     }
 
     yew::Renderer::<UseReducerComponent>::with_root(
-        gloo_utils::document().get_element_by_id("output").unwrap(),
+        gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
     sleep(Duration::ZERO).await;

@@ -1,26 +1,38 @@
-use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
-use proc_macro2::{Spacing, TokenTree};
+use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
+use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
+use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Block, Expr, ExprBlock, ExprPath, ExprRange, Stmt, Token};
+use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token};
 
-use super::CHILDREN_LABEL;
 use crate::html_tree::HtmlDashedName;
+use crate::stringify::Stringify;
+
+#[derive(Copy, Clone)]
+pub enum PropDirective {
+    ApplyAsProperty(Token![~]),
+}
 
 pub struct Prop {
+    pub directive: Option<PropDirective>,
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
+
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let directive = input
+            .parse::<Token![~]>()
+            .map(PropDirective::ApplyAsProperty)
+            .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input)
+            Self::parse_shorthand_prop_assignment(input, directive)
         } else {
-            Self::parse_prop_assignment(input)
+            Self::parse_prop_assignment(input, directive)
         }
     }
 }
@@ -30,7 +42,10 @@ impl Prop {
     /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
     /// This only allows for labels with no hyphens, as it would otherwise create
     /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_shorthand_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
@@ -41,7 +56,7 @@ impl Prop {
         }) = expr
         {
             if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
-                syn::Result::Ok(HtmlDashedName::from(ident.clone()))
+                Ok(HtmlDashedName::from(ident.clone()))
             } else {
                 Err(syn::Error::new_spanned(
                     path,
@@ -56,19 +71,25 @@ impl Prop {
             ));
         }?;
 
-        Ok(Self { label, value: expr })
+        Ok(Self {
+            label,
+            value: expr,
+            directive,
+        })
     }
 
     /// Parse a prop of the form `label={value}`
-    fn parse_prop_assignment(input: ParseStream) -> syn::Result<Self> {
+    fn parse_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
             syn::Error::new_spanned(
                 &label,
                 format!(
-                    "`{}` doesn't have a value. (hint: set the value to `true` or `false` for \
-                     boolean attributes)",
-                    label
+                    "`{label}` doesn't have a value. (hint: set the value to `true` or `false` \
+                     for boolean attributes)"
                 ),
             )
         })?;
@@ -80,7 +101,11 @@ impl Prop {
         }
 
         let value = parse_prop_value(input)?;
-        Ok(Self { label, value })
+        Ok(Self {
+            label,
+            value,
+            directive,
+        })
     }
 }
 
@@ -89,23 +114,25 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
         strip_braces(input.parse()?)
     } else {
         let expr = if let Some(ExprRange {
-            from: Some(from), ..
+            start: Some(start), ..
         }) = range_expression_peek(input)
         {
             // If a range expression is seen, treat the left-side expression as the value
             // and leave the right-side expression to be parsed as a base expression
             advance_until_next_dot2(input)?;
-            *from
+            *start
         } else {
             input.parse()?
         };
 
         match &expr {
             Expr::Lit(_) => Ok(expr),
-            _ => Err(syn::Error::new_spanned(
+            ref exp => Err(syn::Error::new_spanned(
                 &expr,
-                "the property value must be either a literal or enclosed in braces. Consider \
-                 adding braces around your expression.",
+                format!(
+                    "the property value must be either a literal or enclosed in braces. Consider \
+                     adding braces around your expression.: {exp:#?}"
+                ),
             )),
         }
     }
@@ -119,7 +146,11 @@ fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
         } if stmts.len() == 1 => {
             let stmt = stmts.remove(0);
             match stmt {
-                Stmt::Expr(expr) => Ok(expr),
+                Stmt::Expr(expr, None) => Ok(expr),
+                Stmt::Macro(mac) => Ok(Expr::Macro(ExprMacro {
+                    attrs: vec![],
+                    mac: mac.mac,
+                })),
                 // See issue #2267, we want to parse macro invocations as expressions
                 Stmt::Item(syn::Item::Macro(mac))
                     if mac.ident.is_none() && mac.semi_token.is_none() =>
@@ -129,7 +160,7 @@ fn strip_braces(block: ExprBlock) -> syn::Result<Expr> {
                         mac: mac.mac,
                     }))
                 }
-                Stmt::Semi(_expr, semi) => Err(syn::Error::new_spanned(
+                Stmt::Expr(_, Some(semi)) => Err(syn::Error::new_spanned(
                     semi,
                     "only an expression may be assigned as a property. Consider removing this \
                      semicolon",
@@ -186,36 +217,21 @@ fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
 ///
 /// The list may contain multiple props with the same label.
 /// Use `check_no_duplicates` to ensure that there are no duplicates.
-pub struct SortedPropList(Vec<Prop>);
-impl SortedPropList {
+pub struct PropList(Vec<Prop>);
+impl PropList {
     /// Create a new `SortedPropList` from a vector of props.
     /// The given `props` doesn't need to be sorted.
-    pub fn new(mut props: Vec<Prop>) -> Self {
-        props.sort_by(|a, b| Self::cmp_label(&a.label.to_string(), &b.label.to_string()));
+    pub fn new(props: Vec<Prop>) -> Self {
         Self(props)
     }
 
-    fn cmp_label(a: &str, b: &str) -> Ordering {
-        if a == b {
-            Ordering::Equal
-        } else if a == CHILDREN_LABEL {
-            Ordering::Greater
-        } else if b == CHILDREN_LABEL {
-            Ordering::Less
-        } else {
-            a.cmp(b)
-        }
-    }
-
     fn position(&self, key: &str) -> Option<usize> {
-        self.0
-            .binary_search_by(|prop| Self::cmp_label(prop.label.to_string().as_str(), key))
-            .ok()
+        self.0.iter().position(|it| it.label.to_string() == key)
     }
 
     /// Get the first prop with the given key.
     pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
-        self.position(key).and_then(|i| self.0.get(i))
+        self.0.iter().find(|it| it.label.to_string() == key)
     }
 
     /// Pop the first prop with the given key.
@@ -230,7 +246,7 @@ impl SortedPropList {
             if let Some(other_prop) = self.get_by_label(key) {
                 return Err(syn::Error::new_spanned(
                     &other_prop.label,
-                    format!("`{}` can only be specified once", key),
+                    format!("`{key}` can only be specified once"),
                 ));
             }
         }
@@ -282,7 +298,7 @@ impl SortedPropList {
         }))
     }
 }
-impl Parse for SortedPropList {
+impl Parse for PropList {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
         // Stop parsing props if a base expression preceded by `..` is reached
@@ -293,7 +309,7 @@ impl Parse for SortedPropList {
         Ok(Self::new(props))
     }
 }
-impl Deref for SortedPropList {
+impl Deref for PropList {
     type Target = [Prop];
 
     fn deref(&self) -> &Self::Target {
@@ -310,7 +326,7 @@ impl SpecialProps {
     const KEY_LABEL: &'static str = "key";
     const REF_LABEL: &'static str = "ref";
 
-    fn pop_from(props: &mut SortedPropList) -> syn::Result<Self> {
+    fn pop_from(props: &mut PropList) -> syn::Result<Self> {
         let node_ref = props.pop_unique(Self::REF_LABEL)?;
         let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
@@ -325,19 +341,46 @@ impl SpecialProps {
     pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
         crate::join_errors(self.iter().map(f).filter_map(Result::err))
     }
+
+    pub fn wrap_node_ref_attr(&self) -> TokenStream {
+        self.node_ref
+            .as_ref()
+            .map(|attr| {
+                let value = &attr.value;
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
+                    ::into_prop_value(#value)
+                }
+            })
+            .unwrap_or(quote! { ::std::default::Default::default() })
+    }
+
+    pub fn wrap_key_attr(&self) -> TokenStream {
+        self.key
+            .as_ref()
+            .map(|attr| {
+                let value = attr.value.optimize_literals();
+                quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                    ::std::option::Option::Some(
+                        ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
+                    )
+                }
+            })
+            .unwrap_or(quote! { ::std::option::Option::None })
+    }
 }
 
 pub struct Props {
     pub special: SpecialProps,
-    pub prop_list: SortedPropList,
+    pub prop_list: PropList,
 }
 impl Parse for Props {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Self::try_from(input.parse::<SortedPropList>()?)
+        Self::try_from(input.parse::<PropList>()?)
     }
 }
 impl Deref for Props {
-    type Target = SortedPropList;
+    type Target = PropList;
 
     fn deref(&self) -> &Self::Target {
         &self.prop_list
@@ -349,10 +392,10 @@ impl DerefMut for Props {
     }
 }
 
-impl TryFrom<SortedPropList> for Props {
+impl TryFrom<PropList> for Props {
     type Error = syn::Error;
 
-    fn try_from(mut prop_list: SortedPropList) -> Result<Self, Self::Error> {
+    fn try_from(mut prop_list: PropList) -> Result<Self, Self::Error> {
         let special = SpecialProps::pop_from(&mut prop_list)?;
         Ok(Self { special, prop_list })
     }

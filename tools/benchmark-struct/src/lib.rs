@@ -202,7 +202,7 @@ impl Component for Jumbotron {
             <div class="jumbotron">
                 <div class="row">
                     <div class="col-md-6">
-                        <h1>{ "Yew-Hooks" }</h1>
+                        <h1>{ "Yew" }</h1>
                     </div>
                     <div class="col-md-6">
                         <div class="row">
@@ -257,7 +257,7 @@ impl Component for Row {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _: &Self::Properties) -> bool {
         let id = ctx.props().data.id;
         self.on_select = ctx.props().on_select.reform(move |_| id);
         self.on_remove = ctx.props().on_remove.reform(move |_| id);
@@ -286,5 +286,5 @@ impl Component for Row {
 pub fn start() {
     let document = window().unwrap().document().unwrap();
     let mount_el = document.query_selector("#main").unwrap().unwrap();
-    yew::start_app_in_element::<App>(mount_el);
+    yew::Renderer::<App>::with_root(mount_el).render();
 }

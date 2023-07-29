@@ -24,8 +24,11 @@ where
     pub query: Option<Q>,
     #[prop_or_default]
     pub disabled: bool,
+    /// [`NodeRef`](yew::html::NodeRef) for the `<a>` element.
     #[prop_or_default]
-    pub children: Children,
+    pub anchor_ref: NodeRef,
+    #[prop_or_default]
+    pub children: Html,
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
@@ -41,6 +44,7 @@ where
         children,
         disabled,
         query,
+        anchor_ref,
     } = props.clone();
 
     let navigator = use_navigator().expect_throw("failed to get navigator");
@@ -51,8 +55,10 @@ where
         let query = query.clone();
 
         Callback::from(move |e: MouseEvent| {
+            if e.meta_key() || e.ctrl_key() || e.shift_key() || e.alt_key() {
+                return;
+            }
             e.prevent_default();
-
             match query {
                 None => {
                     navigator.push(&to);
@@ -86,6 +92,7 @@ where
             {href}
             {onclick}
             {disabled}
+            ref={anchor_ref}
         >
             { children }
         </a>

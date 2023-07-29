@@ -51,6 +51,7 @@ fn compile_pass() {
     ::yew::html! {
         <div>
             <div data-key="abc"></div>
+            <div ref={&parent_ref}></div>
             <div ref={parent_ref} class="parent">
                 <span class="child" value="anything"></span>
                 <label for="first-name">{"First Name"}</label>
@@ -117,6 +118,12 @@ fn compile_pass() {
     // handle misleading angle brackets
     ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
     ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
+
+    // test for https://github.com/yewstack/yew/issues/2810
+    ::yew::html! {  <div data-type="date" data-as="calender" /> };
+
+    let option_vnode = ::std::option::Option::Some(::yew::html! {});
+    ::yew::html! { <div>{option_vnode}</div> };
 }
 
 fn main() {}

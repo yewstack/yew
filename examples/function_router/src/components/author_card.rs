@@ -7,12 +7,12 @@ use crate::content::Author;
 use crate::generator::Generated;
 use crate::Route;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub seed: u32,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct AuthorState {
     pub inner: Author,
 }
@@ -38,14 +38,11 @@ pub fn AuthorCard(props: &Props) -> Html {
 
     {
         let author_dispatcher = author.dispatcher();
-        use_effect_with_deps(
-            move |seed| {
-                author_dispatcher.dispatch(*seed);
+        use_effect_with(seed, move |seed| {
+            author_dispatcher.dispatch(*seed);
 
-                || {}
-            },
-            seed,
-        );
+            || {}
+        });
     }
 
     let author = &author.inner;

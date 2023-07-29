@@ -5,7 +5,7 @@ use crate::content::PostMeta;
 use crate::generator::Generated;
 use crate::Route;
 
-#[derive(Clone, Debug, PartialEq, Properties)]
+#[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {
     pub seed: u64,
 }
@@ -23,7 +23,7 @@ impl Component for PostCard {
         }
     }
 
-    fn changed(&mut self, ctx: &Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         self.post = PostMeta::generate_from_seed(ctx.props().seed);
         true
     }

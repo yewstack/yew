@@ -4,13 +4,9 @@
 
 A password strength estimator implemented in Yew.
 
-## Running
+### Notes
 
-You should run this example with the `--release` flag:
-
-```bash
-trunk serve --release
-```
+If this example is a bit slow, you should try running it with the `release` profile.
 
 ## Concepts
 
@@ -19,3 +15,11 @@ This example
 - makes use of controlled components.
 - extracts new value from `InputEvent`
 - calls out to `js_sys` to invoke a foreign function, `Math.random()`
+
+## Running
+
+Run this application with the trunk development server:
+
+```bash
+trunk serve --open
+```

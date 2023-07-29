@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use yew::prelude::*;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Message {
     pub inner: String,
 }
@@ -20,7 +20,7 @@ pub type MessageContext = UseReducerHandle<Message>;
 #[derive(Properties, Debug, PartialEq)]
 pub struct MessageProviderProps {
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 }
 
 #[function_component]

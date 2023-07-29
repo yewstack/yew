@@ -26,6 +26,9 @@ pub fn lint<L>(tree: &HtmlTree)
 where
     L: Lint,
 {
+    #[cfg(not(yew_lints))]
+    let _ = tree;
+    #[cfg(yew_lints)]
     match tree {
         HtmlTree::List(list) => {
             for child in &list.children.0 {
@@ -64,11 +67,11 @@ impl Lint for AHrefLint {
                         match href_value.as_ref() {
                             "#" | "javascript:void(0)" => emit_warning!(
                                 lit.span(),
-                                format!("'{}' is not a suitable value for the `href` attribute. \
+                                format!("'{href_value}' is not a suitable value for the `href` attribute. \
                                         Without a meaningful attribute assistive technologies \
                                         will struggle to understand your webpage. \
                                         https://developer.mozilla.org/en-US/docs/Learn/Accessibility/HTML#onclick_events"
-                            ,href_value)),
+                            )),
                             _ => {}
 
                         }

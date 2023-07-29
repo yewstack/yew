@@ -46,7 +46,7 @@ where
 
             let state = {
                 let deps = deps.clone();
-                use_memo(move |_| f(deps), ()).run(ctx)
+                use_memo((), move |_| f(deps)).run(ctx)
             };
 
             let state = PreparedStateBase {

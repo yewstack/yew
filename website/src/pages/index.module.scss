@@ -1,0 +1,91 @@
+@mixin devices($breakpoint) {
+    @if $breakpoint == desktop {
+        @media only screen and (min-width: 700px) {
+            @content;
+        }
+    }
+
+    @if $breakpoint == tablet {
+        @media only screen and (min-width: 700px) {
+            @content;
+        }
+    }
+
+    @if $breakpoint == mobile {
+        @media only screen and (min-width: 350px) {
+            @content;
+        }
+    }
+}
+
+.heroHeader {
+    flex-direction: column;
+}
+
+.heroSubtitle {
+    @include devices(mobile) {
+        padding: 1rem;
+        text-align: center;
+    }
+}
+
+.header {
+    display: flex;
+    padding: var(--ifm-h1-font-size);
+    gap: calc(var(--ifm-h1-font-size) / 2);
+    align-items: center;
+    justify-content: center;
+
+    h1 {
+        @include devices(desktop) {
+            --ifm-h1-font-size: calc(var(--ifm-h1-font-size) * 3);
+        }
+        @include devices(tablet) {
+            --ifm-h1-font-size: calc(var(--ifm-h1-font-size) * 1.5);
+        }
+    }
+
+    img {
+        $dimensions: calc(var(--ifm-h1-font-size) * 5);
+
+        @include devices(tablet) {
+            $dimensions: calc(var(--ifm-h1-font-size) * 3);
+        }
+
+        width: $dimensions;
+        height: $dimensions;
+    }
+}
+
+.callToActions {
+    display: flex;
+    flex-direction: column;
+
+    @include devices(desktop) {
+        flex-direction: row;
+    }
+}
+
+.features {
+    h2 {
+        font-size: calc(var(--ifm-h2-font-size) * 1.5);
+
+        @include devices(mobile) {
+            font-size: calc(var(--ifm-h2-font-size) * 1.5);
+        }
+    }
+
+    .featuresGrid {
+        $spacing: 2rem;
+        padding: $spacing;
+        display: grid;
+
+        grid-template-columns: 1fr;
+        gap: ($spacing * 2);
+
+        @include devices(tablet) {
+            grid-template-columns: repeat(3, 1fr);
+            gap: $spacing;
+        }
+    }
+}

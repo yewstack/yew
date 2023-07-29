@@ -1,12 +1,12 @@
 [package]
 name = "yew-router-macro"
-version = "0.16.0"
+version = "0.17.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "Contains macros used with yew-router"
 repository = "https://github.com/yewstack/yew"
-rust-version = "1.60.0"
+rust-version = "1.64.0"
 
 [lib]
 proc-macro = true
@@ -14,7 +14,7 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1"
 quote = "1"
-syn = { version = "1", features = ["full","extra-traits"] }
+syn = { version = "2", features = ["full","extra-traits"] }
 
 [dev-dependencies]
 rustversion = "1"

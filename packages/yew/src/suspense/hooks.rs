@@ -19,7 +19,7 @@ impl<O> Deref for UseFutureHandle<O> {
     type Target = O;
 
     fn deref(&self) -> &Self::Target {
-        &*self.inner.as_ref().unwrap()
+        self.inner.as_ref().unwrap()
     }
 }
 
@@ -44,7 +44,7 @@ impl<T: fmt::Debug> fmt::Debug for UseFutureHandle<T> {
 /// ```
 /// # use yew::prelude::*;
 /// # use yew::suspense::use_future;
-/// use gloo_net::http::Request;
+/// use gloo::net::http::Request;
 ///
 /// const URL: &str = "https://en.wikipedia.org/w/api.php?\
 ///                    action=query&origin=*&format=json&generator=search&\
@@ -52,7 +52,7 @@ impl<T: fmt::Debug> fmt::Debug for UseFutureHandle<T> {
 ///
 /// #[function_component]
 /// fn WikipediaSearch() -> HtmlResult {
-///     let res = use_future(|| async { Request::new(URL).send().await?.text().await })?;
+///     let res = use_future(|| async { Request::get(URL).send().await?.text().await })?;
 ///     let result_html = match *res {
 ///         Ok(ref res) => html! { res },
 ///         Err(ref failure) => failure.to_string().into(),
