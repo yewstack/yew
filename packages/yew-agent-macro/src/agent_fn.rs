@@ -45,7 +45,7 @@ pub trait AgentFnType {
             return Err(syn::Error::new_spanned(
                 params,
                 format!(
-                    "{} agents can accept at most {} argument{}",
+                    "{} agent can accept at most {} argument{}",
                     Self::agent_type_name(),
                     expected_len,
                     if expected_len > 1 { "s" } else { "" }
@@ -69,6 +69,7 @@ where
     pub attrs: Vec<Attribute>,
     pub name: Ident,
     pub agent_name: Option<Ident>,
+    pub is_async: bool,
 
     pub func: ItemFn,
 }
@@ -108,13 +109,6 @@ where
             ));
         }
 
-        if sig.asyncness.is_none() {
-            return Err(syn::Error::new_spanned(
-                sig.asyncness,
-                format!("{} functions must be async", F::agent_type_name()),
-            ));
-        }
-
         if sig.constness.is_some() {
             return Err(syn::Error::new_spanned(
                 sig.constness,
@@ -131,10 +125,13 @@ where
         let recv_type = F::parse_recv_type(&sig)?;
         let output_type = F::parse_output_type(&sig)?;
 
+        let is_async = sig.asyncness.is_some();
+
         Ok(Self {
             recv_type,
             output_type,
             generics: sig.generics,
+            is_async,
             vis,
             attrs,
             name: sig.ident,
@@ -153,7 +150,7 @@ where
         self.attrs
             .iter()
             .filter_map(|m| {
-                m.path
+                m.path()
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
                         "doc" | "allow" => Some(m.clone()),
@@ -168,7 +165,7 @@ where
         self.attrs
             .iter()
             .filter_map(|m| {
-                m.path
+                m.path()
                     .get_ident()
                     .and_then(|ident| match ident.to_string().as_str() {
                         "allow" => Some(m.clone()),

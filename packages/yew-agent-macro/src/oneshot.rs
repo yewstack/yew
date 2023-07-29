@@ -1,21 +1,21 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Ident, ReturnType, Signature, Type};
+use syn::{parse_quote, Ident, ReturnType, Signature, Type};
 
 use crate::agent_fn::{AgentFn, AgentFnType, AgentName};
 
-pub struct ReactorFn {}
+pub struct OneshotFn {}
 
-impl AgentFnType for ReactorFn {
-    type OutputType = ();
+impl AgentFnType for OneshotFn {
+    type OutputType = Type;
     type RecvType = Type;
 
     fn attr_name() -> &'static str {
-        "reactor"
+        "oneshot"
     }
 
     fn agent_type_name() -> &'static str {
-        "reactor"
+        "oneshot"
     }
 
     fn parse_recv_type(sig: &Signature) -> syn::Result<Self::RecvType> {
@@ -32,67 +32,62 @@ impl AgentFnType for ReactorFn {
     }
 
     fn parse_output_type(sig: &Signature) -> syn::Result<Self::OutputType> {
-        match &sig.output {
-            ReturnType::Default => {}
-            ReturnType::Type(_, ty) => {
-                return Err(syn::Error::new_spanned(
-                    ty,
-                    "reactor agents cannot return any value",
-                ))
+        let ty = match &sig.output {
+            ReturnType::Default => {
+                parse_quote! { () }
             }
-        }
+            ReturnType::Type(_, ty) => *ty.clone(),
+        };
 
-        Ok(())
+        Ok(ty)
     }
 }
 
-pub fn reactor_impl(name: AgentName, mut agent_fn: AgentFn<ReactorFn>) -> syn::Result<TokenStream> {
+pub fn oneshot_impl(name: AgentName, mut agent_fn: AgentFn<OneshotFn>) -> syn::Result<TokenStream> {
     agent_fn.merge_agent_name(name)?;
 
-    if !agent_fn.is_async {
-        return Err(syn::Error::new_spanned(
-            &agent_fn.name,
-            "reactor agents must be asynchronous",
-        ));
-    }
-
     let struct_attrs = agent_fn.filter_attrs_for_agent_struct();
-    let reactor_impl_attrs = agent_fn.filter_attrs_for_agent_impl();
+    let oneshot_impl_attrs = agent_fn.filter_attrs_for_agent_impl();
     let phantom_generics = agent_fn.phantom_generics();
-    let reactor_name = agent_fn.agent_name();
+    let oneshot_name = agent_fn.agent_name();
     let fn_name = agent_fn.inner_fn_ident();
     let inner_fn = agent_fn.print_inner_fn();
 
     let AgentFn {
-        recv_type,
+        recv_type: input_type,
         generics,
+        output_type,
         vis,
+        is_async,
         ..
     } = agent_fn;
-
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let fn_generics = ty_generics.as_turbofish();
 
-    let scope_ident = Ident::new("_scope", Span::mixed_site());
+    let in_ident = Ident::new("_input", Span::mixed_site());
 
-    let fn_call = quote! { #fn_name #fn_generics (#scope_ident).await };
+    let fn_call = if is_async {
+        quote! { #fn_name #fn_generics (#in_ident).await }
+    } else {
+        quote! { #fn_name #fn_generics (#in_ident) }
+    };
     let crate_name = quote! { ::yew_agent };
 
     let quoted = quote! {
         #(#struct_attrs)*
         #[allow(unused_parens)]
-        #vis struct #reactor_name #generics #where_clause {
-            inner: ::std::pin::Pin<::std::boxed::Box<dyn ::std::future::Future<Output = ()>>>,
+        #vis struct #oneshot_name #generics #where_clause {
+            inner: ::std::pin::Pin<::std::boxed::Box<dyn ::std::future::Future<Output = #output_type>>>,
             _marker: ::std::marker::PhantomData<(#phantom_generics)>,
         }
 
         // we cannot disable any lints here because it will be applied to the function body
         // as well.
-        #(#reactor_impl_attrs)*
-        impl #impl_generics ::#crate_name::reactor::Reactor for #reactor_name #ty_generics #where_clause {
-            type Scope = #recv_type;
+        #(#oneshot_impl_attrs)*
+        impl #impl_generics ::#crate_name::oneshot::Oneshot for #oneshot_name #ty_generics #where_clause {
+            type Input = #input_type;
 
-            fn create(#scope_ident: Self::Scope) -> Self {
+            fn create(#in_ident: Self::Input) -> Self {
                 #inner_fn
 
                 Self {
@@ -106,27 +101,27 @@ pub fn reactor_impl(name: AgentName, mut agent_fn: AgentFn<ReactorFn>) -> syn::R
             }
         }
 
-        impl #impl_generics ::std::future::Future for #reactor_name #ty_generics #where_clause {
-            type Output = ();
+        impl #impl_generics ::std::future::Future for #oneshot_name #ty_generics #where_clause {
+            type Output = #output_type;
 
             fn poll(mut self: ::std::pin::Pin<&mut Self>, cx: &mut ::std::task::Context<'_>) -> ::std::task::Poll<Self::Output> {
                 ::std::future::Future::poll(::std::pin::Pin::new(&mut self.inner), cx)
             }
         }
 
-        impl #impl_generics ::#crate_name::Registrable for #reactor_name #ty_generics #where_clause {
-            type Registrar = ::#crate_name::reactor::ReactorRegistrar<Self>;
+        impl #impl_generics ::#crate_name::Registrable for #oneshot_name #ty_generics #where_clause {
+            type Registrar = ::#crate_name::oneshot::OneshotRegistrar<Self>;
 
             fn registrar() -> Self::Registrar {
-                ::#crate_name::reactor::ReactorRegistrar::<Self>::new()
+                ::#crate_name::oneshot::OneshotRegistrar::<Self>::new()
             }
         }
 
-        impl #impl_generics ::#crate_name::Spawnable for #reactor_name #ty_generics #where_clause {
-            type Spawner = ::#crate_name::reactor::ReactorSpawner<Self>;
+        impl #impl_generics ::#crate_name::Spawnable for #oneshot_name #ty_generics #where_clause {
+            type Spawner = ::#crate_name::oneshot::OneshotSpawner<Self>;
 
             fn spawner() -> Self::Spawner {
-                ::#crate_name::reactor::ReactorSpawner::<Self>::new()
+                ::#crate_name::oneshot::OneshotSpawner::<Self>::new()
             }
         }
     };
