@@ -133,8 +133,8 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
 
     let inner_type_impl = if hook_sig.needs_boxing {
         let with_output = !matches!(hook_sig.output_type, Type::ImplTrait(_),);
-        let inner_fn_rt = with_output.then(|| &inner_fn_rt);
-        let output_type = with_output.then(|| &output_type);
+        let inner_fn_rt = with_output.then_some(&inner_fn_rt);
+        let output_type = with_output.then_some(&output_type);
 
         let hook_lifetime = &hook_sig.hook_lifetime;
         let hook_lifetime_plus = quote! { #hook_lifetime + };

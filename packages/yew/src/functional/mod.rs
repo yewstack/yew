@@ -337,7 +337,7 @@ where
         };
 
         Self {
-            _never: std::marker::PhantomData::default(),
+            _never: std::marker::PhantomData,
             hook_ctx: HookContext::new(
                 scope,
                 re_render,

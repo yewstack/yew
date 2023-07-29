@@ -26,7 +26,7 @@ impl Component for GrandParent {
         match msg {
             Msg::ButtonClick(childs_name) => {
                 // Update the shared state
-                let mut shared_state = Rc::make_mut(&mut self.state);
+                let shared_state = Rc::make_mut(&mut self.state);
                 shared_state.total_clicks += 1;
                 shared_state.last_clicked = Some(childs_name);
                 true
