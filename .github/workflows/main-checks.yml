@@ -95,7 +95,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: nanasess/setup-chromedriver@v1
+      - uses: nanasess/setup-chromedriver@v2
 
       - name: Run tests - yew
         run: |
