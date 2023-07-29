@@ -5,13 +5,21 @@ updates:
     schedule:
       interval: "weekly"
       day: "friday"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
+    groups:
+       cargo-deps:
+          patterns:
+            - "*"
 
   - package-ecosystem: "npm"
     directory: "/website"
     schedule:
       interval: "monthly"
     target-branch: "master"
+    groups:
+       website-deps:
+          patterns:
+            - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
