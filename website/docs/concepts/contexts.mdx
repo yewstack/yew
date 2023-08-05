@@ -21,7 +21,7 @@ This situation is called "Prop Drilling".
 Consider the following example which passes down the theme using props:
 
 ```rust
-use yew::{html, Children, Component, Context, Html, Properties, function_component};
+use yew::{html, Component, Context, Html, Properties, function_component};
 
 #[derive(Clone, PartialEq)]
 pub struct Theme {
@@ -51,7 +51,7 @@ fn Navbar(props: &NavbarProps) -> Html {
 #[derive(PartialEq, Properties)]
 pub struct ThemeProps {
     theme: Theme,
-    children: Children,
+    children: Html,
 }
 
 #[function_component]
