@@ -1096,6 +1096,7 @@ mod layout_tests {
 #[cfg(test)]
 mod tests_without_browser {
     use crate::html;
+    use crate::virtual_dom::VNode;
 
     #[test]
     fn html_if_bool() {
@@ -1267,5 +1268,35 @@ mod tests_without_browser {
             },
             html! { <div><></></div> },
         );
+    }
+
+    #[test]
+    fn input_checked_stays_there() {
+        let tag = html! {
+            <input checked={true} />
+        };
+        match tag {
+            VNode::VTag(tag) => {
+                assert_eq!(tag.checked(), Some(true));
+            }
+            _ => unreachable!(),
+        }
+    }
+    #[test]
+    fn non_input_checked_stays_there() {
+        let tag = html! {
+            <my-el checked="true" />
+        };
+        match tag {
+            VNode::VTag(tag) => {
+                assert_eq!(
+                    tag.attributes
+                        .iter()
+                        .find(|(k, _)| *k == "checked"),
+                    Some(("checked", "true"))
+                );
+            }
+            _ => unreachable!(),
+        }
     }
 }
