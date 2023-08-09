@@ -1290,9 +1290,7 @@ mod tests_without_browser {
         match tag {
             VNode::VTag(tag) => {
                 assert_eq!(
-                    tag.attributes
-                        .iter()
-                        .find(|(k, _)| *k == "checked"),
+                    tag.attributes.iter().find(|(k, _)| *k == "checked"),
                     Some(("checked", "true"))
                 );
             }
