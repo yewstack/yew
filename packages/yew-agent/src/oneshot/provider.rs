@@ -1,0 +1,134 @@
+use core::fmt;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use gloo_worker::oneshot::OneshotSpawner;
+use serde::{Deserialize, Serialize};
+use yew::prelude::*;
+
+use super::{Oneshot, OneshotBridge};
+use crate::worker::WorkerProviderProps;
+use crate::{Bincode, Codec, Reach};
+
+pub(crate) struct OneshotProviderState<T>
+where
+    T: Oneshot + 'static,
+{
+    ctr: usize,
+    spawn_bridge_fn: Rc<dyn Fn() -> OneshotBridge<T>>,
+    reach: Reach,
+    held_bridge: Rc<RefCell<Option<OneshotBridge<T>>>>,
+}
+
+impl<T> fmt::Debug for OneshotProviderState<T>
+where
+    T: Oneshot,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("OneshotProviderState<_>")
+    }
+}
+
+impl<T> OneshotProviderState<T>
+where
+    T: Oneshot,
+{
+    fn get_held_bridge(&self) -> OneshotBridge<T> {
+        let mut held_bridge = self.held_bridge.borrow_mut();
+
+        match held_bridge.as_mut() {
+            Some(m) => m.fork(),
+            None => {
+                let bridge = (self.spawn_bridge_fn)();
+                *held_bridge = Some(bridge.fork());
+                bridge
+            }
+        }
+    }
+
+    /// Creates a bridge, uses "fork" for public agents.
+    pub fn create_bridge(&self) -> OneshotBridge<T> {
+        match self.reach {
+            Reach::Public => {
+                let held_bridge = self.get_held_bridge();
+                held_bridge.fork()
+            }
+            Reach::Private => (self.spawn_bridge_fn)(),
+        }
+    }
+}
+
+impl<W> Clone for OneshotProviderState<W>
+where
+    W: Oneshot,
+{
+    fn clone(&self) -> Self {
+        Self {
+            ctr: self.ctr,
+            spawn_bridge_fn: self.spawn_bridge_fn.clone(),
+            reach: self.reach,
+            held_bridge: self.held_bridge.clone(),
+        }
+    }
+}
+
+impl<W> PartialEq for OneshotProviderState<W>
+where
+    W: Oneshot,
+{
+    fn eq(&self, rhs: &Self) -> bool {
+        self.ctr == rhs.ctr
+    }
+}
+
+static CTR: AtomicUsize = AtomicUsize::new(0);
+
+/// A Oneshot Agent Provider.
+///
+/// This component provides its children access to an oneshot agent.
+#[function_component]
+pub fn OneshotProvider<T, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
+where
+    T: Oneshot + 'static,
+    T::Input: Serialize + for<'de> Deserialize<'de> + 'static,
+    T::Output: Serialize + for<'de> Deserialize<'de> + 'static,
+    CODEC: Codec + 'static,
+{
+    // Creates a spawning function so CODEC is can be erased from contexts.
+    let spawn_bridge_fn: Rc<dyn Fn() -> OneshotBridge<T>> = {
+        let path = props.path.clone();
+        Rc::new(move || OneshotSpawner::<T>::new().encoding::<CODEC>().spawn(&path))
+    };
+
+    let WorkerProviderProps {
+        children,
+        path,
+        lazy,
+        reach,
+    } = props.clone();
+
+    let state = {
+        use_memo((path, lazy, reach), move |(_path, lazy, reach)| {
+            let ctr = CTR.fetch_add(1, Ordering::SeqCst);
+
+            let state = OneshotProviderState::<T> {
+                ctr,
+                spawn_bridge_fn,
+                reach: *reach,
+                held_bridge: Rc::default(),
+            };
+
+            if *reach == Reach::Public && !*lazy {
+                state.get_held_bridge();
+            }
+            state
+        })
+    };
+
+    html! {
+        <ContextProvider<OneshotProviderState<T>> context={(*state).clone()}>
+            {children}
+        </ContextProvider<OneshotProviderState<T>>>
+    }
+}

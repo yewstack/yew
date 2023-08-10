@@ -3,7 +3,8 @@ use std::fmt;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use gloo::worker::Spawnable;
+use gloo_worker::Spawnable;
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Worker, WorkerBridge};
@@ -34,7 +35,7 @@ pub struct WorkerProviderProps {
 
     /// Children of the provider.
     #[prop_or_default]
-    pub children: Children,
+    pub children: Html,
 }
 
 pub(crate) struct WorkerProviderState<W>
@@ -59,6 +60,7 @@ where
 impl<W> WorkerProviderState<W>
 where
     W: Worker,
+    W::Output: 'static,
 {
     fn get_held_bridge(&self) -> WorkerBridge<W> {
         let mut held_bridge = self.held_bridge.borrow_mut();
@@ -117,6 +119,8 @@ static CTR: AtomicUsize = AtomicUsize::new(0);
 pub fn WorkerProvider<W, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where
     W: Worker + 'static,
+    W::Input: Serialize + for<'de> Deserialize<'de> + 'static,
+    W::Output: Serialize + for<'de> Deserialize<'de> + 'static,
     CODEC: Codec + 'static,
 {
     // Creates a spawning function so CODEC is can be erased from contexts.
@@ -133,24 +137,21 @@ where
     } = props.clone();
 
     let state = {
-        use_memo(
-            move |(_path, lazy, reach)| {
-                let ctr = CTR.fetch_add(1, Ordering::SeqCst);
+        use_memo((path, lazy, reach), move |(_path, lazy, reach)| {
+            let ctr = CTR.fetch_add(1, Ordering::SeqCst);
 
-                let state = WorkerProviderState::<W> {
-                    ctr,
-                    spawn_bridge_fn,
-                    reach: *reach,
-                    held_bridge: Rc::default(),
-                };
+            let state = WorkerProviderState::<W> {
+                ctr,
+                spawn_bridge_fn,
+                reach: *reach,
+                held_bridge: Rc::default(),
+            };
 
-                if *reach == Reach::Public && !*lazy {
-                    state.get_held_bridge();
-                }
-                state
-            },
-            (path, lazy, reach),
-        )
+            if *reach == Reach::Public && !*lazy {
+                state.get_held_bridge();
+            }
+            state
+        })
     };
 
     html! {

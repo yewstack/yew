@@ -6,7 +6,7 @@ pub mod agent;
 use web_sys::HtmlInputElement;
 use yew::platform::spawn_local;
 use yew::prelude::*;
-use yew_agent::task::{use_task, TaskProvider};
+use yew_agent::oneshot::{use_bridge_oneshot, OneshotProvider};
 
 use crate::agent::{FibonacciTask, Postcard};
 
@@ -14,7 +14,7 @@ use crate::agent::{FibonacciTask, Postcard};
 fn Main() -> Html {
     let input_value = use_state_eq(|| 44);
     let output = use_state(|| "Try out some fibonacci calculations!".to_string());
-    let fib_task = use_task::<FibonacciTask>();
+    let fib_task = use_bridge_oneshot::<FibonacciTask>();
 
     let clicker_value = use_state_eq(|| 0);
 
@@ -73,8 +73,8 @@ fn Main() -> Html {
 #[function_component]
 pub fn App() -> Html {
     html! {
-        <TaskProvider<FibonacciTask, Postcard> path="/worker.js">
+        <OneshotProvider<FibonacciTask, Postcard> path="/worker.js">
             <Main />
-        </TaskProvider<FibonacciTask, Postcard>>
+        </OneshotProvider<FibonacciTask, Postcard>>
     }
 }

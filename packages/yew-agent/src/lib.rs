@@ -4,7 +4,7 @@
 //!
 //! There're a couple kinds of agents:
 //!
-//! #### Task
+//! #### Oneshot
 //!
 //! A kind of agent that for each input, a single output is expected.
 //!
@@ -58,10 +58,9 @@
 //!
 //! #### Task
 //!
-//! See: [`use_task`](task::use_task), [`use_memorized_task`](task::use_memorized_task)
+//! See: [`use_task`](task::use_task)
 //!
-//! Unlike other agents, tasks provides a `use_task` hook for mutation-like usage and a
-//! `use_memoized_task` hook for query like usage.
+//! Unlike other agents, tasks provides a `use_task` hook to execute tasks on demand.
 
 #![deny(
     clippy::all,
@@ -74,16 +73,16 @@
 
 extern crate self as yew_agent;
 
-pub mod reactor;
-pub mod task;
+// pub mod reactor;
+pub mod oneshot;
 pub mod worker;
 
 #[doc(inline)]
-pub use gloo::worker::{Bincode, Codec, Registrable};
+pub use gloo_worker::{Bincode, Codec, Registrable, Spawnable};
+/// A procedural macro to create oneshot agents.
+pub use yew_agent_macro::oneshot;
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;
-/// A procedural macro to create task agents.
-pub use yew_agent_macro::task;
 
 mod reach;
 pub mod scope_ext;
@@ -99,16 +98,16 @@ pub mod prelude {
     //! Prelude module to be imported when working with `yew-agent`.
     //!
     //! This module re-exports the frequently used types from the crate.
+    pub use crate::oneshot::{use_bridge_oneshot, UseBridgeOneshotHandle};
     pub use crate::reach::Reach;
-    pub use crate::reactor::{
-        use_reactor_bridge, use_reactor_subscription, ReactorOutput, UseReactorBridgeHandle,
-        UseReactorSubscriptionHandle,
-    };
-    pub use crate::scope_ext::{AgentScopeExt, ReactorBridgeHandle, WorkerBridgeHandle};
-    pub use crate::task::{use_memorized_task, use_task, UseTaskHandle};
+    // pub use crate::reactor::{
+    //     use_reactor_bridge, use_reactor_subscription, ReactorOutput, UseReactorBridgeHandle,
+    //     UseReactorSubscriptionHandle,
+    // };
+    pub use crate::scope_ext::{AgentScopeExt, /* ReactorBridgeHandle, */ WorkerBridgeHandle};
     pub use crate::worker::{
         use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle,
         UseWorkerSubscriptionHandle,
     };
-    pub use crate::Registrable;
+    pub use crate::{Registrable, Spawnable};
 }

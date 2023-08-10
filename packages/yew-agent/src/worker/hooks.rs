@@ -96,7 +96,7 @@ where
 #[hook]
 pub fn use_worker_bridge<T, F>(on_output: F) -> UseWorkerBridgeHandle<T>
 where
-    T: Worker,
+    T: Worker + 'static,
     F: Fn(T::Output) + 'static,
 {
     let ctr = use_reducer(UseBridgeCounter::default);
@@ -115,15 +115,12 @@ where
         *on_output_ref = on_output;
     }
 
-    let bridge = use_memo(
-        |(state, _ctr)| {
-            state.create_bridge(Callback::from(move |output| {
-                let on_output = on_output_ref.borrow().clone();
-                on_output(output);
-            }))
-        },
-        (worker_state, ctr.inner),
-    );
+    let bridge = use_memo((worker_state, ctr.inner), |(state, _ctr)| {
+        state.create_bridge(Callback::from(move |output| {
+            let on_output = on_output_ref.borrow().clone();
+            on_output(output);
+        }))
+    });
 
     UseWorkerBridgeHandle {
         inner: (*bridge).clone(),
@@ -211,7 +208,7 @@ where
 #[hook]
 pub fn use_worker_subscription<T>() -> UseWorkerSubscriptionHandle<T>
 where
-    T: Worker,
+    T: Worker + 'static,
 {
     enum OutputsAction<T> {
         Push(Rc<T>),
@@ -268,14 +265,11 @@ where
 
     {
         let outputs_dispatcher = outputs.dispatcher();
-        use_effect_with_deps(
-            move |_| {
-                outputs_dispatcher.dispatch(OutputsAction::Reset);
+        use_effect_with(bridge.clone(), move |_| {
+            outputs_dispatcher.dispatch(OutputsAction::Reset);
 
-                || {}
-            },
-            bridge.clone(),
-        );
+            || {}
+        });
     }
 
     UseWorkerSubscriptionHandle {

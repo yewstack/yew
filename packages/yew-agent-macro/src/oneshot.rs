@@ -71,7 +71,7 @@ pub fn oneshot_impl(name: AgentName, mut agent_fn: AgentFn<OneshotFn>) -> syn::R
     } else {
         quote! { #fn_name #fn_generics (#in_ident) }
     };
-    let crate_name = quote! { ::yew_agent };
+    let crate_name = quote! { yew_agent };
 
     let quoted = quote! {
         #(#struct_attrs)*
