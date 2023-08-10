@@ -1,13 +1,19 @@
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
+mod struct_consumer;
 mod use_sleep;
 
-use use_sleep::use_sleep;
+pub use use_sleep::use_sleep;
+
+#[derive(Debug, PartialEq, Properties)]
+struct PleaseWaitProps {
+    from: &'static str,
+}
 
 #[function_component(PleaseWait)]
-fn please_wait() -> Html {
-    html! {<div class="content-area">{"Please wait 5 Seconds..."}</div>}
+fn please_wait(props: &PleaseWaitProps) -> Html {
+    html! {<div class="content-area">{"Please wait 5 Seconds for "}{props.from}{" component to load..."}</div>}
 }
 
 #[function_component(AppContent)]
@@ -20,7 +26,7 @@ fn app_content() -> HtmlResult {
         let value = value.clone();
 
         Callback::from(move |e: InputEvent| {
-            let input: HtmlTextAreaElement = e.target_unchecked_into();
+            let input: HtmlTextAreaElement = e.target_unchecked_into::<HtmlTextAreaElement>();
 
             value.set(input.value());
         })
@@ -41,14 +47,21 @@ fn app_content() -> HtmlResult {
 
 #[function_component(App)]
 fn app() -> Html {
-    let fallback = html! {<PleaseWait />};
+    let fallback_fn = html! {<PleaseWait from="function" />};
+    let fallback_struct = html! {<PleaseWait from="struct" />};
 
     html! {
         <div class="layout">
             <div class="content">
-                <h1>{"Yew Suspense Demo"}</h1>
-                <Suspense fallback={fallback}>
-                    <AppContent />
+                <h2>{"  Yew Suspense Demo -- function component consumer"}</h2>
+                    <Suspense fallback={fallback_fn}>
+                        <AppContent  />
+                    </Suspense>
+            </div>
+            <div class="content">
+                <h2>{"Yew Suspense Demo -- struct component consumer"}</h2>
+                <Suspense fallback={fallback_struct}>
+                        <struct_consumer::AppContent />
                 </Suspense>
             </div>
         </div>
