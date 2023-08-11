@@ -641,6 +641,9 @@ impl Parse for HtmlElementOpen {
                             if let Some(attr) = props.value.take() {
                                 props.attributes.push(attr);
                             }
+                            if let Some(attr) = props.checked.take() {
+                                props.attributes.push(attr);
+                            }
                         }
                     }
                 }
