@@ -9,23 +9,23 @@ use crate::{utils, Routable};
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R, S = (), Q = ()>
+pub struct LinkProps<R, Q = (), S = ()>
 where
     R: Routable,
-    S: Clone + PartialEq,
     Q: Clone + PartialEq + Serialize,
+    S: Clone + PartialEq,
 {
     /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
     pub classes: Classes,
     /// Route that will be pushed when the anchor is clicked.
     pub to: R,
-    /// Route state data
-    #[prop_or_default]
-    pub state: Option<S>,
     /// Route query data
     #[prop_or_default]
     pub query: Option<Q>,
+    /// Route state data
+    #[prop_or_default]
+    pub state: Option<S>,
     #[prop_or_default]
     pub disabled: bool,
     /// [`NodeRef`](yew::html::NodeRef) for the `<a>` element.
@@ -37,20 +37,20 @@ where
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
 #[function_component]
-pub fn Link<R, S = (), Q = ()>(props: &LinkProps<R, S, Q>) -> Html
+pub fn Link<R, Q = (), S = ()>(props: &LinkProps<R, Q, S>) -> Html
 where
     R: Routable + 'static,
-    S: Clone + PartialEq + 'static,
     Q: Clone + PartialEq + Serialize + 'static,
+    S: Clone + PartialEq + 'static,
 {
     let LinkProps {
         classes,
         to,
-        children,
-        disabled,
-        state,
         query,
+        state,
+        disabled,
         anchor_ref,
+        children,
     } = props.clone();
 
     let navigator = use_navigator().expect_throw("failed to get navigator");
