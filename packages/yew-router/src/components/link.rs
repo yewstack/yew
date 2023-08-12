@@ -58,8 +58,8 @@ where
     let onclick = {
         let navigator = navigator.clone();
         let to = to.clone();
-        let state = state.clone();
         let query = query.clone();
+        let state = state.clone();
 
         Callback::from(move |e: MouseEvent| {
             if e.meta_key() || e.ctrl_key() || e.shift_key() || e.alt_key() {
