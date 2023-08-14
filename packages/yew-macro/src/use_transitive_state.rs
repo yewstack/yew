@@ -30,7 +30,6 @@ impl Parse for TransitiveState {
             other => return Err(syn::Error::new_spanned(other, "expected closure")),
         };
 
-
         let return_type = match &closure.output {
             ReturnType::Default => {
                 return Err(syn::Error::new_spanned(
@@ -41,7 +40,6 @@ impl Parse for TransitiveState {
             }
             ReturnType::Type(_rarrow, ty) => *ty.to_owned(),
         };
-
 
         if !input.is_empty() {
             let maybe_trailing_comma = input.lookahead1();

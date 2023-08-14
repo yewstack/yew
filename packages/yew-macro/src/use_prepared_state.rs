@@ -22,7 +22,6 @@ impl Parse for PreparedState {
             )
         })?;
 
-
         // Reads a closure.
         let expr: Expr = input.parse()?;
 
@@ -30,7 +29,6 @@ impl Parse for PreparedState {
             Expr::Closure(m) => m,
             other => return Err(syn::Error::new_spanned(other, "expected closure")),
         };
-
 
         let return_type = match &closure.output {
             ReturnType::Default => {
@@ -42,7 +40,6 @@ impl Parse for PreparedState {
             }
             ReturnType::Type(_rarrow, ty) => *ty.to_owned(),
         };
-
 
         if !input.is_empty() {
             let maybe_trailing_comma = input.lookahead1();
