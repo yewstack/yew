@@ -1,14 +1,16 @@
-error: expected closure
- --> tests/hook_macro/use_prepared_state-fail.rs:6:38
+error: this hook takes 2 arguments but 1 argument was supplied
+ --> tests/hook_macro/use_prepared_state-fail.rs:6:5
   |
 6 |     use_prepared_state_with_closure!(123)?;
-  |                                      ^^^
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `use_prepared_state_with_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: You must specify a return type for this closure. This is used when the closure is omitted from the client side rendering bundle.
- --> tests/hook_macro/use_prepared_state-fail.rs:8:38
+error: expected closure
+ --> tests/hook_macro/use_prepared_state-fail.rs:8:55
   |
 8 |     use_prepared_state_with_closure!(|_| { todo!() }, 123)?;
-  |                                      ^^^^^^^^^^^^^^^
+  |                                                       ^^^
 
 error: this hook takes 2 arguments but 1 argument was supplied
   --> tests/hook_macro/use_prepared_state-fail.rs:10:5
@@ -26,17 +28,19 @@ error: this hook takes 2 arguments but 1 argument was supplied
    |
    = note: this error originates in the macro `use_prepared_state_with_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected closure
-  --> tests/hook_macro/use_prepared_state-fail.rs:19:41
+error: this hook takes 2 arguments but 1 argument was supplied
+  --> tests/hook_macro/use_prepared_state-fail.rs:19:5
    |
 19 |     use_prepared_state_without_closure!(123)?;
-   |                                         ^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `use_prepared_state_without_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: You must specify a return type for this closure. This is used when the closure is omitted from the client side rendering bundle.
-  --> tests/hook_macro/use_prepared_state-fail.rs:21:41
+error: expected closure
+  --> tests/hook_macro/use_prepared_state-fail.rs:21:58
    |
 21 |     use_prepared_state_without_closure!(|_| { todo!() }, 123)?;
-   |                                         ^^^^^^^^^^^^^^^
+   |                                                          ^^^
 
 error: this hook takes 2 arguments but 1 argument was supplied
   --> tests/hook_macro/use_prepared_state-fail.rs:23:5

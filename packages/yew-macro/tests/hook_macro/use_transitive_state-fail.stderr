@@ -1,14 +1,16 @@
-error: expected closure
- --> tests/hook_macro/use_transitive_state-fail.rs:6:40
+error: this hook takes 2 arguments but 1 argument was supplied
+ --> tests/hook_macro/use_transitive_state-fail.rs:6:5
   |
 6 |     use_transitive_state_with_closure!(123)?;
-  |                                        ^^^
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `use_transitive_state_with_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: You must specify a return type for this closure. This is used when the closure is omitted from the client side rendering bundle.
- --> tests/hook_macro/use_transitive_state-fail.rs:8:40
+error: expected closure
+ --> tests/hook_macro/use_transitive_state-fail.rs:8:57
   |
 8 |     use_transitive_state_with_closure!(|_| { todo!() }, 123)?;
-  |                                        ^^^^^^^^^^^^^^^
+  |                                                         ^^^
 
 error: this hook takes 2 arguments but 1 argument was supplied
   --> tests/hook_macro/use_transitive_state-fail.rs:10:5
@@ -18,17 +20,19 @@ error: this hook takes 2 arguments but 1 argument was supplied
    |
    = note: this error originates in the macro `use_transitive_state_with_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: expected closure
-  --> tests/hook_macro/use_transitive_state-fail.rs:17:43
+error: this hook takes 2 arguments but 1 argument was supplied
+  --> tests/hook_macro/use_transitive_state-fail.rs:17:5
    |
 17 |     use_transitive_state_without_closure!(123)?;
-   |                                           ^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `use_transitive_state_without_closure` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: You must specify a return type for this closure. This is used when the closure is omitted from the client side rendering bundle.
-  --> tests/hook_macro/use_transitive_state-fail.rs:19:43
+error: expected closure
+  --> tests/hook_macro/use_transitive_state-fail.rs:19:60
    |
 19 |     use_transitive_state_without_closure!(|_| { todo!() }, 123)?;
-   |                                           ^^^^^^^^^^^^^^^
+   |                                                            ^^^
 
 error: this hook takes 2 arguments but 1 argument was supplied
   --> tests/hook_macro/use_transitive_state-fail.rs:21:5
