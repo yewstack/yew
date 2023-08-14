@@ -13,8 +13,8 @@ use crate::suspense::SuspensionResult;
 
 #[doc(hidden)]
 pub fn use_prepared_state<T, D, F>(
-    f: F,
     deps: D,
+    f: F,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
@@ -41,7 +41,7 @@ where
 
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             match ctx.creation_mode {
-                RenderMode::Ssr => feat_ssr::use_prepared_state(self.f, self.deps).run(ctx),
+                RenderMode::Ssr => feat_ssr::use_prepared_state(self.deps, self.f).run(ctx),
                 _ => feat_hydration::use_prepared_state(self.deps).run(ctx),
             }
         }
@@ -52,8 +52,8 @@ where
 
 #[doc(hidden)]
 pub fn use_prepared_state_with_suspension<T, D, F, U>(
-    f: F,
     deps: D,
+    f: F,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,

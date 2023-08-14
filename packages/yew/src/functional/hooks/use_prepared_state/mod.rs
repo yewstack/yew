@@ -39,7 +39,7 @@ pub use feat_ssr::*;
 /// use yew::suspense::SuspensionResult;
 ///
 /// #[hook]
-/// pub fn use_prepared_state<T, D, F>(f: F, deps: D) -> SuspensionResult<Option<Rc<T>>>
+/// pub fn use_prepared_state<T, D, F>(deps: D, f: F) -> SuspensionResult<Option<Rc<T>>>
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,
@@ -63,8 +63,8 @@ pub use feat_ssr::*;
 ///
 /// #[hook]
 /// pub fn use_prepared_state<T, D, F, U>(
-///         f: F,
 ///         deps: D,
+///         f: F,
 ///     ) -> SuspensionResult<Option<Rc<T>>>
 ///     where
 ///         D: Serialize + DeserializeOwned + PartialEq + 'static,
