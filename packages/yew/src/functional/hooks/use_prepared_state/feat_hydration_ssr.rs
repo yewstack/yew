@@ -84,7 +84,7 @@ where
         fn run(self, ctx: &mut HookContext) -> Self::Output {
             match ctx.creation_mode {
                 RenderMode::Ssr => {
-                    feat_ssr::use_prepared_state_with_suspension(self.f, self.deps).run(ctx)
+                    feat_ssr::use_prepared_state_with_suspension(self.deps, self.f).run(ctx)
                 }
                 _ => feat_hydration::use_prepared_state(self.deps).run(ctx),
             }
