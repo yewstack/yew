@@ -89,11 +89,15 @@ pub fn create_log_line(
         }
         return Ok(None);
     }
+    let is_breaking_change = issue_labels
+        .iter()
+        .any(|label| label.to_lowercase().contains("breaking change"));
 
     let log_line = LogLine {
         message,
         user: author_name.to_string(),
         issue_id,
+        is_breaking_change,
     };
 
     println!("{log_line:?}");
