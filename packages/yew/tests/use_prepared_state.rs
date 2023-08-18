@@ -1,5 +1,5 @@
-// #![cfg(target_arch = "wasm32")]
-// #![cfg(feature = "hydration")]
+#![cfg(target_arch = "wasm32")]
+#![cfg(feature = "hydration")]
 #![cfg_attr(nightly_yew, feature(async_closure))]
 
 use std::time::Duration;
