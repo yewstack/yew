@@ -39,8 +39,8 @@ where
 
 #[doc(hidden)]
 pub fn use_transitive_state<T, D, F>(
-    f: F,
     deps: D,
+    f: F,
 ) -> impl Hook<Output = SuspensionResult<Option<Rc<T>>>>
 where
     D: Serialize + DeserializeOwned + PartialEq + 'static,
