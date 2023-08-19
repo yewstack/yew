@@ -452,25 +452,9 @@ mod feat_csr_ssr {
             }
         }
 
-        #[rustversion::before(1.63)]
         #[inline]
         pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
             self.state.try_borrow().ok().and_then(|state_ref| {
-                state_ref.as_ref()?;
-                Some(Ref::map(state_ref, |state| {
-                    state
-                        .as_ref()
-                        .and_then(|m| m.downcast_comp_ref::<COMP>())
-                        .unwrap()
-                }))
-            })
-        }
-
-        #[rustversion::since(1.63)]
-        #[inline]
-        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
-            self.state.try_borrow().ok().and_then(|state_ref| {
-                // Ref::filter_map is only available since 1.63
                 Ref::filter_map(state_ref, |state| {
                     state.as_ref().and_then(|m| m.downcast_comp_ref::<COMP>())
                 })
