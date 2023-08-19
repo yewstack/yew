@@ -1,13 +1,12 @@
 use core::fmt;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicUsize, Ordering};
 
-use gloo_worker::oneshot::OneshotSpawner;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
-use super::{Oneshot, OneshotBridge};
+use super::{Oneshot, OneshotBridge, OneshotSpawner};
+use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
 use crate::{Bincode, Codec, Reach};
 
@@ -15,7 +14,7 @@ pub(crate) struct OneshotProviderState<T>
 where
     T: Oneshot + 'static,
 {
-    ctr: usize,
+    id: usize,
     spawn_bridge_fn: Rc<dyn Fn() -> OneshotBridge<T>>,
     reach: Reach,
     held_bridge: Rc<RefCell<Option<OneshotBridge<T>>>>,
@@ -59,13 +58,13 @@ where
     }
 }
 
-impl<W> Clone for OneshotProviderState<W>
+impl<T> Clone for OneshotProviderState<T>
 where
-    W: Oneshot,
+    T: Oneshot,
 {
     fn clone(&self) -> Self {
         Self {
-            ctr: self.ctr,
+            id: self.id,
             spawn_bridge_fn: self.spawn_bridge_fn.clone(),
             reach: self.reach,
             held_bridge: self.held_bridge.clone(),
@@ -73,16 +72,14 @@ where
     }
 }
 
-impl<W> PartialEq for OneshotProviderState<W>
+impl<T> PartialEq for OneshotProviderState<T>
 where
-    W: Oneshot,
+    T: Oneshot,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.ctr == rhs.ctr
+        self.id == rhs.id
     }
 }
-
-static CTR: AtomicUsize = AtomicUsize::new(0);
 
 /// A Oneshot Agent Provider.
 ///
@@ -95,12 +92,6 @@ where
     T::Output: Serialize + for<'de> Deserialize<'de> + 'static,
     CODEC: Codec + 'static,
 {
-    // Creates a spawning function so CODEC is can be erased from contexts.
-    let spawn_bridge_fn: Rc<dyn Fn() -> OneshotBridge<T>> = {
-        let path = props.path.clone();
-        Rc::new(move || OneshotSpawner::<T>::new().encoding::<CODEC>().spawn(&path))
-    };
-
     let WorkerProviderProps {
         children,
         path,
@@ -108,12 +99,16 @@ where
         reach,
     } = props.clone();
 
+    // Creates a spawning function so CODEC is can be erased from contexts.
+    let spawn_bridge_fn: Rc<dyn Fn() -> OneshotBridge<T>> = {
+        let path = path.clone();
+        Rc::new(move || OneshotSpawner::<T>::new().encoding::<CODEC>().spawn(&path))
+    };
+
     let state = {
         use_memo((path, lazy, reach), move |(_path, lazy, reach)| {
-            let ctr = CTR.fetch_add(1, Ordering::SeqCst);
-
             let state = OneshotProviderState::<T> {
-                ctr,
+                id: get_next_id(),
                 spawn_bridge_fn,
                 reach: *reach,
                 held_bridge: Rc::default(),

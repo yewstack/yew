@@ -6,7 +6,7 @@
 //!
 //! #### Oneshot
 //!
-//! A kind of agent that for each input, a single output is expected.
+//! A kind of agent that for each input, a single output is returned.
 //!
 //! #### Reactor
 //!
@@ -73,21 +73,19 @@
 
 extern crate self as yew_agent;
 
-// pub mod reactor;
 pub mod oneshot;
+pub mod reactor;
 pub mod worker;
 
 #[doc(inline)]
 pub use gloo_worker::{Bincode, Codec, Registrable, Spawnable};
-/// A procedural macro to create oneshot agents.
-pub use yew_agent_macro::oneshot;
-/// A procedural macro to create reactor agents.
-pub use yew_agent_macro::reactor;
 
 mod reach;
 pub mod scope_ext;
 
 pub use reach::Reach;
+
+mod utils;
 
 #[doc(hidden)]
 pub mod __vendored {
@@ -98,12 +96,12 @@ pub mod prelude {
     //! Prelude module to be imported when working with `yew-agent`.
     //!
     //! This module re-exports the frequently used types from the crate.
-    pub use crate::oneshot::{use_bridge_oneshot, UseBridgeOneshotHandle};
+    pub use crate::oneshot::{oneshot, use_bridge_oneshot, UseBridgeOneshotHandle};
     pub use crate::reach::Reach;
-    // pub use crate::reactor::{
-    //     use_reactor_bridge, use_reactor_subscription, ReactorOutput, UseReactorBridgeHandle,
-    //     UseReactorSubscriptionHandle,
-    // };
+    pub use crate::reactor::{
+        use_reactor_bridge, use_reactor_subscription, ReactorEvent, UseReactorBridgeHandle,
+        UseReactorSubscriptionHandle,
+    };
     pub use crate::scope_ext::{AgentScopeExt, /* ReactorBridgeHandle, */ WorkerBridgeHandle};
     pub use crate::worker::{
         use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle,

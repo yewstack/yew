@@ -2,28 +2,61 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use futures::sink::SinkExt;
+use futures::stream::{SplitSink, StreamExt};
+use wasm_bindgen::UnwrapThrowExt;
+use yew::platform::pinned::RwLock;
+use yew::platform::spawn_local;
 use yew::prelude::*;
 
-use super::messages::{ReactorInput, ReactorOutput};
-use super::traits::{Reactor, ReactorWorker};
-use super::tx_rx::{ReactorReceivable, ReactorSendable};
-use crate::worker::{use_worker_bridge, UseWorkerBridgeHandle};
+use super::provider::ReactorProviderState;
+use super::{Reactor, ReactorBridge, ReactorScoped};
+use crate::utils::BridgeCounter;
+
+type ReactorTx<R> =
+    Rc<RwLock<SplitSink<ReactorBridge<R>, <<R as Reactor>::Scope as ReactorScoped>::Input>>>;
+
+/// A type that represents events from a reactor.
+pub enum ReactorEvent<R>
+where
+    R: Reactor,
+{
+    /// The reactor agent has sent an output.
+    Output(<R::Scope as ReactorScoped>::Output),
+    /// The reactor agent has exited.
+    Finished,
+}
+
+impl<R> fmt::Debug for ReactorEvent<R>
+where
+    R: Reactor,
+    <R::Scope as ReactorScoped>::Output: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Output(m) => f.debug_tuple("ReactorEvent::Output").field(&m).finish(),
+            Self::Finished => f.debug_tuple("ReactorEvent::Finished").finish(),
+        }
+    }
+}
 
 /// Handle for the [use_reactor_bridge] hook.
 pub struct UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
 {
-    inner: UseWorkerBridgeHandle<ReactorWorker<R>>,
+    tx: ReactorTx<R>,
+    ctr: UseReducerDispatcher<BridgeCounter>,
 }
 
 impl<R> fmt::Debug for UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
+    <R::Scope as ReactorScoped>::Input: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseReactorBridgeHandle<_>")
-            .field("inner", &self.inner)
+            .field("inner", &self.tx)
             .finish()
     }
 }
@@ -34,7 +67,8 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            inner: self.inner.clone(),
+            tx: self.tx.clone(),
+            ctr: self.ctr.clone(),
         }
     }
 }
@@ -44,15 +78,19 @@ where
     R: 'static + Reactor,
 {
     /// Send an input to a reactor agent.
-    pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
-        self.inner.send(ReactorInput::Input(msg));
+    pub fn send(&self, msg: <R::Scope as ReactorScoped>::Input) {
+        let tx = self.tx.clone();
+        spawn_local(async move {
+            let mut tx = tx.write().await;
+            let _ = tx.send(msg).await;
+        });
     }
 
     /// Reset the bridge.
     ///
     /// Disconnect the old bridge and re-connects the agent with a new bridge.
     pub fn reset(&self) {
-        self.inner.reset();
+        self.ctr.dispatch(());
     }
 }
 
@@ -61,7 +99,7 @@ where
     R: 'static + Reactor,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.inner == rhs.inner
+        self.ctr == rhs.ctr
     }
 }
 
@@ -77,20 +115,61 @@ where
 pub fn use_reactor_bridge<R, F>(on_output: F) -> UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
-    F: Fn(ReactorOutput<<R::Sender as ReactorSendable>::Output>) + 'static,
+    F: Fn(ReactorEvent<R>) + 'static,
 {
-    let bridge = use_worker_bridge::<ReactorWorker<R>, _>(on_output);
+    let ctr = use_reducer(BridgeCounter::default);
 
+    let worker_state = use_context::<ReactorProviderState<R>>()
+        .expect_throw("cannot find a provider for current agent.");
+
+    let on_output = {
+        let current_bridge_id = ctr.inner;
+        Rc::new(move |event: ReactorEvent<R>, event_bridge_id: usize| {
+            // If a new bridge is created, then we discard messages from the previous bridge.
+            if current_bridge_id != event_bridge_id {
+                return;
+            }
+
+            on_output(event);
+        })
+    };
+
+    let on_output_ref = {
+        let on_output_clone = on_output.clone();
+        use_mut_ref(move || on_output_clone)
+    };
+
+    // Refresh the callback on every render.
     {
-        let bridge = bridge.clone();
-
-        use_effect(move || {
-            bridge.send(ReactorInput::Start);
-            || {}
-        });
+        let mut on_output_ref = on_output_ref.borrow_mut();
+        *on_output_ref = on_output;
     }
 
-    UseReactorBridgeHandle { inner: bridge }
+    let tx = {
+        use_memo((worker_state, ctr.inner), |(state, ctr)| {
+            let bridge = state.create_bridge();
+            let ctr = *ctr;
+
+            let (tx, mut rx) = bridge.split();
+
+            spawn_local(async move {
+                while let Some(m) = rx.next().await {
+                    let on_output = on_output_ref.borrow().clone();
+                    on_output(ReactorEvent::<R>::Output(m), ctr);
+                }
+
+                let on_output = on_output_ref.borrow().clone();
+                on_output(ReactorEvent::<R>::Finished, ctr);
+            });
+
+            RwLock::new(tx)
+        })
+    };
+
+    UseReactorBridgeHandle {
+        tx: tx.clone(),
+        ctr: ctr.dispatcher(),
+    }
 }
 
 /// State handle for the [`use_reactor_subscription`] hook.
@@ -99,7 +178,7 @@ where
     R: 'static + Reactor,
 {
     bridge: UseReactorBridgeHandle<R>,
-    outputs: Vec<Rc<<R::Sender as ReactorSendable>::Output>>,
+    outputs: Vec<Rc<<R::Scope as ReactorScoped>::Output>>,
     finished: bool,
     ctr: usize,
 }
@@ -109,7 +188,7 @@ where
     R: 'static + Reactor,
 {
     /// Send an input to a reactor agent.
-    pub fn send(&self, msg: <R::Receiver as ReactorReceivable>::Input) {
+    pub fn send(&self, msg: <R::Scope as ReactorScoped>::Input) {
         self.bridge.send(msg);
     }
 
@@ -144,7 +223,8 @@ where
 impl<R> fmt::Debug for UseReactorSubscriptionHandle<R>
 where
     R: 'static + Reactor,
-    <R::Sender as ReactorSendable>::Output: fmt::Debug,
+    <R::Scope as ReactorScoped>::Input: fmt::Debug,
+    <R::Scope as ReactorScoped>::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseReactorSubscriptionHandle<_>")
@@ -158,7 +238,7 @@ impl<R> Deref for UseReactorSubscriptionHandle<R>
 where
     R: 'static + Reactor,
 {
-    type Target = [Rc<<R::Sender as ReactorSendable>::Output>];
+    type Target = [Rc<<R::Scope as ReactorScoped>::Output>];
 
     fn deref(&self) -> &Self::Target {
         &self.outputs
@@ -186,7 +266,7 @@ where
     where
         R: Reactor + 'static,
     {
-        Output(ReactorOutput<<R::Sender as ReactorSendable>::Output>),
+        Output(ReactorEvent<R>),
         Reset,
     }
 
@@ -195,7 +275,7 @@ where
         R: Reactor + 'static,
     {
         ctr: usize,
-        inner: Vec<Rc<<R::Sender as ReactorSendable>::Output>>,
+        inner: Vec<Rc<<R::Scope as ReactorScoped>::Output>>,
         finished: bool,
     }
 
@@ -211,8 +291,8 @@ where
             let mut finished = self.finished;
 
             match action {
-                OutputsAction::Output(ReactorOutput::Output(m)) => outputs.push(m.into()),
-                OutputsAction::Output(ReactorOutput::Finish) => {
+                OutputsAction::Output(ReactorEvent::<R>::Output(m)) => outputs.push(m.into()),
+                OutputsAction::Output(ReactorEvent::<R>::Finished) => {
                     finished = true;
                 }
                 OutputsAction::Reset => {
@@ -256,14 +336,11 @@ where
 
     {
         let outputs = outputs.clone();
-        use_effect_with_deps(
-            move |_| {
-                outputs.dispatch(OutputsAction::Reset);
+        use_effect_with(bridge.clone(), move |_| {
+            outputs.dispatch(OutputsAction::Reset);
 
-                || {}
-            },
-            bridge.clone(),
-        );
+            || {}
+        });
     }
 
     UseReactorSubscriptionHandle {

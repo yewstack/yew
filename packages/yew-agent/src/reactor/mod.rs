@@ -36,18 +36,16 @@
 //! ```
 
 mod hooks;
-mod messages;
 mod provider;
-mod traits;
-mod tx_rx;
 
+#[doc(inline)]
+pub use gloo_worker::reactor::{
+    Reactor, ReactorBridge, ReactorRegistrar, ReactorScope, ReactorScoped, ReactorSpawner,
+};
 pub use hooks::{
-    use_reactor_bridge, use_reactor_subscription, UseReactorBridgeHandle,
+    use_reactor_bridge, use_reactor_subscription, ReactorEvent, UseReactorBridgeHandle,
     UseReactorSubscriptionHandle,
 };
-pub(crate) use messages::ReactorInput;
-pub use messages::ReactorOutput;
 pub use provider::ReactorProvider;
-pub(crate) use traits::ReactorWorker;
-pub use traits::{Reactor, ReactorRegistrar};
-pub use tx_rx::{ReactorReceivable, ReactorReceiver, ReactorSendable, ReactorSender};
+/// A procedural macro to create reactor agents.
+pub use yew_agent_macro::reactor;

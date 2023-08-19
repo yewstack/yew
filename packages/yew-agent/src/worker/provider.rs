@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gloo_worker::Spawnable;
 use serde::{Deserialize, Serialize};
@@ -9,6 +8,7 @@ use yew::prelude::*;
 
 use super::{Worker, WorkerBridge};
 use crate::reach::Reach;
+use crate::utils::get_next_id;
 use crate::{Bincode, Codec};
 
 /// Properties for [WorkerProvider].
@@ -42,7 +42,7 @@ pub(crate) struct WorkerProviderState<W>
 where
     W: Worker,
 {
-    ctr: usize,
+    id: usize,
     spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>>,
     reach: Reach,
     held_bridge: Rc<RefCell<Option<WorkerBridge<W>>>>,
@@ -93,7 +93,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            ctr: self.ctr,
+            id: self.id,
             spawn_bridge_fn: self.spawn_bridge_fn.clone(),
             reach: self.reach,
             held_bridge: self.held_bridge.clone(),
@@ -106,11 +106,9 @@ where
     W: Worker,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.ctr == rhs.ctr
+        self.id == rhs.id
     }
 }
-
-static CTR: AtomicUsize = AtomicUsize::new(0);
 
 /// A Worker Agent Provider.
 ///
@@ -123,12 +121,6 @@ where
     W::Output: Serialize + for<'de> Deserialize<'de> + 'static,
     CODEC: Codec + 'static,
 {
-    // Creates a spawning function so CODEC is can be erased from contexts.
-    let spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>> = {
-        let path = props.path.clone();
-        Rc::new(move || W::spawner().encoding::<CODEC>().spawn(&path))
-    };
-
     let WorkerProviderProps {
         children,
         path,
@@ -136,12 +128,16 @@ where
         reach,
     } = props.clone();
 
+    // Creates a spawning function so CODEC is can be erased from contexts.
+    let spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>> = {
+        let path = path.clone();
+        Rc::new(move || W::spawner().encoding::<CODEC>().spawn(&path))
+    };
+
     let state = {
         use_memo((path, lazy, reach), move |(_path, lazy, reach)| {
-            let ctr = CTR.fetch_add(1, Ordering::SeqCst);
-
             let state = WorkerProviderState::<W> {
-                ctr,
+                id: get_next_id(),
                 spawn_bridge_fn,
                 reach: *reach,
                 held_bridge: Rc::default(),

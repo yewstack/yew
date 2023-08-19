@@ -8,3 +8,5 @@ pub use gloo_worker::oneshot::{Oneshot, OneshotBridge, OneshotRegistrar, Oneshot
 pub use hooks::{use_bridge_oneshot, UseBridgeOneshotHandle};
 pub use provider::OneshotProvider;
 pub(crate) use provider::OneshotProviderState;
+/// A procedural macro to create oneshot agents.
+pub use yew_agent_macro::oneshot;
