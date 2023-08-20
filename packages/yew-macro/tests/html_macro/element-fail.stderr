@@ -435,10 +435,10 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
    |                       required by a bound introduced by this call
    |
    = help: the following implementations were found:
-             <Option<&'a str> as IntoPropValue<Option<String>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <Option<Cow<'a, str>> as IntoPropValue<Option<Rc<str>>>>
-             <Option<Cow<'a, str>> as IntoPropValue<Option<String>>>
+             <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
            and $N others
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
@@ -451,10 +451,10 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
    |                      required by a bound introduced by this call
    |
    = help: the following implementations were found:
-             <Option<&'a str> as IntoPropValue<Option<String>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <Option<Cow<'a, str>> as IntoPropValue<Option<Rc<str>>>>
-             <Option<Cow<'a, str>> as IntoPropValue<Option<String>>>
+             <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
            and $N others
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
@@ -549,10 +549,10 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    |                         required by a bound introduced by this call
    |
    = help: the following implementations were found:
-             <Option<&'a str> as IntoPropValue<Option<String>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <Option<Cow<'a, str>> as IntoPropValue<Option<Rc<str>>>>
-             <Option<Cow<'a, str>> as IntoPropValue<Option<String>>>
+             <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
            and $N others
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
