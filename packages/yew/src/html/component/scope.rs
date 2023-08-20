@@ -294,13 +294,14 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
+    use crate::feat_ssr::SpecialVTagKind;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
     use crate::platform::fmt::BufWriter;
     use crate::platform::pinned::oneshot;
+    use crate::scheduler;
     use crate::virtual_dom::Collectable;
-    use crate::{scheduler, SpecialVTagKind};
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(

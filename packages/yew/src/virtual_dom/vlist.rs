@@ -182,9 +182,9 @@ mod feat_ssr {
     use futures::{join, pin_mut, poll, FutureExt};
 
     use super::*;
+    use crate::feat_ssr::SpecialVTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::{self, BufWriter};
-    use crate::SpecialVTagKind;
 
     impl VList {
         pub(crate) async fn render_into_stream(

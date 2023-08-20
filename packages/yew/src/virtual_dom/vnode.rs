@@ -194,9 +194,9 @@ mod feat_ssr {
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
+    use crate::feat_ssr::SpecialVTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
-    use crate::SpecialVTagKind;
 
     impl VNode {
         pub(crate) fn render_into_stream<'a>(

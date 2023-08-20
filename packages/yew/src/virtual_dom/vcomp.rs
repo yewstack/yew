@@ -20,7 +20,7 @@ use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 #[cfg(feature = "ssr")]
-use crate::{platform::fmt::BufWriter, SpecialVTagKind};
+use crate::{feat_ssr::SpecialVTagKind, platform::fmt::BufWriter};
 
 /// A virtual component.
 pub struct VComp {
@@ -256,7 +256,6 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
-    use crate::SpecialVTagKind;
 
     impl VComp {
         #[inline]

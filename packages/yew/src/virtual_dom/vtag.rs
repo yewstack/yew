@@ -451,10 +451,10 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
+    use crate::feat_ssr::SpecialVTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
-    use crate::SpecialVTagKind;
 
     // Elements that cannot have any child elements.
     static VOID_ELEMENTS: &[&str; 14] = &[
