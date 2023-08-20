@@ -3,16 +3,16 @@ use yew::prelude::*;
 use super::provider::OneshotProviderState;
 use super::Oneshot;
 
-/// Handle for [use_bridge_oneshot]
+/// Handle for [use_oneshot_bridge]
 #[derive(Debug)]
-pub struct UseBridgeOneshotHandle<T>
+pub struct UseOneshotBridgeHandle<T>
 where
     T: Oneshot + 'static,
 {
     state: OneshotProviderState<T>,
 }
 
-impl<T> UseBridgeOneshotHandle<T>
+impl<T> UseOneshotBridgeHandle<T>
 where
     T: Oneshot + 'static,
 {
@@ -22,7 +22,7 @@ where
     }
 }
 
-impl<T> Clone for UseBridgeOneshotHandle<T>
+impl<T> Clone for UseOneshotBridgeHandle<T>
 where
     T: Oneshot + 'static,
 {
@@ -33,7 +33,7 @@ where
     }
 }
 
-impl<T> PartialEq for UseBridgeOneshotHandle<T>
+impl<T> PartialEq for UseOneshotBridgeHandle<T>
 where
     T: Oneshot,
 {
@@ -44,11 +44,11 @@ where
 
 /// A hook to bridge to an oneshot agent.
 #[hook]
-pub fn use_bridge_oneshot<T>() -> UseBridgeOneshotHandle<T>
+pub fn use_oneshot_bridge<T>() -> UseOneshotBridgeHandle<T>
 where
     T: Oneshot + 'static,
 {
     let state = use_context::<OneshotProviderState<T>>().expect("failed to find worker context");
 
-    UseBridgeOneshotHandle { state }
+    UseOneshotBridgeHandle { state }
 }

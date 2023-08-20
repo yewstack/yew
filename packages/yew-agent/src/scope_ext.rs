@@ -1,14 +1,18 @@
 //! This module contains extensions to the component scope for agent access.
 
+use std::fmt;
+use std::rc::Rc;
+
+use futures::stream::SplitSink;
+use futures::{SinkExt, StreamExt};
 use wasm_bindgen::UnwrapThrowExt;
 use yew::html::Scope;
+use yew::platform::pinned::RwLock;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 
-// use crate::reactor::{
-//     Reactor, ReactorInput, ReactorOutput, ReactorReceivable, ReactorSendable, ReactorWorker,
-// };
 use crate::oneshot::{Oneshot, OneshotProviderState};
+use crate::reactor::{Reactor, ReactorBridge, ReactorEvent, ReactorProviderState, ReactorScoped};
 use crate::worker::{Worker, WorkerBridge, WorkerProviderState};
 
 /// A Worker Bridge Handle.
@@ -30,24 +34,40 @@ where
     }
 }
 
-// /// A Reactor Bridge Handle.
-// #[derive(Debug)]
-// pub struct ReactorBridgeHandle<R>
-// where
-//     R: Reactor + 'static,
-// {
-//     inner: WorkerBridge<ReactorWorker<R>>,
-// }
+type ReactorTx<R> =
+    Rc<RwLock<SplitSink<ReactorBridge<R>, <<R as Reactor>::Scope as ReactorScoped>::Input>>>;
 
-// impl<R> ReactorBridgeHandle<R>
-// where
-//     R: Reactor + 'static,
-// {
-//     /// Sends a message to the reactor agent.
-//     pub fn send(&self, input: <R::Receiver as ReactorReceivable>::Input) {
-//         self.inner.send(ReactorInput::Input(input))
-//     }
-// }
+/// A Reactor Bridge Handle.
+pub struct ReactorBridgeHandle<R>
+where
+    R: Reactor + 'static,
+{
+    tx: ReactorTx<R>,
+}
+
+impl<R> fmt::Debug for ReactorBridgeHandle<R>
+where
+    R: Reactor + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReactorBridgeHandle<_>")
+            .finish_non_exhaustive()
+    }
+}
+
+impl<R> ReactorBridgeHandle<R>
+where
+    R: Reactor + 'static,
+{
+    /// Sends a message to the reactor agent.
+    pub fn send(&self, input: <R::Scope as ReactorScoped>::Input) {
+        let tx = self.tx.clone();
+        spawn_local(async move {
+            let mut tx = tx.write().await;
+            let _ = tx.send(input).await;
+        });
+    }
+}
 
 /// An extension to [`Scope`](yew::html::Scope) that provides communication mechanism to agents.
 ///
@@ -58,14 +78,11 @@ pub trait AgentScopeExt {
     where
         W: Worker + 'static;
 
-    // /// Bridges to a Reactor Agent.
-    // fn bridge_reactor<R>(
-    //     &self,
-    //     callback: Callback<ReactorOutput<<R::Sender as ReactorSendable>::Output>>,
-    // ) -> ReactorBridgeHandle<R>
-    // where
-    //     R: Reactor + 'static,
-    //     <R::Sender as ReactorSendable>::Output: 'static;
+    /// Bridges to a Reactor Agent.
+    fn bridge_reactor<R>(&self, callback: Callback<ReactorEvent<R>>) -> ReactorBridgeHandle<R>
+    where
+        R: Reactor + 'static,
+        <R::Scope as ReactorScoped>::Output: 'static;
 
     /// Runs a task in a Task Agent.
     fn run_task<T>(&self, input: T::Input, callback: Callback<T::Output>)
@@ -90,18 +107,30 @@ where
         WorkerBridgeHandle { inner }
     }
 
-    // fn bridge_reactor<R>(
-    //     &self,
-    //     callback: Callback<ReactorOutput<<R::Sender as ReactorSendable>::Output>>,
-    // ) -> ReactorBridgeHandle<R>
-    // where
-    //     R: Reactor,
-    //     <R::Sender as ReactorSendable>::Output: 'static,
-    // {
-    //     let inner = self.bridge_worker::<ReactorWorker<R>>(callback).inner;
+    fn bridge_reactor<R>(&self, callback: Callback<ReactorEvent<R>>) -> ReactorBridgeHandle<R>
+    where
+        R: Reactor + 'static,
+        <R::Scope as ReactorScoped>::Output: 'static,
+    {
+        let (tx, mut rx) = self
+            .context::<ReactorProviderState<R>>((|_| {}).into())
+            .expect_throw("failed to bridge to agent.")
+            .0
+            .create_bridge()
+            .split();
 
-    //     ReactorBridgeHandle { inner }
-    // }
+        spawn_local(async move {
+            while let Some(m) = rx.next().await {
+                callback.emit(ReactorEvent::<R>::Output(m));
+            }
+
+            callback.emit(ReactorEvent::<R>::Finished);
+        });
+
+        let tx = Rc::new(RwLock::new(tx));
+
+        ReactorBridgeHandle { tx }
+    }
 
     fn run_task<T>(&self, input: T::Input, callback: Callback<T::Output>)
     where

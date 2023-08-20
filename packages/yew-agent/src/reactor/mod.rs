@@ -17,8 +17,7 @@
 //! # #[derive(Serialize, Deserialize)]
 //! # pub struct ReactorOutput {}
 //! #
-//! use yew_agent::reactor;
-//! use yew_agent::reactor::{ReactorReceiver, ReactorSender};
+//! use yew_agent::reactor::{reactor, ReactorReceiver, ReactorSender};
 //! #[reactor(MyReactor)]
 //! pub async fn my_reactor(rx: ReactorReceiver<ReactorInput>, tx: ReactorSender<ReactorOutput>) {
 //!     while let Some(input) = rx.next().await {
@@ -47,5 +46,6 @@ pub use hooks::{
     UseReactorSubscriptionHandle,
 };
 pub use provider::ReactorProvider;
+pub(crate) use provider::ReactorProviderState;
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;
