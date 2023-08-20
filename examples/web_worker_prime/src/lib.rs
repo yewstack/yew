@@ -1,11 +1,11 @@
 pub mod agent;
-use agent::{ControlSignal, Prime};
+use agent::{ControlSignal, PrimeReactor};
 use yew::prelude::*;
 use yew_agent::reactor::{use_reactor_subscription, ReactorProvider};
 
 #[function_component]
 fn Main() -> Html {
-    let prime_sub = use_reactor_subscription::<Prime>();
+    let prime_sub = use_reactor_subscription::<PrimeReactor>();
     let started = use_state_eq(|| false);
     let skip_len = use_state_eq(|| 0);
 
@@ -57,8 +57,8 @@ fn Main() -> Html {
 #[function_component]
 pub fn App() -> Html {
     html! {
-        <ReactorProvider<Prime> path="/worker.js">
+        <ReactorProvider<PrimeReactor> path="/worker.js">
             <Main />
-        </ReactorProvider<Prime>>
+        </ReactorProvider<PrimeReactor>>
     }
 }

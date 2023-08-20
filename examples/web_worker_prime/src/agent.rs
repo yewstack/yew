@@ -13,7 +13,7 @@ pub enum ControlSignal {
 }
 
 #[reactor]
-pub async fn Prime(mut scope: ReactorScope<ControlSignal, u64>) {
+pub async fn PrimeReactor(mut scope: ReactorScope<ControlSignal, u64>) {
     while let Some(m) = scope.next().await {
         if m == ControlSignal::Start {
             'inner: for i in 1.. {
