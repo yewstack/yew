@@ -654,4 +654,26 @@ mod ssr_tests {
 
         assert_eq!(s, r#"<script>foo.bar = x < y;</script>"#);
     }
+
+    #[test]
+    async fn test_multiple_vtext_in_style_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            let one = "html { background: black } ";
+            let two = "body > a { color: white } ";
+            html!{
+                <style>
+                    {one}
+                    {two}
+                </style>
+            }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<style>html { background: black } body > a { color: white } </style>"#);
+    }
 }
