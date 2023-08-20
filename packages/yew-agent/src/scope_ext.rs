@@ -84,8 +84,8 @@ pub trait AgentScopeExt {
         R: Reactor + 'static,
         <R::Scope as ReactorScoped>::Output: 'static;
 
-    /// Runs a task in a Task Agent.
-    fn run_task<T>(&self, input: T::Input, callback: Callback<T::Output>)
+    /// Runs an oneshot in an Oneshot Agent.
+    fn run_oneshot<T>(&self, input: T::Input, callback: Callback<T::Output>)
     where
         T: Oneshot + 'static;
 }
@@ -132,7 +132,7 @@ where
         ReactorBridgeHandle { tx }
     }
 
-    fn run_task<T>(&self, input: T::Input, callback: Callback<T::Output>)
+    fn run_oneshot<T>(&self, input: T::Input, callback: Callback<T::Output>)
     where
         T: Oneshot + 'static,
     {

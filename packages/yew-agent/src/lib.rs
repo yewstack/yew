@@ -56,11 +56,12 @@
 //! Similar to bridges, a subscription produces a handle to send inputs to agents. However, instead
 //! of notifying the receiver with a callback, it collect all outputs into a slice.
 //!
-//! #### Task
+//! #### Oneshot
 //!
-//! See: [`use_task`](task::use_task)
+//! See: [`use_oneshot_bridge`](oneshot::use_oneshot_bridge)
 //!
-//! Unlike other agents, tasks provides a `use_task` hook to execute tasks on demand.
+//! Unlike other agents, oneshot bridges provide a `use_oneshot_bridge` hook to execute oneshot
+//! agents on demand.
 
 #![deny(
     clippy::all,
@@ -99,13 +100,13 @@ pub mod prelude {
     pub use crate::oneshot::{oneshot, use_oneshot_bridge, UseOneshotBridgeHandle};
     pub use crate::reach::Reach;
     pub use crate::reactor::{
-        reactor, use_reactor_bridge, use_reactor_subscription, ReactorEvent,
+        reactor, use_reactor_bridge, use_reactor_subscription, ReactorEvent, ReactorScope,
         UseReactorBridgeHandle, UseReactorSubscriptionHandle,
     };
     pub use crate::scope_ext::{AgentScopeExt, ReactorBridgeHandle, WorkerBridgeHandle};
     pub use crate::worker::{
         use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle,
-        UseWorkerSubscriptionHandle,
+        UseWorkerSubscriptionHandle, WorkerScope,
     };
     pub use crate::{Registrable, Spawnable};
 }
