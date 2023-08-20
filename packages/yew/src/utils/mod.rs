@@ -19,34 +19,25 @@ pub struct NodeSeq<IN, OUT>(Vec<OUT>, PhantomData<IN>);
 
 impl<IN: Into<OUT>, OUT> From<IN> for NodeSeq<IN, OUT> {
     fn from(val: IN) -> Self {
-        Self(vec![val.into()], PhantomData::default())
+        Self(vec![val.into()], PhantomData)
     }
 }
 
 impl<IN: Into<OUT>, OUT> From<Option<IN>> for NodeSeq<IN, OUT> {
     fn from(val: Option<IN>) -> Self {
-        Self(
-            val.map(|s| vec![s.into()]).unwrap_or_default(),
-            PhantomData::default(),
-        )
+        Self(val.map(|s| vec![s.into()]).unwrap_or_default(), PhantomData)
     }
 }
 
 impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
     fn from(val: Vec<IN>) -> Self {
-        Self(
-            val.into_iter().map(|x| x.into()).collect(),
-            PhantomData::default(),
-        )
+        Self(val.into_iter().map(|x| x.into()).collect(), PhantomData)
     }
 }
 
 impl<IN: Into<OUT> + Clone, OUT> From<&ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
     fn from(val: &ChildrenRenderer<IN>) -> Self {
-        Self(
-            val.iter().map(|x| x.into()).collect(),
-            PhantomData::default(),
-        )
+        Self(val.iter().map(|x| x.into()).collect(), PhantomData)
     }
 }
 

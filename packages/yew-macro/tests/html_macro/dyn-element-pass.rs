@@ -60,4 +60,10 @@ fn main() {
             }
         }/>
     };
+
+    let input_tag = "input";
+    let input_dom = ::yew::html! { <@{input_tag} /> };
+    assert!(
+        ::std::matches!(input_dom, ::yew::virtual_dom::VNode::VTag(ref vtag) if vtag.tag() == "input")
+    );
 }

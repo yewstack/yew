@@ -8,6 +8,7 @@ use crate::yew_package::YewPackage;
 pub fn write_changelog_file(
     fixes_logs: &[u8],
     features_logs: &[u8],
+    breaking_changes_logs: &[u8],
     package: YewPackage,
     next_version: Version,
 ) -> Result<Vec<u8>> {
@@ -25,7 +26,7 @@ pub fn write_changelog_file(
     )?;
     writeln!(version_only_changelog)?;
 
-    if fixes_logs.is_empty() && features_logs.is_empty() {
+    if fixes_logs.is_empty() && features_logs.is_empty() && breaking_changes_logs.is_empty() {
         writeln!(version_only_changelog, "No changes")?;
         writeln!(version_only_changelog)?;
     }
@@ -41,6 +42,13 @@ pub fn write_changelog_file(
         writeln!(version_only_changelog, "### ⚡️ Features")?;
         writeln!(version_only_changelog)?;
         version_only_changelog.extend(features_logs);
+        writeln!(version_only_changelog)?;
+    }
+
+    if !breaking_changes_logs.is_empty() {
+        writeln!(version_only_changelog, "### 🚨 Breaking changes")?;
+        writeln!(version_only_changelog)?;
+        version_only_changelog.extend(breaking_changes_logs);
         writeln!(version_only_changelog)?;
     }
 

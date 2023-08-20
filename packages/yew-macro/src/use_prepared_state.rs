@@ -12,13 +12,8 @@ pub struct PreparedState {
 
 impl Parse for PreparedState {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // Reads a closure.
-        let expr: Expr = input.parse()?;
-
-        let closure = match expr {
-            Expr::Closure(m) => m,
-            other => return Err(syn::Error::new_spanned(other, "expected closure")),
-        };
+        // Reads the deps.
+        let deps = input.parse()?;
 
         input.parse::<Token![,]>().map_err(|e| {
             syn::Error::new(
@@ -26,6 +21,14 @@ impl Parse for PreparedState {
                 "this hook takes 2 arguments but 1 argument was supplied",
             )
         })?;
+
+        // Reads a closure.
+        let expr: Expr = input.parse()?;
+
+        let closure = match expr {
+            Expr::Closure(m) => m,
+            other => return Err(syn::Error::new_spanned(other, "expected closure")),
+        };
 
         let return_type = match &closure.output {
             ReturnType::Default => {
@@ -37,9 +40,6 @@ impl Parse for PreparedState {
             }
             ReturnType::Type(_rarrow, ty) => *ty.to_owned(),
         };
-
-        // Reads the deps.
-        let deps = input.parse()?;
 
         if !input.is_empty() {
             let maybe_trailing_comma = input.lookahead1();
@@ -107,10 +107,10 @@ impl PreparedState {
 
         match &self.closure.asyncness {
             Some(_) => quote! {
-                ::yew::functional::use_prepared_state_with_suspension::<#rt, _, _, _>(#closure, #deps)
+                ::yew::functional::use_prepared_state_with_suspension::<#rt, _, _, _>(#deps, #closure)
             },
             None => quote! {
-                ::yew::functional::use_prepared_state::<#rt, _, _>(#closure, #deps)
+                ::yew::functional::use_prepared_state::<#rt, _, _>(#deps, #closure)
             },
         }
     }

@@ -428,8 +428,9 @@ impl ToTokens for HtmlElement {
                     #[allow(clippy::redundant_clone, unused_braces, clippy::let_and_return)]
                     let mut #vtag = match () {
                         _ if "input".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
-                            ::yew::virtual_dom::VTag::__new_textarea(
+                            ::yew::virtual_dom::VTag::__new_input(
                                 #value,
+                                #checked,
                                 #node_ref,
                                 #key,
                                 #attributes,
@@ -465,7 +466,8 @@ impl ToTokens for HtmlElement {
                     // For literal tags this is already done at compile-time.
                     //
                     // check void element
-                    if !::std::matches!(
+                    if ::yew::virtual_dom::VTag::children(&#vtag).is_some() &&
+                       !::std::matches!(
                         ::yew::virtual_dom::VTag::children(&#vtag),
                         ::std::option::Option::Some(::yew::virtual_dom::VNode::VList(ref #void_children)) if ::std::vec::Vec::is_empty(#void_children)
                     ) {
@@ -637,6 +639,9 @@ impl Parse for HtmlElementOpen {
                         "input" | "textarea" => {}
                         _ => {
                             if let Some(attr) = props.value.take() {
+                                props.attributes.push(attr);
+                            }
+                            if let Some(attr) = props.checked.take() {
                                 props.attributes.push(attr);
                             }
                         }

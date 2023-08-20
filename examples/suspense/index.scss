@@ -10,10 +10,10 @@ html, body {
 .layout {
   height: 100vh;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  justify-items: center;
   align-items: center;
+  grid-template-columns: 1fr 1fr;
 }
 
 .content {
@@ -68,4 +68,8 @@ button {
   text-align: center;
 
   color: rgb(100, 100, 100);
+}
+
+h2 {
+  text-align: center;
 }

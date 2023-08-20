@@ -72,7 +72,7 @@ where
     T: Future<Output = O> + 'static,
     O: 'static,
 {
-    use_future_with_deps(move |_| init_f(), ())
+    use_future_with((), move |_| init_f())
 }
 
 /// Use the result of an async computation with dependencies, suspending while waiting.
@@ -84,7 +84,7 @@ where
 ///
 /// [ready]: std::task::Poll::Ready
 #[hook]
-pub fn use_future_with_deps<F, D, T, O>(f: F, deps: D) -> SuspensionResult<UseFutureHandle<O>>
+pub fn use_future_with<F, D, T, O>(deps: D, f: F) -> SuspensionResult<UseFutureHandle<O>>
 where
     F: FnOnce(Rc<D>) -> T,
     T: Future<Output = O> + 'static,

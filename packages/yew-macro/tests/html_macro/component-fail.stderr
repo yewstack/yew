@@ -433,7 +433,7 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder`
   --> tests/html_macro/component-fail.rs:85:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `r#type` not found for this
+   |                 ---------- method `r#type` not found for this struct
 ...
 85 |     html! { <Child type=0 /> };
    |                    ^^^^ method not found in `ChildPropertiesBuilder`
@@ -450,7 +450,7 @@ error[E0599]: no method named `unknown` found for struct `ChildPropertiesBuilder
   --> tests/html_macro/component-fail.rs:88:20
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `unknown` not found for this
+   |                 ---------- method `unknown` not found for this struct
 ...
 88 |     html! { <Child unknown="unknown" /> };
    |                    ^^^^^^^ method not found in `ChildPropertiesBuilder`
@@ -463,6 +463,16 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
    |                          |
    |                          required by a bound introduced by this call
    |
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
+             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
+             <&'static str as IntoPropValue<Classes>>
+             <&'static str as IntoPropValue<Option<String>>>
+             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
+             <&'static str as IntoPropValue<String>>
+             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
+             <&T as IntoPropValue<Option<T>>>
+           and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -481,11 +491,15 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          |
    |                          required by a bound introduced by this call
    |
-   = help: the following implementations were found:
-             <f32 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <f64 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <i128 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <i16 as IntoPropValue<ChildrenRenderer<VNode>>>
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             f32
+             f64
+             i128
+             i16
+             i32
+             i64
+             i8
+             isize
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -505,11 +519,15 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          |
    |                          required by a bound introduced by this call
    |
-   = help: the following implementations were found:
-             <f32 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <f64 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <i128 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <i16 as IntoPropValue<ChildrenRenderer<VNode>>>
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             f32
+             f64
+             i128
+             i16
+             i32
+             i64
+             i8
+             isize
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -533,7 +551,7 @@ error[E0599]: no method named `r#ref` found for struct `ChildPropertiesBuilder` 
   --> tests/html_macro/component-fail.rs:96:26
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ---------- method `r#ref` not found for this
+   |                 ---------- method `r#ref` not found for this struct
 ...
 96 |     html! { <Child int=1 r#ref={()} /> };
    |                          ^^^^^ method not found in `ChildPropertiesBuilder`
@@ -546,11 +564,15 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                    |
    |                    required by a bound introduced by this call
    |
-   = help: the following implementations were found:
-             <u32 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <f32 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <f64 as IntoPropValue<ChildrenRenderer<VNode>>>
-             <i128 as IntoPropValue<ChildrenRenderer<VNode>>>
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             f32
+             f64
+             i128
+             i16
+             i32
+             i64
+             i8
+             isize
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::int`
   --> tests/html_macro/component-fail.rs:4:17
@@ -568,6 +590,16 @@ error[E0277]: the trait bound `AssertAllProps: HasProp<int, _>` is not satisfied
 99 |     html! { <Child string="abc" /> };
    |              ^^^^^ the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
    |
+   = help: the following other types implement trait `HasProp<P, How>`:
+             <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <CheckChildrenPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <CheckHtmlInPropsPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
+             <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
+           and $N others
 note: required because of the requirements on the impl of `HasAllProps<ChildProperties, (_,)>` for `CheckChildPropertiesAll<AssertAllProps>`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -579,7 +611,7 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
    |
    |             Token: AllPropsFor<B, How>,
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `children` on type `ChildProperties`
    --> tests/html_macro/component-fail.rs:103:14
@@ -594,7 +626,7 @@ error[E0599]: no method named `children` found for struct `ChildPropertiesBuilde
    --> tests/html_macro/component-fail.rs:103:14
     |
 4   | #[derive(Clone, Properties, PartialEq)]
-    |                 ---------- method `children` not found for this
+    |                 ---------- method `children` not found for this struct
 ...
 103 |     html! { <Child>{ "Not allowed" }</Child> };
     |              ^^^^^ method not found in `ChildPropertiesBuilder`
@@ -616,6 +648,16 @@ error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties
 115 |     html! { <ChildContainer /> };
     |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
     |
+    = help: the following other types implement trait `HasProp<P, How>`:
+              <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckChildrenPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckHtmlInPropsPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
+              <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
+            and $N others
 note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -627,7 +669,7 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
     |
     |             Token: AllPropsFor<B, How>,
     |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
-    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
    --> tests/html_macro/component-fail.rs:116:14
@@ -635,6 +677,16 @@ error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties
 116 |     html! { <ChildContainer></ChildContainer> };
     |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
     |
+    = help: the following other types implement trait `HasProp<P, How>`:
+              <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckChildrenPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <CheckHtmlInPropsPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
+              <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
+              <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
+            and $N others
 note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -646,18 +698,15 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
     |
     |             Token: AllPropsFor<B, How>,
     |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
-    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
-   --> tests/html_macro/component-fail.rs:117:31
+   --> tests/html_macro/component-fail.rs:117:14
     |
 117 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-    |              --------------   ^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
-    |              |
-    |              required by a bound introduced by this call
+    |              ^^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
     |
-    = help: the following implementations were found:
-              <yew::virtual_dom::VText as IntoPropValue<ChildrenRenderer<VNode>>>
+    = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `yew::virtual_dom::VText`
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -666,7 +715,7 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
 25  | pub struct ChildContainerProperties {
 26  |     pub children: ChildrenWithProps<Child>,
     |         -------- required by a bound in this
-    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:118:29
@@ -677,15 +726,12 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
     = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
 
 error[E0277]: the trait bound `VNode: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
-   --> tests/html_macro/component-fail.rs:119:30
+   --> tests/html_macro/component-fail.rs:119:14
     |
 119 |     html! { <ChildContainer><other /></ChildContainer> };
-    |              --------------  ^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
-    |              |
-    |              required by a bound introduced by this call
+    |              ^^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
     |
-    = help: the following implementations were found:
-              <VNode as IntoPropValue<ChildrenRenderer<VNode>>>
+    = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `VNode`
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -694,4 +740,4 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
 25  | pub struct ChildContainerProperties {
 26  |     pub children: ChildrenWithProps<Child>,
     |         -------- required by a bound in this
-    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)

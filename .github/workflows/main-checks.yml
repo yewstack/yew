@@ -48,7 +48,7 @@ jobs:
       - uses: browser-actions/setup-geckodriver@latest
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: nanasess/setup-chromedriver@v1
+      - uses: nanasess/setup-chromedriver@v2
 
       - name: Run doctest
         run: |
@@ -67,7 +67,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.60.0
+          - 1.64.0
           - stable
 
     steps:
@@ -95,7 +95,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: nanasess/setup-chromedriver@v1
+      - uses: nanasess/setup-chromedriver@v2
 
       - name: Run tests - yew
         run: |
@@ -116,7 +116,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.60.0
+          - 1.64.0
           - stable
           - nightly
 

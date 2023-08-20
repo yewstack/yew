@@ -140,12 +140,9 @@ async fn bench_concurrent_task() -> Duration {
 
     #[function_component]
     fn Comp() -> HtmlResult {
-        let _state = use_prepared_state!(
-            async move |_| -> () {
-                sleep(Duration::from_secs(1)).await;
-            },
-            ()
-        )?;
+        let _state = use_prepared_state!((), async move |_| -> () {
+            sleep(Duration::from_secs(1)).await;
+        })?;
 
         Ok(Html::default())
     }

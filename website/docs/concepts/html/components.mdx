@@ -63,7 +63,7 @@ use yew::prelude::*;
 #[derive(PartialEq, Properties)]
 struct Props {
     id: String,
-    children: Children,
+    children: Html,
 }
 
 #[function_component]
@@ -94,7 +94,7 @@ use yew::prelude::*;
 #[derive(PartialEq, Properties)]
 struct Props {
     id: String,
-    children: Children,
+    children: Html,
 }
 
 #[function_component]
@@ -108,7 +108,7 @@ fn Container(props: &Props) -> Html {
 
 let props = yew::props!(Props {
     id: "container-2",
-    children: Children::default(),
+    children: Html::default(),
 });
 
 html! {
@@ -116,53 +116,6 @@ html! {
         // props.children will be overwritten with this
         <span>{ "I am a child, as you can see" }</span>
     </Container>
-};
-```
-
-## Nested Children with Props
-
-Nested component properties can be accessed and mutated if the containing component types its children. In the following example, the `List` component can wrap `ListItem` components. For a real-world example of this pattern, check out the `yew-router` source code. For a more advanced example, check out the `nested-list` example in the main yew repository.
-
-```rust
-use std::rc::Rc;
-use yew::prelude::*;
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct ListItemProps {
-    value: String,
-}
-
-#[function_component]
-fn ListItem(props: &ListItemProps) -> Html {
-    let ListItemProps { value } = props.clone();
-    html! {
-        <span>
-            {value}
-        </span>
-    }
-}
-
-#[derive(PartialEq, Properties)]
-pub struct Props {
-    pub children: ChildrenWithProps<ListItem>,
-}
-
-#[function_component]
-fn List(props: &Props) -> Html {
-    let modified_children = props.children.iter().map(|mut item| {
-            let mut props = Rc::make_mut(&mut item.props);
-            props.value = format!("item-{}", props.value);
-            item
-    });
-    html! { for modified_children }
-}
-
-html! {
-    <List>
-        <ListItem value="a" />
-        <ListItem value="b" />
-        <ListItem value="c" />
-    </List>
 };
 ```
 

@@ -10,6 +10,7 @@ pub fn write_log_lines(log_lines: Vec<LogLine>) -> Result<Vec<u8>> {
         message,
         user,
         issue_id,
+        ..
     } in log_lines
     {
         writeln!(
