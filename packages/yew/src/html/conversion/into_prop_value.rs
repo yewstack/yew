@@ -155,9 +155,9 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
 }
 
 macro_rules! impl_into_prop {
-    ($(<$args:tt>)? |$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
+    (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
         // implement V -> T
-        impl $(<$args>)? IntoPropValue<$to_ty> for $from_ty {
+        impl IntoPropValue<$to_ty> for $from_ty {
             #[inline]
             fn into_prop_value(self) -> $to_ty {
                 let $value = self;
@@ -165,7 +165,7 @@ macro_rules! impl_into_prop {
             }
         }
         // implement V -> Option<T>
-        impl $(<$args>)? IntoPropValue<Option<$to_ty>> for $from_ty {
+        impl IntoPropValue<Option<$to_ty>> for $from_ty {
             #[inline]
             fn into_prop_value(self) -> Option<$to_ty> {
                 let $value = self;
@@ -173,7 +173,7 @@ macro_rules! impl_into_prop {
             }
         }
         // implement Option<V> -> Option<T>
-        impl $(<$args>)? IntoPropValue<Option<$to_ty>> for Option<$from_ty> {
+        impl IntoPropValue<Option<$to_ty>> for Option<$from_ty> {
             #[inline]
             fn into_prop_value(self) -> Option<$to_ty> {
                 self.map(IntoPropValue::into_prop_value)
@@ -183,13 +183,11 @@ macro_rules! impl_into_prop {
 }
 
 // implemented with literals in mind
-impl_into_prop!(<'a> |value: &'a str| -> String { value.to_owned() });
+impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 impl_into_prop!(|value: Cow<'static, str>| -> AttrValue { AttrValue::from(value) });
-impl_into_prop!(<'a> |value: Cow<'a, str>| -> String { Cow::into_owned(value) });
-impl_into_prop!(<'a> |value: Cow<'a, str>| -> Rc<str> { Rc::from(value) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
@@ -231,8 +229,6 @@ mod test {
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
         let _: Option<AttrValue> = Cow::Borrowed("foo").into_prop_value();
-        let _: String = Cow::Borrowed("foo").into_prop_value();
-        let _: Option<Rc<str>> = Some(Cow::Borrowed("foo")).into_prop_value();
     }
 
     #[test]
