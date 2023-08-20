@@ -76,7 +76,7 @@ pub fn reactor_impl(name: AgentName, mut agent_fn: AgentFn<ReactorFn>) -> syn::R
     let scope_ident = Ident::new("_scope", Span::mixed_site());
 
     let fn_call = quote! { #fn_name #fn_generics (#scope_ident).await };
-    let crate_name = quote! { ::yew_agent };
+    let crate_name = quote! { yew_agent };
 
     let quoted = quote! {
         #(#struct_attrs)*

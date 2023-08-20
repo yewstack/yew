@@ -17,16 +17,18 @@
 //! # #[derive(Serialize, Deserialize)]
 //! # pub struct ReactorOutput {}
 //! #
-//! use yew_agent::reactor::{reactor, ReactorReceiver, ReactorSender};
+//! use futures::sink::SinkExt;
+//! use futures::stream::StreamExt;
+//! use yew_agent::reactor::{reactor, ReactorScope};
 //! #[reactor(MyReactor)]
-//! pub async fn my_reactor(rx: ReactorReceiver<ReactorInput>, tx: ReactorSender<ReactorOutput>) {
-//!     while let Some(input) = rx.next().await {
+//! pub async fn my_reactor(mut scope: ReactorScope<ReactorInput, ReactorOutput>) {
+//!     while let Some(input) = scope.next().await {
 //!         // handles each input.
 //!         // ...
-//! #       let output = ReactorOutput;
+//! #       let output = ReactorOutput { /* ... */ };
 //!
 //!         // sends output
-//!         if tx.send(output).is_err() {
+//!         if scope.send(output).await.is_err() {
 //!             // sender closed, the bridge is disconnected
 //!             break;
 //!         }

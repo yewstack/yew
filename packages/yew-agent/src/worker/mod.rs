@@ -8,7 +8,7 @@
 //! # mod example {
 //! use serde::{Deserialize, Serialize};
 //! use yew::prelude::*;
-//! use yew_agent::{use_bridge, UseBridgeHandle};
+//! use yew_agent::worker::{use_worker_bridge, UseWorkerBridgeHandle};
 //!
 //! // This would usually live in the same file as your worker
 //! #[derive(Serialize, Deserialize)]
@@ -16,33 +16,30 @@
 //!     IncrementCounter,
 //! }
 //! # mod my_worker_mod {
-//! #   use yew_agent::{HandlerId, Public, WorkerLink};
+//! #   use yew_agent::worker::{HandlerId, WorkerScope};
 //! #   use super::WorkerResponseType;
-//! #   pub struct MyWorker {
-//! #       pub link: WorkerLink<Self>,
-//! #   }
-//!
-//! #   impl yew_agent::Worker for MyWorker {
+//! #   pub struct MyWorker {}
+//! #
+//! #   impl yew_agent::worker::Worker for MyWorker {
 //! #       type Input = ();
 //! #       type Output = WorkerResponseType;
-//! #       type Reach = Public<Self>;
 //! #       type Message = ();
 //! #
-//! #       fn create(link: WorkerLink<Self>) -> Self {
-//! #           MyWorker { link }
+//! #       fn create(scope: &WorkerScope<Self>) -> Self {
+//! #           MyWorker {}
 //! #       }
 //! #
-//! #       fn update(&mut self, _msg: Self::Message) {
+//! #       fn update(&mut self, scope: &WorkerScope<Self>, _msg: Self::Message) {
 //! #           // do nothing
 //! #       }
 //! #
-//! #       fn handle_input(&mut self, _msg: Self::Input, id: HandlerId) {
-//! #           self.link.respond(id, WorkerResponseType::IncrementCounter);
+//! #       fn received(&mut self, scope: &WorkerScope<Self>, _msg: Self::Input, id: HandlerId) {
+//! #           scope.respond(id, WorkerResponseType::IncrementCounter);
 //! #       }
 //! #   }
 //! # }
 //! use my_worker_mod::MyWorker; // note that <MyWorker as yew_agent::Worker>::Output == WorkerResponseType
-//! #[function_component(UseBridge)]
+//! #[function_component(UseWorkerBridge)]
 //! fn bridge() -> Html {
 //!     let counter = use_state(|| 0);
 //!
@@ -50,7 +47,7 @@
 //!     {
 //!         let counter = counter.clone();
 //!         // response will be of type MyWorker::Output, i.e. WorkerResponseType
-//!         let bridge: UseBridgeHandle<MyWorker> = use_bridge(move |response| match response {
+//!         let bridge: UseWorkerBridgeHandle<MyWorker> = use_worker_bridge(move |response| match response {
 //!             WorkerResponseType::IncrementCounter => {
 //!                 counter.set(*counter + 1);
 //!             }
@@ -69,9 +66,10 @@
 mod hooks;
 mod provider;
 
-pub(crate) use gloo_worker::WorkerBridge;
 #[doc(inline)]
-pub use gloo_worker::{HandlerId, Worker, WorkerDestroyHandle, WorkerRegistrar, WorkerScope};
+pub use gloo_worker::{
+    HandlerId, Worker, WorkerBridge, WorkerDestroyHandle, WorkerRegistrar, WorkerScope,
+};
 pub use hooks::{
     use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
 };
