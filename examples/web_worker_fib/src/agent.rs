@@ -4,6 +4,7 @@ use wasm_bindgen::JsValue;
 use yew_agent::prelude::*;
 use yew_agent::Codec;
 
+/// Example to use a custom codec.
 pub struct Postcard;
 
 impl Codec for Postcard {
