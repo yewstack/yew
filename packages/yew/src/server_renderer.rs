@@ -14,9 +14,10 @@ use crate::platform::{LocalHandle, Runtime};
 #[cfg(feature = "ssr")]
 #[derive(Default, Clone, Copy)]
 pub(crate) enum SpecialVTagKind {
-    Style, // <style> tag
+    Style,  // <style> tag
     Script, // <script> tag
-    #[default] Other
+    #[default]
+    Other,
 }
 
 #[cfg(feature = "ssr")]
@@ -27,7 +28,9 @@ impl<T: AsRef<str>> From<T> for SpecialVTagKind {
             Self::Style
         } else if value.eq_ignore_ascii_case("script") {
             Self::Script
-        } else {Self::Other}
+        } else {
+            Self::Other
+        }
     }
 }
 
@@ -121,7 +124,12 @@ where
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
-                .render_into_stream(&mut w, self.props.into(), self.hydratable, Default::default())
+                .render_into_stream(
+                    &mut w,
+                    self.props.into(),
+                    self.hydratable,
+                    Default::default(),
+                )
                 .instrument(render_span)
                 .await;
         })

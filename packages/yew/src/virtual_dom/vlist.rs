@@ -192,12 +192,13 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind
+            parent_vtag_kind: SpecialVTagKind,
         ) {
             match &self[..] {
                 [] => {}
                 [child] => {
-                    child.render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                    child
+                        .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
                         .await;
                 }
                 _ => {
@@ -206,7 +207,7 @@ mod feat_ssr {
                         w: &mut BufWriter,
                         parent_scope: &AnyScope,
                         hydratable: bool,
-                        parent_vtag_kind: SpecialVTagKind
+                        parent_vtag_kind: SpecialVTagKind,
                     ) where
                         I: Iterator<Item = &'a VNode>,
                     {
@@ -236,7 +237,7 @@ mod feat_ssr {
                                             &mut next_w,
                                             parent_scope,
                                             hydratable,
-                                            parent_vtag_kind
+                                            parent_vtag_kind,
                                         )
                                         .await;
                                     }

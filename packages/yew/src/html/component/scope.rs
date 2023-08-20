@@ -299,9 +299,8 @@ mod feat_ssr {
     };
     use crate::platform::fmt::BufWriter;
     use crate::platform::pinned::oneshot;
-    use crate::scheduler;
     use crate::virtual_dom::Collectable;
-    use crate::SpecialVTagKind;
+    use crate::{scheduler, SpecialVTagKind};
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
@@ -309,7 +308,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind
+            parent_vtag_kind: SpecialVTagKind,
         ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //

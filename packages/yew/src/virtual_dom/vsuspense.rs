@@ -27,10 +27,10 @@ impl VSuspense {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
-    use crate::SpecialVTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::Collectable;
+    use crate::SpecialVTagKind;
 
     impl VSuspense {
         pub(crate) async fn render_into_stream(
@@ -38,7 +38,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind
+            parent_vtag_kind: SpecialVTagKind,
         ) {
             let collectable = Collectable::Suspense;
 

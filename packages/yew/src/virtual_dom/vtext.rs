@@ -44,9 +44,9 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::SpecialVTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
+    use crate::SpecialVTagKind;
 
     impl VText {
         pub(crate) async fn render_into_stream(
@@ -54,15 +54,12 @@ mod feat_ssr {
             w: &mut BufWriter,
             _parent_scope: &AnyScope,
             _hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind
+            parent_vtag_kind: SpecialVTagKind,
         ) {
             _ = w.write_str(&match parent_vtag_kind {
-                SpecialVTagKind::Style =>
-                    html_escape::encode_style(&self.text),
-                SpecialVTagKind::Script =>
-                    html_escape::encode_script(&self.text),
-                SpecialVTagKind::Other =>
-                    html_escape::encode_text(&self.text)
+                SpecialVTagKind::Style => html_escape::encode_style(&self.text),
+                SpecialVTagKind::Script => html_escape::encode_script(&self.text),
+                SpecialVTagKind::Other => html_escape::encode_text(&self.text),
             })
         }
     }

@@ -77,7 +77,7 @@ pub(crate) trait Mountable {
         w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
-        parent_vtag_kind: SpecialVTagKind
+        parent_vtag_kind: SpecialVTagKind,
     ) -> LocalBoxFuture<'a, ()>;
 
     #[cfg(feature = "hydration")]
@@ -147,7 +147,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
-        parent_vtag_kind: SpecialVTagKind
+        parent_vtag_kind: SpecialVTagKind,
     ) -> LocalBoxFuture<'a, ()> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
 
@@ -265,7 +265,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind
+            parent_vtag_kind: SpecialVTagKind,
         ) {
             self.mountable
                 .as_ref()

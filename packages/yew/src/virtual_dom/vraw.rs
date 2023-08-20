@@ -26,7 +26,7 @@ mod feat_ssr {
             &self,
             w: &mut BufWriter,
             _parent_scope: &AnyScope,
-            hydratable: bool
+            hydratable: bool,
         ) {
             let collectable = Collectable::Raw;
 
