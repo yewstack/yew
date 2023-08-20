@@ -1,7 +1,8 @@
 use js_sys::Uint8Array;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
-use yew_agent::{oneshot, Codec};
+use yew_agent::prelude::*;
+use yew_agent::Codec;
 
 pub struct Postcard;
 

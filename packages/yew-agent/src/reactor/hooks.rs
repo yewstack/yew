@@ -122,21 +122,11 @@ where
     let worker_state = use_context::<ReactorProviderState<R>>()
         .expect_throw("cannot find a provider for current agent.");
 
-    let on_output = {
-        let current_bridge_id = ctr.inner;
-        Rc::new(move |event: ReactorEvent<R>, event_bridge_id: usize| {
-            // If a new bridge is created, then we discard messages from the previous bridge.
-            if current_bridge_id != event_bridge_id {
-                return;
-            }
-
-            on_output(event);
-        })
-    };
+    let on_output = Rc::new(on_output);
 
     let on_output_ref = {
-        let on_output_clone = on_output.clone();
-        use_mut_ref(move || on_output_clone)
+        let on_output = on_output.clone();
+        use_mut_ref(move || on_output)
     };
 
     // Refresh the callback on every render.
@@ -145,26 +135,23 @@ where
         *on_output_ref = on_output;
     }
 
-    let tx = {
-        use_memo((worker_state, ctr.inner), |(state, ctr)| {
-            let bridge = state.create_bridge();
-            let ctr = *ctr;
+    let tx = use_memo((worker_state, ctr.inner), |(state, _ctr)| {
+        let bridge = state.create_bridge();
 
-            let (tx, mut rx) = bridge.split();
+        let (tx, mut rx) = bridge.split();
 
-            spawn_local(async move {
-                while let Some(m) = rx.next().await {
-                    let on_output = on_output_ref.borrow().clone();
-                    on_output(ReactorEvent::<R>::Output(m), ctr);
-                }
-
+        spawn_local(async move {
+            while let Some(m) = rx.next().await {
                 let on_output = on_output_ref.borrow().clone();
-                on_output(ReactorEvent::<R>::Finished, ctr);
-            });
+                on_output(ReactorEvent::<R>::Output(m));
+            }
 
-            RwLock::new(tx)
-        })
-    };
+            let on_output = on_output_ref.borrow().clone();
+            on_output(ReactorEvent::<R>::Finished);
+        });
+
+        RwLock::new(tx)
+    });
 
     UseReactorBridgeHandle {
         tx: tx.clone(),
