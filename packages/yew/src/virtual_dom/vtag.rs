@@ -661,7 +661,7 @@ mod ssr_tests {
         fn Comp() -> Html {
             let one = "html { background: black } ";
             let two = "body > a { color: white } ";
-            html!{
+            html! {
                 <style>
                     {one}
                     {two}
@@ -674,6 +674,9 @@ mod ssr_tests {
             .render()
             .await;
 
-        assert_eq!(s, r#"<style>html { background: black } body > a { color: white } </style>"#);
+        assert_eq!(
+            s,
+            r#"<style>html { background: black } body > a { color: white } </style>"#
+        );
     }
 }
