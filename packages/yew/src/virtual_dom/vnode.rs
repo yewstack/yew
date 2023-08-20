@@ -196,6 +196,7 @@ mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
+    use crate::SpecialVTagKind;
 
     impl VNode {
         pub(crate) fn render_into_stream<'a>(
@@ -203,24 +204,28 @@ mod feat_ssr {
             w: &'a mut BufWriter,
             parent_scope: &'a AnyScope,
             hydratable: bool,
+            parent_vtag_kind: SpecialVTagKind
         ) -> LocalBoxFuture<'a, ()> {
             async fn render_into_stream_(
                 this: &VNode,
                 w: &mut BufWriter,
                 parent_scope: &AnyScope,
                 hydratable: bool,
+                parent_vtag_kind: SpecialVTagKind
             ) {
                 match this {
-                    VNode::VTag(vtag) => vtag.render_into_stream(w, parent_scope, hydratable).await,
-                    VNode::VText(vtext) => {
-                        vtext.render_into_stream(w, parent_scope, hydratable).await
-                    }
-                    VNode::VComp(vcomp) => {
-                        vcomp.render_into_stream(w, parent_scope, hydratable).await
-                    }
-                    VNode::VList(vlist) => {
-                        vlist.render_into_stream(w, parent_scope, hydratable).await
-                    }
+                    VNode::VTag(vtag) =>
+                        vtag.render_into_stream(w, parent_scope, hydratable)
+                            .await,
+                    VNode::VText(vtext) =>
+                        vtext.render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                            .await,
+                    VNode::VComp(vcomp) =>
+                        vcomp.render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                            .await,
+                    VNode::VList(vlist) =>
+                        vlist.render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                            .await,
                     // We are pretty safe here as it's not possible to get a web_sys::Node without
                     // DOM support in the first place.
                     //
@@ -233,7 +238,7 @@ mod feat_ssr {
                     VNode::VPortal(_) => {}
                     VNode::VSuspense(vsuspense) => {
                         vsuspense
-                            .render_into_stream(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
                             .await
                     }
 
@@ -241,8 +246,9 @@ mod feat_ssr {
                 }
             }
 
-            async move { render_into_stream_(self, w, parent_scope, hydratable).await }
-                .boxed_local()
+            async move {
+                render_into_stream_(self, w, parent_scope, hydratable, parent_vtag_kind).await
+            }.boxed_local()
         }
     }
 }

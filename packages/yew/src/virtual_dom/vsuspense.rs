@@ -27,6 +27,7 @@ impl VSuspense {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use super::*;
+    use crate::SpecialVTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::Collectable;
@@ -37,6 +38,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
+            parent_vtag_kind: SpecialVTagKind
         ) {
             let collectable = Collectable::Suspense;
 
@@ -46,7 +48,7 @@ mod feat_ssr {
 
             // always render children on the server side.
             self.children
-                .render_into_stream(w, parent_scope, hydratable)
+                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
                 .await;
 
             if hydratable {

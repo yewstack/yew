@@ -20,7 +20,7 @@ use crate::html::Scoped;
 #[cfg(any(feature = "ssr", feature = "csr"))]
 use crate::html::{AnyScope, Scope};
 #[cfg(feature = "ssr")]
-use crate::platform::fmt::BufWriter;
+use crate::{platform::fmt::BufWriter, SpecialVTagKind};
 
 /// A virtual component.
 pub struct VComp {
@@ -77,6 +77,7 @@ pub(crate) trait Mountable {
         w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
+        parent_vtag_kind: SpecialVTagKind
     ) -> LocalBoxFuture<'a, ()>;
 
     #[cfg(feature = "hydration")]
@@ -146,12 +147,13 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         w: &'a mut BufWriter,
         parent_scope: &'a AnyScope,
         hydratable: bool,
+        parent_vtag_kind: SpecialVTagKind
     ) -> LocalBoxFuture<'a, ()> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
 
         async move {
             scope
-                .render_into_stream(w, self.props.clone(), hydratable)
+                .render_into_stream(w, self.props.clone(), hydratable, parent_vtag_kind)
                 .await;
         }
         .boxed_local()
@@ -254,6 +256,7 @@ impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
 mod feat_ssr {
     use super::*;
     use crate::html::AnyScope;
+    use crate::SpecialVTagKind;
 
     impl VComp {
         #[inline]
@@ -262,10 +265,11 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
+            parent_vtag_kind: SpecialVTagKind
         ) {
             self.mountable
                 .as_ref()
-                .render_into_stream(w, parent_scope, hydratable)
+                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
                 .await;
         }
     }

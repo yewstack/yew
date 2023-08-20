@@ -301,6 +301,7 @@ mod feat_ssr {
     use crate::platform::pinned::oneshot;
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
+    use crate::SpecialVTagKind;
 
     impl<COMP: BaseComponent> Scope<COMP> {
         pub(crate) async fn render_into_stream(
@@ -308,6 +309,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
+            parent_vtag_kind: SpecialVTagKind
         ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //
@@ -340,7 +342,7 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_into_stream(w, &self_any_scope, hydratable)
+            html.render_into_stream(w, &self_any_scope, hydratable, parent_vtag_kind)
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {

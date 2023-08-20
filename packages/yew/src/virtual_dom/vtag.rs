@@ -454,6 +454,7 @@ mod feat_ssr {
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
+    use crate::SpecialVTagKind;
 
     // Elements that cannot have any child elements.
     static VOID_ELEMENTS: &[&str; 14] = &[
@@ -505,7 +506,7 @@ mod feat_ssr {
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
                         VText::new(m.to_owned())
-                            .render_into_stream(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable, SpecialVTagKind::Other)
                             .await;
                     }
 
@@ -518,7 +519,7 @@ mod feat_ssr {
                 } => {
                     if !VOID_ELEMENTS.contains(&tag.as_ref()) {
                         children
-                            .render_into_stream(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable, tag.into())
                             .await;
 
                         let _ = w.write_str("</");
@@ -622,5 +623,35 @@ mod ssr_tests {
             .await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
+    }
+
+    #[test]
+    async fn test_escaping_in_style_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <style>{"body > a {color: #cc0;}"}</style> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<style>body > a {color: #cc0;}</style>"#);
+    }
+
+    #[test]
+    async fn test_escaping_in_script_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <script>{"foo.bar = x < y;"}</script> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<script>foo.bar = x < y;</script>"#);
     }
 }
