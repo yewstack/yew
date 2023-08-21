@@ -182,6 +182,7 @@ mod feat_ssr {
     use futures::{join, pin_mut, poll, FutureExt};
 
     use super::*;
+    use crate::feat_ssr::VTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::{self, BufWriter};
 
@@ -191,11 +192,14 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
+            parent_vtag_kind: VTagKind,
         ) {
             match &self[..] {
                 [] => {}
                 [child] => {
-                    child.render_into_stream(w, parent_scope, hydratable).await;
+                    child
+                        .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                        .await;
                 }
                 _ => {
                     async fn render_child_iter<'a, I>(
@@ -203,6 +207,7 @@ mod feat_ssr {
                         w: &mut BufWriter,
                         parent_scope: &AnyScope,
                         hydratable: bool,
+                        parent_vtag_kind: VTagKind,
                     ) where
                         I: Iterator<Item = &'a VNode>,
                     {
@@ -215,7 +220,8 @@ mod feat_ssr {
                                 //
                                 // We capture and return the mutable reference to avoid this.
 
-                                m.render_into_stream(w, parent_scope, hydratable).await;
+                                m.render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                                    .await;
                                 w
                             };
                             pin_mut!(child_fur);
@@ -231,6 +237,7 @@ mod feat_ssr {
                                             &mut next_w,
                                             parent_scope,
                                             hydratable,
+                                            parent_vtag_kind,
                                         )
                                         .await;
                                     }
@@ -257,7 +264,8 @@ mod feat_ssr {
                     }
 
                     let children = self.iter();
-                    render_child_iter(children, w, parent_scope, hydratable).await;
+                    render_child_iter(children, w, parent_scope, hydratable, parent_vtag_kind)
+                        .await;
                 }
             }
         }

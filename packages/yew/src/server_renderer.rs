@@ -9,6 +9,37 @@ use crate::html::{BaseComponent, Scope};
 use crate::platform::fmt::BufStream;
 use crate::platform::{LocalHandle, Runtime};
 
+#[cfg(feature = "ssr")]
+pub(crate) mod feat_ssr {
+    /// Passed top-down as context for `render_into_stream` functions to know the current innermost
+    /// `VTag` kind to apply appropriate text escaping.
+    /// Right now this is used to make `VText` nodes aware of their environment and correctly
+    /// escape their contents when rendering them during SSR.
+    #[derive(Default, Clone, Copy)]
+    pub(crate) enum VTagKind {
+        /// <style> tag
+        Style,
+        /// <script> tag
+        Script,
+        #[default]
+        /// any other tag
+        Other,
+    }
+
+    impl<T: AsRef<str>> From<T> for VTagKind {
+        fn from(value: T) -> Self {
+            let value = value.as_ref();
+            if value.eq_ignore_ascii_case("style") {
+                Self::Style
+            } else if value.eq_ignore_ascii_case("script") {
+                Self::Script
+            } else {
+                Self::Other
+            }
+        }
+    }
+}
+
 /// A Yew Server-side Renderer that renders on the current thread.
 ///
 /// # Note
@@ -99,7 +130,12 @@ where
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
             scope
-                .render_into_stream(&mut w, self.props.into(), self.hydratable)
+                .render_into_stream(
+                    &mut w,
+                    self.props.into(),
+                    self.hydratable,
+                    Default::default(),
+                )
                 .instrument(render_span)
                 .await;
         })

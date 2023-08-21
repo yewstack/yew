@@ -294,6 +294,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
+    use crate::feat_ssr::VTagKind;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -308,6 +309,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
+            parent_vtag_kind: VTagKind,
         ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //
@@ -340,7 +342,7 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_into_stream(w, &self_any_scope, hydratable)
+            html.render_into_stream(w, &self_any_scope, hydratable, parent_vtag_kind)
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {

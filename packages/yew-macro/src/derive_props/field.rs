@@ -345,15 +345,7 @@ impl TryFrom<Field> for PropField {
 
 impl PartialOrd for PropField {
     fn partial_cmp(&self, other: &PropField) -> Option<Ordering> {
-        if self.name == other.name {
-            Some(Ordering::Equal)
-        } else if self.name == "children" {
-            Some(Ordering::Greater)
-        } else if other.name == "children" {
-            Some(Ordering::Less)
-        } else {
-            self.name.partial_cmp(&other.name)
-        }
+        Some(self.cmp(other))
     }
 }
 
