@@ -92,8 +92,8 @@ impl ToTokens for DerivePropsInput {
                 Type::Path(TypePath { qself: None, path }) if is_path_a_string(path) => {
                     emit_warning!(
                         path.span(),
-                        "storing string values with `String` is deprecated, use `AttrValue` \
-                         instead."
+                        "storing string values with `String` is not recommended, prefer `AttrValue`.\n\
+                         for further info visit https://yew.rs/docs/concepts/function-components/properties#anti-patterns"
                     )
                 }
                 _ => (),
