@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1692454589562,
+  "lastUpdate": 1692636558644,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -17999,6 +17999,208 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/yewstack/yew/commit/b28e69a574fbaa7e18e0d2536cf9113602dc90e2"
         },
         "date": 1692454587775,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.19.3-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Tim Kurdov",
+            "username": "schvv31n",
+            "email": "tim.kurdov@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "3c4ac56980192b3fb6afb02ad01b97ebc42b32de",
+          "message": "Add `IntoPropValue` implementation to convert from `Cow`s to `AttrValue` (#3346)\n\n* added IntoPropValue impls to & from Cows\r\n\r\n* fixed formatting & test's expected output\r\n\r\n* fixed formatting\r\n\r\n* fixed macro test's expected output\r\n\r\n* removed conversion to String & Rc\r\n\r\n* fixed macro tests\r\n\r\n* fixed macro tests",
+          "timestamp": "2023-08-21T16:31:29Z",
+          "url": "https://github.com/yewstack/yew/commit/3c4ac56980192b3fb6afb02ad01b97ebc42b32de"
+        },
+        "date": 1692636555436,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
