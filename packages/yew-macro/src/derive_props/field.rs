@@ -298,7 +298,9 @@ impl<'a> PropFieldCheck<'a> {
 }
 
 fn is_path_segments_an_option<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
-where T: 'a + ?Sized + PartialEq<str> {
+where
+    T: 'a + ?Sized + PartialEq<str>,
+{
     iter.next().map_or(false, |first| {
         first == "Option"
             || (first == "std" || first == "core")
@@ -320,7 +322,9 @@ fn is_path_an_option(path: &Path) -> bool {
 }
 
 fn is_path_segments_a_string<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
-where T: 'a + ?Sized + PartialEq<str> {
+where
+    T: 'a + ?Sized + PartialEq<str>,
+{
     iter.next().map_or(false, |first| {
         first == "String"
             || (first == "std" || first == "alloc")
