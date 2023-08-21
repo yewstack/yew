@@ -297,15 +297,13 @@ impl<'a> PropFieldCheck<'a> {
     }
 }
 
-fn is_path_segments_an_option<T>(mut iter: impl Iterator<Item = T>) -> bool
-where
-    for<'a> T: PartialEq<&'a str>,
-{
-    iter.next().is_some_and(|first| {
+fn is_path_segments_an_option<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
+where T: 'a + ?Sized + PartialEq<str> {
+    iter.next().map_or(false, |first| {
         first == "Option"
             || (first == "std" || first == "core")
-                && iter.next().is_some_and(|x| x == "option")
-                && iter.next().is_some_and(|x| x == "Option")
+                && iter.next().map_or(false, |x| x == "option")
+                && iter.next().map_or(false, |x| x == "Option")
     })
 }
 
@@ -321,15 +319,13 @@ fn is_path_an_option(path: &Path) -> bool {
     is_path_segments_an_option(path.segments.iter().map(|ps| &ps.ident))
 }
 
-fn is_path_segments_a_string<T>(mut iter: impl Iterator<Item = T>) -> bool
-where
-    for<'a> T: PartialEq<&'a str>,
-{
-    iter.next().is_some_and(|first| {
+fn is_path_segments_a_string<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
+where T: 'a + ?Sized + PartialEq<str> {
+    iter.next().map_or(false, |first| {
         first == "String"
             || (first == "std" || first == "alloc")
-                && iter.next().is_some_and(|x| x == "string")
-                && iter.next().is_some_and(|x| x == "String")
+                && iter.next().map_or(false, |x| x == "string")
+                && iter.next().map_or(false, |x| x == "String")
     })
 }
 
