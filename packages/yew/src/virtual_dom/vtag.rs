@@ -451,7 +451,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::feat_ssr::SpecialVTagKind;
+    use crate::feat_ssr::VTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
@@ -506,7 +506,7 @@ mod feat_ssr {
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
                         VText::new(m.to_owned())
-                            .render_into_stream(w, parent_scope, hydratable, SpecialVTagKind::Other)
+                            .render_into_stream(w, parent_scope, hydratable, VTagKind::Other)
                             .await;
                     }
 

@@ -194,7 +194,7 @@ mod feat_ssr {
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
-    use crate::feat_ssr::SpecialVTagKind;
+    use crate::feat_ssr::VTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
 
@@ -204,14 +204,14 @@ mod feat_ssr {
             w: &'a mut BufWriter,
             parent_scope: &'a AnyScope,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind,
+            parent_vtag_kind: VTagKind,
         ) -> LocalBoxFuture<'a, ()> {
             async fn render_into_stream_(
                 this: &VNode,
                 w: &mut BufWriter,
                 parent_scope: &AnyScope,
                 hydratable: bool,
-                parent_vtag_kind: SpecialVTagKind,
+                parent_vtag_kind: VTagKind,
             ) {
                 match this {
                     VNode::VTag(vtag) => vtag.render_into_stream(w, parent_scope, hydratable).await,

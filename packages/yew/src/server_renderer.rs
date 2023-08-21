@@ -16,7 +16,7 @@ pub(crate) mod feat_ssr {
     /// Right now this is used to make `VText` nodes aware of their environment and correctly
     /// escape their contents when rendering them during SSR.
     #[derive(Default, Clone, Copy)]
-    pub(crate) enum SpecialVTagKind {
+    pub(crate) enum VTagKind {
         /// <style> tag
         Style,
         /// <script> tag
@@ -26,7 +26,7 @@ pub(crate) mod feat_ssr {
         Other,
     }
 
-    impl<T: AsRef<str>> From<T> for SpecialVTagKind {
+    impl<T: AsRef<str>> From<T> for VTagKind {
         fn from(value: T) -> Self {
             let value = value.as_ref();
             if value.eq_ignore_ascii_case("style") {

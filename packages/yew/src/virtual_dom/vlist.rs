@@ -182,7 +182,7 @@ mod feat_ssr {
     use futures::{join, pin_mut, poll, FutureExt};
 
     use super::*;
-    use crate::feat_ssr::SpecialVTagKind;
+    use crate::feat_ssr::VTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::{self, BufWriter};
 
@@ -192,7 +192,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind,
+            parent_vtag_kind: VTagKind,
         ) {
             match &self[..] {
                 [] => {}
@@ -207,7 +207,7 @@ mod feat_ssr {
                         w: &mut BufWriter,
                         parent_scope: &AnyScope,
                         hydratable: bool,
-                        parent_vtag_kind: SpecialVTagKind,
+                        parent_vtag_kind: VTagKind,
                     ) where
                         I: Iterator<Item = &'a VNode>,
                     {

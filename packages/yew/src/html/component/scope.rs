@@ -294,7 +294,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::feat_ssr::SpecialVTagKind;
+    use crate::feat_ssr::VTagKind;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -309,7 +309,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
-            parent_vtag_kind: SpecialVTagKind,
+            parent_vtag_kind: VTagKind,
         ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //
