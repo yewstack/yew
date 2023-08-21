@@ -8,11 +8,14 @@ use std::convert::TryInto;
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
+use proc_macro_error::emit_warning;
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{Attribute, DeriveInput, Generics, Visibility};
+use syn::spanned::Spanned;
+use syn::{Attribute, DeriveInput, Generics, Type, TypePath, Visibility};
 use wrapper::PropsWrapper;
 
+use self::field::is_path_a_string;
 use self::generics::to_arguments;
 
 pub struct DerivePropsInput {
@@ -79,17 +82,27 @@ impl ToTokens for DerivePropsInput {
         let Self {
             generics,
             props_name,
+            prop_fields,
+            preserved_attrs,
             ..
         } = self;
 
+        for field in prop_fields.iter() {
+            match field.ty() {
+                Type::Path(TypePath { qself: None, path }) if is_path_a_string(path) => {
+                    emit_warning!(
+                        path.span(),
+                        "storing string values with `String` is deprecated, use `AttrValue` \
+                         instead."
+                    )
+                }
+                _ => (),
+            }
+        }
+
         // The wrapper is a new struct which wraps required props in `Option`
         let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::mixed_site());
-        let wrapper = PropsWrapper::new(
-            &wrapper_name,
-            generics,
-            &self.prop_fields,
-            &self.preserved_attrs,
-        );
+        let wrapper = PropsWrapper::new(&wrapper_name, generics, &prop_fields, &preserved_attrs);
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
@@ -101,7 +114,7 @@ impl ToTokens for DerivePropsInput {
             self,
             &wrapper_name,
             &check_all_props_name,
-            &self.preserved_attrs,
+            &preserved_attrs,
         );
         let generic_args = to_arguments(generics);
         tokens.extend(builder.into_token_stream());
