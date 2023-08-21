@@ -87,7 +87,7 @@ impl ToTokens for DerivePropsInput {
             ..
         } = self;
 
-        for field in prop_fields.iter() {
+        for field in prop_fields {
             match field.ty() {
                 Type::Path(TypePath { qself: None, path }) if is_path_a_string(path) => {
                     emit_warning!(
@@ -102,7 +102,7 @@ impl ToTokens for DerivePropsInput {
 
         // The wrapper is a new struct which wraps required props in `Option`
         let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::mixed_site());
-        let wrapper = PropsWrapper::new(&wrapper_name, generics, &prop_fields, &preserved_attrs);
+        let wrapper = PropsWrapper::new(&wrapper_name, generics, prop_fields, preserved_attrs);
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
@@ -114,7 +114,7 @@ impl ToTokens for DerivePropsInput {
             self,
             &wrapper_name,
             &check_all_props_name,
-            &preserved_attrs,
+            preserved_attrs,
         );
         let generic_args = to_arguments(generics);
         tokens.extend(builder.into_token_stream());
