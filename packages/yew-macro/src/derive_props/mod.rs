@@ -8,14 +8,11 @@ use std::convert::TryInto;
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
-use proc_macro_error::emit_warning;
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
-use syn::spanned::Spanned;
-use syn::{Attribute, DeriveInput, Generics, Type, TypePath, Visibility};
+use syn::{Attribute, DeriveInput, Generics, Visibility};
 use wrapper::PropsWrapper;
 
-use self::field::is_path_a_string;
 use self::generics::to_arguments;
 
 pub struct DerivePropsInput {
@@ -88,16 +85,7 @@ impl ToTokens for DerivePropsInput {
         } = self;
 
         for field in prop_fields {
-            match field.ty() {
-                Type::Path(TypePath { qself: None, path }) if is_path_a_string(path) => {
-                    emit_warning!(
-                        path.span(),
-                        "storing string values with `String` is not recommended, prefer `AttrValue`.\n\
-                         for further info visit https://yew.rs/docs/concepts/function-components/properties#anti-patterns"
-                    )
-                }
-                _ => (),
-            }
+            field.lint();
         }
 
         // The wrapper is a new struct which wraps required props in `Option`

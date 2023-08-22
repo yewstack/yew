@@ -1,0 +1,6 @@
+error: This macro call exists to deliberately failthe compilation of the test so we can verify output of lints
+  --> tests/derive_props_lints/fail.rs:12:5
+   |
+12 | /     compile_error!("This macro call exists to deliberately fail\
+13 | |                     the compilation of the test so we can verify output of lints");
+   | |__________________________________________________________________________________^

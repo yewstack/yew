@@ -32,8 +32,24 @@ pub struct PropField {
 }
 
 impl PropField {
-    pub fn ty(&self) -> &Type {
-        &self.ty
+    #[cfg(not(yew_lints))]
+    pub fn lint(&self) {}
+
+    #[cfg(yew_lints)]
+    pub fn lint(&self) {
+        match &self.ty {
+            Type::Path(TypePath { qself: None, path }) => {
+                if is_path_a_string(path) {
+                    proc_macro_error::emit_warning!(
+                    path.span(),
+                    "storing string values with `String` is not recommended, prefer `AttrValue`.\n\
+                     for further info visit \
+                     https://yew.rs/docs/concepts/function-components/properties#anti-patterns"
+                )
+                }
+            }
+            _ => (),
+        }
     }
 
     /// All required property fields are wrapped in an `Option`
@@ -321,6 +337,7 @@ fn is_path_an_option(path: &Path) -> bool {
     is_path_segments_an_option(path.segments.iter().map(|ps| &ps.ident))
 }
 
+#[cfg(any(yew_lints, test))]
 fn is_path_segments_a_string<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
 where
     T: 'a + ?Sized + PartialEq<str>,
@@ -339,7 +356,8 @@ where
 /// - std::string::String
 /// - alloc::string::String
 /// - String
-pub(crate) fn is_path_a_string(path: &Path) -> bool {
+#[cfg(yew_lints)]
+fn is_path_a_string(path: &Path) -> bool {
     is_path_segments_a_string(path.segments.iter().map(|ps| &ps.ident))
 }
 
