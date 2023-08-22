@@ -304,8 +304,8 @@ where
     iter.next().map_or(false, |first| {
         first == "Option"
             || (first == "std" || first == "core")
-                && iter.next().map_or(false, |x| x == "option")
-                && iter.next().map_or(false, |x| x == "Option")
+                && iter.next().map_or(false, |second| second == "option")
+                && iter.next().map_or(false, |third| third == "Option")
     })
 }
 
@@ -328,8 +328,8 @@ where
     iter.next().map_or(false, |first| {
         first == "String"
             || (first == "std" || first == "alloc")
-                && iter.next().map_or(false, |x| x == "string")
-                && iter.next().map_or(false, |x| x == "String")
+                && iter.next().map_or(false, |second| second == "string")
+                && iter.next().map_or(false, |third| third == "String")
     })
 }
 
