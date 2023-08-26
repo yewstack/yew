@@ -3560,7 +3560,6 @@ version = "0.2.0"
 dependencies = [
  "futures 0.3.28",
  "gloo-worker 0.3.0",
- "pin-project",
  "serde",
  "wasm-bindgen",
  "yew",

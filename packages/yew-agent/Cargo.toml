@@ -17,7 +17,6 @@ gloo-worker = { version = "0.3", features = ["futures"] }
 wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
-pin-project = "1.0.10"
 yew-agent-macro = { version = "0.1", path = "../yew-agent-macro" }
 
 [dev-dependencies]
