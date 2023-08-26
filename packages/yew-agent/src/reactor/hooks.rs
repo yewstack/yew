@@ -11,7 +11,7 @@ use yew::prelude::*;
 
 use super::provider::ReactorProviderState;
 use super::{Reactor, ReactorBridge, ReactorScoped};
-use crate::utils::BridgeCounter;
+use crate::utils::BridgeIdState;
 
 type ReactorTx<R> =
     Rc<RwLock<SplitSink<ReactorBridge<R>, <<R as Reactor>::Scope as ReactorScoped>::Input>>>;
@@ -46,7 +46,7 @@ where
     R: 'static + Reactor,
 {
     tx: ReactorTx<R>,
-    ctr: UseReducerDispatcher<BridgeCounter>,
+    ctr: UseReducerDispatcher<BridgeIdState>,
 }
 
 impl<R> fmt::Debug for UseReactorBridgeHandle<R>
@@ -117,7 +117,7 @@ where
     R: 'static + Reactor,
     F: Fn(ReactorEvent<R>) + 'static,
 {
-    let ctr = use_reducer(BridgeCounter::default);
+    let ctr = use_reducer(BridgeIdState::default);
 
     let worker_state = use_context::<ReactorProviderState<R>>()
         .expect_throw("cannot find a provider for current agent.");

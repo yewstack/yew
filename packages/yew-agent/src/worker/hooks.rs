@@ -5,7 +5,7 @@ use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-use crate::utils::BridgeCounter;
+use crate::utils::BridgeIdState;
 use crate::worker::provider::WorkerProviderState;
 use crate::worker::{Worker, WorkerBridge};
 
@@ -15,7 +15,7 @@ where
     T: Worker,
 {
     inner: WorkerBridge<T>,
-    ctr: UseReducerDispatcher<BridgeCounter>,
+    ctr: UseReducerDispatcher<BridgeIdState>,
 }
 
 impl<T> UseWorkerBridgeHandle<T>
@@ -81,7 +81,7 @@ where
     T: Worker + 'static,
     F: Fn(T::Output) + 'static,
 {
-    let ctr = use_reducer(BridgeCounter::default);
+    let ctr = use_reducer(BridgeIdState::default);
 
     let worker_state = use_context::<WorkerProviderState<T>>()
         .expect_throw("cannot find a provider for current agent.");

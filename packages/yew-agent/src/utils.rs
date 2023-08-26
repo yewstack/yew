@@ -11,11 +11,11 @@ pub(crate) fn get_next_id() -> usize {
 }
 
 #[derive(Default, PartialEq)]
-pub(crate) struct BridgeCounter {
+pub(crate) struct BridgeIdState {
     pub inner: usize,
 }
 
-impl Reducible for BridgeCounter {
+impl Reducible for BridgeIdState {
     type Action = ();
 
     fn reduce(self: Rc<Self>, _: Self::Action) -> Rc<Self> {
