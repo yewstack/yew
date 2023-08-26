@@ -9,7 +9,7 @@ use crate::utils::BridgeCounter;
 use crate::worker::provider::WorkerProviderState;
 use crate::worker::{Worker, WorkerBridge};
 
-/// State handle for the [`use_worker_bridge`] hook.
+/// Hook handle for the [`use_worker_bridge`] hook.
 pub struct UseWorkerBridgeHandle<T>
 where
     T: Worker,
@@ -75,7 +75,6 @@ where
 ///
 /// The callback will be updated on every render to make sure captured values (if any) are up to
 /// date.
-
 #[hook]
 pub fn use_worker_bridge<T, F>(on_output: F) -> UseWorkerBridgeHandle<T>
 where
@@ -111,7 +110,7 @@ where
     }
 }
 
-/// State handle for the [`use_worker_subscription`] hook.
+/// Hook handle for the [`use_worker_subscription`] hook.
 pub struct UseWorkerSubscriptionHandle<T>
 where
     T: Worker,
