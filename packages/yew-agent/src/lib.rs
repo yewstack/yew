@@ -56,11 +56,11 @@
 //! Similar to bridges, a subscription produces a handle to send inputs to agents. However, instead
 //! of notifying the receiver with a callback, it collect all outputs into a slice.
 //!
-//! #### Oneshot
+//! #### Runner
 //!
-//! See: [`use_oneshot_bridge`](oneshot::use_oneshot_bridge)
+//! See: [`use_oneshot_runner`](oneshot::use_oneshot_runner)
 //!
-//! Unlike other agents, oneshot bridges provide a `use_oneshot_bridge` hook to execute oneshot
+//! Unlike other agents, oneshot bridges provide a `use_oneshot_runner` hook to execute oneshot
 //! agents on demand.
 
 #![deny(
@@ -97,7 +97,7 @@ pub mod prelude {
     //! Prelude module to be imported when working with `yew-agent`.
     //!
     //! This module re-exports the frequently used types from the crate.
-    pub use crate::oneshot::{oneshot, use_oneshot_bridge, UseOneshotBridgeHandle};
+    pub use crate::oneshot::{oneshot, use_oneshot_runner, UseOneshotRunnerHandle};
     pub use crate::reach::Reach;
     pub use crate::reactor::{
         reactor, use_reactor_bridge, use_reactor_subscription, ReactorEvent, ReactorScope,
