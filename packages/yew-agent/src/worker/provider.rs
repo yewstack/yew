@@ -110,9 +110,9 @@ where
     }
 }
 
-/// A Worker Agent Provider.
+/// The Worker Agent Provider.
 ///
-/// This component provides its children access to an worker agent.
+/// This component provides its children access to a worker agent.
 #[function_component]
 pub fn WorkerProvider<W, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where

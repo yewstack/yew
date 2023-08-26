@@ -82,7 +82,9 @@ where
     }
 }
 
-/// The reactor provider.
+/// The Reactor Agent Provider.
+///
+/// This component provides its children access to a reactor agent.
 #[function_component]
 pub fn ReactorProvider<R, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
 where

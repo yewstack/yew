@@ -81,7 +81,7 @@ where
     }
 }
 
-/// A Oneshot Agent Provider.
+/// The Oneshot Agent Provider.
 ///
 /// This component provides its children access to an oneshot agent.
 #[function_component]
