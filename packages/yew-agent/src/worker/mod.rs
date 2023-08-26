@@ -1,6 +1,6 @@
 //! This module contains the worker agent implementation.
 //!
-//! This is a low-level implementation that wraps gloo-worker.
+//! This is a low-level implementation that uses an actor model.
 //!
 //! # Example
 //!

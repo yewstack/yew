@@ -1,5 +1,3 @@
-//! This module provides worker agent implementation.
-
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
