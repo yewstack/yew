@@ -5,7 +5,7 @@ use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-use crate::utils::BridgeIdState;
+use crate::utils::{BridgeIdState, OutputsAction, OutputsState};
 use crate::worker::provider::WorkerProviderState;
 use crate::worker::{Worker, WorkerBridge};
 
@@ -192,51 +192,7 @@ pub fn use_worker_subscription<T>() -> UseWorkerSubscriptionHandle<T>
 where
     T: Worker + 'static,
 {
-    enum OutputsAction<T> {
-        Push(Rc<T>),
-        Reset,
-    }
-
-    struct Outputs<T> {
-        ctr: usize,
-        inner: Vec<Rc<T>>,
-    }
-
-    impl<T> Reducible for Outputs<T> {
-        type Action = OutputsAction<T>;
-
-        fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-            match action {
-                Self::Action::Push(m) => {
-                    let mut outputs = self.inner.clone();
-
-                    outputs.push(m);
-
-                    Self {
-                        inner: outputs,
-                        ctr: self.ctr + 1,
-                    }
-                    .into()
-                }
-                Self::Action::Reset => Self {
-                    inner: Vec::new(),
-                    ctr: self.ctr + 1,
-                }
-                .into(),
-            }
-        }
-    }
-
-    impl<T> Default for Outputs<T> {
-        fn default() -> Self {
-            Self {
-                ctr: 0,
-                inner: Vec::new(),
-            }
-        }
-    }
-
-    let outputs = use_reducer(Outputs::default);
+    let outputs = use_reducer(OutputsState::default);
 
     let bridge = {
         let outputs = outputs.clone();

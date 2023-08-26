@@ -11,7 +11,7 @@ use yew::prelude::*;
 
 use super::provider::ReactorProviderState;
 use super::{Reactor, ReactorBridge, ReactorScoped};
-use crate::utils::BridgeIdState;
+use crate::utils::{BridgeIdState, OutputsAction, OutputsState};
 
 type ReactorTx<R> =
     Rc<RwLock<SplitSink<ReactorBridge<R>, <<R as Reactor>::Scope as ReactorScoped>::Input>>>;
@@ -249,76 +249,16 @@ pub fn use_reactor_subscription<R>() -> UseReactorSubscriptionHandle<R>
 where
     R: 'static + Reactor,
 {
-    enum OutputsAction<R>
-    where
-        R: Reactor + 'static,
-    {
-        Output(ReactorEvent<R>),
-        Reset,
-    }
-
-    struct Outputs<R>
-    where
-        R: Reactor + 'static,
-    {
-        ctr: usize,
-        inner: Vec<Rc<<R::Scope as ReactorScoped>::Output>>,
-        finished: bool,
-    }
-
-    impl<R> Reducible for Outputs<R>
-    where
-        R: Reactor + 'static,
-    {
-        type Action = OutputsAction<R>;
-
-        fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
-            let mut outputs = self.inner.clone();
-
-            let mut finished = self.finished;
-
-            match action {
-                OutputsAction::Output(ReactorEvent::<R>::Output(m)) => outputs.push(m.into()),
-                OutputsAction::Output(ReactorEvent::<R>::Finished) => {
-                    finished = true;
-                }
-                OutputsAction::Reset => {
-                    return Self {
-                        inner: Vec::new(),
-                        ctr: self.ctr + 1,
-                        finished: false,
-                    }
-                    .into();
-                }
-            }
-
-            Self {
-                inner: outputs,
-                ctr: self.ctr + 1,
-                finished,
-            }
-            .into()
-        }
-    }
-
-    impl<R> Default for Outputs<R>
-    where
-        R: Reactor + 'static,
-    {
-        fn default() -> Self {
-            Self {
-                ctr: 0,
-                inner: Vec::new(),
-                finished: false,
-            }
-        }
-    }
-
-    let outputs = use_reducer(Outputs::<R>::default);
+    let outputs = use_reducer(OutputsState::<<R::Scope as ReactorScoped>::Output>::default);
 
     let bridge = {
         let outputs = outputs.clone();
-        use_reactor_bridge::<R, _>(move |output| outputs.dispatch(OutputsAction::Output(output)))
+        use_reactor_bridge::<R, _>(move |output| {
+            outputs.dispatch(match output {
+                ReactorEvent::Output(m) => OutputsAction::Push(m.into()),
+                ReactorEvent::Finished => OutputsAction::Close,
+            })
+        })
     };
 
     {
@@ -334,6 +274,6 @@ where
         bridge,
         outputs: outputs.inner.clone(),
         ctr: outputs.ctr,
-        finished: outputs.finished,
+        finished: outputs.closed,
     }
 }
