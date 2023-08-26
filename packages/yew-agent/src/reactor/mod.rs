@@ -1,12 +1,12 @@
 //! This module contains the reactor agent implementation.
 //!
 //! Reactor agents are agents that receive multiple inputs and send multiple outputs over a single
-//! bridge. A reactor is defined as an async function that takes a [ReactorReceiver]
-//! and a [ReactorSender] as arguments.
+//! bridge. A reactor is defined as an async function that takes a [ReactorScope]
+//! as the argument.
 //!
-//! The reactor receiver is a stream that produces inputs from the bridge. The reactor sender is a
+//! The reactor scope is a stream that produces inputs from the bridge and a
 //! sink that implements an additional send method to send outputs to the connected bridge.
-//! When the bridge disconnects, the output sender and input receiver will be closed.
+//! When the bridge disconnects, the output stream and input sink will be closed.
 //!
 //! # Example
 //!
