@@ -451,6 +451,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
+    use crate::feat_ssr::VTagKind;
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
@@ -505,7 +506,7 @@ mod feat_ssr {
                 VTagInner::Textarea { .. } => {
                     if let Some(m) = self.value() {
                         VText::new(m.to_owned())
-                            .render_into_stream(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable, VTagKind::Other)
                             .await;
                     }
 
@@ -518,7 +519,7 @@ mod feat_ssr {
                 } => {
                     if !VOID_ELEMENTS.contains(&tag.as_ref()) {
                         children
-                            .render_into_stream(w, parent_scope, hydratable)
+                            .render_into_stream(w, parent_scope, hydratable, tag.into())
                             .await;
 
                         let _ = w.write_str("</");
@@ -622,5 +623,60 @@ mod ssr_tests {
             .await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
+    }
+
+    #[test]
+    async fn test_escaping_in_style_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <style>{"body > a {color: #cc0;}"}</style> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<style>body > a {color: #cc0;}</style>"#);
+    }
+
+    #[test]
+    async fn test_escaping_in_script_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <script>{"foo.bar = x < y;"}</script> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<script>foo.bar = x < y;</script>"#);
+    }
+
+    #[test]
+    async fn test_multiple_vtext_in_style_tag() {
+        #[function_component]
+        fn Comp() -> Html {
+            let one = "html { background: black } ";
+            let two = "body > a { color: white } ";
+            html! {
+                <style>
+                    {one}
+                    {two}
+                </style>
+            }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(
+            s,
+            r#"<style>html { background: black } body > a { color: white } </style>"#
+        );
     }
 }

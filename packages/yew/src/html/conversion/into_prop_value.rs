@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use implicit_clone::unsync::{IArray, IMap};
@@ -186,6 +187,7 @@ impl_into_prop!(|value: &'static str| -> String { value.to_owned() });
 impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) });
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
+impl_into_prop!(|value: Cow<'static, str>| -> AttrValue { AttrValue::from(value) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
@@ -226,6 +228,7 @@ mod test {
         let _: AttrValue = "foo".into_prop_value();
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
+        let _: Option<AttrValue> = Cow::Borrowed("foo").into_prop_value();
     }
 
     #[test]

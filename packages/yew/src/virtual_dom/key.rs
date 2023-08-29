@@ -82,7 +82,7 @@ mod test {
 
     #[test]
     fn all_key_conversions() {
-        html! {
+        let _ = html! {
             <key="string literal">
                 <img key={"String".to_owned()} />
                 <p key={Rc::<str>::from("rc")}></p>

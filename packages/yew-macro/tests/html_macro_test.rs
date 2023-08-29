@@ -15,7 +15,7 @@ fn html_macro() {
                 element which can't have any children."
 )]
 fn dynamic_tags_catch_void_elements() {
-    html! {
+    let _ = html! {
         <@{"br"}>
             <span>{ "No children allowed" }</span>
         </@>
@@ -25,7 +25,7 @@ fn dynamic_tags_catch_void_elements() {
 #[test]
 #[should_panic(expected = "a dynamic tag returned a tag name containing non ASCII characters: `❤`")]
 fn dynamic_tags_catch_non_ascii() {
-    html! {
+    let _ = html! {
         <@{"❤"}/>
     };
 }

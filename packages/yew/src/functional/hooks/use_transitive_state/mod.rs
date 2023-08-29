@@ -27,7 +27,7 @@ pub use feat_ssr::*;
 /// During hydration, it will only return `Ok(Some(Rc<T>))` if the component is hydrated from a
 /// server-side rendering artifact and its dependency value matches.
 ///
-/// `let state = use_transitive_state!(|deps| -> ReturnType { ... }, deps);`
+/// `let state = use_transitive_state!(deps, |deps| -> ReturnType { ... });`
 ///
 /// It has the following function signature:
 ///
@@ -39,7 +39,7 @@ pub use feat_ssr::*;
 /// use yew::suspense::SuspensionResult;
 ///
 /// #[hook]
-/// pub fn use_transitive_state<T, D, F>(f: F, deps: D) -> SuspensionResult<Option<Rc<T>>>
+/// pub fn use_transitive_state<T, D, F>(deps: D, f: F) -> SuspensionResult<Option<Rc<T>>>
 /// where
 ///     D: Serialize + DeserializeOwned + PartialEq + 'static,
 ///     T: Serialize + DeserializeOwned + 'static,

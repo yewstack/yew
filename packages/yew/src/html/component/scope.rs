@@ -294,6 +294,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
+    use crate::feat_ssr::VTagKind;
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -308,6 +309,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             props: Rc<COMP::Properties>,
             hydratable: bool,
+            parent_vtag_kind: VTagKind,
         ) {
             // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
             //
@@ -340,7 +342,7 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_into_stream(w, &self_any_scope, hydratable)
+            html.render_into_stream(w, &self_any_scope, hydratable, parent_vtag_kind)
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {
@@ -452,25 +454,9 @@ mod feat_csr_ssr {
             }
         }
 
-        #[rustversion::before(1.63)]
         #[inline]
         pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
             self.state.try_borrow().ok().and_then(|state_ref| {
-                state_ref.as_ref()?;
-                Some(Ref::map(state_ref, |state| {
-                    state
-                        .as_ref()
-                        .and_then(|m| m.downcast_comp_ref::<COMP>())
-                        .unwrap()
-                }))
-            })
-        }
-
-        #[rustversion::since(1.63)]
-        #[inline]
-        pub(super) fn arch_get_component(&self) -> Option<impl Deref<Target = COMP> + '_> {
-            self.state.try_borrow().ok().and_then(|state_ref| {
-                // Ref::filter_map is only available since 1.63
                 Ref::filter_map(state_ref, |state| {
                     state.as_ref().and_then(|m| m.downcast_comp_ref::<COMP>())
                 })

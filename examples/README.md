@@ -3,13 +3,8 @@
 ## How to Run
 
 The examples are built with [trunk](https://github.com/thedodd/trunk).
-You can install it with the following command:
-
-```bash
-cargo install --locked trunk
-```
-
-Running an example is as easy as running a single command:
+Once you have the development envrionment fully set up (see [documentation](https://yew.rs/docs/next/getting-started/introduction)),
+running an example is as easy as running a single command:
 
 ```bash
 # move into the directory of the example you want to run

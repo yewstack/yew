@@ -13,7 +13,7 @@ use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::suspense::{use_future, use_future_with_deps, Suspension, SuspensionResult};
+use yew::suspense::{use_future, use_future_with, Suspension, SuspensionResult};
 use yew::UseStateHandle;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -645,13 +645,10 @@ async fn use_suspending_future_with_deps_works() {
 
     #[function_component(Content)]
     fn content(ContentProps { delay_millis }: &ContentProps) -> HtmlResult {
-        let delayed_result = use_future_with_deps(
-            |delay_millis| async move {
-                sleep(Duration::from_millis(*delay_millis)).await;
-                42
-            },
-            *delay_millis,
-        )?;
+        let delayed_result = use_future_with(*delay_millis, |delay_millis| async move {
+            sleep(Duration::from_millis(*delay_millis)).await;
+            42
+        })?;
 
         Ok(html! {
             <div>

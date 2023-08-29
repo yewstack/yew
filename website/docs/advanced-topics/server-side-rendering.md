@@ -147,6 +147,15 @@ one implementation, you may want to use a `PhantomComponent` to fill the
 position of the extra component.
 :::
 
+:::warning
+
+The hydration can only succeed if the real DOM matches the expected DOM
+after initial render of the SSR output (static HTML) by browser. If your HTML is
+not spec-compliant, the hydration _may_ fail. Browsers may change the DOM structure
+of the incorrect HTML, causing the actual DOM to be different from the expected DOM.
+For example, [if you have a `<table>` without a `<tbody>`, the browser may add a `<tbody>` to the DOM](https://github.com/yewstack/yew/issues/2684)
+:::
+
 ## Component Lifecycle during hydration
 
 During Hydration, components schedule 2 consecutive renders after it is

@@ -9,10 +9,11 @@ use crate::{utils, Routable};
 
 /// Props for [`Link`]
 #[derive(Properties, Clone, PartialEq)]
-pub struct LinkProps<R, Q = ()>
+pub struct LinkProps<R, Q = (), S = ()>
 where
     R: Routable,
     Q: Clone + PartialEq + Serialize,
+    S: Clone + PartialEq,
 {
     /// CSS classes to add to the anchor element (optional).
     #[prop_or_default]
@@ -22,6 +23,9 @@ where
     /// Route query data
     #[prop_or_default]
     pub query: Option<Q>,
+    /// Route state data
+    #[prop_or_default]
+    pub state: Option<S>,
     #[prop_or_default]
     pub disabled: bool,
     /// [`NodeRef`](yew::html::NodeRef) for the `<a>` element.
@@ -33,18 +37,20 @@ where
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
 #[function_component]
-pub fn Link<R, Q = ()>(props: &LinkProps<R, Q>) -> Html
+pub fn Link<R, Q = (), S = ()>(props: &LinkProps<R, Q, S>) -> Html
 where
     R: Routable + 'static,
     Q: Clone + PartialEq + Serialize + 'static,
+    S: Clone + PartialEq + 'static,
 {
     let LinkProps {
         classes,
         to,
-        children,
-        disabled,
         query,
+        state,
+        disabled,
         anchor_ref,
+        children,
     } = props.clone();
 
     let navigator = use_navigator().expect_throw("failed to get navigator");
@@ -53,20 +59,29 @@ where
         let navigator = navigator.clone();
         let to = to.clone();
         let query = query.clone();
+        let state = state.clone();
 
         Callback::from(move |e: MouseEvent| {
             if e.meta_key() || e.ctrl_key() || e.shift_key() || e.alt_key() {
                 return;
             }
             e.prevent_default();
-            match query {
-                None => {
+            match (&state, &query) {
+                (None, None) => {
                     navigator.push(&to);
                 }
-                Some(ref data) => {
+                (Some(state), None) => {
+                    navigator.push_with_state(&to, state.clone());
+                }
+                (None, Some(query)) => {
                     navigator
-                        .push_with_query(&to, data)
+                        .push_with_query(&to, query)
                         .expect_throw("failed push history with query");
+                }
+                (Some(state), Some(query)) => {
+                    navigator
+                        .push_with_query_and_state(&to, query, state.clone())
+                        .expect_throw("failed push history with query and state");
                 }
             }
         })
