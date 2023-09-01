@@ -13,6 +13,7 @@ use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone, PartialEq)]
+#[must_use = "html does not do anything unless returned to Yew for rendering."]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
     VTag(Box<VTag>),

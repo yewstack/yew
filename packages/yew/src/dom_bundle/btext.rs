@@ -156,11 +156,11 @@ mod test {
 
     #[test]
     fn text_as_root() {
-        html! {
+        let _ = html! {
             "Text Node As Root"
         };
 
-        html! {
+        let _ = html! {
             { "Text Node As Root" }
         };
     }
