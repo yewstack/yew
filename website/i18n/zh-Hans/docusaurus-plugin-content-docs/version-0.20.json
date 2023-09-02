@@ -28,7 +28,7 @@
     "description": "The generated-index page title for category Using Basic Web Technologies In Yew in sidebar docs"
   },
   "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.description": {
-    "message": "Yew centrally operates on the idea of keeping everything that a reusable piece of UI may needin one place - rust files, while also keeping the underlying technology accessible where necessary. Explore further to fully grasp what we mean by these statements:",
+    "message": "Yew centrally operates on the idea of keeping everything that a reusable piece of UI may need in one place - rust files, while also keeping the underlying technology accessible where necessary. Explore further to fully grasp what we mean by these statements:",
     "description": "The generated-index page description for category Using Basic Web Technologies In Yew in sidebar docs"
   },
   "sidebar.docs.category.Components": {

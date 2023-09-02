@@ -28,7 +28,7 @@
                     "link": {
                         "type": "generated-index",
                         "title": "Yew's Take on Basic Web Technologies",
-                        "description": "Yew centrally operates on the idea of keeping everything that a reusable piece of UI may needin one place - rust files, while also keeping the underlying technology accessible where necessary. Explore further to fully grasp what we mean by these statements:"
+                        "description": "Yew centrally operates on the idea of keeping everything that a reusable piece of UI may need in one place - rust files, while also keeping the underlying technology accessible where necessary. Explore further to fully grasp what we mean by these statements:"
                     },
                     "items": [
                         "concepts/basic-web-technologies/html",
