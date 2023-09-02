@@ -22,17 +22,16 @@ jobs:
           toolchain: stable
 
       - name: Build changelog generator
-        run: cargo build --release -p changelog
-        working-directory: tools
+        run: cargo build --release -p changelog -- 
 
       - name: Read yew changelog in this step
-        run: ./target/release/changelog yew minor -t ${{ secrets.GITHUB_TOKEN }}
-        working-directory: tools
+        shell: bash
+        run: ./target/release/changelog yew minor -t ${{ secrets.GITHUB_TOKEN }} -f "$(pwd)/CHANGELOG.md"
 
       - name: Read yew-router changelog in this step
-        run: ./target/release/changelog yew-router minor -t ${{ secrets.GITHUB_TOKEN }}
-        working-directory: tools
+        shell: bash
+        run: ./target/release/changelog yew-router minor -t ${{ secrets.GITHUB_TOKEN }} -f "$(pwd)/CHANGELOG.md"
 
       - name: Read yew-agent changelog in this step
-        run: ./target/release/changelog yew-agent minor -t ${{ secrets.GITHUB_TOKEN }}
-        working-directory: tools
+        shell: bash
+        run: ./target/release/changelog yew-agent minor -t ${{ secrets.GITHUB_TOKEN }} -f "$(pwd)/CHANGELOG.md"
