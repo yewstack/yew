@@ -3,7 +3,7 @@ use yew::prelude::*;
 use super::provider::OneshotProviderState;
 use super::Oneshot;
 
-/// Hook handle for [use_oneshot_runner]
+/// Hook handle for [`use_oneshot_runner`]
 #[derive(Debug)]
 pub struct UseOneshotRunnerHandle<T>
 where

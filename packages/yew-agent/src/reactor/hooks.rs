@@ -40,7 +40,7 @@ where
     }
 }
 
-/// Hook handle for the [use_reactor_bridge] hook.
+/// Hook handle for the [`use_reactor_bridge`] hook.
 pub struct UseReactorBridgeHandle<R>
 where
     R: 'static + Reactor,
