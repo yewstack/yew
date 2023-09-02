@@ -1,3 +1,4 @@
+use std::any::type_name;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -26,7 +27,7 @@ where
     T: Reactor,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ReactorProviderState<_>")
+        f.write_str(type_name::<Self>())
     }
 }
 

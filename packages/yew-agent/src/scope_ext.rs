@@ -1,5 +1,6 @@
 //! This module contains extensions to the component scope for agent access.
 
+use std::any::type_name;
 use std::fmt;
 use std::rc::Rc;
 
@@ -50,8 +51,7 @@ where
     R: Reactor + 'static,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ReactorBridgeHandle<_>")
-            .finish_non_exhaustive()
+        f.debug_struct(type_name::<Self>()).finish_non_exhaustive()
     }
 }
 

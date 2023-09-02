@@ -1,3 +1,4 @@
+use std::any::type_name;
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
@@ -53,7 +54,7 @@ where
     W: Worker,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("WorkerProviderState<_>")
+        f.write_str(type_name::<Self>())
     }
 }
 

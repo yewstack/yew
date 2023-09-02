@@ -1,4 +1,5 @@
 use core::fmt;
+use std::any::type_name;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -25,7 +26,7 @@ where
     T: Oneshot,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("OneshotProviderState<_>")
+        f.write_str(type_name::<Self>())
     }
 }
 

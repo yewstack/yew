@@ -1,3 +1,4 @@
+use std::any::type_name;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -52,7 +53,7 @@ where
     T: Worker,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseWorkerBridgeHandle<_>")
+        f.debug_struct(type_name::<Self>())
             .field("inner", &self.inner)
             .finish()
     }
@@ -157,7 +158,7 @@ where
     T::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseWorkerSubscriptionHandle<_>")
+        f.debug_struct(type_name::<Self>())
             .field("bridge", &self.bridge)
             .field("outputs", &self.outputs)
             .finish()

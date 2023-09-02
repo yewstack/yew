@@ -1,3 +1,4 @@
+use std::any::type_name;
 use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -55,7 +56,7 @@ where
     <R::Scope as ReactorScoped>::Input: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseReactorBridgeHandle<_>")
+        f.debug_struct(type_name::<Self>())
             .field("inner", &self.tx)
             .finish()
     }
@@ -214,7 +215,7 @@ where
     <R::Scope as ReactorScoped>::Output: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseReactorSubscriptionHandle<_>")
+        f.debug_struct(type_name::<Self>())
             .field("bridge", &self.bridge)
             .field("outputs", &self.outputs)
             .finish()
