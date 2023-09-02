@@ -114,12 +114,12 @@ where
 ///
 /// This component provides its children access to a worker agent.
 #[function_component]
-pub fn WorkerProvider<W, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
+pub fn WorkerProvider<W, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     W: Worker + 'static,
     W::Input: Serialize + for<'de> Deserialize<'de> + 'static,
     W::Output: Serialize + for<'de> Deserialize<'de> + 'static,
-    CODEC: Codec + 'static,
+    C: Codec + 'static,
 {
     let WorkerProviderProps {
         children,
@@ -128,10 +128,10 @@ where
         reach,
     } = props.clone();
 
-    // Creates a spawning function so CODEC is can be erased from contexts.
+    // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>> = {
         let path = path.clone();
-        Rc::new(move || W::spawner().encoding::<CODEC>().spawn(&path))
+        Rc::new(move || W::spawner().encoding::<C>().spawn(&path))
     };
 
     let state = {

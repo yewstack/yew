@@ -86,14 +86,14 @@ where
 ///
 /// This component provides its children access to a reactor agent.
 #[function_component]
-pub fn ReactorProvider<R, CODEC = Bincode>(props: &WorkerProviderProps) -> Html
+pub fn ReactorProvider<R, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     R: 'static + Reactor,
     <<R as Reactor>::Scope as ReactorScoped>::Input:
         Serialize + for<'de> Deserialize<'de> + 'static,
     <<R as Reactor>::Scope as ReactorScoped>::Output:
         Serialize + for<'de> Deserialize<'de> + 'static,
-    CODEC: Codec + 'static,
+    C: Codec + 'static,
 {
     let WorkerProviderProps {
         children,
@@ -102,10 +102,10 @@ where
         reach,
     } = props.clone();
 
-    // Creates a spawning function so CODEC is can be erased from contexts.
+    // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> ReactorBridge<R>> = {
         let path = path.clone();
-        Rc::new(move || ReactorSpawner::<R>::new().encoding::<CODEC>().spawn(&path))
+        Rc::new(move || ReactorSpawner::<R>::new().encoding::<C>().spawn(&path))
     };
 
     let state = {
