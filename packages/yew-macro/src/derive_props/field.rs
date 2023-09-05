@@ -279,6 +279,7 @@ impl<'a> PropFieldCheck<'a> {
 
         quote! {
             #[doc(hidden)]
+            #[allow(non_camel_case_types)]
             #vis struct #check_struct<How>(::std::marker::PhantomData<How>);
 
             #[automatically_derived]
