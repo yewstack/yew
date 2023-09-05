@@ -274,6 +274,12 @@ impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
     }
 }
 
+impl<T: Into<Classes>, const SIZE: usize> From<[T;SIZE]> for Classes {
+    fn from(t: [T;SIZE]) -> Self {
+        t.into_iter().collect()
+    }
+}
+
 impl PartialEq for Classes {
     fn eq(&self, other: &Self) -> bool {
         self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
