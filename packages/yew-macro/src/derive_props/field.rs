@@ -5,10 +5,7 @@ use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{
-    parse_quote, Attribute, Error, Expr, Field, GenericParam, Generics, Type,
-    Visibility,
-};
+use syn::{parse_quote, Attribute, Error, Expr, Field, GenericParam, Generics, Type, Visibility};
 
 use super::should_preserve_attr;
 use crate::derive_props::generics::push_type_param;
