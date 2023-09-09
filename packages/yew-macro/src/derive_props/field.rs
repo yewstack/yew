@@ -6,7 +6,7 @@ use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{
-    parse_quote, Attribute, Error, Expr, Field, GenericParam, Generics, Path, Type, TypePath,
+    parse_quote, Attribute, Error, Expr, Field, GenericParam, Generics, Type,
     Visibility,
 };
 
@@ -17,7 +17,6 @@ use crate::derive_props::generics::push_type_param;
 #[derive(PartialEq, Eq)]
 enum PropAttr {
     Required { wrapped_name: Ident },
-    Option,
     PropOr(Expr),
     PropOrElse(Expr),
     PropOrDefault,
@@ -82,11 +81,6 @@ impl PropField {
                     #name: ::std::option::Option::unwrap(this.wrapped.#wrapped_name),
                 }
             }
-            PropAttr::Option => {
-                quote! {
-                    #name: this.wrapped.#name,
-                }
-            }
             PropAttr::PropOr(value) => {
                 quote_spanned! {value.span()=>
                     #name: ::std::option::Option::unwrap_or(this.wrapped.#name, #value),
@@ -115,19 +109,9 @@ impl PropField {
         let ty = &self.ty;
         let extra_attrs = &self.extra_attrs;
         let wrapped_name = self.wrapped_name();
-        match &self.attr {
-            PropAttr::Option => {
-                quote! {
-                    #( #extra_attrs )*
-                    #wrapped_name: #ty,
-                }
-            }
-            _ => {
-                quote! {
-                    #( #extra_attrs )*
-                    #wrapped_name: ::std::option::Option<#ty>,
-                }
-            }
+        quote! {
+            #( #extra_attrs )*
+            #wrapped_name: ::std::option::Option<#ty>,
         }
     }
 
@@ -161,19 +145,6 @@ impl PropField {
                     ) -> #check_struct< #token_ty > {
                         self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
                         #check_struct ( ::std::marker::PhantomData )
-                    }
-                }
-            }
-            PropAttr::Option => {
-                quote! {
-                    #[doc(hidden)]
-                    #vis fn #name<#token_ty>(
-                        &mut self,
-                        token: #token_ty,
-                        value: impl ::yew::html::IntoPropValue<#ty>,
-                    ) -> #token_ty {
-                        self.wrapped.#name = value.into_prop_value();
-                        token
                     }
                 }
             }
@@ -216,12 +187,6 @@ impl PropField {
             } else {
                 unreachable!()
             }
-        } else if matches!(
-            &named_field.ty,
-            Type::Path(TypePath { path, .. })
-            if is_path_an_option(path)
-        ) {
-            Ok(PropAttr::Option)
         } else {
             let ident = named_field.ident.as_ref().unwrap();
             let wrapped_name = format_ident!("{}_wrapper", ident, span = Span::mixed_site());
@@ -294,36 +259,6 @@ impl<'a> PropFieldCheck<'a> {
     }
 }
 
-fn is_path_segments_an_option(path_segments: impl Iterator<Item = String>) -> bool {
-    fn is_option_path_seg(seg_index: usize, path: &str) -> u8 {
-        match (seg_index, path) {
-            (0, "core") => 0b001,
-            (0, "std") => 0b001,
-            (0, "Option") => 0b111,
-            (1, "option") => 0b010,
-            (2, "Option") => 0b100,
-            _ => 0,
-        }
-    }
-
-    path_segments
-        .enumerate()
-        .fold(0, |flags, (i, ps)| flags | is_option_path_seg(i, &ps))
-        == 0b111
-}
-
-/// Returns true when the [`Path`] seems like an [`Option`] type.
-///
-/// This function considers the following paths as Options:
-/// - core::option::Option
-/// - std::option::Option
-/// - Option::*
-///
-/// Users can define their own [`Option`] type and this will return true - this is unavoidable.
-fn is_path_an_option(path: &Path) -> bool {
-    is_path_segments_an_option(path.segments.iter().take(3).map(|ps| ps.ident.to_string()))
-}
-
 impl TryFrom<Field> for PropField {
     type Error = Error;
 
@@ -367,27 +302,5 @@ impl Ord for PropField {
 impl PartialEq for PropField {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::derive_props::field::is_path_segments_an_option;
-
-    #[test]
-    fn all_std_and_core_option_path_seg_return_true() {
-        assert!(is_path_segments_an_option(
-            vec!["core".to_owned(), "option".to_owned(), "Option".to_owned()].into_iter()
-        ));
-        assert!(is_path_segments_an_option(
-            vec!["std".to_owned(), "option".to_owned(), "Option".to_owned()].into_iter()
-        ));
-        assert!(is_path_segments_an_option(
-            vec!["Option".to_owned()].into_iter()
-        ));
-        // why OR instead of XOR
-        assert!(is_path_segments_an_option(
-            vec!["Option".to_owned(), "Vec".to_owned(), "Option".to_owned()].into_iter()
-        ));
     }
 }
