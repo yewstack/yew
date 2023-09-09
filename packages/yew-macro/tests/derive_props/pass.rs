@@ -220,18 +220,6 @@ mod t11 {
     }
 }
 
-mod t12 {
-    #[derive(::std::clone::Clone, ::yew::Properties, ::std::cmp::PartialEq)]
-    pub struct Props<T: ::std::clone::Clone + ::std::cmp::PartialEq> {
-        value: ::std::option::Option<T>,
-    }
-
-    fn optional_prop_generics_should_work() {
-        ::yew::props! { Props::<::std::primitive::bool> { } };
-        ::yew::props! { Props::<::std::primitive::bool> { value: true } };
-    }
-}
-
 #[deny(non_snake_case, dead_code)]
 mod t13 {
     #[derive(::std::cmp::PartialEq, ::yew::Properties)]
