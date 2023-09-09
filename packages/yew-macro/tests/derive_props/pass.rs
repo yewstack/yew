@@ -237,7 +237,25 @@ mod raw_field_names {
         r#true: u32,
         r#pointless_raw_name: u32,
     }
+}
 
+mod value_into_some_value_in_props {
+    #[derive(::std::cmp::PartialEq, ::yew::Properties)]
+    struct Props {
+        field1: ::std::option::Option<usize>,
+        #[prop_or_default]
+        field2: ::std::option::Option<usize>
+    }
+
+    #[::yew::function_component]
+    fn Inner(_props: &Props) -> ::yew::html::Html {
+        ::yew::html!{}
+    }
+
+    #[::yew::function_component]
+    fn Main() -> ::yew::html::Html {
+        ::yew::html! { <Inner field1=3 field2=5/> }
+    }
 }
 
 fn main() {}
