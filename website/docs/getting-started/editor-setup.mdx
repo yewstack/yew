@@ -137,3 +137,25 @@ Emmet support should work out of the box, if not please fall back to edditing th
     "rust": "html",
 }
 ```
+### Neovim
+
+#### Lazyvim
+
+> Below configuration works with [LazyVim](https://www.lazyvim.org) configuration and lazy.vim plugin, create a file in `lua/plugins/nvim-lspconfig.lua` (or update your `lspconfig`) with:
+
+```json
+return {
+  {
+    "neovim/nvim-lspconfig",
+    init_options = {
+      userLanguages = {
+        eelixir = "html-eex",
+        eruby = "erb",
+        rust = "html",
+      },
+    },
+  },
+}
+```
+
+
