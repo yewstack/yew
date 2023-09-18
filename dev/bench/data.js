@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1693943806941,
+  "lastUpdate": 1695026941759,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -19009,6 +19009,208 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/yewstack/yew/commit/73f4bb91cfa7e631c5a84cc9e4bab9f6fba075bf"
         },
         "date": 1693943804373,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.19.3-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Kaede Hoshikawa",
+            "username": "futursolo",
+            "email": "futursolo@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "eec07583f16840f2c334c1c2f9b45688e105bb8f",
+          "message": "Agent v2 (#2773)\n\n* Make private bridges.\r\n\r\n* Add worker agent.\r\n\r\n* Add task type.\r\n\r\n* Memorised Task.\r\n\r\n* Add station.\r\n\r\n* Add Station Agent.\r\n\r\n* Subscription.\r\n\r\n* Station hooks.\r\n\r\n* Reactor Agents.\r\n\r\n* Add more description.\r\n\r\n* Restart station when closed.\r\n\r\n* Remove Station restart.\r\n\r\n* Send finish message to bridges.\r\n\r\n* Adds a method to read whether a bridge has received finish message for a subscription.\r\n\r\n* Update Reactor Agent.\r\n\r\n* Decouple macros from it.\r\n\r\n* Reactor Macro.\r\n\r\n* Reactivate Task.\r\n\r\n* Slightly adjust API.\r\n\r\n* Add documentation for reactor agents.\r\n\r\n* Remove Station.\r\n\r\n* Create Task macro.\r\n\r\n* Migrate Example.\r\n\r\n* Simplify Task Agent Design.\r\n\r\n* Implement Sink.\r\n\r\n* Agent -> Task in Example.\r\n\r\n* Switch to Registrable.\r\n\r\n* AgentScopeExt.\r\n\r\n* Finish AgentScopeExt.\r\n\r\n* Prelude.\r\n\r\n* Adjust prelude.\r\n\r\n* Fix imports.\r\n\r\n* Yew Agent.\r\n\r\n* Switch to upstreamed version of gloo.\r\n\r\n* Add stub reset.\r\n\r\n* Remove example.\r\n\r\n* Add Reset for Worker agents.\r\n\r\n* merge fix-ci into \"agent-v2\"\r\n\r\n* Switch to released version of gloo.\r\n\r\n* Adds Runtime.\r\n\r\n* A LocalRuntime.\r\n\r\n* Add note.\r\n\r\n* Add SSR benchmark.\r\n\r\n* Only create default runtime if no custom runtime is set.\r\n\r\n* Use jemalloc for benchmarking.\r\n\r\n* Remove once_cell for web assembly.\r\n\r\n* Add time.\r\n\r\n* Fix wasm_bindgen.\r\n\r\n* Adjust inlining.\r\n\r\n* merge local-runtime into \"agent-v2\"\r\n\r\n* Add reset.\r\n\r\n* Simplify task agent.\r\n\r\n* SSR for tasks.\r\n\r\n* Optimise benchmark output.\r\n\r\n* Optimise BufWriter.\r\n\r\n* Add json output.\r\n\r\n* Add Benchmark Workflow.\r\n\r\n* merge local-runtime into \"agent-v2\"\r\n\r\n* Makes Prepared States to be Rc'ed.\r\n\r\n* Move example.\r\n\r\n* Update example.\r\n\r\n* Implement prepared state for memorised tasks.\r\n\r\n* Make prepared states work on none runtime as well.\r\n\r\n* Finished prepared output.\r\n\r\n* Remove local set from tests.\r\n\r\n* Fix Workflow syntax.\r\n\r\n* Exclude benchmark from doc tests.\r\n\r\n* Tidy up the code.\r\n\r\n* Remove HashSet.\r\n\r\n* Fix rustfmt.\r\n\r\n* Some optimisation.\r\n\r\n* Use postcard.\r\n\r\n* Remove allocations.\r\n\r\n* Weak Ref.\r\n\r\n* Adjust feature flags.\r\n\r\n* Adds a pinned channel implementation.\r\n\r\n* Make Send bound explicit.\r\n\r\n* Migrate to pinned channel.\r\n\r\n* Implement on immutable reference.\r\n\r\n* Rename agent channel method.\r\n\r\n* Fix Sink close.\r\n\r\n* Fix closing.\r\n\r\n* Remove old platform.\r\n\r\n* Migrate to new macro.\r\n\r\n* Port Oneshot Agent.\r\n\r\n* Migrate reactor to gloo-worker.\r\n\r\n* Implement ScopeExt for Reactor.\r\n\r\n* Remove unneeded checks.\r\n\r\n* Update example note.\r\n\r\n* Fix doc tests.\r\n\r\n* Add an example for reactor agent.\r\n\r\n* Rename Prime to PrimeReactor.\r\n\r\n* Update Crate Information.\r\n\r\n* Remove unused dependencies.\r\n\r\n* Remove unused dependencies.\r\n\r\n* Update documentation.\r\n\r\n* Rename Bridge to Runner.\r\n\r\n* Update documentation.\r\n\r\n* Update documentation.\r\n\r\n* Update State name.\r\n\r\n* Merge outputs state for subscriptions.\r\n\r\n* Update documentation.\r\n\r\n* Fix doc link.\r\n\r\n* Make code link code link.\r\n\r\n* Make CODEC -> C.\r\n\r\n* Update Debug Implementation to type_name.\r\n\r\n* Fix readme.",
+          "timestamp": "2023-09-18T08:30:02Z",
+          "url": "https://github.com/yewstack/yew/commit/eec07583f16840f2c334c1c2f9b45688e105bb8f"
+        },
+        "date": 1695026938700,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
