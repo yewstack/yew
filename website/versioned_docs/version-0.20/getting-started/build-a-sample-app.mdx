@@ -46,7 +46,7 @@ To convert this simple command line application to a basic Yew web application, 
 
 #### Update Cargo.toml
 
-Add `yew` to the list of dependencies.
+Add `yew` to the list of dependencies editing file:
 
 ```toml title=Cargo.toml
 [package]
@@ -57,6 +57,8 @@ edition = "2021"
 [dependencies]
 yew = { version = "0.20.0", features = ["csr"] }
 ```
+
+or using `cargo add yew -F csr`.
 
 :::info
 
@@ -128,10 +130,21 @@ Finally, add an `index.html` file in the root directory of your app.
 Run the following command to build and serve the application locally.
 
 ```bash
-trunk serve
+trunk serve // add option '--open' to open your default browser
 ```
 
 Trunk will rebuild your application if you modify any of its source code files.
+This will fail if the socket is being used by another application.
+By default server will listening at address '127.0.0.1' and port '8080' [localhost:8080](http://127.0.0.1:8080).
+To change it, create the following file and edit as needed:
+
+```toml title="Trunk.toml"
+[serve]
+# The address to serve on.
+address = "127.0.0.1" // "0.0.0.0" for WAN
+# The port to serve on.
+port = 8000
+```
 
 ## Congratulations
 
