@@ -23,7 +23,7 @@
         "@docusaurus/plugin-content-pages": "~2.4.0",
         "@docusaurus/plugin-google-analytics": "~2.4.1",
         "@docusaurus/theme-classic": "~2.4.1",
-        "@easyops-cn/docusaurus-search-local": "^0.32.0",
+        "@easyops-cn/docusaurus-search-local": "^0.26.1",
         "@mdx-js/react": "^1.6.22",
         "@svgr/webpack": "^8.0.1",
         "clsx": "^1.1.1",
