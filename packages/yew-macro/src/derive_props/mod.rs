@@ -79,17 +79,18 @@ impl ToTokens for DerivePropsInput {
         let Self {
             generics,
             props_name,
+            prop_fields,
+            preserved_attrs,
             ..
         } = self;
 
+        for field in prop_fields {
+            field.lint();
+        }
+
         // The wrapper is a new struct which wraps required props in `Option`
         let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::mixed_site());
-        let wrapper = PropsWrapper::new(
-            &wrapper_name,
-            generics,
-            &self.prop_fields,
-            &self.preserved_attrs,
-        );
+        let wrapper = PropsWrapper::new(&wrapper_name, generics, prop_fields, preserved_attrs);
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
@@ -101,7 +102,7 @@ impl ToTokens for DerivePropsInput {
             self,
             &wrapper_name,
             &check_all_props_name,
-            &self.preserved_attrs,
+            preserved_attrs,
         );
         let generic_args = to_arguments(generics);
         tokens.extend(builder.into_token_stream());

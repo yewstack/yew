@@ -32,6 +32,26 @@ pub struct PropField {
 }
 
 impl PropField {
+    #[cfg(not(yew_lints))]
+    pub fn lint(&self) {}
+
+    #[cfg(yew_lints)]
+    pub fn lint(&self) {
+        match &self.ty {
+            Type::Path(TypePath { qself: None, path }) => {
+                if is_path_a_string(path) {
+                    proc_macro_error::emit_warning!(
+                    path.span(),
+                    "storing string values with `String` is not recommended, prefer `AttrValue`.\n\
+                     for further info visit \
+                     https://yew.rs/docs/concepts/function-components/properties#anti-patterns"
+                )
+                }
+            }
+            _ => (),
+        }
+    }
+
     /// All required property fields are wrapped in an `Option`
     pub fn is_required(&self) -> bool {
         matches!(self.attr, PropAttr::Required { .. })
@@ -294,22 +314,16 @@ impl<'a> PropFieldCheck<'a> {
     }
 }
 
-fn is_path_segments_an_option(path_segments: impl Iterator<Item = String>) -> bool {
-    fn is_option_path_seg(seg_index: usize, path: &str) -> u8 {
-        match (seg_index, path) {
-            (0, "core") => 0b001,
-            (0, "std") => 0b001,
-            (0, "Option") => 0b111,
-            (1, "option") => 0b010,
-            (2, "Option") => 0b100,
-            _ => 0,
-        }
-    }
-
-    path_segments
-        .enumerate()
-        .fold(0, |flags, (i, ps)| flags | is_option_path_seg(i, &ps))
-        == 0b111
+fn is_path_segments_an_option<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
+where
+    T: 'a + ?Sized + PartialEq<str>,
+{
+    iter.next().map_or(false, |first| {
+        first == "Option"
+            || (first == "std" || first == "core")
+                && iter.next().map_or(false, |second| second == "option")
+                && iter.next().map_or(false, |third| third == "Option")
+    })
 }
 
 /// Returns true when the [`Path`] seems like an [`Option`] type.
@@ -321,7 +335,31 @@ fn is_path_segments_an_option(path_segments: impl Iterator<Item = String>) -> bo
 ///
 /// Users can define their own [`Option`] type and this will return true - this is unavoidable.
 fn is_path_an_option(path: &Path) -> bool {
-    is_path_segments_an_option(path.segments.iter().take(3).map(|ps| ps.ident.to_string()))
+    is_path_segments_an_option(path.segments.iter().map(|ps| &ps.ident))
+}
+
+#[cfg(any(yew_lints, test))]
+fn is_path_segments_a_string<'a, T>(mut iter: impl Iterator<Item = &'a T>) -> bool
+where
+    T: 'a + ?Sized + PartialEq<str>,
+{
+    iter.next().map_or(false, |first| {
+        first == "String"
+            || (first == "std" || first == "alloc")
+                && iter.next().map_or(false, |second| second == "string")
+                && iter.next().map_or(false, |third| third == "String")
+    })
+}
+
+/// returns true when the [`Path`] seems like a [`String`] type.
+///
+/// This function considers the following paths as Strings:
+/// - std::string::String
+/// - alloc::string::String
+/// - String
+#[cfg(yew_lints)]
+fn is_path_a_string(path: &Path) -> bool {
+    is_path_segments_a_string(path.segments.iter().map(|ps| &ps.ident))
 }
 
 impl TryFrom<Field> for PropField {
@@ -372,22 +410,33 @@ impl PartialEq for PropField {
 
 #[cfg(test)]
 mod tests {
-    use crate::derive_props::field::is_path_segments_an_option;
+    use std::iter::once;
+
+    use crate::derive_props::field::{is_path_segments_a_string, is_path_segments_an_option};
 
     #[test]
     fn all_std_and_core_option_path_seg_return_true() {
         assert!(is_path_segments_an_option(
-            vec!["core".to_owned(), "option".to_owned(), "Option".to_owned()].into_iter()
+            ["core", "option", "Option"].into_iter()
         ));
         assert!(is_path_segments_an_option(
-            vec!["std".to_owned(), "option".to_owned(), "Option".to_owned()].into_iter()
+            ["std", "option", "Option"].into_iter()
         ));
-        assert!(is_path_segments_an_option(
-            vec!["Option".to_owned()].into_iter()
-        ));
+        assert!(is_path_segments_an_option(once("Option")));
         // why OR instead of XOR
         assert!(is_path_segments_an_option(
-            vec!["Option".to_owned(), "Vec".to_owned(), "Option".to_owned()].into_iter()
+            ["Option", "Vec", "Option"].into_iter()
         ));
+    }
+
+    #[test]
+    fn all_std_and_alloc_string_seg_return_true() {
+        assert!(is_path_segments_a_string(
+            ["alloc", "string", "String"].into_iter()
+        ));
+        assert!(is_path_segments_a_string(
+            ["std", "string", "String"].into_iter()
+        ));
+        assert!(is_path_segments_a_string(once("String")));
     }
 }

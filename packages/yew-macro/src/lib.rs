@@ -105,6 +105,7 @@ fn is_ide_completion() -> bool {
     }
 }
 
+#[proc_macro_error::proc_macro_error]
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DerivePropsInput);
