@@ -1,0 +1,71 @@
+---
+title: 'From 0.19.0 to Next'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## Dependencies as first hook argument and `use_effect_with`
+
+-   Replace `use_effect_with_deps` with new `use_effect_with`
+-   `use_effect_with`, `use_callback`, `use_memo` now take dependencies as their first argument
+
+### Automated refactor
+
+With the help of [https://ast-grep.github.io](https://ast-grep.github.io/guide/quick-start.html)
+Here are commands that can do the refactoring for you.
+
+```bash
+sg --pattern 'use_effect_with_deps($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_effect_with($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_effect_with($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_effect_with($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+
+sg --pattern 'use_callback($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_callback($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_callback($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_callback($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+
+sg --pattern 'use_memo($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_memo($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_memo($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_memo($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+
+sg --pattern 'use_future_with_deps($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_effect_with($$$DEPENDENCIES, $CALLBACK)' -l rs -i
+sg --pattern 'use_future_with($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_effect_with($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+
+sg --pattern 'use_transitive_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_transitive_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+sg --pattern 'use_transitive_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_transitive_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+
+sg --pattern 'use_prepared_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_prepared_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+sg --pattern 'use_prepared_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_prepared_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i
+```
+
+### Reasoning
+
+This will enable more ergonomic use of hooks, consider:
+
+<Tabs>
+  <TabItem value="before" label="Before" default>
+
+```rust ,ignore
+impl SomeLargeStruct {
+    fn id(&self) -> u32; // Only need to use the id as cache key
+}
+let some_dep: SomeLargeStruct = todo!();
+
+{
+    let id = some_dep.id(); // Have to extract it in advance, some_dep is moved already in the second argument
+    use_effect_with_dep(move |_| { todo!(); drop(some_dep); }, id);
+}
+```
+
+  </TabItem>
+  <TabItem value="after" label="After">
+
+```rust ,ignore
+impl SomeLargeStruct {
+    fn id(&self) -> u32; // Only need to use the id as cache key
+}
+let some_dep: SomeLargeStruct = todo!();
+
+use_effect_with(some_dep.id(), move |_| { todo!(); drop(some_dep); });
+
+```
+
+  </TabItem>
+</Tabs>
