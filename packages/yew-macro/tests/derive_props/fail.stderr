@@ -1,4 +1,4 @@
-error: unexpected end of input, expected expression
+error: unexpected end of input, expected an expression
   --> tests/derive_props/fail.rs:56:19
    |
 56 |         #[prop_or()]
