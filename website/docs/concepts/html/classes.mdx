@@ -84,10 +84,8 @@ html! {
 ```rust
 use yew::{classes, html};
 
-let my_classes = ["class-1", "class-2"];
-
 html! {
-  <div class={classes!(my_classes.as_ref())}></div>
+  <div class={classes!(["class-1", "class-2"])}></div>
 };
 ```
 
