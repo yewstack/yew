@@ -49,6 +49,11 @@ fn compile_pass() {
     // single expression
     ::yew::classes!(::std::vec!["one", "two"]);
 
+    // single array
+    ::yew::classes!(["one", "two"]);
+    // multiple arrays
+    ::yew::classes!(["one"], ["two"]);
+
     // optional classes
     ::yew::classes!(
         ::std::option::Option::Some("one"),
@@ -58,7 +63,7 @@ fn compile_pass() {
     // mixed types
     {
         use ::std::borrow::ToOwned;
-        ::yew::classes!("one".to_owned(), "two", ::std::vec!["three"]);
+        ::yew::classes!("one".to_owned(), "two", ::std::vec!["three"], ["four", "five"]);
     }
 }
 
