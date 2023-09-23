@@ -86,9 +86,9 @@ The latter is the one responsible for signaling when to re-render the suspended 
 1. Calling its [`resume`](https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume) method.
 2. Dropping the handle.
 
-If the handle isn't stored for longer than the hook's scope, the suspended components will be constantly re-rendered as often as possible, thus hampering performance.
-If the handle is forgotten, i.e. with [`forget`](https://doc.rust-lang.org/std/mem/fn.forget.html) or [`ManuallyDrop`](https://doc.rust-lang.org/std/mem/struct.ManuallyDrop.html#) won't allow the suspended components to be re-rendered ever again.
-Thus, to effectively use suspension, the handle needs to be stored until it's time to update components, i.e. with newly received data.
+:::danger
+The suspension handle must be stored until it's time to update components, i.e. with newly received data;
+otherwise, the suspended components will enter an infinite re-render loop, thus hampering performance.
 In the example above, the suspension handle is preserved by being moved into a closure and passed into `on_load_user_complete`.
 When the hypothetical user will be loaded, the closure will be called, thus calling `handle.resume()` and re-rendering the components associated with the suspension context.
 
