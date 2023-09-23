@@ -22,7 +22,7 @@ error: expected base props expression after `..`
 46 |     html! { <Child .. /> };
    |                    ^^
 
-error: unexpected end of input, expected expression
+error: unexpected end of input, expected an expression
   --> tests/html_macro/component-fail.rs:46:13
    |
 46 |     html! { <Child .. /> };
@@ -34,7 +34,7 @@ error: expected base props expression after `..`
 47 |     html! { <Child ..{ 5 + } /> };
    |                    ^^
 
-error: unexpected end of input, expected expression
+error: unexpected end of input, expected an expression
   --> tests/html_macro/component-fail.rs:47:28
    |
 47 |     html! { <Child ..{ 5 + } /> };

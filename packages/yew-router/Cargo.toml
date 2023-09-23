@@ -17,12 +17,12 @@ yew-router-macro = { version = "0.17.0", path = "../yew-router-macro" }
 
 wasm-bindgen = "0.2"
 js-sys = "0.3"
-gloo = { version = "0.8", features = ["futures"] }
+gloo = { version = "0.10", features = ["futures"] }
 route-recognizer = "0.3"
 serde = "1"
 serde_urlencoded = "0.7.1"
 tracing = "0.1.37"
-urlencoding = "2.1.2"
+urlencoding = "2.1.3"
 
 [dependencies.web-sys]
 version = "0.3"
