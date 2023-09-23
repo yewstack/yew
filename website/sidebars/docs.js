@@ -154,7 +154,7 @@ module.exports = {
                     type: 'category',
                     label: 'yew',
                     items: [
-                        'migration-guides/yew/from-0_20_0-to-next',
+                        'migration-guides/yew/from-0_20_0-to-0_21_0',
                         'migration-guides/yew/from-0_19_0-to-0_20_0',
                         'migration-guides/yew/from-0_18_0-to-0_19_0',
                     ],
