@@ -11,7 +11,7 @@ use crate::functional::{Hook, HookContext};
 /// is returned. A component which calls `use_context` will re-render when the data of the context
 /// changes.
 ///
-/// More information about contexts and how to define and consume them can be found on [Yew Docs](https://yew.rs).
+/// More information about contexts and how to define and consume them can be found on [Yew Docs](https://yew.rs/docs/concepts/contexts).
 ///
 /// # Example
 ///

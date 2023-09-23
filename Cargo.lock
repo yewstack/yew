@@ -493,7 +493,6 @@ dependencies = [
 name = "contexts"
 version = "0.1.0"
 dependencies = [
- "serde",
  "yew",
  "yew-agent",
 ]
