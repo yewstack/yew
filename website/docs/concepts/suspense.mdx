@@ -79,10 +79,13 @@ fn use_user() -> SuspensionResult<User> {
 ```
 
 #### Note on implementing suspending hooks
+
 [`Suspension::new`](https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new) returns 2 values: the suspension context itself, and a suspension handle.
 The latter is the one responsible for signaling when to re-render the suspended components, it provides 2 interchangable ways to do so:
+
 1. Calling its [`resume`](https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume) method.
 2. Dropping the handle.
+
 If the handle isn't stored for longer than the hook's scope, the suspended components will be constantly re-rendered as often as possible, thus hampering performance.
 If the handle is forgotten, i.e. with [`forget`](https://doc.rust-lang.org/std/mem/fn.forget.html) or [`ManuallyDrop`](https://doc.rust-lang.org/std/mem/struct.ManuallyDrop.html#) won't allow the suspended components to be re-rendered ever again.
 Thus, to effectively use suspension, the handle needs to be stored until it's time to update components, i.e. with newly received data.
