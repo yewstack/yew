@@ -83,9 +83,9 @@ fn app() -> Html {
                         { for state.entries.iter().filter(|e| state.filter.fits(e)).cloned().map(|entry|
                             html! {
                                 <EntryItem {entry}
-                                    ontoggle={ontoggle.clone()}
-                                    onremove={onremove.clone()}
-                                    onedit={onedit.clone()}
+                                    ontoggle={&ontoggle}
+                                    onremove={&onremove}
+                                    onedit={&onedit}
                                 />
                         }) }
                     </ul>
@@ -100,7 +100,7 @@ fn app() -> Html {
                             html! {
                                 <FilterItem {filter}
                                     selected={state.filter == filter}
-                                    onset_filter={onset_filter.clone()}
+                                    onset_filter={&onset_filter}
                                 />
                             }
                         }) }
