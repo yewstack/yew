@@ -36,6 +36,18 @@ mod t3 {
     }
 }
 
+mod t4 {
+    use super::*;
+    #[derive(Clone, Properties, PartialEq)]
+    pub struct Props {
+        value: Option<String>
+    }
+
+    fn required_option_should_be_provided() {
+        ::yew::props!{ Props { } };
+    }
+}
+
 mod t5 {
     use super::*;
     #[derive(Clone, Properties, PartialEq)]

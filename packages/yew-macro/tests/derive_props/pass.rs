@@ -227,7 +227,7 @@ mod t12 {
     }
 
     fn optional_prop_generics_should_work() {
-        ::yew::props! { Props::<::std::primitive::bool> { } };
+        ::yew::props! { Props::<::std::primitive::bool> { value: ::std::option::Option::Some(true) } };
         ::yew::props! { Props::<::std::primitive::bool> { value: true } };
     }
 }
@@ -249,7 +249,28 @@ mod raw_field_names {
         r#true: u32,
         r#pointless_raw_name: u32,
     }
+}
 
+mod value_into_some_value_in_props {
+    #[derive(::std::cmp::PartialEq, ::yew::Properties)]
+    struct Props {
+        required: ::std::option::Option<usize>,
+        #[prop_or_default]
+        optional: ::std::option::Option<usize>
+    }
+
+    #[::yew::function_component]
+    fn Inner(_props: &Props) -> ::yew::html::Html {
+        ::yew::html!{}
+    }
+
+    #[::yew::function_component]
+    fn Main() -> ::yew::html::Html {
+        ::yew::html! {<>
+            <Inner required=3 optional=5/>
+            <Inner required={::std::option::Option::Some(6)}/>
+        </>}
+    }
 }
 
 fn main() {}
