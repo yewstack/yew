@@ -121,8 +121,22 @@ trunk serve --open
 ```
 
 Trunk will open your application in your default browser, watch the project directory and helpfully rebuild your
-application if you modify any source files. If you are curious, you can run `trunk help` and `trunk help <subcommand>`
-for more details on what's happening.
+application if you modify any source files. Remove option '--open' to not open your default browser.
+This will fail if the socket is being used by another application.
+By default server will listening at address '127.0.0.1' and port '8080' [http://localhost:8080](http://127.0.0.1:8080).
+To change it, create the following file and edit as needed:
+
+```toml title="Trunk.toml"
+[serve]
+# The address to serve on LAN.
+address = "127.0.0.1"
+# The address to serve on WAN.
+# address = "0.0.0.0"
+# The port to serve on.
+port = 8080
+```
+
+If you are curious, you can run `trunk help` and `trunk help <subcommand>` for more details on what's happening.
 
 ### Congratulations
 
