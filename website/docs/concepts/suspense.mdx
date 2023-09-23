@@ -87,10 +87,12 @@ The latter is the one responsible for signaling when to re-render the suspended 
 2. Dropping the handle.
 
 :::danger
+
 The suspension handle must be stored until it's time to update components, i.e. with newly received data;
 otherwise, the suspended components will enter an infinite re-render loop, thus hampering performance.
 In the example above, the suspension handle is preserved by being moved into a closure and passed into `on_load_user_complete`.
 When the hypothetical user will be loaded, the closure will be called, thus calling `handle.resume()` and re-rendering the components associated with the suspension context.
+
 :::
 
 # Complete Example
