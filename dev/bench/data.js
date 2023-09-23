@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1695473519679,
+  "lastUpdate": 1695474127206,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -19413,6 +19413,208 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/yewstack/yew/commit/954b0ec7b92b2a34b5d45d14e4837d87092e40b7"
         },
         "date": 1695473516958,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.19.3-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.19.3-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 01_run1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 02_replace1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 03_update10th1k_x16",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 04_select1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 05_swap1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 06_remove-one-1k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 07_create10k",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 08_create1k-after1k_x2",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 09_clear1k_x8",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 21_ready-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 22_run-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 23_update5-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 25_run-clear-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 26_run-10k-memory",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 31_startup-ci",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 32_startup-bt",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 33_startup-mainthreadcost",
+            "value": "null",
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.20.0-keyed 34_startup-totalbytes",
+            "value": "null",
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "ca2aa2a4a6c0aa07bb636c68c0ffe07ba65804b0",
+          "message": "Bump the cargo dependencies with 36 updates (#3408)\n\n* Bump the cargo-deps group with 36 updates\r\n\r\nBumps the cargo-deps group with 36 updates:\r\n\r\n| Package | From | To |\r\n| --- | --- | --- |\r\n| [proc-macro2](https://github.com/dtolnay/proc-macro2) | `1.0.63` | `1.0.67` |\r\n| [quote](https://github.com/dtolnay/quote) | `1.0.29` | `1.0.33` |\r\n| [syn](https://github.com/dtolnay/syn) | `2.0.27` | `2.0.37` |\r\n| [rustversion](https://github.com/dtolnay/rustversion) | `1.0.12` | `1.0.14` |\r\n| [trybuild](https://github.com/dtolnay/trybuild) | `1.0.80` | `1.0.85` |\r\n| [gloo-worker](https://github.com/rustwasm/gloo) | `0.3.0` | `0.4.0` |\r\n| [serde](https://github.com/serde-rs/serde) | `1.0.168` | `1.0.188` |\r\n| [prettyplease](https://github.com/dtolnay/prettyplease) | `0.2.12` | `0.2.15` |\r\n| [gloo](https://github.com/rustwasm/gloo) | `0.8.1` | `0.10.0` |\r\n| [urlencoding](https://github.com/kornelski/rust_urlencoding) | `2.1.2` | `2.1.3` |\r\n| [slab](https://github.com/tokio-rs/slab) | `0.4.8` | `0.4.9` |\r\n| [thiserror](https://github.com/dtolnay/thiserror) | `1.0.44` | `1.0.48` |\r\n| [implicit-clone](https://github.com/yewstack/implicit-clone) | `0.4.0` | `0.4.1` |\r\n| [tokio](https://github.com/tokio-rs/tokio) | `1.29.0` | `1.32.0` |\r\n| [jemallocator](https://github.com/tikv/jemallocator) | `0.5.0` | `0.5.4` |\r\n| [average](https://github.com/vks/average) | `0.13.1` | `0.14.1` |\r\n| [tabled](https://github.com/zhiburt/tabled) | `0.12.2` | `0.14.0` |\r\n| [indicatif](https://github.com/console-rs/indicatif) | `0.17.5` | `0.17.6` |\r\n| [serde_json](https://github.com/serde-rs/json) | `1.0.104` | `1.0.107` |\r\n| [clap](https://github.com/clap-rs/clap) | `4.3.9` | `4.4.4` |\r\n| [anyhow](https://github.com/dtolnay/anyhow) | `1.0.71` | `1.0.75` |\r\n| [chrono](https://github.com/chronotope/chrono) | `0.4.26` | `0.4.31` |\r\n| [git2](https://github.com/rust-lang/git2-rs) | `0.17.2` | `0.18.1` |\r\n| [regex](https://github.com/rust-lang/regex) | `1.8.4` | `1.9.4` |\r\n| [reqwest](https://github.com/seanmonstar/reqwest) | `0.11.18` | `0.11.20` |\r\n| [semver](https://github.com/dtolnay/semver) | `1.0.17` | `1.0.18` |\r\n| [gloo-net](https://github.com/rustwasm/gloo) | `0.3.0` | `0.4.0` |\r\n| [base64](https://github.com/marshallpierce/rust-base64) | `0.21.2` | `0.21.4` |\r\n| [strum_macros](https://github.com/Peternator7/strum) | `0.25.0` | `0.25.2` |\r\n| [log](https://github.com/rust-lang/log) | `0.4.19` | `0.4.20` |\r\n| [fake](https://github.com/cksac/fake-rs) | `2.6.1` | `2.8.0` |\r\n| [time](https://github.com/time-rs/time) | `0.3.22` | `0.3.28` |\r\n| [uuid](https://github.com/uuid-rs/uuid) | `1.4.0` | `1.4.1` |\r\n| [bytes](https://github.com/tokio-rs/bytes) | `1.4.0` | `1.5.0` |\r\n| [axum](https://github.com/tokio-rs/axum) | `0.6.18` | `0.6.20` |\r\n| [postcard](https://github.com/jamesmunns/postcard) | `1.0.6` | `1.0.7` |\r\n\r\n\r\nUpdates `proc-macro2` from 1.0.63 to 1.0.67\r\n- [Release notes](https://github.com/dtolnay/proc-macro2/releases)\r\n- [Commits](https://github.com/dtolnay/proc-macro2/compare/1.0.63...1.0.67)\r\n\r\nUpdates `quote` from 1.0.29 to 1.0.33\r\n- [Release notes](https://github.com/dtolnay/quote/releases)\r\n- [Commits](https://github.com/dtolnay/quote/compare/1.0.29...1.0.33)\r\n\r\nUpdates `syn` from 2.0.27 to 2.0.37\r\n- [Release notes](https://github.com/dtolnay/syn/releases)\r\n- [Commits](https://github.com/dtolnay/syn/compare/2.0.27...2.0.37)\r\n\r\nUpdates `rustversion` from 1.0.12 to 1.0.14\r\n- [Release notes](https://github.com/dtolnay/rustversion/releases)\r\n- [Commits](https://github.com/dtolnay/rustversion/compare/1.0.12...1.0.14)\r\n\r\nUpdates `trybuild` from 1.0.80 to 1.0.85\r\n- [Release notes](https://github.com/dtolnay/trybuild/releases)\r\n- [Commits](https://github.com/dtolnay/trybuild/compare/1.0.80...1.0.85)\r\n\r\nUpdates `gloo-worker` from 0.3.0 to 0.4.0\r\n- [Release notes](https://github.com/rustwasm/gloo/releases)\r\n- [Changelog](https://github.com/rustwasm/gloo/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/gloo/compare/0.3.0...0.4.0)\r\n\r\nUpdates `serde` from 1.0.168 to 1.0.188\r\n- [Release notes](https://github.com/serde-rs/serde/releases)\r\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.168...v1.0.188)\r\n\r\nUpdates `prettyplease` from 0.2.12 to 0.2.15\r\n- [Release notes](https://github.com/dtolnay/prettyplease/releases)\r\n- [Commits](https://github.com/dtolnay/prettyplease/compare/0.2.12...0.2.15)\r\n\r\nUpdates `gloo` from 0.8.1 to 0.10.0\r\n- [Release notes](https://github.com/rustwasm/gloo/releases)\r\n- [Changelog](https://github.com/rustwasm/gloo/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/gloo/commits)\r\n\r\nUpdates `urlencoding` from 2.1.2 to 2.1.3\r\n- [Commits](https://github.com/kornelski/rust_urlencoding/commits)\r\n\r\nUpdates `slab` from 0.4.8 to 0.4.9\r\n- [Release notes](https://github.com/tokio-rs/slab/releases)\r\n- [Changelog](https://github.com/tokio-rs/slab/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/tokio-rs/slab/compare/v0.4.8...v0.4.9)\r\n\r\nUpdates `thiserror` from 1.0.44 to 1.0.48\r\n- [Release notes](https://github.com/dtolnay/thiserror/releases)\r\n- [Commits](https://github.com/dtolnay/thiserror/compare/1.0.44...1.0.48)\r\n\r\nUpdates `implicit-clone` from 0.4.0 to 0.4.1\r\n- [Commits](https://github.com/yewstack/implicit-clone/compare/v0.4.0...v0.4.1)\r\n\r\nUpdates `tokio` from 1.29.0 to 1.32.0\r\n- [Release notes](https://github.com/tokio-rs/tokio/releases)\r\n- [Commits](https://github.com/tokio-rs/tokio/compare/tokio-1.29.0...tokio-1.32.0)\r\n\r\nUpdates `jemallocator` from 0.5.0 to 0.5.4\r\n- [Release notes](https://github.com/tikv/jemallocator/releases)\r\n- [Changelog](https://github.com/tikv/jemallocator/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/tikv/jemallocator/compare/0.5.0...0.5.4)\r\n\r\nUpdates `average` from 0.13.1 to 0.14.1\r\n- [Commits](https://github.com/vks/average/commits)\r\n\r\nUpdates `tabled` from 0.12.2 to 0.14.0\r\n- [Changelog](https://github.com/zhiburt/tabled/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/zhiburt/tabled/commits/v0.14.0)\r\n\r\nUpdates `indicatif` from 0.17.5 to 0.17.6\r\n- [Release notes](https://github.com/console-rs/indicatif/releases)\r\n- [Commits](https://github.com/console-rs/indicatif/compare/0.17.5...0.17.6)\r\n\r\nUpdates `serde_json` from 1.0.104 to 1.0.107\r\n- [Release notes](https://github.com/serde-rs/json/releases)\r\n- [Commits](https://github.com/serde-rs/json/compare/v1.0.104...v1.0.107)\r\n\r\nUpdates `clap` from 4.3.9 to 4.4.4\r\n- [Release notes](https://github.com/clap-rs/clap/releases)\r\n- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/clap-rs/clap/compare/v4.3.9...v4.4.4)\r\n\r\nUpdates `anyhow` from 1.0.71 to 1.0.75\r\n- [Release notes](https://github.com/dtolnay/anyhow/releases)\r\n- [Commits](https://github.com/dtolnay/anyhow/compare/1.0.71...1.0.75)\r\n\r\nUpdates `chrono` from 0.4.26 to 0.4.31\r\n- [Release notes](https://github.com/chronotope/chrono/releases)\r\n- [Changelog](https://github.com/chronotope/chrono/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/chronotope/chrono/compare/v0.4.26...v0.4.31)\r\n\r\nUpdates `git2` from 0.17.2 to 0.18.1\r\n- [Changelog](https://github.com/rust-lang/git2-rs/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rust-lang/git2-rs/compare/0.17.2...git2-0.18.1)\r\n\r\nUpdates `regex` from 1.8.4 to 1.9.4\r\n- [Release notes](https://github.com/rust-lang/regex/releases)\r\n- [Changelog](https://github.com/rust-lang/regex/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rust-lang/regex/compare/1.8.4...1.9.4)\r\n\r\nUpdates `reqwest` from 0.11.18 to 0.11.20\r\n- [Release notes](https://github.com/seanmonstar/reqwest/releases)\r\n- [Changelog](https://github.com/seanmonstar/reqwest/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/seanmonstar/reqwest/compare/v0.11.18...v0.11.20)\r\n\r\nUpdates `semver` from 1.0.17 to 1.0.18\r\n- [Release notes](https://github.com/dtolnay/semver/releases)\r\n- [Commits](https://github.com/dtolnay/semver/compare/1.0.17...1.0.18)\r\n\r\nUpdates `gloo-net` from 0.3.0 to 0.4.0\r\n- [Release notes](https://github.com/rustwasm/gloo/releases)\r\n- [Changelog](https://github.com/rustwasm/gloo/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/gloo/compare/0.3.0...0.4.0)\r\n\r\nUpdates `base64` from 0.21.2 to 0.21.4\r\n- [Changelog](https://github.com/marshallpierce/rust-base64/blob/master/RELEASE-NOTES.md)\r\n- [Commits](https://github.com/marshallpierce/rust-base64/compare/v0.21.2...v0.21.4)\r\n\r\nUpdates `strum_macros` from 0.25.0 to 0.25.2\r\n- [Changelog](https://github.com/Peternator7/strum/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/Peternator7/strum/commits)\r\n\r\nUpdates `log` from 0.4.19 to 0.4.20\r\n- [Release notes](https://github.com/rust-lang/log/releases)\r\n- [Changelog](https://github.com/rust-lang/log/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rust-lang/log/compare/0.4.19...0.4.20)\r\n\r\nUpdates `fake` from 2.6.1 to 2.8.0\r\n- [Commits](https://github.com/cksac/fake-rs/commits)\r\n\r\nUpdates `time` from 0.3.22 to 0.3.28\r\n- [Release notes](https://github.com/time-rs/time/releases)\r\n- [Changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/time-rs/time/compare/v0.3.22...v0.3.28)\r\n\r\nUpdates `uuid` from 1.4.0 to 1.4.1\r\n- [Release notes](https://github.com/uuid-rs/uuid/releases)\r\n- [Commits](https://github.com/uuid-rs/uuid/compare/1.4.0...1.4.1)\r\n\r\nUpdates `bytes` from 1.4.0 to 1.5.0\r\n- [Release notes](https://github.com/tokio-rs/bytes/releases)\r\n- [Changelog](https://github.com/tokio-rs/bytes/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/tokio-rs/bytes/compare/v1.4.0...v1.5.0)\r\n\r\nUpdates `axum` from 0.6.18 to 0.6.20\r\n- [Release notes](https://github.com/tokio-rs/axum/releases)\r\n- [Changelog](https://github.com/tokio-rs/axum/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/tokio-rs/axum/compare/axum-v0.6.18...axum-v0.6.20)\r\n\r\nUpdates `postcard` from 1.0.6 to 1.0.7\r\n- [Release notes](https://github.com/jamesmunns/postcard/releases)\r\n- [Changelog](https://github.com/jamesmunns/postcard/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/jamesmunns/postcard/compare/v1.0.6...v1.0.7)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: proc-macro2\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: quote\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: syn\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: rustversion\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: trybuild\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: gloo-worker\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: prettyplease\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: gloo\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: urlencoding\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: slab\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: thiserror\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: implicit-clone\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: tokio\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: jemallocator\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: average\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: tabled\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: indicatif\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde_json\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: clap\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: anyhow\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: chrono\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: git2\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: regex\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: reqwest\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: semver\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: gloo-net\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: base64\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: strum_macros\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: log\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: fake\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: time\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: uuid\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: bytes\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: axum\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: postcard\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\n* bless stderr files after syn update\r\n\r\n---------\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: Muhammad Hamza <muhammadhamza1311@gmail.com>",
+          "timestamp": "2023-09-23T12:57:06Z",
+          "url": "https://github.com/yewstack/yew/commit/ca2aa2a4a6c0aa07bb636c68c0ffe07ba65804b0"
+        },
+        "date": 1695474125353,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
