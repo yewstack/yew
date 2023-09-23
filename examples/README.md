@@ -57,7 +57,8 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [timer_functional](timer_functional)                                                      | [F]  | Demonstrates the use of the interval and timeout services using function components                                                 |
 | [todomvc](todomvc)                                                                        | [S]  | Implementation of [TodoMVC](http://todomvc.com/).                                                                                   |
 | [two_apps](two_apps)                                                                      | [S]  | Runs two separate Yew apps which can communicate with each other.                                                                   |
-| [web_worker_fib](web_worker_fib)                                                          | [S]  | Calculate Fibonacci numbers in a web worker thread using [`gloo-worker`](https://docs.rs/gloo-worker/latest/gloo_worker/).          |
+| [web_worker_fib](web_worker_fib)                                                          | [F]  | Calculate Fibonacci numbers in a web worker thread using [`yew-agent`](https://docs.rs/yew-agent/latest/yew_agent/).              |
+| [web_worker_prime](web_worker_prime)                                                      | [F]  | Calculate Prime numbers in a web worker thread using [`yew-agent`](https://docs.rs/yew-agent/latest/yew_agent/).                  |
 | [webgl](webgl)                                                                            | [S]  | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew. |
 
 [CT]: ## "Component Type"

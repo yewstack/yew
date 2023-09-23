@@ -1,6 +1,6 @@
-use yew_agent::PublicWorker;
-use yew_worker_fib::agent::Worker;
+use yew_agent::Registrable;
+use yew_worker_fib::agent::{FibonacciTask, Postcard};
 
 fn main() {
-    Worker::register();
+    FibonacciTask::registrar().encoding::<Postcard>().register();
 }
