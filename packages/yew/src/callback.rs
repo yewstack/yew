@@ -90,7 +90,7 @@ macro_rules! generate_callback_impls {
             where
                 // NOTE: here we return a CallbackRef so there is actually nothing special about it
                 //       it's just a convenient function
-                F: Fn(&T) -> IN + 'static,
+                F: Fn(&T) -> $in_ty + 'static,
             {
                 let this = self.clone();
                 let func = move |input: &T| {
@@ -105,7 +105,7 @@ macro_rules! generate_callback_impls {
             /// That when emitted will call that function and will emit the original callback
             pub fn reform_ref_mut<F, T>(&self, func: F) -> CallbackRefMut<T, OUT>
             where
-                F: Fn(&mut T) -> IN + 'static,
+                F: Fn(&mut T) -> $in_ty + 'static,
             {
                 let this = self.clone();
                 let func = move |input: &mut T| {
@@ -138,7 +138,7 @@ macro_rules! generate_callback_impls {
             /// `value` to the original callback.
             pub fn filter_reform_ref<F, T>(&self, func: F) -> CallbackRef<T, Option<OUT>>
             where
-                F: Fn(&T) -> Option<IN> + 'static,
+                F: Fn(&T) -> Option<$in_ty> + 'static,
             {
                 let this = self.clone();
                 let func = move |input: &T| {
@@ -155,7 +155,7 @@ macro_rules! generate_callback_impls {
             /// `value` to the original callback.
             pub fn filter_reform_ref_mut<F, T>(&self, func: F) -> CallbackRefMut<T, Option<OUT>>
             where
-                F: Fn(&mut T) -> Option<IN> + 'static,
+                F: Fn(&mut T) -> Option<$in_ty> + 'static,
             {
                 let this = self.clone();
                 let func = move |input: &mut T| {
@@ -241,5 +241,59 @@ mod test {
             })),
             vec![true, false]
         );
+    }
+
+    #[test]
+    fn test_ref() {
+        let callback: CallbackRef<usize, usize> = CallbackRef::from(|x: &usize| *x);
+        assert_eq!(callback.emit(&42), 42);
+    }
+
+    #[test]
+    fn test_ref_mut() {
+        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x = 42);
+        let mut value: usize = 0;
+        callback.emit(&mut value);
+        assert_eq!(value, 42);
+    }
+
+    #[test]
+    fn test_reform_ref() {
+        let callback: Callback<usize, usize> = Callback::from(|x: usize| x + 1);
+        let reformed: CallbackRef<usize, usize> = callback.reform_ref(|x: &usize| *x + 2);
+        assert_eq!(reformed.emit(&42), 45);
+    }
+
+    #[test]
+    fn test_reform_ref_mut() {
+        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x = *x + 1);
+        let reformed: CallbackRefMut<usize, ()> = callback.reform_ref_mut(|x: &mut usize| {
+            *x = *x + 2;
+            x
+        });
+        let mut value: usize = 42;
+        reformed.emit(&mut value);
+        assert_eq!(value, 45);
+    }
+
+    #[test]
+    fn test_filter_reform_ref() {
+        let callback: Callback<usize, usize> = Callback::from(|x: usize| x + 1);
+        let reformed: CallbackRef<usize, Option<usize>> =
+            callback.filter_reform_ref(|x: &usize| Some(*x + 2));
+        assert_eq!(reformed.emit(&42), Some(45));
+    }
+
+    #[test]
+    fn test_filter_reform_ref_mut() {
+        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x = *x + 1);
+        let reformed: CallbackRefMut<usize, Option<()>> =
+            callback.filter_reform_ref_mut(|x: &mut usize| {
+                *x = *x + 2;
+                Some(x)
+            });
+        let mut value: usize = 42;
+        reformed.emit(&mut value).expect("is some");
+        assert_eq!(value, 45);
     }
 }
