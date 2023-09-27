@@ -186,7 +186,7 @@ pub struct CallbackRef<IN, OUT = ()> {
     pub(crate) cb: Rc<dyn Fn(&IN) -> OUT>,
 }
 
-generate_callback_impls!(CallbackRef, &IN, output => &output);
+generate_callback_impls!(CallbackRef, &IN, output => #[allow(clippy::needless_borrow)] &output);
 
 /// Universal callback wrapper with mutable reference in argument.
 ///
