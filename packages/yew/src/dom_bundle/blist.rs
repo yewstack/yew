@@ -71,7 +71,7 @@ impl<'s> NodeWriter<'s> {
     }
 
     /// Shift a bundle into place without patching it
-    fn shift(&self, bundle: &BNode) {
+    fn shift(&self, bundle: &mut BNode) {
         bundle.shift(self.parent, self.slot.clone());
     }
 
