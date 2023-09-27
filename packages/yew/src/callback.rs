@@ -9,14 +9,6 @@ use std::rc::Rc;
 
 use crate::html::ImplicitClone;
 
-/// Universal callback wrapper.
-///
-/// An `Rc` wrapper is used to make it cloneable.
-pub struct Callback<IN, OUT = ()> {
-    /// A callback which can be called multiple times
-    pub(crate) cb: Rc<dyn Fn(IN) -> OUT>,
-}
-
 macro_rules! generate_callback_impls {
     ($callback:ident, $in_ty:ty, $out_var:ident => $out_val:expr) => {
         impl<IN, OUT, F: Fn($in_ty) -> OUT + 'static> From<F> for $callback<IN, OUT> {
@@ -69,7 +61,8 @@ macro_rules! generate_callback_impls {
         }
 
         impl<IN: 'static, OUT: 'static> $callback<IN, OUT> {
-            /// Creates a new callback from another callback and a function
+            /// Creates a new [`Callback`] from another callback and a function.
+            ///
             /// That when emitted will call that function and will emit the original callback
             pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
             where
@@ -84,12 +77,11 @@ macro_rules! generate_callback_impls {
                 func.into()
             }
 
-            /// Creates a new callback from another callback and a function
+            /// Creates a new [`CallbackRef`] from another callback and a function.
+            ///
             /// That when emitted will call that function and will emit the original callback
             pub fn reform_ref<F, T>(&self, func: F) -> CallbackRef<T, OUT>
             where
-                // NOTE: here we return a CallbackRef so there is actually nothing special about it
-                //       it's just a convenient function
                 F: Fn(&T) -> $in_ty + 'static,
             {
                 let this = self.clone();
@@ -101,7 +93,8 @@ macro_rules! generate_callback_impls {
                 func.into()
             }
 
-            /// Creates a new callback from another callback and a function
+            /// Creates a new [`CallbackRefMut`] from another callback and a function.
+            ///
             /// That when emitted will call that function and will emit the original callback
             pub fn reform_ref_mut<F, T>(&self, func: F) -> CallbackRefMut<T, OUT>
             where
@@ -116,7 +109,8 @@ macro_rules! generate_callback_impls {
                 func.into()
             }
 
-            /// Creates a new callback from another callback and a function.
+            /// Creates a new [`Callback`] from another callback and a function.
+            ///
             /// When emitted will call the function and, only if it returns `Some(value)`, will emit
             /// `value` to the original callback.
             pub fn filter_reform<F, T>(&self, func: F) -> Callback<T, Option<OUT>>
@@ -133,7 +127,8 @@ macro_rules! generate_callback_impls {
                 func.into()
             }
 
-            /// Creates a new callback from another callback and a function.
+            /// Creates a new [`CallbackRef`] from another callback and a function.
+            ///
             /// When emitted will call the function and, only if it returns `Some(value)`, will emit
             /// `value` to the original callback.
             pub fn filter_reform_ref<F, T>(&self, func: F) -> CallbackRef<T, Option<OUT>>
@@ -150,7 +145,8 @@ macro_rules! generate_callback_impls {
                 func.into()
             }
 
-            /// Creates a new callback from another callback and a function.
+            /// Creates a new [`CallbackRefMut`] from another callback and a function.
+            ///
             /// When emitted will call the function and, only if it returns `Some(value)`, will emit
             /// `value` to the original callback.
             pub fn filter_reform_ref_mut<F, T>(&self, func: F) -> CallbackRefMut<T, Option<OUT>>
@@ -170,6 +166,14 @@ macro_rules! generate_callback_impls {
 
         impl<IN, OUT> ImplicitClone for $callback<IN, OUT> {}
     };
+}
+
+/// Universal callback wrapper.
+///
+/// An `Rc` wrapper is used to make it cloneable.
+pub struct Callback<IN, OUT = ()> {
+    /// A callback which can be called multiple times
+    pub(crate) cb: Rc<dyn Fn(IN) -> OUT>,
 }
 
 generate_callback_impls!(Callback, IN, output => output);
