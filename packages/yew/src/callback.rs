@@ -17,100 +17,162 @@ pub struct Callback<IN, OUT = ()> {
     pub(crate) cb: Rc<dyn Fn(IN) -> OUT>,
 }
 
-impl<IN, OUT, F: Fn(IN) -> OUT + 'static> From<F> for Callback<IN, OUT> {
-    fn from(func: F) -> Self {
-        Callback { cb: Rc::new(func) }
-    }
-}
-
-impl<IN, OUT> Clone for Callback<IN, OUT> {
-    fn clone(&self) -> Self {
-        Self {
-            cb: self.cb.clone(),
+macro_rules! generate_callback_impls {
+    ($callback:ident, $in_ty:ty, $out_var:ident => $out_val:expr) => {
+        impl<IN, OUT, F: Fn($in_ty) -> OUT + 'static> From<F> for $callback<IN, OUT> {
+            fn from(func: F) -> Self {
+                $callback { cb: Rc::new(func) }
+            }
         }
-    }
+
+        impl<IN, OUT> Clone for $callback<IN, OUT> {
+            fn clone(&self) -> Self {
+                Self {
+                    cb: self.cb.clone(),
+                }
+            }
+        }
+
+        #[allow(clippy::vtable_address_comparisons)]
+        impl<IN, OUT> PartialEq for $callback<IN, OUT> {
+            fn eq(&self, other: &$callback<IN, OUT>) -> bool {
+                let ($callback { cb }, $callback { cb: rhs_cb }) = (self, other);
+                Rc::ptr_eq(cb, rhs_cb)
+            }
+        }
+
+        impl<IN, OUT> fmt::Debug for $callback<IN, OUT> {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(f, "$callback<_>")
+            }
+        }
+
+        impl<IN, OUT> $callback<IN, OUT> {
+            /// This method calls the callback's function.
+            pub fn emit(&self, value: $in_ty) -> OUT {
+                (*self.cb)(value)
+            }
+        }
+
+        impl<IN> $callback<IN> {
+            /// Creates a "no-op" callback which can be used when it is not suitable to use an
+            /// `Option<$callback>`.
+            pub fn noop() -> Self {
+                Self::from(|_: $in_ty| ())
+            }
+        }
+
+        impl<IN> Default for $callback<IN> {
+            fn default() -> Self {
+                Self::noop()
+            }
+        }
+
+        impl<IN: 'static, OUT: 'static> $callback<IN, OUT> {
+            /// Creates a new callback from another callback and a function
+            /// That when emitted will call that function and will emit the original callback
+            pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
+            where
+                F: Fn(T) -> IN + 'static,
+            {
+                let this = self.clone();
+                let func = move |input: T| {
+                    #[allow(unused_mut)]
+                    let mut $out_var = func(input);
+                    this.emit($out_val)
+                };
+                func.into()
+            }
+
+            /// Creates a new callback from another callback and a function
+            /// That when emitted will call that function and will emit the original callback
+            pub fn reform_ref<F, T>(&self, func: F) -> CallbackRef<T, OUT>
+            where
+                // NOTE: here we return a CallbackRef so there is actually nothing special about it
+                //       it's just a convenient function
+                F: Fn(&T) -> IN + 'static,
+            {
+                let this = self.clone();
+                let func = move |input: &T| {
+                    #[allow(unused_mut)]
+                    let mut $out_var = func(input);
+                    this.emit($out_val)
+                };
+                func.into()
+            }
+
+            /// Creates a new callback from another callback and a function
+            /// That when emitted will call that function and will emit the original callback
+            pub fn reform_ref_mut<F, T>(&self, func: F) -> CallbackRefMut<T, OUT>
+            where
+                F: Fn(&mut T) -> IN + 'static,
+            {
+                let this = self.clone();
+                let func = move |input: &mut T| {
+                    #[allow(unused_mut)]
+                    let mut $out_var = func(input);
+                    this.emit($out_val)
+                };
+                func.into()
+            }
+
+            /// Creates a new callback from another callback and a function.
+            /// When emitted will call the function and, only if it returns `Some(value)`, will emit
+            /// `value` to the original callback.
+            pub fn filter_reform<F, T>(&self, func: F) -> Callback<T, Option<OUT>>
+            where
+                F: Fn(T) -> Option<IN> + 'static,
+            {
+                let this = self.clone();
+                let func = move |input: T| {
+                    func(input).map(
+                        #[allow(unused_mut)]
+                        |mut $out_var| this.emit($out_val),
+                    )
+                };
+                func.into()
+            }
+
+            /// Creates a new callback from another callback and a function.
+            /// When emitted will call the function and, only if it returns `Some(value)`, will emit
+            /// `value` to the original callback.
+            pub fn filter_reform_ref<F, T>(&self, func: F) -> CallbackRef<T, Option<OUT>>
+            where
+                F: Fn(&T) -> Option<IN> + 'static,
+            {
+                let this = self.clone();
+                let func = move |input: &T| {
+                    func(input).map(
+                        #[allow(unused_mut)]
+                        |mut $out_var| this.emit($out_val),
+                    )
+                };
+                func.into()
+            }
+
+            /// Creates a new callback from another callback and a function.
+            /// When emitted will call the function and, only if it returns `Some(value)`, will emit
+            /// `value` to the original callback.
+            pub fn filter_reform_ref_mut<F, T>(&self, func: F) -> CallbackRefMut<T, Option<OUT>>
+            where
+                F: Fn(&mut T) -> Option<IN> + 'static,
+            {
+                let this = self.clone();
+                let func = move |input: &mut T| {
+                    func(input).map(
+                        #[allow(unused_mut)]
+                        |mut $out_var| this.emit($out_val),
+                    )
+                };
+                func.into()
+            }
+        }
+
+        impl<IN, OUT> ImplicitClone for $callback<IN, OUT> {}
+    };
 }
 
-#[allow(clippy::vtable_address_comparisons)]
-impl<IN, OUT> PartialEq for Callback<IN, OUT> {
-    fn eq(&self, other: &Callback<IN, OUT>) -> bool {
-        let (Callback { cb }, Callback { cb: rhs_cb }) = (self, other);
-        Rc::ptr_eq(cb, rhs_cb)
-    }
-}
-
-impl<IN, OUT> fmt::Debug for Callback<IN, OUT> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Callback<_>")
-    }
-}
-
-impl<IN, OUT> Callback<IN, OUT> {
-    /// This method calls the callback's function.
-    pub fn emit(&self, value: IN) -> OUT {
-        (*self.cb)(value)
-    }
-}
-
-impl<IN> Callback<IN> {
-    /// Creates a "no-op" callback which can be used when it is not suitable to use an
-    /// `Option<Callback>`.
-    pub fn noop() -> Self {
-        Self::from(|_| ())
-    }
-}
-
-impl<IN> Default for Callback<IN> {
-    fn default() -> Self {
-        Self::noop()
-    }
-}
-
-impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
-    /// Creates a new callback from another callback and a function
-    /// That when emitted will call that function and will emit the original callback
-    pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
-    where
-        F: Fn(T) -> IN + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: T| {
-            let output = func(input);
-            this.emit(output)
-        };
-        Callback::from(func)
-    }
-
-    /// Creates a new callback from another callback and a function
-    /// That when emitted will call that function and will emit the original callback
-    pub fn reform_ref<F, T>(&self, func: F) -> CallbackRef<T, OUT>
-    where
-        // NOTE: here we return a CallbackRef so there is actually nothing special about it
-        //       it's just a convenient function
-        F: Fn(&T) -> IN + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: &T| {
-            let output = func(input);
-            this.emit(output)
-        };
-        CallbackRef::from(func)
-    }
-
-    /// Creates a new callback from another callback and a function.
-    /// When emitted will call the function and, only if it returns `Some(value)`, will emit
-    /// `value` to the original callback.
-    pub fn filter_reform<F, T>(&self, func: F) -> Callback<T, Option<OUT>>
-    where
-        F: Fn(T) -> Option<IN> + 'static,
-    {
-        let this = self.clone();
-        let func = move |input| func(input).map(|output| this.emit(output));
-        Callback::from(func)
-    }
-}
-
-impl<IN, OUT> ImplicitClone for Callback<IN, OUT> {}
+generate_callback_impls!(Callback, IN, output => output);
 
 /// Universal callback wrapper with reference in argument.
 ///
@@ -120,102 +182,7 @@ pub struct CallbackRef<IN, OUT = ()> {
     pub(crate) cb: Rc<dyn Fn(&IN) -> OUT>,
 }
 
-impl<IN, OUT, F: Fn(&IN) -> OUT + 'static> From<F> for CallbackRef<IN, OUT> {
-    fn from(func: F) -> Self {
-        CallbackRef { cb: Rc::new(func) }
-    }
-}
-
-impl<IN, OUT> Clone for CallbackRef<IN, OUT> {
-    fn clone(&self) -> Self {
-        Self {
-            cb: self.cb.clone(),
-        }
-    }
-}
-
-#[allow(clippy::vtable_address_comparisons)]
-impl<IN, OUT> PartialEq for CallbackRef<IN, OUT> {
-    fn eq(&self, other: &CallbackRef<IN, OUT>) -> bool {
-        let (CallbackRef { cb }, CallbackRef { cb: rhs_cb }) = (self, other);
-        Rc::ptr_eq(cb, rhs_cb)
-    }
-}
-
-impl<IN, OUT> fmt::Debug for CallbackRef<IN, OUT> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "CallbackRef<_>")
-    }
-}
-
-impl<IN, OUT> CallbackRef<IN, OUT> {
-    /// This method calls the callback's function.
-    pub fn emit(&self, value: &IN) -> OUT {
-        (*self.cb)(value)
-    }
-}
-
-impl<IN> CallbackRef<IN> {
-    /// Creates a "no-op" callback which can be used when it is not suitable to use an
-    /// `Option<CallbackRef>`.
-    pub fn noop() -> Self {
-        Self::from(|_: &_| ())
-    }
-}
-
-impl<IN> Default for CallbackRef<IN> {
-    fn default() -> Self {
-        Self::noop()
-    }
-}
-
-impl<IN: 'static, OUT: 'static> CallbackRef<IN, OUT> {
-    /// Creates a new callback from another callback and a function
-    /// That when emitted will call that function and will emit the original callback
-    pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
-    where
-        F: Fn(T) -> IN + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: T| {
-            let output = func(input);
-            this.emit(&output)
-        };
-        Callback::from(func)
-    }
-
-    /// Creates a new callback from another callback and a function
-    /// That when emitted will call that function and will emit the original callback
-    pub fn reform_ref<F, T>(&self, func: F) -> CallbackRef<T, OUT>
-    where
-        // NOTE: I think both lifetimes here are the same, so it should be good
-        // (don't mind the 'static, that's for the function itself)
-        F: Fn(&T) -> &IN + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: &T| {
-            let output = func(input);
-            this.emit(output)
-        };
-        CallbackRef::from(func)
-    }
-
-/*
-    /// Creates a new callback from another callback and a function.
-    /// When emitted will call the function and, only if it returns `Some(value)`, will emit
-    /// `value` to the original callback.
-    pub fn filter_reform<F, T>(&self, func: F) -> CallbackRef<T, Option<OUT>>
-    where
-        F: Fn(&T) -> Option<&IN> + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: &_| func(input).map(|output| this.emit(output));
-        CallbackRef::from(func)
-    }
-*/
-}
-
-impl<IN, OUT> ImplicitClone for CallbackRef<IN, OUT> {}
+generate_callback_impls!(CallbackRef, &IN, output => &output);
 
 /// Universal callback wrapper with mutable reference in argument.
 ///
@@ -225,84 +192,7 @@ pub struct CallbackRefMut<IN, OUT = ()> {
     pub(crate) cb: Rc<dyn Fn(&mut IN) -> OUT>,
 }
 
-impl<IN, OUT, F: Fn(&mut IN) -> OUT + 'static> From<F> for CallbackRefMut<IN, OUT> {
-    fn from(func: F) -> Self {
-        CallbackRefMut { cb: Rc::new(func) }
-    }
-}
-
-impl<IN, OUT> Clone for CallbackRefMut<IN, OUT> {
-    fn clone(&self) -> Self {
-        Self {
-            cb: self.cb.clone(),
-        }
-    }
-}
-
-#[allow(clippy::vtable_address_comparisons)]
-impl<IN, OUT> PartialEq for CallbackRefMut<IN, OUT> {
-    fn eq(&self, other: &CallbackRefMut<IN, OUT>) -> bool {
-        let (CallbackRefMut { cb }, CallbackRefMut { cb: rhs_cb }) = (self, other);
-        Rc::ptr_eq(cb, rhs_cb)
-    }
-}
-
-impl<IN, OUT> fmt::Debug for CallbackRefMut<IN, OUT> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "CallbackRefMut<_>")
-    }
-}
-
-impl<IN, OUT> CallbackRefMut<IN, OUT> {
-    /// This method calls the callback's function.
-    pub fn emit(&self, value: &mut IN) -> OUT {
-        (*self.cb)(value)
-    }
-}
-
-impl<IN> CallbackRefMut<IN> {
-    /// Creates a "no-op" callback which can be used when it is not suitable to use an
-    /// `Option<CallbackRefMut>`.
-    pub fn noop() -> Self {
-        Self::from(|_: &mut _| ())
-    }
-}
-
-impl<IN> Default for CallbackRefMut<IN> {
-    fn default() -> Self {
-        Self::noop()
-    }
-}
-
-impl<IN: 'static, OUT: 'static> CallbackRefMut<IN, OUT> {
-    /// Creates a new callback from another callback and a function
-    /// That when emitted will call that function and will emit the original callback
-    pub fn reform<F, T>(&self, func: F) -> CallbackRefMut<T, OUT>
-    where
-        F: Fn(&mut T) -> &mut IN + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: &mut _| {
-            let output = func(input);
-            this.emit(output)
-        };
-        CallbackRefMut::from(func)
-    }
-
-    /// Creates a new callback from another callback and a function.
-    /// When emitted will call the function and, only if it returns `Some(value)`, will emit
-    /// `value` to the original callback.
-    pub fn filter_reform<F, T>(&self, func: F) -> CallbackRefMut<T, Option<OUT>>
-    where
-        F: Fn(&mut T) -> Option<&mut IN> + 'static,
-    {
-        let this = self.clone();
-        let func = move |input: &mut _| func(input).map(|output| this.emit(output));
-        CallbackRefMut::from(func)
-    }
-}
-
-impl<IN, OUT> ImplicitClone for CallbackRefMut<IN, OUT> {}
+generate_callback_impls!(CallbackRefMut, &mut IN, output => &mut output);
 
 #[cfg(test)]
 mod test {
