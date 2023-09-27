@@ -153,17 +153,15 @@ impl<IN> Default for CallbackRef<IN> {
     }
 }
 
-// TODO lifetimes ^_^'
-/*
 impl<IN: 'static, OUT: 'static> CallbackRef<IN, OUT> {
     /// Creates a new callback from another callback and a function
     /// That when emitted will call that function and will emit the original callback
     pub fn reform<F, T>(&self, func: F) -> CallbackRef<T, OUT>
     where
-        F: Fn(T) -> IN + 'static,
+        F: Fn(&T) -> &IN + 'static,
     {
         let this = self.clone();
-        let func = move |input| {
+        let func = move |input: &_| {
             let output = func(input);
             this.emit(output)
         };
@@ -175,14 +173,13 @@ impl<IN: 'static, OUT: 'static> CallbackRef<IN, OUT> {
     /// `value` to the original callback.
     pub fn filter_reform<F, T>(&self, func: F) -> CallbackRef<T, Option<OUT>>
     where
-        F: Fn(T) -> Option<IN> + 'static,
+        F: Fn(&T) -> Option<&IN> + 'static,
     {
         let this = self.clone();
-        let func = move |input| func(input).map(|output| this.emit(output));
+        let func = move |input: &_| func(input).map(|output| this.emit(output));
         CallbackRef::from(func)
     }
 }
-*/
 
 impl<IN, OUT> ImplicitClone for CallbackRef<IN, OUT> {}
 
@@ -243,17 +240,15 @@ impl<IN> Default for CallbackRefMut<IN> {
     }
 }
 
-// TODO lifetimes ^_^'
-/*
 impl<IN: 'static, OUT: 'static> CallbackRefMut<IN, OUT> {
     /// Creates a new callback from another callback and a function
     /// That when emitted will call that function and will emit the original callback
     pub fn reform<F, T>(&self, func: F) -> CallbackRefMut<T, OUT>
     where
-        F: Fn(T) -> IN + 'static,
+        F: Fn(&mut T) -> &mut IN + 'static,
     {
         let this = self.clone();
-        let func = move |input| {
+        let func = move |input: &mut _| {
             let output = func(input);
             this.emit(output)
         };
@@ -265,14 +260,13 @@ impl<IN: 'static, OUT: 'static> CallbackRefMut<IN, OUT> {
     /// `value` to the original callback.
     pub fn filter_reform<F, T>(&self, func: F) -> CallbackRefMut<T, Option<OUT>>
     where
-        F: Fn(T) -> Option<IN> + 'static,
+        F: Fn(&mut T) -> Option<&mut IN> + 'static,
     {
         let this = self.clone();
-        let func = move |input| func(input).map(|output| this.emit(output));
+        let func = move |input: &mut _| func(input).map(|output| this.emit(output));
         CallbackRefMut::from(func)
     }
 }
-*/
 
 impl<IN, OUT> ImplicitClone for CallbackRefMut<IN, OUT> {}
 
