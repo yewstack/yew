@@ -74,11 +74,27 @@ impl<IN: 'static, OUT: 'static> Callback<IN, OUT> {
         F: Fn(T) -> IN + 'static,
     {
         let this = self.clone();
-        let func = move |input| {
+        let func = move |input: T| {
             let output = func(input);
             this.emit(output)
         };
         Callback::from(func)
+    }
+
+    /// Creates a new callback from another callback and a function
+    /// That when emitted will call that function and will emit the original callback
+    pub fn reform_ref<F, T>(&self, func: F) -> CallbackRef<T, OUT>
+    where
+        // NOTE: here we return a CallbackRef so there is actually nothing special about it
+        //       it's just a convenient function
+        F: Fn(&T) -> IN + 'static,
+    {
+        let this = self.clone();
+        let func = move |input: &T| {
+            let output = func(input);
+            this.emit(output)
+        };
+        CallbackRef::from(func)
     }
 
     /// Creates a new callback from another callback and a function.
@@ -156,18 +172,35 @@ impl<IN> Default for CallbackRef<IN> {
 impl<IN: 'static, OUT: 'static> CallbackRef<IN, OUT> {
     /// Creates a new callback from another callback and a function
     /// That when emitted will call that function and will emit the original callback
-    pub fn reform<F, T>(&self, func: F) -> CallbackRef<T, OUT>
+    pub fn reform<F, T>(&self, func: F) -> Callback<T, OUT>
     where
+        F: Fn(T) -> IN + 'static,
+    {
+        let this = self.clone();
+        let func = move |input: T| {
+            let output = func(input);
+            this.emit(&output)
+        };
+        Callback::from(func)
+    }
+
+    /// Creates a new callback from another callback and a function
+    /// That when emitted will call that function and will emit the original callback
+    pub fn reform_ref<F, T>(&self, func: F) -> CallbackRef<T, OUT>
+    where
+        // NOTE: I think both lifetimes here are the same, so it should be good
+        // (don't mind the 'static, that's for the function itself)
         F: Fn(&T) -> &IN + 'static,
     {
         let this = self.clone();
-        let func = move |input: &_| {
+        let func = move |input: &T| {
             let output = func(input);
             this.emit(output)
         };
         CallbackRef::from(func)
     }
 
+/*
     /// Creates a new callback from another callback and a function.
     /// When emitted will call the function and, only if it returns `Some(value)`, will emit
     /// `value` to the original callback.
@@ -179,6 +212,7 @@ impl<IN: 'static, OUT: 'static> CallbackRef<IN, OUT> {
         let func = move |input: &_| func(input).map(|output| this.emit(output));
         CallbackRef::from(func)
     }
+*/
 }
 
 impl<IN, OUT> ImplicitClone for CallbackRef<IN, OUT> {}
