@@ -19,7 +19,7 @@ pub fn create_log_line(
     package_labels: &'static [&'static str],
     oid: Result<Oid, Error>,
     token: Option<String>,
-    user_fetcher: &mut GitHubUsersFetcher
+    user_fetcher: &mut GitHubUsersFetcher,
 ) -> Result<Option<LogLine>> {
     println!("Commit oid: {oid:?}");
     let oid = oid?;
@@ -33,7 +33,8 @@ pub fn create_log_line(
         .to_string();
     let author = commit.author();
     let author_name = author.name().unwrap_or("Unknown");
-    let author_id = user_fetcher.fetch_user_by_commit_author(author_name, commit.id().to_string(), token.clone())
+    let author_id = user_fetcher
+        .fetch_user_by_commit_author(author_name, commit.id().to_string(), token.clone())
         .context("Missing author's GitHub ID")?;
     let email = author.email().context("Missing author's email")?;
 

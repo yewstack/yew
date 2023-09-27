@@ -1,5 +1,7 @@
 use std::io::Write;
+
 use anyhow::Result;
+
 use crate::log_line::LogLine;
 
 pub fn write_log_lines(log_lines: Vec<LogLine>) -> Result<Vec<u8>> {
