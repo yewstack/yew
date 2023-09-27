@@ -270,9 +270,9 @@ mod test {
 
     #[test]
     fn test_reform_ref_mut() {
-        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x = *x + 1);
+        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x += 1);
         let reformed: CallbackRefMut<usize, ()> = callback.reform_ref_mut(|x: &mut usize| {
-            *x = *x + 2;
+            *x += 2;
             x
         });
         let mut value: usize = 42;
@@ -290,10 +290,10 @@ mod test {
 
     #[test]
     fn test_filter_reform_ref_mut() {
-        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x = *x + 1);
+        let callback: CallbackRefMut<usize, ()> = CallbackRefMut::from(|x: &mut usize| *x += 1);
         let reformed: CallbackRefMut<usize, Option<()>> =
             callback.filter_reform_ref_mut(|x: &mut usize| {
-                *x = *x + 2;
+                *x += 2;
                 Some(x)
             });
         let mut value: usize = 42;
