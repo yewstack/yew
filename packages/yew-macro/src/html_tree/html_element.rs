@@ -506,7 +506,9 @@ pub struct DynamicName {
 impl Peek<'_, ()> for DynamicName {
     fn peek(cursor: Cursor) -> Option<((), Cursor)> {
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '@' {return None}
+        if punct.as_char() != '@' {
+            return None;
+        }
 
         // move cursor past block if there is one
         let cursor = cursor
@@ -606,7 +608,9 @@ impl HtmlElementOpen {
 impl PeekValue<TagKey> for HtmlElementOpen {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '<' {return None}
+        if punct.as_char() != '<' {
+            return None;
+        }
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
         if let TagKey::Lit(name) = &tag_key {
@@ -614,9 +618,11 @@ impl PeekValue<TagKey> for HtmlElementOpen {
             if name.to_string() == "key" {
                 let (punct, _) = cursor.punct()?;
                 // ... unless it isn't followed by a '='. `<key></key>` is a valid element!
-                if punct.as_char() == '=' {return None}
+                if punct.as_char() == '=' {
+                    return None;
+                }
             } else if !non_capitalized_ascii(&name.to_string()) {
-                return None
+                return None;
             }
         }
 
@@ -674,14 +680,18 @@ impl HtmlElementClose {
 impl PeekValue<TagKey> for HtmlElementClose {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '<' {return None}
+        if punct.as_char() != '<' {
+            return None;
+        }
 
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '/' {return None}
+        if punct.as_char() != '/' {
+            return None;
+        }
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
         if matches!(&tag_key, TagKey::Lit(name) if !non_capitalized_ascii(&name.to_string())) {
-            return None
+            return None;
         }
 
         let (punct, _) = cursor.punct()?;

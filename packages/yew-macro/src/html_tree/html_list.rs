@@ -98,7 +98,9 @@ impl HtmlListOpen {
 impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '<' {return None}
+        if punct.as_char() != '<' {
+            return None;
+        }
         // make sure it's either a property (key=value) or it's immediately closed
         if let Some((_, cursor)) = HtmlDashedName::peek(cursor) {
             let (punct, _) = cursor.punct()?;
@@ -155,9 +157,13 @@ impl HtmlListClose {
 impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '<' {return None}
+        if punct.as_char() != '<' {
+            return None;
+        }
         let (punct, cursor) = cursor.punct()?;
-        if punct.as_char() != '/' {return None}
+        if punct.as_char() != '/' {
+            return None;
+        }
 
         let (punct, _) = cursor.punct()?;
         (punct.as_char() == '>').then_some(())
