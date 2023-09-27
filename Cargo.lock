@@ -3744,7 +3744,6 @@ dependencies = [
 name = "yew-macro"
 version = "0.20.0"
 dependencies = [
- "boolinator",
  "once_cell",
  "prettyplease",
  "proc-macro-error",

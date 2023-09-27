@@ -1,4 +1,3 @@
-use boolinator::Boolinator;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -19,7 +18,7 @@ pub struct HtmlIf {
 impl PeekValue<()> for HtmlIf {
     fn peek(cursor: Cursor) -> Option<()> {
         let (ident, _) = cursor.ident()?;
-        (ident == "if").as_option()
+        (ident == "if").then_some(())
     }
 }
 
