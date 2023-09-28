@@ -101,14 +101,14 @@ where
 
         use_memo_base(
             move |deps| {
-                let self_id = latest_id.get().wrapping_add(1);
+                let self_id = (*latest_id).get().wrapping_add(1);
                 // As long as less than 2**32 futures are in flight wrapping_add is fine
                 (*latest_id).set(self_id);
                 let deps = Rc::new(deps);
                 let task = f(deps.clone());
                 let suspension = Suspension::from_future(async move {
                     let result = task.await;
-                    if latest_id.get() == self_id {
+                    if (*latest_id).get() == self_id {
                         output.set(Some(result));
                     }
                 });

@@ -2,6 +2,7 @@
 
 mod common;
 
+use std::rc::Rc;
 use std::time::Duration;
 
 use common::obtain_result;
@@ -16,6 +17,7 @@ async fn use_state_works() {
     #[function_component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
+        assert_eq!(counter.get(), Rc::new(0));
         if *counter < 5 {
             counter.set(*counter + 1)
         }
