@@ -1,4 +1,5 @@
 use std::fmt;
+use std::mem::transmute;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -9,6 +10,7 @@ use crate::functional::hook;
 use crate::html::IntoPropValue;
 use crate::Callback;
 
+#[repr(transparent)]
 struct UseStateReducer<T> {
     value: T,
 }
@@ -115,6 +117,16 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
 }
 
 impl<T> UseStateHandle<T> {
+    /// Returns the current value of the handle as an `Rc`.
+    ///
+    /// Unlike [`Deref`], this gives you an owned `Rc<T>` that can be moved
+    /// into closures or stored without borrowing the handle.
+    pub fn value_rc(&self) -> Rc<T> {
+        // SAFETY: `UseStateReducer<T>` is `repr(transparent)` over `T`, so
+        // `Rc<UseStateReducer<T>>` and `Rc<T>` have identical layouts.
+        unsafe { transmute(self.inner.value_rc()) }
+    }
+
     /// Replaces the value
     pub fn set(&self, value: T) {
         self.inner.dispatch(value)
@@ -125,6 +137,14 @@ impl<T> UseStateHandle<T> {
         UseStateSetter {
             inner: self.inner.dispatcher(),
         }
+    }
+
+    /// Destructures the handle into its two parts: the current value as an
+    /// `Rc<T>`, and the setter for updating the state.
+    pub fn into_inner(self) -> (Rc<T>, UseStateSetter<T>) {
+        let (data, inner) = self.inner.into_inner();
+        // SAFETY: same repr(transparent) guarantee as `value_rc`.
+        (unsafe { transmute(data) }, UseStateSetter { inner })
     }
 }
 

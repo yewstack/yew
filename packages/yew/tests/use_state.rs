@@ -2,6 +2,8 @@
 
 mod common;
 
+use std::rc::Rc;
+
 use common::obtain_result;
 use wasm_bindgen_test::*;
 use yew::prelude::*;
@@ -14,6 +16,7 @@ async fn use_state_works() {
     #[component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
+        assert_eq!(counter.value_rc(), Rc::new(0));
         if *counter < 5 {
             counter.set(*counter + 1)
         }
