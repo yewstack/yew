@@ -10,7 +10,6 @@ rust-version = "1.62"
 yew-agent = { path = "../../packages/yew-agent/" }
 
 [dev-dependencies]
-boolinator = "2.4"
 derive_more = "0.99"
 gloo = "0.10"
 js-sys = "0.3"

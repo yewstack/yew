@@ -16,7 +16,6 @@ rust-version = "1.64.0"
 proc-macro = true
 
 [dependencies]
-boolinator = "2"
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"
