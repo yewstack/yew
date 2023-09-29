@@ -1,0 +1,145 @@
+---
+title: 'Elements'
+description: 'Both HTML and SVG elements are supported'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## DOM nodes
+
+There are many reasons why you might want to create or manage DOM nodes manually in Yew, such as
+when integrating with JS libraries that can cause conflicts with managed components.
+
+Using `web-sys`, you can create DOM elements and convert them into a `Node` - which can then be
+used as an `Html` value using `VRef`:
+
+```rust
+use web_sys::{Element, Node};
+use yew::prelude::*;
+use gloo::utils::document;
+
+#[function_component]
+fn MyComponent() -> Html {
+    // memoize as this only needs to be executed once
+    let node = use_memo(
+        (),
+        |_| {
+            // Create a div element from the document
+            let div: Element = document().create_element("div").unwrap();
+            // Add content, classes etc.
+            div.set_inner_html("Hello, World!");
+            // Convert Element into a Node
+            let node: Node = div.into();
+            // Return that Node as a Html value
+            Html::VRef(node)
+        },
+    );
+
+    // use_memo return Rc so we need to deref and clone
+    (*node).clone()
+}
+
+```
+
+## Dynamic tag names
+
+When building a higher-order component you might find yourself in a situation where the element's tag name is not static.
+For example, you might have a `Title` component that can render anything from `h1` to `h6` depending on a level prop.
+Instead of having to use a big match expression, Yew allows you to set the tag name dynamically
+using `@{name}` where `name` can be any expression that returns a string.
+
+```rust
+use yew::prelude::*;
+
+let level = 5;
+let text = "Hello World!".to_owned();
+
+html! {
+    <@{format!("h{}", level)} class="title">{ text }</@>
+};
+```
+
+## Boolean Attributes
+
+Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew,
+boolean attributes need to be set to a bool value:
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div hidden=true>
+        { "This div is hidden." }
+    </div>
+};
+```
+
+This will result in **HTML** that is functionally equivalent to this:
+
+```html
+<div hidden>This div is hidden.</div>
+```
+
+Setting a boolean attribute to false is equivalent to not using the attribute at all; values from
+boolean expressions can be used:
+
+```rust
+use yew::prelude::*;
+
+let no = 1 + 1 != 2;
+
+html! {
+    <div hidden={no}>
+        { "This div is NOT hidden." }
+    </div>
+};
+```
+
+This will result in the following **HTML**:
+
+```html
+<div>This div is NOT hidden.</div>
+```
+
+## String-like attributes
+
+But apart from a select few boolean attributes, you will probably be dealing with a lot of string-like HTML attributes and Yew has a few options to pass string-like values to components.
+
+```rust
+use yew::{html, virtual_dom::AttrValue};
+
+let str_placeholder = "I'm a str!";
+let string_placeholder = String::from("I'm a String!");
+let attrvalue_placeholder = AttrValue::from("I'm an AttrValue!");
+
+html! {
+    <div>
+        <input placeholder={str_placeholder} />
+        <input placeholder={string_placeholder} />
+        <input placeholder={attrvalue_placeholder} />
+    </div>
+};
+```
+
+They are all valid **but** we encourage you to favor Yew's custom `AttrValue`, especially if you need to clone or pass them as properties to another component.
+
+## Optional attributes for HTML elements
+
+Most HTML attributes can use optional values (Some(x) or None). This allows us to omit the attribute if the attribute is marked as optional.
+
+```rust
+use yew::prelude::*;
+
+let maybe_id = Some("foobar");
+
+html! {
+    <div id={maybe_id}></div>
+};
+```
+
+If the attribute is set to `None`, the attribute will not be set in the DOM.
+
+## Relevant examples
+
+-   [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
