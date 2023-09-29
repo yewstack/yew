@@ -28,7 +28,7 @@ pub fn emit_jokes(joke_cb: Callback<AttrValue>) {
     spawn_local(async move {
         loop {
             // Fetch the online joke
-            let fun_fact = Request::get("https://v2.jokeapi.dev/joke/Programming?format=txt")
+            let fun_fact = Request::get("https://v2.jokeapi.dev/joke/Programming?format=txt&safe-mode")
                 .send()
                 .await
                 .unwrap()
