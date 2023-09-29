@@ -59,7 +59,8 @@ yew = { version = "0.21.0", features = ["csr"] }
 ```
 
 or using `cargo add yew -F csr`.
-```
+
+````
 
 :::info
 
@@ -110,14 +111,14 @@ fn App() -> Html {
 fn main() {
     yew::Renderer::<App>::new().render();
 }
-```
+````
 
 #### Create index.html
 
 Finally, add an `index.html` file in the root directory of your app.
 
 ```html , title=index.html
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <meta charset="utf-8" />
