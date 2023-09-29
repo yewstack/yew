@@ -46,16 +46,15 @@ To convert this simple command line application to a basic Yew web application, 
 
 #### Update Cargo.toml
 
-Add `yew` to the list of dependencies.
+Add `yew` to the list of dependencies editing file:
 
-```toml title=Cargo.toml
+```toml title=Cargo.toml {7}
 [package]
 name = "yew-app"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# this is the development version of Yew
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
 
