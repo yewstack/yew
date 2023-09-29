@@ -1,4 +1,3 @@
-use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
@@ -99,14 +98,16 @@ impl HtmlListOpen {
 impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
+        if punct.as_char() != '<' {
+            return None;
+        }
         // make sure it's either a property (key=value) or it's immediately closed
         if let Some((_, cursor)) = HtmlDashedName::peek(cursor) {
             let (punct, _) = cursor.punct()?;
-            (punct.as_char() == '=' || punct.as_char() == '?').as_option()
+            (punct.as_char() == '=' || punct.as_char() == '?').then_some(())
         } else {
             let (punct, _) = cursor.punct()?;
-            (punct.as_char() == '>').as_option()
+            (punct.as_char() == '>').then_some(())
         }
     }
 }
@@ -156,12 +157,16 @@ impl HtmlListClose {
 impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
+        if punct.as_char() != '<' {
+            return None;
+        }
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '/').as_option()?;
+        if punct.as_char() != '/' {
+            return None;
+        }
 
         let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()
+        (punct.as_char() == '>').then_some(())
     }
 }
 impl Parse for HtmlListClose {

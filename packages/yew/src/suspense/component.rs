@@ -25,6 +25,7 @@ mod feat_csr_ssr {
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
         pub children: Html,
+        #[prop_or(None)]
         pub fallback: Option<Html>,
     }
 

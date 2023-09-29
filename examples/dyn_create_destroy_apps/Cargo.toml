@@ -8,8 +8,8 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 js-sys = "0.3"
 yew = { path = "../../packages/yew", features = ["csr"] }
-slab = "0.4.8"
-gloo = "0.8"
+slab = "0.4.9"
+gloo = "0.10"
 wasm-bindgen = "0.2"
 
 [dependencies.web-sys]

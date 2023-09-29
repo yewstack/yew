@@ -107,7 +107,7 @@ struct Theme {
 
 #[function_component]
 fn NavButton() -> Html {
-    let theme = use_context::<Theme>();
+    let theme = use_context::<Rc<Theme>>().expect("Context not found");
 
     html! {
         // use theme

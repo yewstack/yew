@@ -119,8 +119,8 @@ module.exports = {
         prism: {
             additionalLanguages: ['rust', 'toml'],
         },
-        googleAnalytics: {
-            trackingID: 'UA-141789564-1',
+        gtag: {
+            trackingID: 'G-DENCL8P4YP',
             anonymizeIP: true,
         },
     },

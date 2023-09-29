@@ -330,7 +330,7 @@ pub mod prelude {
 
     #[cfg(feature = "csr")]
     pub use crate::app_handle::AppHandle;
-    pub use crate::callback::Callback;
+    pub use crate::callback::{Callback, CallbackRef, CallbackRefMut};
     pub use crate::context::{ContextHandle, ContextProvider};
     pub use crate::events::*;
     pub use crate::functional::*;

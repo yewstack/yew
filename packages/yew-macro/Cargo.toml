@@ -1,6 +1,6 @@
 [package]
 name = "yew-macro"
-version = "0.20.0"
+version = "0.21.0"
 edition = "2021"
 authors = ["Justin Starry <justin@yew.rs>"]
 repository = "https://github.com/yewstack/yew"
@@ -16,7 +16,6 @@ rust-version = "1.64.0"
 proc-macro = true
 
 [dependencies]
-boolinator = "2"
 proc-macro-error = "1"
 proc-macro2 = "1"
 quote = "1"

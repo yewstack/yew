@@ -1,4 +1,3 @@
-use boolinator::Boolinator;
 use proc_macro2::{Delimiter, Span, TokenStream};
 use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
@@ -507,7 +506,9 @@ pub struct DynamicName {
 impl Peek<'_, ()> for DynamicName {
     fn peek(cursor: Cursor) -> Option<((), Cursor)> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '@').as_option()?;
+        if punct.as_char() != '@' {
+            return None;
+        }
 
         // move cursor past block if there is one
         let cursor = cursor
@@ -607,7 +608,9 @@ impl HtmlElementOpen {
 impl PeekValue<TagKey> for HtmlElementOpen {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
+        if punct.as_char() != '<' {
+            return None;
+        }
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
         if let TagKey::Lit(name) = &tag_key {
@@ -615,9 +618,11 @@ impl PeekValue<TagKey> for HtmlElementOpen {
             if name.to_string() == "key" {
                 let (punct, _) = cursor.punct()?;
                 // ... unless it isn't followed by a '='. `<key></key>` is a valid element!
-                (punct.as_char() != '=').as_option()?;
-            } else {
-                non_capitalized_ascii(&name.to_string()).as_option()?;
+                if punct.as_char() == '=' {
+                    return None;
+                }
+            } else if !non_capitalized_ascii(&name.to_string()) {
+                return None;
             }
         }
 
@@ -675,20 +680,22 @@ impl HtmlElementClose {
 impl PeekValue<TagKey> for HtmlElementClose {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
+        if punct.as_char() != '<' {
+            return None;
+        }
 
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '/').as_option()?;
+        if punct.as_char() != '/' {
+            return None;
+        }
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
-        if let TagKey::Lit(name) = &tag_key {
-            non_capitalized_ascii(&name.to_string()).as_option()?;
+        if matches!(&tag_key, TagKey::Lit(name) if !non_capitalized_ascii(&name.to_string())) {
+            return None;
         }
 
         let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()?;
-
-        Some(tag_key)
+        (punct.as_char() == '>').then_some(tag_key)
     }
 }
 
