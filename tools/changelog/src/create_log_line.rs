@@ -6,6 +6,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::github_issue_labels_fetcher::GitHubIssueLabelsFetcher;
+use crate::github_user_fetcher::GitHubUsersFetcher;
 use crate::log_line::LogLine;
 
 static REGEX_FOR_ISSUE_ID_CAPTURE: Lazy<Regex> =
@@ -18,6 +19,7 @@ pub fn create_log_line(
     package_labels: &'static [&'static str],
     oid: Result<Oid, Error>,
     token: Option<String>,
+    user_fetcher: &mut GitHubUsersFetcher,
 ) -> Result<Option<LogLine>> {
     println!("Commit oid: {oid:?}");
     let oid = oid?;
@@ -31,6 +33,9 @@ pub fn create_log_line(
         .to_string();
     let author = commit.author();
     let author_name = author.name().unwrap_or("Unknown");
+    let author_id = user_fetcher
+        .fetch_user_by_commit_author(author_name, commit.id().to_string(), token.clone())
+        .context("Missing author's GitHub ID")?;
     let email = author.email().context("Missing author's email")?;
 
     if email.contains("dependabot") {
@@ -96,6 +101,7 @@ pub fn create_log_line(
     let log_line = LogLine {
         message,
         user: author_name.to_string(),
+        user_id: author_id.to_string(),
         issue_id,
         is_breaking_change,
     };
