@@ -1,0 +1,44 @@
+---
+title: 'Generic Components'
+description: 'The #[function_component] attribute'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+The `#[function_component]` attribute also works with generic functions for creating generic components.
+
+```rust
+use std::fmt::Display;
+use yew::{function_component, html, Properties, Html, ToHtml};
+
+#[derive(Properties, PartialEq)]
+pub struct Props<T>
+where
+    T: PartialEq,
+{
+    data: T,
+}
+
+#[function_component]
+pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
+where
+    T: PartialEq + ToHtml,
+{
+    html! {
+        <p>
+            { &props.data }
+        </p>
+    }
+}
+
+// then can be used like this
+html! {
+    <MyGenericComponent<i32> data=123 />
+};
+
+// or
+html! {
+    <MyGenericComponent<String> data={"foo".to_string()} />
+};
+```

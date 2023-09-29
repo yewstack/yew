@@ -1,0 +1,160 @@
+---
+title: 'Editor Setup'
+description: 'Setting your code editor'
+---
+
+:::important contribute
+Using a different editor? Feel free to add instructions for your editor of choice.
+:::
+
+## Add a template for creating components
+
+### JetBrains IDEs
+
+1. Navigate to File | Settings | Editor | Live Templates.
+2. Select Rust and click on the + icon to add a new Live Template.
+3. Give it a name and description of your preference.
+4. Paste the following snippet(s) into the Template Text section.
+5. Change the applicability on the lower right, select Rust > Item > Module
+
+For function components, use the following template.
+
+-   (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
+
+```rust ,ignore
+#[derive(PartialEq, Properties)]
+pub struct $Name$Props {
+}
+
+#[function_component]
+pub fn $Name$(props: &$Name$Props) -> Html {
+    html! {
+        <$tag$>$END$</$tag$>
+    }
+}
+```
+
+For struct components, you can use the following more complicated template.
+
+```rust ,ignore
+struct $NAME$;
+
+enum $NAME$Msg {
+}
+
+impl Component for $NAME$ {
+    type Message = $NAME$Msg;
+    type Properties = ();
+
+    fn create(ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            $HTML$
+        }
+    }
+}
+```
+
+### VS Code
+
+1. Navigate to File > Preferences > User Snippets.
+2. Select Rust as the language.
+3. Add the following snippet in the snippet JSON file:
+
+```json
+{
+    "New Yew function component": {
+        "prefix": "yewfc",
+        "body": [
+            "#[derive(PartialEq, Properties)]",
+            "pub struct ${1:ComponentName}Props {}",
+            "",
+            "#[function_component]",
+            "pub fn $1(props: &${1}Props) -> Html {",
+            "    let ${1}Props {} = props;",
+            "    html! {",
+            "        <${2:div}>$0</${2}>",
+            "    }",
+            "}"
+        ],
+        "description": "Create a minimal Yew function component"
+    },
+    "New Yew struct component": {
+        "prefix": "yewsc",
+        "body": [
+            "pub struct ${1:ComponentName};",
+            "",
+            "pub enum ${1}Msg {",
+            "}",
+            "",
+            "impl Component for ${1} {",
+            "    type Message = ${1}Msg;",
+            "    type Properties = ();",
+            "",
+            "    fn create(ctx: &Context<Self>) -> Self {",
+            "        Self",
+            "    }",
+            "",
+            "    fn view(&self, ctx: &Context<Self>) -> Html {",
+            "        html! {",
+            "            $0",
+            "        }",
+            "    }",
+            "}"
+        ],
+        "description": "Create a new Yew component with a message enum"
+    }
+}
+```
+
+## Support for the `html!` Macro
+
+### JetBrains IDEs
+
+JetBrains added experimental support for proc-macro expansion in April 2021.
+This feature must be enabled before it can be used.
+[See the blog post here.](https://blog.jetbrains.com/rust/2021/04/08/intellij-rust-updates-for-2021-1/#proc-macros)
+
+This still won't enable HTML autofill and formatting help, although it will enable variable resolution for
+component names and attributes inside the macro.
+Utilities like Rename, Go to Declaration, Find Usages will work inside the macro.
+
+### VS Code
+
+#### Rust-Yew extension
+
+> This is a **work in progress**, and **community maintained** project! [Please see details and direct related bug reports / issues / questions over to the extension's repository](https://github.com/TechTheAwesome/code-yew-server)
+
+Rust-Yew extension is [avaliable on VSC Marketplace](https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew), providing syntax highlight, renames, hover, and more.
+
+Emmet support should work out of the box, if not please fall back to edditing the `settings.json` file:
+
+```json
+"emmet.includeLanguages": {
+    "rust": "html",
+}
+```
+
+### Neovim
+
+#### Lazyvim
+
+> Below configuration works with [LazyVim](https://www.lazyvim.org) configuration and lazy.vim plugin, create a file in `lua/plugins/nvim-lspconfig.lua` (or update your `lspconfig`) with:
+
+```json
+return {
+  {
+    "neovim/nvim-lspconfig",
+    init_options = {
+      userLanguages = {
+        eelixir = "html-eex",
+        eruby = "erb",
+        rust = "html",
+      },
+    },
+  },
+}
+```

@@ -1,0 +1,164 @@
+---
+title: 'Suspense'
+description: 'Suspense for data fetching'
+---
+
+Suspense is a way to suspend component rendering whilst waiting a task
+to complete and a fallback (placeholder) UI is shown in the meanwhile.
+
+It can be used to fetch data from server, wait for tasks to be completed
+by an agent, or perform other background asynchronous task.
+
+Before suspense, data fetching usually happens after (Fetch-on-render) or before
+component rendering (Fetch-then-render).
+
+### Render-as-You-Fetch
+
+Suspense enables a new approach that allows components to initiate data request
+during the rendering process. When a component initiates a data request,
+the rendering process will become suspended and a fallback UI will be
+shown until the request is completed.
+
+The recommended way to use suspense is with hooks.
+
+```rust ,ignore
+use yew::prelude::*;
+
+#[function_component(Content)]
+fn content() -> HtmlResult {
+    let user = use_user()?;
+
+    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    let fallback = html! {<div>{"Loading..."}</div>};
+
+    html! {
+        <Suspense {fallback}>
+            <Content />
+        </Suspense>
+    }
+}
+```
+
+In the above example, the `use_user` hook will suspend the component
+rendering while user information is loading and a `Loading...` placeholder will
+be shown until `user` is loaded.
+
+To define a hook that suspends a component rendering, it needs to return
+a `SuspensionResult<T>`. When the component needs to be suspended, the
+hook should return a `Err(Suspension)` and users should unwrap it with
+`?` in which it will be converted into `Html`.
+
+```rust ,ignore
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
+
+struct User {
+    name: String,
+}
+
+#[hook]
+fn use_user() -> SuspensionResult<User> {
+    match load_user() {
+        // If a user is loaded, then we return it as Ok(user).
+        Some(m) => Ok(m),
+        None => {
+            // When user is still loading, then we create a `Suspension`
+            // and call `SuspensionHandle::resume` when data loading
+            // completes, the component will be re-rendered
+            // automatically.
+            let (s, handle) = Suspension::new();
+            on_load_user_complete(move || {handle.resume();});
+            Err(s)
+        },
+    }
+}
+```
+
+#### Note on implementing suspending hooks
+
+[`Suspension::new`](https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new) returns 2 values: the suspension context itself, and a suspension handle.
+The latter is the one responsible for signaling when to re-render the suspended components, it provides 2 interchangable ways to do so:
+
+1. Calling its [`resume`](https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume) method.
+2. Dropping the handle.
+
+:::danger
+
+The suspension handle must be stored until it's time to update components, i.e. with newly received data;
+otherwise, the suspended components will enter an infinite re-render loop, thus hampering performance.
+In the example above, the suspension handle is preserved by being moved into a closure and passed into `on_load_user_complete`.
+When the hypothetical user will be loaded, the closure will be called, thus calling `handle.resume()` and re-rendering the components associated with the suspension context.
+
+:::
+
+# Complete Example
+
+```rust
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
+
+#[derive(Debug)]
+struct User {
+    name: String,
+}
+
+fn load_user() -> Option<User> {
+    todo!()  // implementation omitted.
+}
+
+fn on_load_user_complete<F: FnOnce()>(_fn: F) {
+    todo!()  // implementation omitted.
+}
+
+#[hook]
+fn use_user() -> SuspensionResult<User> {
+    match load_user() {
+        // If a user is loaded, then we return it as Ok(user).
+        Some(m) => Ok(m),
+        None => {
+            // When user is still loading, then we create a `Suspension`
+            // and call `SuspensionHandle::resume` when data loading
+            // completes, the component will be re-rendered
+            // automatically.
+            let (s, handle) = Suspension::new();
+            on_load_user_complete(move || {handle.resume();});
+            Err(s)
+        },
+    }
+}
+
+#[function_component(Content)]
+fn content() -> HtmlResult {
+    let user = use_user()?;
+
+    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    let fallback = html! {<div>{"Loading..."}</div>};
+
+    html! {
+        <Suspense {fallback}>
+            <Content />
+        </Suspense>
+    }
+}
+```
+
+### Use Suspense in Struct Components
+
+It's not possible to suspend a struct component directly. However, you
+can use a function component as a [Higher Order Component](../advanced-topics/struct-components/hoc)
+to achieve suspense-based data fetching.
+
+The [suspense example in the Yew repository](https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs)
+demonstrates how to use.
+
+## Relevant examples
+
+-   [Suspense](https://github.com/yewstack/yew/tree/master/examples/suspense)
