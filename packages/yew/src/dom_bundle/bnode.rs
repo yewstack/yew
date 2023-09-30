@@ -188,16 +188,13 @@ impl Reconcilable for VNode {
                 slot,
                 bundle,
             ),
-            VNode::VSuspense(vsuspsense) => {
-                // TODO: replace this by Rc::unwrap_or_clone() when it becomes stable
-                RcExt::unwrap_or_clone(vsuspsense).reconcile_node(
-                    root,
-                    parent_scope,
-                    parent,
-                    slot,
-                    bundle,
-                )
-            }
+            VNode::VSuspense(vsuspsense) => RcExt::unwrap_or_clone(vsuspsense).reconcile_node(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                bundle,
+            ),
             VNode::VRaw(vraw) => vraw.reconcile_node(root, parent_scope, parent, slot, bundle),
         }
     }

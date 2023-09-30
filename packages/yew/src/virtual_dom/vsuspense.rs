@@ -5,9 +5,9 @@ use crate::html::ImplicitClone;
 #[derive(Clone, Debug, PartialEq)]
 pub struct VSuspense {
     /// Child nodes.
-    pub(crate) children: Box<VNode>,
+    pub(crate) children: VNode,
     /// Fallback nodes when suspended.
-    pub(crate) fallback: Box<VNode>,
+    pub(crate) fallback: VNode,
     /// Whether the current status is suspended.
     pub(crate) suspended: bool,
     /// The Key.
@@ -19,8 +19,8 @@ impl ImplicitClone for VSuspense {}
 impl VSuspense {
     pub fn new(children: VNode, fallback: VNode, suspended: bool, key: Option<Key>) -> Self {
         Self {
-            children: children.into(),
-            fallback: fallback.into(),
+            children,
+            fallback,
             suspended,
             key,
         }

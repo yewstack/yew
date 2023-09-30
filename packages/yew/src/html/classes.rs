@@ -151,7 +151,6 @@ impl IntoIterator for Classes {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        // NOTE: replace this by Rc::unwrap_or_clone() when it becomes stable
         RcExt::unwrap_or_clone(self.set).into_iter()
     }
 }
