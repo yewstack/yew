@@ -78,9 +78,9 @@ impl ToTokens for HtmlList {
         };
 
         tokens.extend(quote_spanned! {spanned.span()=>
-            ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
+            ::yew::virtual_dom::VNode::from(
                 ::yew::virtual_dom::VList::with_children(#children, #key)
-            ))
+            )
         });
     }
 }

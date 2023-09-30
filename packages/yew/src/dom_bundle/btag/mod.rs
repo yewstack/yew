@@ -3,7 +3,6 @@
 mod attributes;
 mod listeners;
 
-use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
@@ -18,7 +17,7 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
-use crate::virtual_dom::{Attributes, Key, VTag};
+use crate::virtual_dom::{AttrValue, Attributes, Key, VTag};
 use crate::NodeRef;
 
 /// Applies contained changes to DOM [web_sys::Element]
@@ -51,7 +50,7 @@ enum BTagInner {
     /// Fields for all other kinds of [VTag]s
     Other {
         /// A tag of the element.
-        tag: Cow<'static, str>,
+        tag: AttrValue,
         /// Child node.
         child_bundle: BNode,
     },
