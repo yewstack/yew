@@ -4,6 +4,9 @@
 //! - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
 //! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
+use std::any;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
@@ -33,6 +36,8 @@ macro_rules! generate_callback_impls {
             }
         }
 
+        impl<IN, OUT> Eq for $callback<IN, OUT> {}
+
         impl<IN, OUT> fmt::Debug for $callback<IN, OUT> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "$callback<_>")
@@ -46,15 +51,31 @@ macro_rules! generate_callback_impls {
             }
         }
 
-        impl<IN> $callback<IN> {
+        impl<IN: 'static> $callback<IN> {
             /// Creates a "no-op" callback which can be used when it is not suitable to use an
             /// `Option<$callback>`.
             pub fn noop() -> Self {
-                Self::from(|_: $in_ty| ())
+                thread_local! {
+                    static NOOP: RefCell<HashMap<any::TypeId, Box<dyn any::Any>>> = RefCell::new(Default::default());
+                }
+
+                Self {
+                    cb: NOOP.with(|noop| {
+                        noop.borrow_mut()
+                            .entry(any::TypeId::of::<$in_ty>())
+                            .or_insert_with(|| {
+                                let func: Rc<dyn Fn($in_ty) -> ()> = Rc::new(|_: $in_ty| ());
+                                Box::new(func) as Box<dyn any::Any>
+                            })
+                            .downcast_ref::<Rc<dyn Fn($in_ty) -> ()>>()
+                            .unwrap()
+                            .clone()
+                    }),
+                }
             }
         }
 
-        impl<IN> Default for $callback<IN> {
+        impl<IN: 'static> Default for $callback<IN> {
             fn default() -> Self {
                 Self::noop()
             }
@@ -299,5 +320,10 @@ mod test {
         let mut value: usize = 42;
         reformed.emit(&mut value).expect("is some");
         assert_eq!(value, 45);
+    }
+
+    #[test]
+    fn test_noop_eq() {
+        assert_eq!(Callback::<u32>::noop(), Callback::<u32>::noop());
     }
 }
