@@ -239,7 +239,7 @@ impl VTag {
     #[doc(hidden)]
     #[allow(clippy::too_many_arguments)]
     pub fn __new_other(
-        tag: impl Into<AttrValue>,
+        tag: AttrValue,
         node_ref: NodeRef,
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
@@ -248,10 +248,7 @@ impl VTag {
         children: VNode,
     ) -> Self {
         VTag::new_base(
-            VTagInner::Other {
-                tag: tag.into(),
-                children,
-            },
+            VTagInner::Other { tag, children },
             node_ref,
             key,
             attributes,

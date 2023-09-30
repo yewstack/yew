@@ -359,7 +359,7 @@ impl ToTokens for HtmlElement {
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
-                                    #name,
+                                    ::yew::virtual_dom::AttrValue::Static(#name),
                                     #node_ref,
                                     #key,
                                     #attributes,
@@ -415,7 +415,9 @@ impl ToTokens for HtmlElement {
                     // e.g. html!{<@{"div"}/>} will set `#expr` to `{"div"}`
                     // (note the extra braces). Hence the need for the `allow`.
                     // Anyways to remove the braces?
-                    let mut #vtag_name = ::yew::virtual_dom::AttrValue::from(#expr);
+                    let mut #vtag_name = ::std::convert::Into::<
+                        ::yew::virtual_dom::AttrValue
+                    >::into(#expr);
                     ::std::debug_assert!(
                         #vtag_name.is_ascii(),
                         "a dynamic tag returned a tag name containing non ASCII characters: `{}`",

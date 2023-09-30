@@ -714,3 +714,4 @@ error[E0277]: the trait bound `implicit_clone::unsync::IString: From<{integer}>`
              <implicit_clone::unsync::IString as From<Cow<'static, str>>>
              <implicit_clone::unsync::IString as From<Rc<str>>>
              <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `{integer}`
