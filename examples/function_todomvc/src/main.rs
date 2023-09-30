@@ -22,52 +22,26 @@ fn app() -> Html {
     });
 
     // Effect
-    use_effect_with(state.clone(), move |state| {
+    use_effect_with(state.clone(), |state| {
         LocalStorage::set(KEY, &state.clone().entries).expect("failed to set");
-        || ()
     });
 
     // Callbacks
-    let onremove = {
+    fn make_callback<E, F>(state: &UseReducerHandle<State>, f: F) -> Callback<E>
+    where
+        F: Fn(E) -> Action + 'static,
+    {
         let state = state.clone();
-        Callback::from(move |id: usize| state.dispatch(Action::Remove(id)))
-    };
+        Callback::from(move |e: E| state.dispatch(f(e)))
+    }
 
-    let ontoggle = {
-        let state = state.clone();
-        Callback::from(move |id: usize| state.dispatch(Action::Toggle(id)))
-    };
-
-    let ontoggle_all = {
-        let state = state.clone();
-        Callback::from(move |_| state.dispatch(Action::ToggleAll))
-    };
-
-    let onclear_completed = {
-        let state = state.clone();
-        Callback::from(move |_| state.dispatch(Action::ClearCompleted))
-    };
-
-    let onedit = {
-        let state = state.clone();
-        Callback::from(move |(id, value): (usize, String)| {
-            state.dispatch(Action::Edit((id, value)));
-        })
-    };
-
-    let onadd = {
-        let state = state.clone();
-        Callback::from(move |value: String| {
-            state.dispatch(Action::Add(value));
-        })
-    };
-
-    let onset_filter = {
-        let state = state.clone();
-        Callback::from(move |filter: Filter| {
-            state.dispatch(Action::SetFilter(filter));
-        })
-    };
+    let onremove = make_callback(&state, Action::Remove);
+    let ontoggle = make_callback(&state, Action::Toggle);
+    let ontoggle_all = make_callback(&state, |_| Action::ToggleAll);
+    let onclear_completed = make_callback(&state, |_| Action::ClearCompleted);
+    let onedit = make_callback(&state, Action::Edit);
+    let onadd = make_callback(&state, Action::Add);
+    let onset_filter = make_callback(&state, Action::SetFilter);
 
     // Helpers
     let completed = state
@@ -109,9 +83,9 @@ fn app() -> Html {
                         { for state.entries.iter().filter(|e| state.filter.fits(e)).cloned().map(|entry|
                             html! {
                                 <EntryItem {entry}
-                                    ontoggle={ontoggle.clone()}
-                                    onremove={onremove.clone()}
-                                    onedit={onedit.clone()}
+                                    ontoggle={&ontoggle}
+                                    onremove={&onremove}
+                                    onedit={&onedit}
                                 />
                         }) }
                     </ul>
@@ -126,7 +100,7 @@ fn app() -> Html {
                             html! {
                                 <FilterItem {filter}
                                     selected={state.filter == filter}
-                                    onset_filter={onset_filter.clone()}
+                                    onset_filter={&onset_filter}
                                 />
                             }
                         }) }
