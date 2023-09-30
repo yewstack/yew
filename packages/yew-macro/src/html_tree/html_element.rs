@@ -359,7 +359,7 @@ impl ToTokens for HtmlElement {
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
-                                    ::yew::virtual_dom::AttrValue::from(#name),
+                                    #name,
                                     #node_ref,
                                     #key,
                                     #attributes,

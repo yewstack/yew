@@ -123,7 +123,7 @@ impl ToTokens for HtmlTree {
         lint::lint_all(self);
         match self {
             HtmlTree::Empty => tokens.extend(quote! {
-                ::yew::virtual_dom::VNode::default()
+                <::yew::virtual_dom::VNode as ::std::default::Default>::default()
             }),
             HtmlTree::Component(comp) => comp.to_tokens(tokens),
             HtmlTree::Element(tag) => tag.to_tokens(tokens),
