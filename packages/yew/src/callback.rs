@@ -4,11 +4,10 @@
 //! - [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
 //! - [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)
 
-use std::any;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt;
 use std::rc::Rc;
+use std::{any, fmt};
 
 use crate::html::ImplicitClone;
 
@@ -64,10 +63,10 @@ macro_rules! generate_callback_impls {
                         noop.borrow_mut()
                             .entry(any::TypeId::of::<$in_ty>())
                             .or_insert_with(|| {
-                                let func: Rc<dyn Fn($in_ty) -> ()> = Rc::new(|_: $in_ty| ());
+                                let func: Rc<dyn Fn($in_ty)> = Rc::new(|_: $in_ty| ());
                                 Box::new(func) as Box<dyn any::Any>
                             })
-                            .downcast_ref::<Rc<dyn Fn($in_ty) -> ()>>()
+                            .downcast_ref::<Rc<dyn Fn($in_ty)>>()
                             .unwrap()
                             .clone()
                     }),
@@ -325,5 +324,7 @@ mod test {
     #[test]
     fn test_noop_eq() {
         assert_eq!(Callback::<u32>::noop(), Callback::<u32>::noop());
+        assert_eq!(CallbackRef::<u32>::noop(), CallbackRef::<u32>::noop());
+        assert_eq!(CallbackRefMut::<u32>::noop(), CallbackRefMut::<u32>::noop());
     }
 }
