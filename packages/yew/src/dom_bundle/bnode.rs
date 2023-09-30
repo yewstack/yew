@@ -281,10 +281,16 @@ mod feat_hydration {
             fragment: &mut Fragment,
         ) -> Self::Bundle {
             match self {
-                VNode::VTag(vtag) => vtag.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VTag(vtag) => RcExt::unwrap_or_clone(vtag)
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
                 VNode::VText(vtext) => vtext.hydrate(root, parent_scope, parent, fragment).into(),
-                VNode::VComp(vcomp) => vcomp.hydrate(root, parent_scope, parent, fragment).into(),
-                VNode::VList(vlist) => vlist.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VComp(vcomp) => RcExt::unwrap_or_clone(vcomp)
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
+                VNode::VList(vlist) => RcExt::unwrap_or_clone(vlist)
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
                 // You cannot hydrate a VRef.
                 VNode::VRef(_) => {
                     panic!(
@@ -299,7 +305,7 @@ mod feat_hydration {
                          use_effect."
                     )
                 }
-                VNode::VSuspense(vsuspense) => vsuspense
+                VNode::VSuspense(vsuspense) => RcExt::unwrap_or_clone(vsuspense)
                     .hydrate(root, parent_scope, parent, fragment)
                     .into(),
                 VNode::VRaw(vraw) => vraw.hydrate(root, parent_scope, parent, fragment).into(),
