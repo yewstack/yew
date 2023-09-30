@@ -406,6 +406,8 @@ mod feat_hydration {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use wasm_bindgen::JsCast;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::HtmlInputElement as InputElement;
@@ -413,6 +415,7 @@ mod tests {
     use super::*;
     use crate::dom_bundle::utils::setup_parent;
     use crate::dom_bundle::{BNode, Reconcilable, ReconcileTarget};
+    use crate::utils::RcExt;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
     use crate::{html, Html, NodeRef};
@@ -563,7 +566,7 @@ mod tests {
 
     fn assert_vtag(node: VNode) -> VTag {
         if let VNode::VTag(vtag) = node {
-            return *vtag;
+            return RcExt::unwrap_or_clone(vtag);
         }
         panic!("should be vtag");
     }
@@ -970,7 +973,7 @@ mod tests {
         vtag.add_attribute("disabled", "disabled");
         vtag.add_attribute("tabindex", "0");
 
-        let elem = VNode::VTag(Box::new(vtag));
+        let elem = VNode::VTag(Rc::new(vtag));
 
         let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
 
@@ -978,7 +981,7 @@ mod tests {
         let mut vtag = VTag::new("div");
         vtag.node_ref = test_ref.clone();
         vtag.add_attribute("tabindex", "0");
-        let next_elem = VNode::VTag(Box::new(vtag));
+        let next_elem = VNode::VTag(Rc::new(vtag));
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
