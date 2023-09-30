@@ -1,5 +1,7 @@
 //! This module contains the implementation of a portal `VPortal`.
 
+use std::rc::Rc;
+
 use web_sys::{Element, Node};
 
 use super::VNode;
@@ -12,7 +14,7 @@ pub struct VPortal {
     /// The next sibling after the inserted content. Must be a child of `host`.
     pub inner_sibling: Option<Node>,
     /// The inserted node
-    pub node: Box<VNode>,
+    pub node: Rc<VNode>,
 }
 
 impl ImplicitClone for VPortal {}
@@ -23,7 +25,7 @@ impl VPortal {
         Self {
             host,
             inner_sibling: None,
-            node: Box::new(content),
+            node: Rc::new(content),
         }
     }
 
@@ -34,7 +36,7 @@ impl VPortal {
         Self {
             host,
             inner_sibling,
-            node: Box::new(content),
+            node: Rc::new(content),
         }
     }
 }

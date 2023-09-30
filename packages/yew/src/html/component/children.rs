@@ -1,6 +1,7 @@
 //! Component children module
 
 use std::fmt;
+use std::rc::Rc;
 
 use crate::html::Html;
 use crate::virtual_dom::{VChild, VComp, VList, VNode};
@@ -241,7 +242,7 @@ impl From<ChildrenRenderer<Html>> for Html {
             }
         }
 
-        Html::VList(val.into())
+        Html::VList(Rc::new(val.into()))
     }
 }
 

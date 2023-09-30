@@ -23,9 +23,9 @@ pub enum VNode {
     /// A bind between `VComp` and `Element`.
     VComp(Rc<VComp>),
     /// A holder for a list of other nodes.
-    VList(VList),
+    VList(Rc<VList>),
     /// A portal to another part of the document
-    VPortal(VPortal),
+    VPortal(Rc<VPortal>),
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
     /// A suspendible document fragment.
@@ -63,9 +63,10 @@ impl VNode {
     pub fn to_vlist_mut(&mut self) -> &mut VList {
         loop {
             match *self {
-                Self::VList(ref mut m) => return m,
+                Self::VList(ref mut m) => return Rc::make_mut(m),
                 _ => {
-                    *self = VNode::VList(VList::with_children(vec![mem::take(self)], None));
+                    *self =
+                        VNode::VList(Rc::new(VList::with_children(vec![mem::take(self)], None)));
                 }
             }
         }
@@ -108,7 +109,7 @@ impl VNode {
 
 impl Default for VNode {
     fn default() -> Self {
-        VNode::VList(VList::default())
+        VNode::VList(Rc::new(VList::default()))
     }
 }
 
@@ -122,7 +123,7 @@ impl From<VText> for VNode {
 impl From<VList> for VNode {
     #[inline]
     fn from(vlist: VList) -> Self {
-        VNode::VList(vlist)
+        VNode::VList(Rc::new(vlist))
     }
 }
 
@@ -150,7 +151,7 @@ impl From<VSuspense> for VNode {
 impl From<VPortal> for VNode {
     #[inline]
     fn from(vportal: VPortal) -> Self {
-        VNode::VPortal(vportal)
+        VNode::VPortal(Rc::new(vportal))
     }
 }
 
@@ -171,10 +172,10 @@ impl<T: ToString> From<T> for VNode {
 
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        VNode::VList(VList::with_children(
+        VNode::VList(Rc::new(VList::with_children(
             iter.into_iter().map(|n| n.into()).collect(),
             None,
-        ))
+        )))
     }
 }
 

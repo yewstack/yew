@@ -415,9 +415,7 @@ impl ToTokens for HtmlElement {
                     // e.g. html!{<@{"div"}/>} will set `#expr` to `{"div"}`
                     // (note the extra braces). Hence the need for the `allow`.
                     // Anyways to remove the braces?
-                    let mut #vtag_name = ::std::convert::Into::<
-                        ::std::borrow::Cow::<'static, ::std::primitive::str>
-                    >::into(#expr);
+                    let mut #vtag_name = ::yew::virtual_dom::AttrValue::from(#expr);
                     ::std::debug_assert!(
                         #vtag_name.is_ascii(),
                         "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
