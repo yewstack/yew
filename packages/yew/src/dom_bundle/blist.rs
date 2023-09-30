@@ -30,7 +30,7 @@ impl VList {
 
         let children = self
             .children
-            .map(|children| RcExt::unwrap_or_clone(children))
+            .map(RcExt::unwrap_or_clone)
             .unwrap_or_default();
 
         (self.key, fully_keyed, children)
