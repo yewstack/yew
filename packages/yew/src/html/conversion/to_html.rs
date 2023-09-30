@@ -132,7 +132,7 @@ where
 
     #[inline(always)]
     fn into_html(self) -> Html {
-        VNode::VComp(self.into())
+        VNode::VComp(Rc::new(self.into()))
     }
 }
 

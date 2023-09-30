@@ -3,16 +3,19 @@
 use web_sys::{Element, Node};
 
 use super::VNode;
+use crate::html::ImplicitClone;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct VPortal {
     /// The element under which the content is inserted.
     pub host: Element,
-    /// The next sibling after the inserted content. Most be a child of `host`.
+    /// The next sibling after the inserted content. Must be a child of `host`.
     pub inner_sibling: Option<Node>,
     /// The inserted node
     pub node: Box<VNode>,
 }
+
+impl ImplicitClone for VPortal {}
 
 impl VPortal {
     /// Creates a [VPortal] rendering `content` in the DOM hierarchy under `host`.

@@ -1,3 +1,4 @@
+use crate::html::ImplicitClone;
 use std::rc::Rc;
 
 /// The [Listener] trait is an universal implementation of an event listener
@@ -167,6 +168,8 @@ pub enum Listeners {
     /// Not yet added to the element or registry
     Pending(Box<[Option<Rc<dyn Listener>>]>),
 }
+
+impl ImplicitClone for Listeners {}
 
 impl PartialEq for Listeners {
     fn eq(&self, rhs: &Self) -> bool {

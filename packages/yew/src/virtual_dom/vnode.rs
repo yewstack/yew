@@ -2,12 +2,13 @@
 
 use std::cmp::PartialEq;
 use std::iter::FromIterator;
+use std::rc::Rc;
 use std::{fmt, mem};
 
 use web_sys::Node;
 
 use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
-use crate::html::BaseComponent;
+use crate::html::{BaseComponent, ImplicitClone};
 use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
@@ -16,11 +17,11 @@ use crate::AttrValue;
 #[must_use = "html does not do anything unless returned to Yew for rendering."]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
-    VTag(Box<VTag>),
+    VTag(Rc<VTag>),
     /// A bind between `VText` and `TextNode`.
     VText(VText),
     /// A bind between `VComp` and `Element`.
-    VComp(VComp),
+    VComp(Rc<VComp>),
     /// A holder for a list of other nodes.
     VList(VList),
     /// A portal to another part of the document
@@ -28,12 +29,14 @@ pub enum VNode {
     /// A holder for any `Node` (necessary for replacing node).
     VRef(Node),
     /// A suspendible document fragment.
-    VSuspense(VSuspense),
+    VSuspense(Rc<VSuspense>),
     /// A raw HTML string, represented by [`AttrValue`](crate::AttrValue).
     ///
     /// Also see: [`VNode::from_html_unchecked`]
     VRaw(VRaw),
 }
+
+impl ImplicitClone for VNode {}
 
 impl VNode {
     pub fn key(&self) -> Option<&Key> {
@@ -126,21 +129,21 @@ impl From<VList> for VNode {
 impl From<VTag> for VNode {
     #[inline]
     fn from(vtag: VTag) -> Self {
-        VNode::VTag(Box::new(vtag))
+        VNode::VTag(Rc::new(vtag))
     }
 }
 
 impl From<VComp> for VNode {
     #[inline]
     fn from(vcomp: VComp) -> Self {
-        VNode::VComp(vcomp)
+        VNode::VComp(Rc::new(vcomp))
     }
 }
 
 impl From<VSuspense> for VNode {
     #[inline]
     fn from(vsuspense: VSuspense) -> Self {
-        VNode::VSuspense(vsuspense)
+        VNode::VSuspense(Rc::new(vsuspense))
     }
 }
 
@@ -156,7 +159,7 @@ where
     COMP: BaseComponent,
 {
     fn from(vchild: VChild<COMP>) -> Self {
-        VNode::VComp(VComp::from(vchild))
+        VNode::VComp(Rc::new(VComp::from(vchild)))
     }
 }
 
