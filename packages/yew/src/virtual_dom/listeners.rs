@@ -1,5 +1,6 @@
-use crate::html::ImplicitClone;
 use std::rc::Rc;
+
+use crate::html::ImplicitClone;
 
 /// The [Listener] trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
