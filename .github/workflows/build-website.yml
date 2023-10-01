@@ -1,13 +1,13 @@
 name: Build website
 on:
   pull_request:
-    branches: [master]
+    branches: [prepare-for-docusaurus-v3]
     paths:
       - "website/**"
       - "firebase.json"
       - ".github/workflows/*-website.yml"
   push:
-    branches: [master]
+    branches: [prepare-for-docusaurus-v3]
     paths:
       - "website/**"
       - "firebase.json"
@@ -25,7 +25,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install dependencies
         run: |
