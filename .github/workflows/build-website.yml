@@ -1,13 +1,13 @@
 name: Build website
 on:
   pull_request:
-    branches: [prepare-for-docusaurus-v3]
+    branches: [master]
     paths:
       - "website/**"
       - "firebase.json"
       - ".github/workflows/*-website.yml"
   push:
-    branches: [prepare-for-docusaurus-v3]
+    branches: [master]
     paths:
       - "website/**"
       - "firebase.json"
