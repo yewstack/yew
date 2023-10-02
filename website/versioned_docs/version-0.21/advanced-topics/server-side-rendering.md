@@ -27,16 +27,16 @@ Yew provides a `ServerRenderer` to render pages on the
 server side.
 
 To render Yew components on the server side, you can create a renderer
-with `ServerRenderer::<App>::new()` and call `renderer.render().await`
-to render `<App />` into a `String`.
+with `ServerRenderer::&lt;App&gt;::new()` and call `renderer.render().await`
+to render `&lt;App /&gt;` into a `String`.
 
 ```rust
 use yew::prelude::*;
 use yew::ServerRenderer;
 
 #[function_component]
-fn App() -> Html {
-    html! {<div>{"Hello, World!"}</div>}
+fn App() -&gt; Html &#123;
+    html! &#123;&lt;div&gt;&#123;"Hello, World!"}&lt;/div&gt;}
 }
 
 // we use `flavor = "current_thread"` so this snippet can be tested in CI,
@@ -44,13 +44,13 @@ fn App() -> Html {
 // the (default) `multi_thread` favor as:
 // #[tokio::main]
 #[tokio::main(flavor = "current_thread")]
-async fn no_main() {
-    let renderer = ServerRenderer::<App>::new();
+async fn no_main() &#123;
+    let renderer = ServerRenderer::&lt;App&gt;::new();
 
     let rendered = renderer.render().await;
 
-    // Prints: <div>Hello, World!</div>
-    println!("{}", rendered);
+    // Prints: &lt;div&gt;Hello, World!&lt;/div&gt;
+    println!("&#123;}", rendered);
 }
 ```
 
@@ -111,7 +111,7 @@ server side available during the hydration process to make sure that the
 virtual DOM returned by the initial render is consistent with the
 server-side rendered DOM tree which can be hard to implement.
 
-Yew takes a different approach by trying to solve this issue with `<Suspense />`.
+Yew takes a different approach by trying to solve this issue with `&lt;Suspense /&gt;`.
 
 Suspense is a special component that when used on the client side, provides a
 way to show a fallback UI while the component is fetching
@@ -121,7 +121,7 @@ When the application is rendered on the server side, Yew waits until a
 component is no longer suspended before serializing it into the string
 buffer.
 
-During the hydration process, elements within a `<Suspense />` component
+During the hydration process, elements within a `&lt;Suspense /&gt;` component
 remains dehydrated until all of its child components are no longer
 suspended.
 
@@ -153,7 +153,7 @@ The hydration can only succeed if the real DOM matches the expected DOM
 after initial render of the SSR output (static HTML) by browser. If your HTML is
 not spec-compliant, the hydration _may_ fail. Browsers may change the DOM structure
 of the incorrect HTML, causing the actual DOM to be different from the expected DOM.
-For example, [if you have a `<table>` without a `<tbody>`, the browser may add a `<tbody>` to the DOM](https://github.com/yewstack/yew/issues/2684)
+For example, [if you have a `&lt;table&gt;` without a `&lt;tbody&gt;`, the browser may add a `&lt;tbody&gt;` to the DOM](https://github.com/yewstack/yew/issues/2684)
 :::
 
 ## Component Lifecycle during hydration
@@ -179,12 +179,12 @@ use yew::prelude::*;
 use yew::Renderer;
 
 #[function_component]
-fn App() -> Html {
-    html! {<div>{"Hello, World!"}</div>}
+fn App() -&gt; Html &#123;
+    html! &#123;&lt;div&gt;&#123;"Hello, World!"}&lt;/div&gt;}
 }
 
-fn main() {
-    let renderer = Renderer::<App>::new();
+fn main() &#123;
+    let renderer = Renderer::&lt;App&gt;::new();
 
     // hydrates everything under body element, removes trailing
     // elements (if any).

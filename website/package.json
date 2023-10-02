@@ -22,16 +22,16 @@
         "@docusaurus/plugin-content-docs": "^3.0.0-beta.0",
         "@docusaurus/plugin-content-pages": "^3.0.0-beta.0",
         "@docusaurus/plugin-google-gtag": "^3.0.0-beta.0",
+        "@docusaurus/preset-classic": "^3.0.0-beta.0",
         "@docusaurus/theme-classic": "^3.0.0-beta.0",
-        "@easyops-cn/docusaurus-search-local": "^0.32.0",
-        "@mdx-js/react": "^1.6.22",
-        "@svgr/webpack": "^8.0.1",
-        "clsx": "^1.1.1",
-        "docusaurus-plugin-sass": "^0.2.2",
+        "@mdx-js/react": "^2.3.0",
+        "@svgr/webpack": "^8.1.0",
+        "clsx": "^2.0.0",
+        "docusaurus-plugin-sass": "^0.2.5",
         "file-loader": "^6.2.0",
-        "react": "^18.0.0",
-        "react-dom": "^18.0.0",
-        "sass": "^1.55.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "sass": "^1.68.0",
         "url-loader": "^4.1.1"
     },
     "browserslist": {
@@ -48,14 +48,14 @@
     },
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.0.0-beta.0",
-        "@tsconfig/docusaurus": "^2.0.0",
-        "@types/react": "^18.0.0",
-        "@types/react-helmet": "^6.1.6",
+        "@docusaurus/tsconfig": "^3.0.0-beta.0",
+        "@types/react": "^18.2.24",
+        "@types/react-helmet": "^6.1.7",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^5.57.0",
-        "@typescript-eslint/parser": "^5.54.0",
-        "dir-compare": "^4.0.0",
-        "prettier": "^2.8.8",
-        "typescript": "^4.8.3"
+        "@typescript-eslint/eslint-plugin": "^6.7.3",
+        "@typescript-eslint/parser": "^6.7.3",
+        "dir-compare": "^4.2.0",
+        "prettier": "^3.0.3",
+        "typescript": "^5.2.2"
     }
 }

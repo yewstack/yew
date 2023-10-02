@@ -177,6 +177,7 @@ module.exports = {
                 ],
             },
         ],
+        /*
         [
             '@easyops-cn/docusaurus-search-local',
             {
@@ -184,5 +185,6 @@ module.exports = {
                 indexBlog: false,
             },
         ],
+        */
     ],
 }
