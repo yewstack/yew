@@ -15,7 +15,7 @@ pub struct UseWorkerBridgeHandle<T>
 where
     T: Worker,
 {
-    inner: WorkerBridge<T>,
+    inner: Rc<WorkerBridge<T>>,
     ctr: UseReducerDispatcher<BridgeIdState>,
 }
 
@@ -106,7 +106,7 @@ where
     });
 
     UseWorkerBridgeHandle {
-        inner: (*bridge).clone(),
+        inner: bridge,
         ctr: ctr.dispatcher(),
     }
 }

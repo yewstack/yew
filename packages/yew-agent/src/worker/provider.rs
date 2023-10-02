@@ -46,7 +46,7 @@ where
     id: usize,
     spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>>,
     reach: Reach,
-    held_bridge: Rc<RefCell<Option<WorkerBridge<W>>>>,
+    held_bridge: RefCell<Option<Rc<WorkerBridge<W>>>>,
 }
 
 impl<W> fmt::Debug for WorkerProviderState<W>
@@ -63,13 +63,13 @@ where
     W: Worker,
     W::Output: 'static,
 {
-    fn get_held_bridge(&self) -> WorkerBridge<W> {
+    fn get_held_bridge(&self) -> Rc<WorkerBridge<W>> {
         let mut held_bridge = self.held_bridge.borrow_mut();
 
         match held_bridge.as_mut() {
             Some(m) => m.clone(),
             None => {
-                let bridge = (self.spawn_bridge_fn)();
+                let bridge = Rc::new((self.spawn_bridge_fn)());
                 *held_bridge = Some(bridge.clone());
                 bridge
             }
@@ -141,7 +141,7 @@ where
                 id: get_next_id(),
                 spawn_bridge_fn,
                 reach: *reach,
-                held_bridge: Rc::default(),
+                held_bridge: Default::default(),
             };
 
             if *reach == Reach::Public && !*lazy {
