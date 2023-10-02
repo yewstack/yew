@@ -88,20 +88,6 @@ where
     }
 }
 
-impl<W> Clone for WorkerProviderState<W>
-where
-    W: Worker,
-{
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            spawn_bridge_fn: self.spawn_bridge_fn.clone(),
-            reach: self.reach,
-            held_bridge: self.held_bridge.clone(),
-        }
-    }
-}
-
 impl<W> PartialEq for WorkerProviderState<W>
 where
     W: Worker,
@@ -152,8 +138,8 @@ where
     };
 
     html! {
-        <ContextProvider<WorkerProviderState<W>> context={(*state).clone()}>
+        <ContextProvider<Rc<WorkerProviderState<W>>> context={state.clone()}>
             {children}
-        </ContextProvider<WorkerProviderState<W>>>
+        </ContextProvider<Rc<WorkerProviderState<W>>>>
     }
 }
