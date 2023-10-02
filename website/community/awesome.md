@@ -106,7 +106,7 @@ description: 'Community projects built using yew'
 
 ## Tooling
 
--   [wasm-pack](https://github.com/rustwasm/wasm-pack) - Your favorite Rust -&gt; WebAssembly workflow tool.
+-   [wasm-pack](https://github.com/rustwasm/wasm-pack) - Your favorite Rust -> WebAssembly workflow tool.
 -   [wasm-pack-action](https://github.com/jetli/wasm-pack-action) - Github action to install `wasm-pack` by downloading the executable to speed up CI/CD.
 -   [wasm-bindgen-action](https://github.com/jetli/wasm-bindgen-action) - Github action to install `wasm-bindgen` by downloading the executable to speed up CI/CD.
 -   [cargo-web](https://github.com/koute/cargo-web) - A Cargo subcommand for the client-side Web.

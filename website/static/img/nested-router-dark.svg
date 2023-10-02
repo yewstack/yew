@@ -61,24 +61,24 @@
 <path fill="lightblue" stroke="white" d="M206,-180C206,-180 144,-180 144,-180 138,-180 132,-174 132,-168 132,-168 132,-156 132,-156 132,-150 138,-144 144,-144 144,-144 206,-144 206,-144 212,-144 218,-150 218,-156 218,-156 218,-168 218,-168 218,-174 212,-180 206,-180"/>
 <text text-anchor="middle" x="175" y="-158.3" font-family="Times New Roman,serif" font-size="14.00">Main Router</text>
 </g>
-<!-- Main Router&#45;&gt;Home -->
+<!-- Main Router&#45;>Home -->
 <g id="edge1" class="edge">
-<title>Main Router&#45;&gt;Home</title>
+<title>Main Router&#45;>Home</title>
 <path fill="none" stroke="white" d="M138.8,-143.88C112.61,-131.49 77.79,-115.02 54.01,-103.78"/>
 </g>
-<!-- Main Router&#45;&gt;News -->
+<!-- Main Router&#45;>News -->
 <g id="edge2" class="edge">
-<title>Main Router&#45;&gt;News</title>
+<title>Main Router&#45;>News</title>
 <path fill="none" stroke="white" d="M156.21,-143.7C144.43,-132.85 129.31,-118.92 117.57,-108.1"/>
 </g>
-<!-- Main Router&#45;&gt;Contact -->
+<!-- Main Router&#45;>Contact -->
 <g id="edge3" class="edge">
-<title>Main Router&#45;&gt;Contact</title>
+<title>Main Router&#45;>Contact</title>
 <path fill="none" stroke="white" d="M175,-143.7C175,-132.85 175,-118.92 175,-108.1"/>
 </g>
-<!-- Main Router&#45;&gt;Not Found -->
+<!-- Main Router&#45;>Not Found -->
 <g id="edge4" class="edge">
-<title>Main Router&#45;&gt;Not Found</title>
+<title>Main Router&#45;>Not Found</title>
 <path fill="none" stroke="white" d="M196.75,-143.7C210.39,-132.85 227.9,-118.92 241.5,-108.1"/>
 </g>
 <!-- Settings Router -->
@@ -87,29 +87,29 @@
 <path fill="lightblue" stroke="white" d="M411.5,-108C411.5,-108 332.5,-108 332.5,-108 326.5,-108 320.5,-102 320.5,-96 320.5,-96 320.5,-84 320.5,-84 320.5,-78 326.5,-72 332.5,-72 332.5,-72 411.5,-72 411.5,-72 417.5,-72 423.5,-78 423.5,-84 423.5,-84 423.5,-96 423.5,-96 423.5,-102 417.5,-108 411.5,-108"/>
 <text text-anchor="middle" x="372" y="-86.3" font-family="Times New Roman,serif" font-size="14.00">Settings Router</text>
 </g>
-<!-- Main Router&#45;&gt;Settings Router -->
+<!-- Main Router&#45;>Settings Router -->
 <g id="edge5" class="edge">
-<title>Main Router&#45;&gt;Settings Router</title>
+<title>Main Router&#45;>Settings Router</title>
 <path fill="none" stroke="white" d="M218.23,-145.64C249.49,-134.53 291.73,-119.52 324.03,-108.04"/>
 </g>
-<!-- Settings Router&#45;&gt;Profile -->
+<!-- Settings Router&#45;>Profile -->
 <g id="edge6" class="edge">
-<title>Settings Router&#45;&gt;Profile</title>
+<title>Settings Router&#45;>Profile</title>
 <path fill="none" stroke="white" d="M361.12,-71.7C354.3,-60.85 345.55,-46.92 338.75,-36.1"/>
 </g>
-<!-- Settings Router&#45;&gt;Friends -->
+<!-- Settings Router&#45;>Friends -->
 <g id="edge7" class="edge">
-<title>Settings Router&#45;&gt;Friends</title>
+<title>Settings Router&#45;>Friends</title>
 <path fill="none" stroke="white" d="M379.66,-71.7C384.47,-60.85 390.64,-46.92 395.43,-36.1"/>
 </g>
-<!-- Settings Router&#45;&gt;Theme -->
+<!-- Settings Router&#45;>Theme -->
 <g id="edge8" class="edge">
-<title>Settings Router&#45;&gt;Theme</title>
+<title>Settings Router&#45;>Theme</title>
 <path fill="none" stroke="white" d="M397.93,-71.88C414.36,-61.03 435.52,-47.05 451.97,-36.19"/>
 </g>
-<!-- Settings Router&#45;&gt;SettingsNotFound -->
+<!-- Settings Router&#45;>SettingsNotFound -->
 <g id="edge9" class="edge">
-<title>Settings Router&#45;&gt;SettingsNotFound</title>
+<title>Settings Router&#45;>SettingsNotFound</title>
 <path fill="none" stroke="white" d="M340.69,-71.88C320.85,-61.03 295.29,-47.05 275.43,-36.19"/>
 </g>
 </g>

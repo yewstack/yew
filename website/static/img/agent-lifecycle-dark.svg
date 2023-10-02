@@ -2,12 +2,12 @@
   <desc >#stroke: #eeeeee
 #fill: #c4b16e
 
-[Create]-&gt;[Connected]
-[Connected]-&gt;[Handle Input]
-[Handle Input]-&gt;[Update]
-[Update]-&gt;[Handle Input]
-[Update]-&gt;[Disconnected]
-[Disconnected]-&gt;[Destroy]</desc>
+[Create]->[Connected]
+[Connected]->[Handle Input]
+[Handle Input]->[Update]
+[Update]->[Handle Input]
+[Update]->[Disconnected]
+[Disconnected]->[Destroy]</desc>
   <rect x="0" y="0" height="442" width="177" style="stroke:none; fill:transparent;"></rect>
   <path d="M89 59.5 L89 79.5 L89 92.8 L89 92.8 " style="stroke:#eeeeee;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
   <path d="M83.7 86.2 L89 92.8 L94.3 86.2 L89 99.5 Z" style="stroke:#eeeeee;fill:#eeeeee;stroke-dasharray:none;stroke-width:3;"></path>

@@ -1,10 +1,10 @@
 <svg version="1.1" baseProfile="full" width="177" height="442" viewbox="0 0 177 442" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold  12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
-  <desc >[Create]-&gt;[Connected]
-[Connected]-&gt;[Handle Input]
-[Handle Input]-&gt;[Update]
-[Update]-&gt;[Handle Input]
-[Update]-&gt;[Disconnected]
-[Disconnected]-&gt;[Destroy]</desc>
+  <desc >[Create]->[Connected]
+[Connected]->[Handle Input]
+[Handle Input]->[Update]
+[Update]->[Handle Input]
+[Update]->[Disconnected]
+[Disconnected]->[Destroy]</desc>
   <rect x="0" y="0" height="442" width="177" style="stroke:none; fill:transparent;"></rect>
   <path d="M89 59.5 L89 79.5 L89 92.8 L89 92.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
   <path d="M83.7 86.2 L89 92.8 L94.3 86.2 L89 99.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
