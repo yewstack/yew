@@ -23,7 +23,7 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 但是我们可以更进一步！对于任何实现了 `PartialEq` 的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。
 
-{% code title="neq\_assign.rs" %}
+{ code title="neq\_assign.rs" }
 
 ```rust
 pub trait NeqAssign {

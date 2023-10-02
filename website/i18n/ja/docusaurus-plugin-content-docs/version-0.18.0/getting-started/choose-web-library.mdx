@@ -80,14 +80,13 @@ window.alert("hello from wasm!");
         <tr>
             <td style={{ textAlign: 'left' }}>RustのAPIのデザイン</td>
             <td style={{ textAlign: 'left' }}>
-                ほとんどのAPIコールおいて<code>Result</code>
+                ほとんどのAPIコールおいて<code>Result</code>{' '}
                 が返ってくるよう保守的なアプローチがとられている。
             </td>
             <td style={{ textAlign: 'left' }}>
-                しばしば<code>Result</code>
-                を返さずpanicするようになっている。例えば <code>
-                    stdweb::web::window()
-                </code>
+                しばしば<code>Result</code>{' '}
+                を返さずpanicするようになっている。例えば{' '}
+                <code>stdweb::web::window()</code>{' '}
                 ワーカーの中で呼ばれるパニックする。
             </td>
         </tr>

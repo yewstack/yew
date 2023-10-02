@@ -8,7 +8,7 @@ cargo new --bin yew-app && cd yew-app
 
 添加 `yew` 到你的依赖库中（[这里](https://docs.rs/yew) 可以查看最新版本的 Yew）
 
-{% code title="Cargo.toml" %}
+{ code title="Cargo.toml" }
 
 ```text
 [package]
@@ -21,7 +21,7 @@ edition = "2018"
 yew = { version = "0.14.3", features = ["std_web"] }
 ```
 
-{% endcode %}
+{ endcode }
 
 将这份代码复制到你的 `src/main.rs` 文件中:
 
@@ -72,7 +72,7 @@ fn main() {
 }
 ```
 
-{% endcode %}
+{ endcode }
 
 这份代码将构建你的称为 `Model` 的 `Component` 根组件，它会显示一个按钮，当你点击它时，`Model` 将会更新自己的状态。特别注意 `main()` 中的 `App::<Model>::new().mount_to_body()`，它会启动你的应用并将其挂载到页面的 `<body>` 标签中。如果你想使用任何动态属性来启动应用程序，则可以使用 `App::<Model>::new().mount_to_body_with_props(..)`。
 

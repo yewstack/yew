@@ -27,7 +27,7 @@ html!{
 
 如果组件的 `Properties` 中有 `children` 字段，则可以被传递子组件。
 
-{% code title="parent.rs" %}
+{ code title="parent.rs" }
 
 ```rust
 html! {
