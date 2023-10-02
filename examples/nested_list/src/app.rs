@@ -83,7 +83,7 @@ impl Component for App {
                                 >
                                     {
                                         iter::once(html_nested! { <ListItem key="hidden-sub" hide=true name="Hidden Sub" {on_hover} /> })
-                                        .chain(letters.into_iter())
+                                        .chain(letters)
                                         .collect::<Vec<_>>()
                                     }
                                 </List>
