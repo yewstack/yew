@@ -17,9 +17,18 @@ pub enum HtmlNode {
 impl Parse for HtmlNode {
     fn parse(input: ParseStream) -> Result<Self> {
         let node = if HtmlNode::peek(input.cursor()).is_some() {
-            let lit: Lit = input.parse()?;
-            if matches!(lit, Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_)) {
-                return Err(syn::Error::new(lit.span(), "unsupported type"));
+            let lit = input.parse()?;
+            match lit {
+                Lit::ByteStr(lit) => {
+                    return Err(syn::Error::new(
+                        lit.span(),
+                        "byte-strings can't be converted to HTML text\nnote: remove the `b` prefix",
+                    ))
+                }
+                Lit::Verbatim(lit) => {
+                    return Err(syn::Error::new(lit.span(), "unsupported literal"))
+                }
+                _ => (),
             }
             HtmlNode::Literal(Box::new(lit))
         } else {
