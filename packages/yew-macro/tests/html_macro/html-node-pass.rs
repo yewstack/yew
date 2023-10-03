@@ -48,6 +48,7 @@ fn compile_pass() {
     ::yew::html! { <span>{ "hello" }</span> };
     ::yew::html! { <span>{ 42 }</span> };
     ::yew::html! { <span>{ 1.234 }</span> };
+    ::yew::html! { <span> "Yew " 0.21 </span> };
 
     ::yew::html! { ::std::format!("Hello") };
     ::yew::html! { {<::std::string::String as ::std::convert::From<&::std::primitive::str>>::from("Hello") } };

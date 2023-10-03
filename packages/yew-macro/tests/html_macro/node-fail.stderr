@@ -11,18 +11,6 @@ error: unexpected token
   |                             ^^^^^^^^^
 
 error: unsupported type
-  --> tests/html_macro/node-fail.rs:10:14
-   |
-10 |     html! {  b'a' };
-   |              ^^^^
-
-error: unsupported type
-  --> tests/html_macro/node-fail.rs:11:14
-   |
-11 |     html! {  b"str" };
-   |              ^^^^^^
-
-error: unsupported type
   --> tests/html_macro/node-fail.rs:12:22
    |
 12 |     html! {  <span>{ b'a' }</span> };
@@ -68,6 +56,34 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: required because of the requirements on the impl of `ToString` for `()`
   = note: required because of the requirements on the impl of `From<()>` for `VNode`
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<u8>` is not satisfied
+  --> tests/html_macro/node-fail.rs:10:14
+   |
+10 |     html! {  b'a' };
+   |              ^^^^ the trait `From<u8>` is not implemented for `implicit_clone::unsync::IString`
+   |
+   = help: the following other types implement trait `From<T>`:
+             <implicit_clone::unsync::IString as From<&'static str>>
+             <implicit_clone::unsync::IString as From<Cow<'static, str>>>
+             <implicit_clone::unsync::IString as From<Rc<str>>>
+             <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `u8`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<&[u8; 3]>` is not satisfied
+  --> tests/html_macro/node-fail.rs:11:14
+   |
+11 |     html! {  b"str" };
+   |              ^^^^^^ the trait `From<&[u8; 3]>` is not implemented for `implicit_clone::unsync::IString`
+   |
+   = help: the following other types implement trait `From<T>`:
+             <implicit_clone::unsync::IString as From<&'static str>>
+             <implicit_clone::unsync::IString as From<Cow<'static, str>>>
+             <implicit_clone::unsync::IString as From<Rc<str>>>
+             <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `&[u8; 3]`
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
   --> tests/html_macro/node-fail.rs:17:9

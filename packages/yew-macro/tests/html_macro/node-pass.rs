@@ -47,9 +47,11 @@ fn main() {
     ::yew::html! { <span>{ "" }</span> };
     ::yew::html! { <span>{ 'a' }</span> };
     ::yew::html! { <span>{ "hello" }</span> };
-    ::yew::html! { <span>{ "42" }</span> };
+    ::yew::html! { <span>{ 42 }</span> };
     ::yew::html! { <span>{ "1.234" }</span> };
     ::yew::html! { <span>{ "true" }</span> };
+    ::yew::html! { <span> 3.69 </span> };
+    ::yew::html! { <span>"Yew"</span>};
 
     ::yew::html! { ::std::format!("Hello") };
     ::yew::html! { ::std::string::ToString::to_string("Hello") };

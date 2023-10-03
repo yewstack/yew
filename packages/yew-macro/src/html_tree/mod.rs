@@ -72,16 +72,13 @@ impl HtmlTree {
     /// returns with the appropriate type. If invalid html tag, returns `None`.
     fn peek_html_type(input: ParseStream) -> Option<HtmlType> {
         let input = input.fork(); // do not modify original ParseStream
+        let cursor = input.cursor();
 
         if input.is_empty() {
             Some(HtmlType::Empty)
-        } else if input
-            .cursor()
-            .group(proc_macro2::Delimiter::Brace)
-            .is_some()
-        {
+        } else if HtmlBlock::peek(cursor).is_some() {
             Some(HtmlType::Block)
-        } else if HtmlIf::peek(input.cursor()).is_some() {
+        } else if HtmlIf::peek(cursor).is_some() {
             Some(HtmlType::If)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
