@@ -1,9 +1,9 @@
 use proc_macro2::Delimiter;
 use quote::{quote, quote_spanned, ToTokens};
+use syn::braced;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::token::Brace;
-use syn::braced;
 
 use super::{HtmlIterable, HtmlNode, ToNodeIterator};
 use crate::PeekValue;
@@ -20,7 +20,9 @@ pub enum BlockContent {
 
 impl PeekValue<()> for HtmlBlock {
     fn peek(cursor: Cursor) -> Option<()> {
-        if cursor.group(Delimiter::Brace).is_some() {return Some(())}
+        if cursor.group(Delimiter::Brace).is_some() {
+            return Some(());
+        }
         cursor.literal().map(drop)
     }
 }
@@ -28,7 +30,10 @@ impl PeekValue<()> for HtmlBlock {
 impl Parse for HtmlBlock {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         if let Ok(lit) = input.parse() {
-            return Ok(Self { content: BlockContent::Node(HtmlNode::Literal(lit).into()), brace: None })
+            return Ok(Self {
+                content: BlockContent::Node(HtmlNode::Literal(lit).into()),
+                brace: None,
+            });
         }
         let content;
         let brace = Some(braced!(content in input));
