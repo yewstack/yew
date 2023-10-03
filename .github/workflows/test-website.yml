@@ -8,7 +8,7 @@ on:
       - "packages/**/*"
       - "website/**/*"
   push:
-    branches: [prepare-for-docusaurus-v3]
+    branches: [master]
 
 jobs:
   website_tests:
