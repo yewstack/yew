@@ -7,7 +7,7 @@ pub use implicit_clone::ImplicitClone;
 use super::ToHtml;
 use crate::callback::Callback;
 use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VNode, VText};
+use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -151,6 +151,20 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
         ChildrenRenderer::new(vec![self.into()])
+    }
+}
+
+impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::with_children(self.children, None)
+    }
+}
+
+impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::with_children(vec![self.into()], None)
     }
 }
 
@@ -339,6 +353,59 @@ mod test {
             <App {header} {footer}>
                 {children}
             </App>
+        };
+    }
+
+    #[test]
+    fn test_vlist_to_children_compiles() {
+        use crate::prelude::*;
+        use crate::virtual_dom::VList;
+
+        #[function_component]
+        fn Foo() -> Html {
+            todo!()
+        }
+
+        #[derive(PartialEq, Properties)]
+        pub struct ChildProps {
+            #[prop_or_default]
+            pub children: Html,
+        }
+
+        #[function_component]
+        fn Child(_props: &ChildProps) -> Html {
+            html!()
+        }
+
+        #[derive(PartialEq, Properties)]
+        pub struct ParentProps {
+            pub children: VList,
+        }
+
+        #[function_component]
+        fn Parent(_props: &ParentProps) -> Html {
+            todo!()
+        }
+
+        let _ = html! {
+            <Parent>
+                <Child></Child>
+            </Parent>
+        };
+
+        let _ = html! {
+            <Parent>
+                <Child />
+                <Child />
+            </Parent>
+        };
+
+        let _ = html! {
+            <Parent>
+                <Child>
+                    <Foo />
+                </Child>
+            </Parent>
         };
     }
 }
