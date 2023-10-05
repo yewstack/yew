@@ -9,8 +9,8 @@ mod grandparent;
 mod parent;
 
 use yew::{
-    component, html, AttrValue, Callback, Component, Context, ContextHandle,
-    ContextProvider, Html, Properties,
+    component, html, AttrValue, Callback, Component, Context, ContextHandle, ContextProvider, Html,
+    Properties,
 };
 
 /// This is the shared state between the parent and child components.
