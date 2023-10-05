@@ -1,11 +1,11 @@
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(PartialEq, Eq, Properties, Clone)]
 pub struct Props {
     pub best_score: u32,
 }
 
-#[function_component]
+#[component]
 pub fn BestScore(props: &Props) -> Html {
     html! {
         <div class="best-score">

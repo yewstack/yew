@@ -8,7 +8,7 @@ struct DisplayProps {
     name: IString,
 }
 
-#[function_component]
+#[component]
 fn Display(props: &DisplayProps) -> Html {
     html! {
         <p>{"Hello "}{&props.name}{"!"}</p>

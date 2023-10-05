@@ -20,7 +20,7 @@ pub struct Props {
     pub route_to_page: Route,
 }
 
-#[function_component]
+#[component]
 pub fn RelNavButtons(props: &Props) -> Html {
     let Props {
         page,
@@ -58,7 +58,7 @@ pub struct RenderLinksProps {
     props: Props,
 }
 
-#[function_component]
+#[component]
 pub fn RenderLinks(props: &RenderLinksProps) -> Html {
     let RenderLinksProps {
         range,
@@ -94,7 +94,7 @@ pub struct RenderLinkProps {
     props: Props,
 }
 
-#[function_component]
+#[component]
 pub fn RenderLink(props: &RenderLinkProps) -> Html {
     let RenderLinkProps { to_page, props } = props.clone();
 
@@ -119,7 +119,7 @@ pub fn RenderLink(props: &RenderLinkProps) -> Html {
     }
 }
 
-#[function_component]
+#[component]
 pub fn Links(props: &Props) -> Html {
     const LINKS_PER_SIDE: usize = 3;
 
@@ -144,7 +144,7 @@ pub fn Links(props: &Props) -> Html {
     }
 }
 
-#[function_component]
+#[component]
 pub fn Pagination(props: &Props) -> Html {
     html! {
         <nav class="pagination is-right" role="navigation" aria-label="pagination">

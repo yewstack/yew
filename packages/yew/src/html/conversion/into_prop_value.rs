@@ -269,7 +269,7 @@ mod test {
             pub footer: Children,
         }
 
-        #[function_component]
+        #[component]
         pub fn App(props: &Props) -> Html {
             let Props {
                 header,
@@ -307,7 +307,7 @@ mod test {
     fn test_vchild_to_children_with_props_compiles() {
         use crate::prelude::*;
 
-        #[function_component]
+        #[component]
         pub fn Comp() -> Html {
             Html::default()
         }
@@ -322,7 +322,7 @@ mod test {
             pub footer: ChildrenWithProps<Comp>,
         }
 
-        #[function_component]
+        #[component]
         pub fn App(props: &Props) -> Html {
             let Props {
                 header,
@@ -361,7 +361,7 @@ mod test {
         use crate::prelude::*;
         use crate::virtual_dom::VList;
 
-        #[function_component]
+        #[component]
         fn Foo() -> Html {
             todo!()
         }
@@ -372,7 +372,7 @@ mod test {
             pub children: Html,
         }
 
-        #[function_component]
+        #[component]
         fn Child(_props: &ChildProps) -> Html {
             html!()
         }
@@ -382,7 +382,7 @@ mod test {
             pub children: VList,
         }
 
-        #[function_component]
+        #[component]
         fn Parent(_props: &ParentProps) -> Html {
             todo!()
         }

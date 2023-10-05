@@ -9,7 +9,7 @@ mod grandparent;
 mod parent;
 
 use yew::{
-    function_component, html, AttrValue, Callback, Component, Context, ContextHandle,
+    component, html, AttrValue, Callback, Component, Context, ContextHandle,
     ContextProvider, Html, Properties,
 };
 

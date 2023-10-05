@@ -35,7 +35,7 @@ impl Parse for FunctionComponent {
             item => {
                 return Err(syn::Error::new_spanned(
                     item,
-                    "`function_component` attribute can only be applied to functions",
+                    "the `component` or `function_component` attribute can only be applied to functions",
                 ))
             }
         };
@@ -412,7 +412,7 @@ impl Parse for FunctionComponentName {
     }
 }
 
-pub fn function_component_impl(
+pub fn component_impl(
     name: FunctionComponentName,
     mut component: FunctionComponent,
 ) -> syn::Result<TokenStream> {

@@ -8,7 +8,7 @@ use crate::Route;
 const ITEMS_PER_PAGE: u32 = 10;
 const TOTAL_PAGES: u32 = u32::MAX / ITEMS_PER_PAGE;
 
-#[function_component]
+#[component]
 pub fn PostList() -> Html {
     let location = use_location().unwrap();
     let current_page = location.query::<PageQuery>().map(|it| it.page).unwrap_or(1);

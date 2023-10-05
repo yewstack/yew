@@ -5,7 +5,7 @@ struct Props {
     a: usize,
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 fn comp<P>(_props: &P) -> Html
 where
     P: Properties + PartialEq,

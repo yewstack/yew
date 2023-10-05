@@ -8,7 +8,7 @@ use self::array::*;
 use self::map::*;
 use self::string::*;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {
         <>

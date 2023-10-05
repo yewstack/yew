@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn InfoTiles() -> Html {
     html! {
         <>
@@ -42,7 +42,7 @@ fn InfoTiles() -> Html {
     }
 }
 
-#[function_component]
+#[component]
 pub fn Home() -> Html {
     html! {
         <div class="tile is-ancestor is-vertical">

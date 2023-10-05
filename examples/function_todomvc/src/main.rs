@@ -14,7 +14,7 @@ use components::info_footer::InfoFooter;
 
 const KEY: &str = "yew.functiontodomvc.self";
 
-#[function_component(App)]
+#[component(App)]
 fn app() -> Html {
     let state = use_reducer(|| State {
         entries: LocalStorage::get(KEY).unwrap_or_else(|_| vec![]),

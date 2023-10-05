@@ -34,7 +34,7 @@ to render `<App />` into a `String`.
 use yew::prelude::*;
 use yew::ServerRenderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
@@ -178,7 +178,7 @@ until `rendered()` method is called.
 use yew::prelude::*;
 use yew::Renderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }

@@ -17,7 +17,7 @@ enum AppRoute {
     Search { query: String },
 }
 
-#[function_component]
+#[component]
 fn Comp() -> Html {
     let switch = move |routes: AppRoute| match routes {
         AppRoute::Root => html! {
@@ -37,7 +37,7 @@ fn Comp() -> Html {
     }
 }
 
-#[function_component(Root)]
+#[component(Root)]
 fn root() -> Html {
     html! {
         <BrowserRouter>

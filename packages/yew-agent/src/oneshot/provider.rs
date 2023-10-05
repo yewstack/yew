@@ -85,7 +85,7 @@ where
 /// The Oneshot Agent Provider.
 ///
 /// This component provides its children access to an oneshot agent.
-#[function_component]
+#[component]
 pub fn OneshotProvider<T, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     T: Oneshot + 'static,

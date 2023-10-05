@@ -10,7 +10,7 @@ description: 定义你自己的 Hooks
 假设我们有一个组件，它订阅了一个代理（agent）并且会显示发送给它的消息。
 
 ```rust
-#[function_component(ShowMessages)]
+#[component(ShowMessages)]
 pub fn show_messages() -> Html {
     let (state, set_state) = use_state(|| vec![]);
 
@@ -92,7 +92,7 @@ fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
 现在我们可以使用自定义钩子了：
 
 ```rust
-#[function_component(ShowMessages)]
+#[component(ShowMessages)]
 pub fn show_messages() -> Html {
     let state = use_subscribe();
     let output = state.borrow().deref().into_iter().map(|it| html! { <p>{ it }</p> });

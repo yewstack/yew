@@ -11,7 +11,7 @@ use struct_component_subscriber::StructComponentSubscriber;
 use subscriber::Subscriber;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     html! {
         <MessageProvider>

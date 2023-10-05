@@ -39,7 +39,7 @@
 //! #   }
 //! # }
 //! use my_worker_mod::MyWorker; // note that <MyWorker as yew_agent::Worker>::Output == WorkerResponseType
-//! #[function_component(UseWorkerBridge)]
+//! #[component(UseWorkerBridge)]
 //! fn bridge() -> Html {
 //!     let counter = use_state(|| 0);
 //!

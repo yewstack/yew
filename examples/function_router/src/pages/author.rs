@@ -9,7 +9,7 @@ pub struct Props {
     pub seed: u32,
 }
 
-#[function_component]
+#[component]
 pub fn Author(props: &Props) -> Html {
     let seed = props.seed;
 

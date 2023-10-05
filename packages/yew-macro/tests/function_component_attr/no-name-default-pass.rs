@@ -5,7 +5,7 @@ struct Props {
     a: usize,
 }
 
-#[::yew::prelude::function_component]
+#[::yew::prelude::component]
 fn Comp(props: &Props) -> ::yew::prelude::Html {
     ::yew::prelude::html! {
         <p>

@@ -59,7 +59,7 @@ mod use_prepared_state;
 mod use_transitive_state;
 
 use derive_props::DerivePropsInput;
-use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
+use function_component::{component_impl, FunctionComponent, FunctionComponentName};
 use hook::{hook_impl, HookFn};
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
@@ -139,11 +139,11 @@ pub fn classes(input: TokenStream) -> TokenStream {
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
-pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+pub fn component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as FunctionComponent);
     let attr = parse_macro_input!(attr as FunctionComponentName);
 
-    function_component_impl(attr, item)
+    component_impl(attr, item)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

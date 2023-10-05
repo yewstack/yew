@@ -9,7 +9,7 @@ pub struct FilterProps {
     pub onset_filter: Callback<FilterEnum>,
 }
 
-#[function_component]
+#[component]
 pub fn Filter(props: &FilterProps) -> Html {
     let filter = props.filter;
 

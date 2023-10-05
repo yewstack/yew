@@ -9,10 +9,10 @@ slug: /concepts/function-components
 
 ## 创建函数式组件
 
-创建函数式组件的最简单方法是在函数前添加`#[function_component]`属性。
+创建函数式组件的最简单方法是在函数前添加`#[component]`属性。
 
 ```rust
-#[function_component(HelloWorld)]
+#[component(HelloWorld)]
 fn hello_world() -> Html {
     html! { "Hello world" }
 }
@@ -20,7 +20,7 @@ fn hello_world() -> Html {
 
 ### 更多细节
 
-函数式组件由两部分组成。首先， `FunctionProvider` trait 与`Component` trait 差不多，但它只有一个名为`run`方法。之后是`FunctionComponent`结构体，它封装了`FunctionProvider`类型并将其转换为实际的`Component` 。 `#[function_component]`属性本质上只是`FunctionProvider`并将其暴露在`FunctionComponent` 。
+函数式组件由两部分组成。首先， `FunctionProvider` trait 与`Component` trait 差不多，但它只有一个名为`run`方法。之后是`FunctionComponent`结构体，它封装了`FunctionProvider`类型并将其转换为实际的`Component` 。 `#[component]`属性本质上只是`FunctionProvider`并将其暴露在`FunctionComponent` 。
 
 ### 钩子（Hooks）
 

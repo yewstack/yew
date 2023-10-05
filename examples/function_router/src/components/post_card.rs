@@ -28,7 +28,7 @@ impl Reducible for PostMetaState {
     }
 }
 
-#[function_component]
+#[component]
 pub fn PostCard(props: &Props) -> Html {
     let seed = props.seed;
 

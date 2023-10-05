@@ -16,7 +16,7 @@ async fn fetch_uuid() -> Uuid {
     uuid_resp.uuid
 }
 
-#[function_component]
+#[component]
 fn Content() -> HtmlResult {
     let uuid = use_prepared_state!((), async move |_| -> Uuid { fetch_uuid().await })?.unwrap();
 
@@ -25,7 +25,7 @@ fn Content() -> HtmlResult {
     })
 }
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     let fallback = html! {<div>{"Loading..."}</div>};
 

@@ -65,7 +65,7 @@ pub struct Props {
     pub on_progress: Callback<f64>,
 }
 
-#[function_component]
+#[component]
 pub fn ProgressDelay(props: &Props) -> Html {
     let Props { duration_ms, .. } = props.clone();
 

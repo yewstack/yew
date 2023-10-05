@@ -17,7 +17,7 @@ macro_rules! create_test {
     ($name:ident, $raw:expr, $expected:expr) => {
         #[test]
         async fn $name() {
-            #[function_component]
+            #[component]
             fn App() -> Html {
                 let raw = Html::from_html_unchecked(AttrValue::from($raw));
                 html! {
@@ -77,7 +77,7 @@ macro_rules! create_update_html_test {
         #[cfg(target_arch = "wasm32")]
         #[test]
         async fn $name() {
-            #[function_component]
+            #[component]
             fn App() -> Html {
                 let raw_html = use_state(|| ($initial));
                 let onclick = {
@@ -153,7 +153,7 @@ create_update_html_test!(
 #[cfg(target_arch = "wasm32")]
 #[test]
 async fn change_vnode_types_from_other_to_vraw() {
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let node = use_state(|| html!("text"));
         let onclick = {
@@ -205,7 +205,7 @@ async fn change_vnode_types_from_other_to_vraw() {
 #[cfg(target_arch = "wasm32")]
 #[test]
 async fn change_vnode_types_from_vraw_to_other() {
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let node = use_state(|| Html::from_html_unchecked(AttrValue::from("<span>second</span>")));
         let onclick = {

@@ -45,27 +45,27 @@ pub struct Props {
 
 ## Use in function components
 
-The attribute `#[function_component]` allows to optionally receive Props in the function arguments. To supply them,
+The attribute `#[component]` allows to optionally receive Props in the function arguments. To supply them,
 they are assigned via attributes in the `html!` macro.
 
 <Tabs>
   <TabItem value="with-props" label="With Props">
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! { <>{"Am I loading? - "}{props.is_loading.clone()}</> }
 }
 
 // Then supply the prop
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<HelloWorld is_loading={true} />}
 }
@@ -76,20 +76,20 @@ fn App() -> Html {
   <TabItem value="no-props" label="No Props">
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
 
 
 
 
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // No props to supply
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<HelloWorld />}
 }
@@ -115,7 +115,7 @@ The doc strings of your properties should mention whether a prop is optional and
 Initialize the prop value with the default value of the field's type using the `Default` trait.
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -125,7 +125,7 @@ pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     if props.is_loading.clone() {
         html! { "Loading" }
@@ -135,12 +135,12 @@ fn HelloWorld(props: &Props) -> Html {
 }
 
 // Then use like this with default
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! {<HelloWorld />}
 }
 // Or no override the default
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! {<HelloWorld is_loading={true} />}
 }
@@ -154,7 +154,7 @@ For example, to default a boolean prop to `true`, use the attribute `#[prop_or(t
 is evaluated when the properties are constructed and no explicit value has been given.
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -164,18 +164,18 @@ pub struct Props {
     pub name: String,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! {<>{"Hello world"}{props.name.clone()}</>}
 }
 
 // Then use like this with default
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! {<HelloWorld />}
 }
 // Or no override the default
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! {<HelloWorld name={"Sam".to_string()} />}
 }
@@ -188,7 +188,7 @@ Call `function` to initialize the prop value. `function` should have the signatu
 The function is called when no explicit value has been given for that attribute.
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 fn create_default_name() -> String {
     "Bob".to_string()
@@ -202,18 +202,18 @@ pub struct Props {
     pub name: String,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! {<>{"Hello world"}{props.name.clone()}</>}
 }
 
 // Then use like this with default
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! {<HelloWorld />}
 }
 // Or no override the default
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! {<HelloWorld name={"Sam".to_string()} />}
 }
@@ -239,7 +239,7 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrValue};
+use yew::{component, html, Html, Properties, props, virtual_dom::AttrValue};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -247,12 +247,12 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! {<>{"Hello world"}{props.name.clone()}</>}
 }
 
-#[function_component]
+#[component]
 fn App() -> Html {
     // highlight-start
     let pre_made_props = props! {

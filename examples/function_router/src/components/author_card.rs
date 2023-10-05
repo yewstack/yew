@@ -28,7 +28,7 @@ impl Reducible for AuthorState {
     }
 }
 
-#[function_component]
+#[component]
 pub fn AuthorCard(props: &Props) -> Html {
     let seed = props.seed;
 

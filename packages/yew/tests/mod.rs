@@ -18,7 +18,7 @@ async fn props_are_passed() {
         value: String,
     }
 
-    #[function_component]
+    #[component]
     fn PropsComponent(props: &PropsPassedFunctionProps) -> Html {
         assert_eq!(&props.value, "props");
         html! {

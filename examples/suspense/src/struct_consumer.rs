@@ -3,7 +3,7 @@ use yew::prelude::*;
 
 use crate::use_sleep;
 
-#[function_component]
+#[component]
 pub fn WithSleep<Comp>() -> HtmlResult
 where
     Comp: BaseComponent<Properties = AppContentProps>,

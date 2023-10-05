@@ -10,7 +10,7 @@ use yew_agent::oneshot::{use_oneshot_runner, OneshotProvider};
 
 use crate::agent::{FibonacciTask, Postcard};
 
-#[function_component]
+#[component]
 fn Main() -> Html {
     let input_value = use_state_eq(|| 44);
     let output = use_state(|| "Try out some fibonacci calculations!".to_string());
@@ -70,7 +70,7 @@ fn Main() -> Html {
     }
 }
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     html! {
         <OneshotProvider<FibonacciTask, Postcard> path="/worker.js">

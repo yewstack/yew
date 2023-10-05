@@ -76,7 +76,7 @@ impl Reducible for TimerState {
     }
 }
 
-#[function_component(Clock)]
+#[component(Clock)]
 fn clock() -> Html {
     let time = use_state(get_current_time);
 
@@ -91,7 +91,7 @@ fn clock() -> Html {
     )
 }
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let state = use_reducer(|| TimerState {
         messages: Vec::new(),

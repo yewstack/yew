@@ -3,7 +3,7 @@ use agent::{ControlSignal, PrimeReactor};
 use yew::prelude::*;
 use yew_agent::reactor::{use_reactor_subscription, ReactorProvider};
 
-#[function_component]
+#[component]
 fn Main() -> Html {
     let prime_sub = use_reactor_subscription::<PrimeReactor>();
     let started = use_state_eq(|| false);
@@ -54,7 +54,7 @@ fn Main() -> Html {
     }
 }
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     html! {
         <ReactorProvider<PrimeReactor> path="/worker.js">

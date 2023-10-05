@@ -76,7 +76,7 @@ mod ssr_tests {
 
     #[test]
     async fn test_simple_str() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { "abc" }
         }

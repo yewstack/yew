@@ -7,7 +7,7 @@ use crate::components::progress_delay::ProgressDelay;
 /// Amount of milliseconds to wait before showing the next set of authors.
 const CAROUSEL_DELAY_MS: u32 = 15000;
 
-#[function_component]
+#[component]
 pub fn AuthorList() -> Html {
     let seeds = use_state(random_author_seeds);
 

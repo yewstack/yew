@@ -2,7 +2,7 @@ use yew::prelude::*;
 
 use super::msg_ctx::MessageContext;
 
-#[function_component]
+#[component]
 pub fn Subscriber() -> Html {
     let msg_ctx = use_context::<MessageContext>().unwrap();
 
