@@ -33,7 +33,7 @@
  - Assert there are no circular references. [[@WorldSEnder](https://github.com/WorldSEnder), [#3025](https://github.com/yewstack/yew/pull/3025)]
 ## 🚨 Breaking changes
 
- - Remove special handing of struct fields of type `Option` in `derive(Properties)`. [[@Tim Kurdov](https://github.com/Tim Kurdov), [#3398](https://github.com/yewstack/yew/pull/3398)]
+ - Remove special handling of struct fields of type `Option` in `derive(Properties)`. [[@Tim Kurdov](https://github.com/Tim Kurdov), [#3398](https://github.com/yewstack/yew/pull/3398)]
  - Agent v2. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2773](https://github.com/yewstack/yew/pull/2773)]
  - Update signature of use_prepared_state/use_transitive_state. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#3376](https://github.com/yewstack/yew/pull/3376)]
  - Make signature of use_future_with consistent. [[@Muhammad Hamza](https://github.com/Muhammad Hamza), [#3372](https://github.com/yewstack/yew/pull/3372)]
@@ -210,7 +210,7 @@
   - Fix clippy lints from 1.54.0. [[@Xavientois](https://github.com/Xavientois), [#1976](https://github.com/yewstack/yew/pull/1976)]
   - Fix scheduler main queue delay (#1953). [[@intendednull](https://github.com/intendednull), [#1954](https://github.com/yewstack/yew/pull/1954)]
   - Fix case warning on derived properties. [[@nitnelave](https://github.com/nitnelave), [#1929](https://github.com/yewstack/yew/pull/1929)]
-  - yew-macro: fix inability to set the autoplay atribute. [[@bakape](https://github.com/bakape), [#1866](https://github.com/yewstack/yew/pull/1866)]
+  - yew-macro: fix inability to set the autoplay attribute. [[@bakape](https://github.com/bakape), [#1866](https://github.com/yewstack/yew/pull/1866)]
   - Fix duplicate `with props` error messages.. [[@teymour-aldridge](https://github.com/teymour-aldridge), [#1730](https://github.com/yewstack/yew/pull/1730)]
   - Remove extra braces in html_nested macro. [[@Madoshakalaka](https://github.com/Madoshakalaka), [#2169](https://github.com/yewstack/yew/pull/2169)]
   - Remove unused punct field from props. [[@Xavientois](https://github.com/Xavientois), [#1969](https://github.com/yewstack/yew/pull/1969)]
