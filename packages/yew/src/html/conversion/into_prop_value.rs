@@ -4,7 +4,6 @@ use std::rc::Rc;
 use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
-use super::ToHtml;
 use crate::callback::Callback;
 use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
 use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
@@ -130,13 +129,34 @@ where
     }
 }
 
-impl<T> IntoPropValue<VNode> for T
+impl<T> IntoPropValue<VNode> for VChild<T>
 where
-    T: ToHtml,
+    T: BaseComponent,
 {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        self.into_html()
+        VNode::from(self)
+    }
+}
+
+impl IntoPropValue<VNode> for VList {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(self)
+    }
+}
+
+impl IntoPropValue<VNode> for VText {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VText(self)
+    }
+}
+
+impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(self.into())
     }
 }
 
@@ -165,6 +185,12 @@ impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
     #[inline]
     fn into_prop_value(self) -> VList {
         VList::with_children(vec![self.into()], None)
+    }
+}
+
+impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
+    fn into_prop_value(self) -> ChildrenRenderer<VNode> {
+        ChildrenRenderer::new(vec![VNode::VText(VText::new(self))])
     }
 }
 
@@ -407,5 +433,31 @@ mod test {
                 </Child>
             </Parent>
         };
+    }
+
+    #[test]
+    fn attr_value_children() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct ChildProps {
+            #[prop_or_default]
+            pub children: AttrValue,
+        }
+
+        #[function_component]
+        fn Child(_props: &ChildProps) -> Html {
+            html!()
+        }
+        {
+            let attr_value = AttrValue::from("foo");
+
+            let _ = html! { <Child>{attr_value}</Child> };
+        }
+        {
+            let attr_value = AttrValue::from("foo");
+
+            let _ = html! { <Child>{&attr_value}</Child> };
+        }
     }
 }

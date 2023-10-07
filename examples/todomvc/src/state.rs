@@ -142,8 +142,8 @@ impl Filter {
     }
 }
 
-impl ToHtml for Filter {
-    fn to_html(&self) -> yew::Html {
+impl Into<Html> for Filter {
+    fn into(self) -> yew::Html {
         html! { <>{self.to_string()}</> }
     }
 }
