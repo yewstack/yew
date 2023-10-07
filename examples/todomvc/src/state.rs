@@ -1,5 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
+use yew::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct State {
@@ -138,5 +139,11 @@ impl Filter {
             Filter::Active => "#/active",
             Filter::Completed => "#/completed",
         }
+    }
+}
+
+impl Into<Html> for Filter {
+    fn into(self) -> yew::Html {
+        html! { <>{self.to_string()}</> }
     }
 }

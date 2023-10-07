@@ -63,6 +63,12 @@ impl fmt::Display for Hovered {
     }
 }
 
+impl Into<Html> for Hovered {
+    fn into(self) -> Html {
+        html! {<>{self.to_string()}</>}
+    }
+}
+
 fn main() {
     wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<app::App>::new().render();
