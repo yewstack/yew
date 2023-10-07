@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::rc::Rc;
+use std::sync::Arc;
 
 use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
@@ -145,11 +146,17 @@ impl IntoPropValue<VNode> for VList {
         VNode::VList(self)
     }
 }
-
-impl<T: Into<VText>> IntoPropValue<VNode> for T {
-    #[inline(always)]
+impl IntoPropValue<VNode> for VText {
+    #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::from(self.into())
+        VNode::VText(self)
+    }
+}
+
+impl IntoPropValue<VNode> for () {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::default()
     }
 }
 
@@ -256,6 +263,57 @@ impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitC
         IMap::from(self)
     }
 }
+
+macro_rules! impl_into_prop_value_via_display {
+    ($from_ty: ty) => {
+        impl IntoPropValue<VNode> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> VNode {
+                VText::from(self).into()
+            }
+        }
+    };
+}
+
+// go through AttrValue::from where possible
+macro_rules! impl_into_prop_value_via_attr_value {
+    ($from_ty: ty) => {
+        impl IntoPropValue<VNode> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> VNode {
+                VText::new(self).into()
+            }
+        }
+    };
+}
+
+// These are a selection of types implemented via display.
+impl_into_prop_value_via_display!(bool);
+impl_into_prop_value_via_display!(char);
+impl_into_prop_value_via_display!(&String);
+impl_into_prop_value_via_display!(&str);
+impl_into_prop_value_via_display!(Arc<str>);
+impl_into_prop_value_via_display!(Arc<String>);
+impl_into_prop_value_via_display!(Rc<String>);
+impl_into_prop_value_via_display!(u8);
+impl_into_prop_value_via_display!(u16);
+impl_into_prop_value_via_display!(u32);
+impl_into_prop_value_via_display!(u64);
+impl_into_prop_value_via_display!(u128);
+impl_into_prop_value_via_display!(usize);
+impl_into_prop_value_via_display!(i8);
+impl_into_prop_value_via_display!(i16);
+impl_into_prop_value_via_display!(i32);
+impl_into_prop_value_via_display!(i64);
+impl_into_prop_value_via_display!(i128);
+impl_into_prop_value_via_display!(isize);
+impl_into_prop_value_via_display!(f32);
+impl_into_prop_value_via_display!(f64);
+
+impl_into_prop_value_via_attr_value!(String);
+impl_into_prop_value_via_attr_value!(AttrValue);
+impl_into_prop_value_via_attr_value!(Rc<str>);
+impl_into_prop_value_via_attr_value!(Cow<'static, str>);
 
 #[cfg(test)]
 mod test {
