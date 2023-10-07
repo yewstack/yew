@@ -201,6 +201,13 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
     }
 }
 
+impl IntoPropValue<VNode> for Vec<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(VList::with_children(self, None))
+    }
+}
+
 macro_rules! impl_into_prop {
     (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
         // implement V -> T
