@@ -146,10 +146,10 @@ impl IntoPropValue<VNode> for VList {
     }
 }
 
-impl IntoPropValue<VNode> for VText {
-    #[inline]
+impl<T: Into<VText>> IntoPropValue<VNode> for T {
+    #[inline(always)]
     fn into_prop_value(self) -> VNode {
-        VNode::VText(self)
+        VNode::from(self.into())
     }
 }
 
