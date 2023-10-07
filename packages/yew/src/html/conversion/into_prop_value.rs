@@ -208,6 +208,13 @@ impl IntoPropValue<VNode> for Vec<VNode> {
     }
 }
 
+impl IntoPropValue<VNode> for Option<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        self.unwrap_or_default()
+    }
+}
+
 macro_rules! impl_into_prop {
     (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
         // implement V -> T
