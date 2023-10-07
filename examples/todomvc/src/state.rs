@@ -1,5 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
+use yew::html::IntoPropValue;
 use yew::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -142,8 +143,8 @@ impl Filter {
     }
 }
 
-impl Into<Html> for Filter {
-    fn into(self) -> yew::Html {
+impl IntoPropValue<Html> for Filter {
+    fn into_prop_value(self) -> yew::Html {
         html! { <>{self.to_string()}</> }
     }
 }

@@ -105,7 +105,7 @@ fn App() -> Html {
         .iter()
         .map(|message| {
             key += 1;
-            html! { <p key={ key }>{ message }</p> }
+            html! { <p key={ key }>{ *message }</p> }
         })
         .collect();
 
