@@ -121,22 +121,13 @@ impl Attributes {
             use Attributes::*;
 
             match src {
-                Static(arr) => (*arr)
-                    .iter()
-                    .map(|(k, v)| (*k,  v))
-                    .collect(),
+                Static(arr) => (*arr).iter().map(|(k, v)| (*k, v)).collect(),
                 Dynamic { keys, values } => keys
                     .iter()
                     .zip(values.iter())
-                    .filter_map(|(k, v)| {
-                        v.as_ref()
-                            .map(|v| (*k, v))
-                    })
+                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v)))
                     .collect(),
-                IndexMap(m) => m
-                    .iter()
-                    .map(|(k, v)| (k.as_ref(), v))
-                    .collect(),
+                IndexMap(m) => m.iter().map(|(k, v)| (k.as_ref(), v)).collect(),
             }
         }
 
@@ -164,7 +155,7 @@ impl Attributes {
     fn set(el: &Element, key: &str, value: &AttributeOrProperty) {
         match value {
             AttributeOrProperty::Attribute(value) => el
-                .set_attribute(intern(key), &value)
+                .set_attribute(intern(key), value)
                 .expect("invalid attribute key"),
             AttributeOrProperty::Property(value) => {
                 let key = JsValue::from_str(key);
@@ -353,7 +344,10 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[("class", AttributeOrProperty::Attribute(AttrValue::Static("thing")))]);
+        let attrs = Attributes::Static(&[(
+            "class",
+            AttributeOrProperty::Attribute(AttrValue::Static("thing")),
+        )]);
 
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);

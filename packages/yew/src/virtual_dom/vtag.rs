@@ -6,11 +6,11 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use wasm_bindgen::JsValue;
 
+use wasm_bindgen::JsValue;
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
-use super::{AttributeOrProperty, AttrValue, Attributes, Key, Listener, Listeners, VNode};
+use super::{AttrValue, AttributeOrProperty, Attributes, Key, Listener, Listeners, VNode};
 use crate::html::{IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
@@ -398,10 +398,9 @@ impl VTag {
 
     #[doc(hidden)]
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
-        // #[cfg(target_arch = "wasm32")]
         self.attributes.get_mut_index_map().insert(
             AttrValue::from(key),
-            AttributeOrProperty::Property(JsValue::from_str(&value.into_prop_value())),
+            AttributeOrProperty::Attribute(value.into_prop_value()),
         );
     }
 

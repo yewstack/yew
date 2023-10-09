@@ -172,7 +172,7 @@ mod feat_ssr {
     }
 }
 
-/// Defines if the [`Attributes`] is set as element's attribute or property
+/// Defines if the [`Attributes`] is set as element's attribute or property and its value.
 #[allow(missing_docs)]
 #[derive(PartialEq, Clone, Debug)]
 pub enum AttributeOrProperty {
@@ -224,21 +224,15 @@ impl Attributes {
                 AttributeOrProperty::Attribute(v) => Some((*k, v.as_ref())),
                 AttributeOrProperty::Property(_) => None,
             })),
-            Self::Dynamic { keys, values } => Box::new(
-                keys.iter()
-                    .zip(values.iter())
-                    .filter_map(|(k, v)| {
-                        match v {
-                            Some(AttributeOrProperty::Attribute(v)) => Some((*k, v.as_ref())),
-                            _ => None
-                        }
-                    }),
-            ),
-            Self::IndexMap(m) => Box::new(m.iter().filter_map(|(k, v)| {
-                match v {
-                    AttributeOrProperty::Attribute(v) => Some((k.as_ref(), v.as_ref())),
-                    _ => None
-                }
+            Self::Dynamic { keys, values } => {
+                Box::new(keys.iter().zip(values.iter()).filter_map(|(k, v)| match v {
+                    Some(AttributeOrProperty::Attribute(v)) => Some((*k, v.as_ref())),
+                    _ => None,
+                }))
+            }
+            Self::IndexMap(m) => Box::new(m.iter().filter_map(|(k, v)| match v {
+                AttributeOrProperty::Attribute(v) => Some((k.as_ref(), v.as_ref())),
+                _ => None,
             })),
         }
     }
@@ -259,11 +253,7 @@ impl Attributes {
         match self {
             Self::IndexMap(m) => m,
             Self::Static(arr) => {
-                *self = Self::IndexMap(
-                    arr.iter()
-                        .map(|(k, v)| ((*k).into(), v.clone()))
-                        .collect(),
-                );
+                *self = Self::IndexMap(arr.iter().map(|(k, v)| ((*k).into(), v.clone())).collect());
                 unpack!()
             }
             Self::Dynamic { keys, values } => {

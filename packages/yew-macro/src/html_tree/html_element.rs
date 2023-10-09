@@ -247,14 +247,17 @@ impl ToTokens for HtmlElement {
                 }
             });
 
-
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
             fn try_into_static(
                 src: &[(LitStr, Value, Option<PropDirective>)],
             ) -> Option<TokenStream> {
-                if src.iter().any(|(_, _, d)| matches!(d, Some(PropDirective::ApplyAsProperty(_)))) {
-                    // don't try to make a static attribute list if there are any properties to assign
-                    return None
+                if src
+                    .iter()
+                    .any(|(_, _, d)| matches!(d, Some(PropDirective::ApplyAsProperty(_))))
+                {
+                    // don't try to make a static attribute list if there are any properties to
+                    // assign
+                    return None;
                 }
                 let mut kv = Vec::with_capacity(src.len());
                 for (k, v, directive) in src.iter() {
