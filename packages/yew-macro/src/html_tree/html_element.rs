@@ -247,27 +247,32 @@ impl ToTokens for HtmlElement {
                 }
             });
 
-            fn apply_as(directive: Option<&PropDirective>) -> TokenStream {
-                match directive {
-                    Some(PropDirective::ApplyAsProperty(token)) => {
-                        quote_spanned!(token.span()=> ::yew::virtual_dom::ApplyAttributeAs::Property)
-                    }
-                    None => quote!(::yew::virtual_dom::ApplyAttributeAs::Attribute),
-                }
-            }
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
             fn try_into_static(
                 src: &[(LitStr, Value, Option<PropDirective>)],
             ) -> Option<TokenStream> {
+                if src.iter().any(|(_, _, d)| matches!(d, Some(PropDirective::ApplyAsProperty(_)))) {
+                    // don't try to make a static attribute list if there are any properties to assign
+                    return None
+                }
                 let mut kv = Vec::with_capacity(src.len());
                 for (k, v, directive) in src.iter() {
                     let v = match v {
                         Value::Static(v) => quote! { #v },
                         Value::Dynamic(_) => return None,
                     };
-                    let apply_as = apply_as(directive.as_ref());
-                    kv.push(quote! { ( #k, #v, #apply_as ) });
+                    let v = match directive {
+                        Some(PropDirective::ApplyAsProperty(token)) => {
+                            quote_spanned!(token.span()=> ::yew::virtual_dom::AttributeOrProperty::Property(
+                                ::std::convert::Into::into(#v)
+                            ))
+                        }
+                        None => quote!(::yew::virtual_dom::AttributeOrProperty::Attribute(
+                            ::yew::virtual_dom::AttrValue::Static(#v)
+                        )),
+                    };
+                    kv.push(quote! { ( #k, #v) });
                 }
 
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
@@ -280,9 +285,22 @@ impl ToTokens for HtmlElement {
             try_into_static(&attrs).unwrap_or_else(|| {
                 let keys = attrs.iter().map(|(k, ..)| quote! { #k });
                 let values = attrs.iter().map(|(_, v, directive)| {
-                    let apply_as = apply_as(directive.as_ref());
-                    let value = wrap_attr_value(v);
-                    quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
+                    let value = match directive {
+                        Some(PropDirective::ApplyAsProperty(token)) => {
+                            quote_spanned!(token.span()=> ::std::option::Option::Some(
+                                ::yew::virtual_dom::AttributeOrProperty::Property(
+                                    ::std::convert::Into::into(#v)
+                                ))
+                            )
+                        }
+                        None => {
+                            let value = wrap_attr_value(v);
+                            quote! {
+                                ::std::option::Option::map(#value, ::yew::virtual_dom::AttributeOrProperty::Attribute)
+                            }
+                        },
+                    };
+                    quote! { #value }
                 });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
