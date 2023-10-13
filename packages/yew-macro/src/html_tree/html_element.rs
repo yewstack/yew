@@ -92,16 +92,21 @@ impl Parse for HtmlElement {
             //
             // For dynamic tags this is done at runtime!
             match name.to_ascii_lowercase_string().as_str() {
+                "textarea" => return Err(syn::Error::new_spanned(
+                    open.to_spanned(),
+                    "the tag `<textarea>` is a void element and cannot have children (hint: \
+                     to provide default value to it, rewrite it as <textarea ~defaultValue={x}/>"
+                )),
+
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
-                | "meta" | "param" | "source" | "track" | "wbr" => {
-                    return Err(syn::Error::new_spanned(
-                        open.to_spanned(),
-                        format!(
-                            "the tag `<{name}>` is a void element and cannot have children (hint: \
-                             rewrite this as `<{name} />`)",
-                        ),
-                    ));
-                }
+                | "meta" | "param" | "source" | "track" | "wbr" => return Err(syn::Error::new_spanned(
+                    open.to_spanned(),
+                    format!(
+                        "the tag `<{name}>` is a void element and cannot have children (hint: \
+                         rewrite this as `<{name} />`)",
+                    ),
+                )),
+
                 _ => {}
             }
         }
@@ -500,7 +505,7 @@ impl ToTokens for HtmlElement {
                         ::std::debug_assert!(
                             !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
                                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
-                                    | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                                    | "link" | "meta" | "param" | "source" | "track" | "wbr" | "textarea"
                             ),
                             concat!(#invalid_void_tag_msg_start, "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children."),
                             #vtag.tag(),
