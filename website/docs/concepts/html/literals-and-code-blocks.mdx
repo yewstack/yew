@@ -1,5 +1,5 @@
 ---
-title: 'Literals and Expressions'
+title: 'Literals and Code Blocks'
 ---
 
 ## Literals
@@ -27,16 +27,19 @@ html!{
 
 ## Expressions
 
-You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html`
+You can insert blocks of Rust code in your HTML, as long as they resolve to `Html`
 
 ```rust
 use yew::prelude::*;
 
-let show_link = true;
+fn some_computation() -> bool {
+    true
+}
 
 html! {
   <div>
     {
+      let show_link = some_computation();
       if show_link {
         html! {
           <a href="https://example.com">{"Link"}</a>

@@ -7,3 +7,8 @@ target/
 *.iml
 /.idea/
 /.vscode/
+
+# artifacts from tools like prettier
+node_modules/
+package.json
+package-lock.json

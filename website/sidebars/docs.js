@@ -87,7 +87,7 @@ module.exports = {
                         'concepts/html/classes',
                         'concepts/html/fragments',
                         'concepts/html/lists',
-                        'concepts/html/literals-and-expressions',
+                        'concepts/html/literals-and-code-blocks',
                         'concepts/html/conditional-rendering',
                     ],
                 },

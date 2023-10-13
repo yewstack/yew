@@ -62,4 +62,11 @@ fn main() {
             { for ::std::iter::Iterator::map(0..3, item) }
         </ul>
     };
+
+    ::yew::html! {
+        <span>{
+            let version = 0.21;
+            ::std::format!("Yew {version}")
+        }</span>
+    };
 }
