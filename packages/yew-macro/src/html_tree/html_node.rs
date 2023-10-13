@@ -3,7 +3,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::{Lit, Block, Stmt};
+use syn::{Block, Lit, Stmt};
 
 use super::ToNodeIterator;
 use crate::stringify::Stringify;
@@ -49,14 +49,16 @@ impl ToTokens for HtmlNode {
                 let sr = lit.stringify();
                 quote_spanned! {lit.span()=> ::yew::virtual_dom::VText::new(#sr) }
             }
-            HtmlNode::Expression(stmts) => if let [expr] = &stmts[..] {
-                quote! {#expr}
-            } else {
-                let mut block = TokenStream::new();
-                for stmt in stmts.iter() {
-                    stmt.to_tokens(&mut block)
+            HtmlNode::Expression(stmts) => {
+                if let [expr] = &stmts[..] {
+                    quote! {#expr}
+                } else {
+                    let mut block = TokenStream::new();
+                    for stmt in stmts.iter() {
+                        stmt.to_tokens(&mut block)
+                    }
+                    quote_spanned! {block.span()=> {#block}}
                 }
-                quote_spanned! {block.span()=> {#block}}
             }
         });
     }
@@ -66,19 +68,23 @@ impl ToNodeIterator for HtmlNode {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
             HtmlNode::Literal(_) => None,
-            HtmlNode::Expression(stmts) => if let [expr] = &stmts[..] {
-                Some(quote_spanned! {expr.span().resolved_at(Span::call_site())=>
-                    ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into(#expr)
-                })
-            } else {
-                let mut block = TokenStream::new();
-                for stmt in stmts.iter() {
-                    stmt.to_tokens(&mut block)
+            HtmlNode::Expression(stmts) => {
+                if let [expr] = &stmts[..] {
+                    Some(quote_spanned! {expr.span().resolved_at(Span::call_site())=>
+                        ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into(#expr)
+                    })
+                } else {
+                    let mut block = TokenStream::new();
+                    for stmt in stmts.iter() {
+                        stmt.to_tokens(&mut block)
+                    }
+                    // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
+                    Some(
+                        quote_spanned! {block.span().resolved_at(Span::call_site())=>
+                            ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into({#block})
+                        },
+                    )
                 }
-                // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
-                Some(quote_spanned! {block.span().resolved_at(Span::call_site())=>
-                    ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into({#block})
-                })
             }
         }
     }
