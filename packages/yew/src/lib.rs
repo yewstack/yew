@@ -295,8 +295,7 @@ mod app_handle;
 #[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(feature = "csr")]
-#[cfg(test)]
+#[cfg(all(feature = "csr", or(test, feauture="test"))]
 pub mod tests;
 
 /// The module that contains all events available in the framework.
