@@ -140,6 +140,47 @@ html! {
 
 If the attribute is set to `None`, the attribute will not be set in the DOM.
 
+## Children
+
+Most HTML elements accept arbitrary HTML as children, however, there is a set of them that doesn't accept any children at all.
+These elements are called _void_ elements, and they are:
+
+-   `<area />`
+-   `<base />`
+-   `<base />`
+-   `<br />`
+-   `<col />`
+-   `<embed />`
+-   `<hr />`
+-   `<img />`
+-   `<input />`
+-   `<link />`
+-   `<meta />`
+-   `<param />`
+-   `<source />`
+-   `<track />`
+-   `<wbr />`
+-   `<textarea />`
+
+Attempting to provide children to these elements will result in a compilation error or, if the element tag is chosen dynamically, in a panic.
+
+### The case of <textarea>
+
+The `<textarea>` element is special; The modern HTML specification states that children of `<textarea>` define its default value, however in Yew it's specified differently.
+Instead of writing
+
+```html
+<textarea>{"default value"}</textarea>
+```
+
+Which would fail to compile, it's customary to write
+
+```html
+<textarea ~defaultValue="default value"></textarea>
+```
+
+This approach takes advantage of the element property syntax described [here](./introduction.mdx).
+
 ## Relevant examples
 
 -   [Inner HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)
