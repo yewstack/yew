@@ -149,10 +149,18 @@ module.exports = {
         {
             type: 'category',
             label: 'Migration guides',
+            link: {
+                type: 'generated-index',
+                title: 'Migration guides',
+            },
             items: [
                 {
                     type: 'category',
                     label: 'yew',
+                    link: {
+                        type: 'generated-index',
+                        title: 'yew',
+                    },
                     items: [
                         'migration-guides/yew/from-0_20_0-to-0_21_0',
                         'migration-guides/yew/from-0_19_0-to-0_20_0',
@@ -162,6 +170,10 @@ module.exports = {
                 {
                     type: 'category',
                     label: 'yew-agent',
+                    link: {
+                        type: 'generated-index',
+                        title: 'yew-agent',
+                    },
                     items: [
                         'migration-guides/yew-agent/from-0_1_0-to-0_2_0',
                         'migration-guides/yew-agent/from-0_0_0-to-0_1_0',
@@ -170,6 +182,10 @@ module.exports = {
                 {
                     type: 'category',
                     label: 'yew-router',
+                    link: {
+                        type: 'generated-index',
+                        title: 'yew-router',
+                    },
                     items: [
                         'migration-guides/yew-router/from-0_16_0-to-0_17_0',
                         'migration-guides/yew-router/from-0_15_0-to-0_16_0',
