@@ -1,5 +1,7 @@
 # Changelog for its generation tests
 
+[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+
 ## ✨ yew **0.19.0** *(2021-11-26)*
 
 #### Changelog

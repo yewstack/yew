@@ -1,5 +1,7 @@
 # Changelog
 
+[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+
 ## ✨ yew **0.0.0** *(date_goes_here)* Changelog
 
 ### ⚡️ Features
