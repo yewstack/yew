@@ -11,7 +11,7 @@ fn Stuff(_: &()) -> Html {
     }
 }
 
-#[divan::bench]
+#[divan::bench(sample_size = 10000000)]
 fn vnode_clone(bencher: divan::Bencher) {
     let html = html! {
         <div class={classes!("hello-world")}>
