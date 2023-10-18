@@ -1,5 +1,5 @@
 ---
-name: Benchmark - SSR
+name: Benchmark - core
 
 on:
   pull_request:
@@ -49,8 +49,11 @@ jobs:
         working-directory: current-pr/tools/benchmark-core
 
       - name: Run master benchmark
-        run: cargo bench -q > ../output.log
+        run: |
+          touch ../output.log
+          cargo bench -q > ../output.log
         working-directory: yew-master/tools/benchmark-core
+        continue-on-error: true
 
       - name: Write Pull Request ID
         run: |
