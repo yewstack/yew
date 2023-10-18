@@ -51,14 +51,12 @@ jobs:
       - name: Run master benchmark
         run: cargo bench -q > ../output.log
         continue-on-error: true
-        with:
-          working-directory: yew-master/tools/benchmark-core
+        working-directory: yew-master/tools/benchmark-core
 
       - name: Ignore master benchmark
         run: touch ../output.log
         if: failure()
-        with:
-          working-directory: yew-master/tools/benchmark-core
+        working-directory: yew-master/tools/benchmark-core
 
       - name: Write Pull Request ID
         run: |
