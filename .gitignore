@@ -8,3 +8,8 @@ dist/
 *.iml
 /.idea/
 /.vscode/
+
+# artifacts from npm
+node_modules/
+package.json
+package-lock.json

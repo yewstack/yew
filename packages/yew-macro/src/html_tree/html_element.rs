@@ -166,23 +166,34 @@ impl ToTokens for HtmlElement {
             checked,
             listeners,
             special,
+            defaultvalue,
         } = &props;
 
         // attributes with special treatment
 
         let node_ref = special.wrap_node_ref_attr();
         let key = special.wrap_key_attr();
-        let value = value
-            .as_ref()
-            .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
-            .unwrap_or(quote! { ::std::option::Option::None });
-        let checked = checked
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote! { ::std::option::Option::Some( #value ) }
-            })
-            .unwrap_or(quote! { ::std::option::Option::None });
+        let value = || {
+            value
+                .as_ref()
+                .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
+                .unwrap_or(quote! { ::std::option::Option::None })
+        };
+        let checked = || {
+            checked
+                .as_ref()
+                .map(|attr| {
+                    let value = &attr.value;
+                    quote! { ::std::option::Option::Some( #value ) }
+                })
+                .unwrap_or(quote! { ::std::option::Option::None })
+        };
+        let defaultvalue = || {
+            defaultvalue
+                .as_ref()
+                .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
+                .unwrap_or(quote! { ::std::option::Option::None })
+        };
 
         // other attributes
 
@@ -370,6 +381,8 @@ impl ToTokens for HtmlElement {
                 }
                 let node = match &*name {
                     "input" => {
+                        let value = value();
+                        let checked = checked();
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_input(
@@ -384,10 +397,13 @@ impl ToTokens for HtmlElement {
                         }
                     }
                     "textarea" => {
+                        let value = value();
+                        let defaultvalue = defaultvalue();
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_textarea(
                                     #value,
+                                    #defaultvalue,
                                     #node_ref,
                                     #key,
                                     #attributes,
@@ -449,6 +465,9 @@ impl ToTokens for HtmlElement {
                 #[cfg(not(nightly_yew))]
                 let invalid_void_tag_msg_start = "";
 
+                let value = value();
+                let checked = checked();
+                let defaultvalue = defaultvalue();
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
@@ -476,6 +495,7 @@ impl ToTokens for HtmlElement {
                         _ if "textarea".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
+                                #defaultvalue,
                                 #node_ref,
                                 #key,
                                 #attributes,
