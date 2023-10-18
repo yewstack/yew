@@ -53,7 +53,7 @@ jobs:
         continue-on-error: true
         working-directory: yew-master/tools/benchmark-core
 
-      - name: Ignore master benchmark
+      - name: Make sure master's output log exists
         run: touch yew-master/tools/output.log
 
       - name: Write Pull Request ID
@@ -93,17 +93,17 @@ jobs:
           cat - >>comment.txt <<EOF
           ### Benchmark - core
           #### Yew Master
-          ```
+          \`\`\`
           EOF
           cat benchmark-core/yew-master/tools/output.json >>comment.txt
           cat - >>comment.txt <<EOF
-          ```
+          \`\`\`
           #### Pull Request" >> comment.txt
-          ```
+          \`\`\`
           EOF
           cat benchmark-core/current-pr/tools/output.json >>comment.txt
           cat - >>comment.txt <<EOF
-          ```
+          \`\`\`
           EOF
 
       - name: Read Pull Request ID
