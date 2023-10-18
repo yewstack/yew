@@ -103,8 +103,12 @@ impl InputFields {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct TextareaFields {
+pub(crate) struct TextareaFields {
+    /// Contains the value of an
+    /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea).
     pub(crate) value: Value<TextAreaElement>,
+    /// Contains the default value of
+    /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea).
     pub(crate) defaultvalue: Option<AttrValue>,
 }
 
