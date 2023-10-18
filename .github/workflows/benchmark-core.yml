@@ -54,9 +54,8 @@ jobs:
         working-directory: yew-master/tools/benchmark-core
 
       - name: Ignore master benchmark
-        run: touch ../output.log
+        run: touch yew-master/tools/output.log
         if: failure()
-        working-directory: yew-master/tools/benchmark-core
 
       - name: Write Pull Request ID
         run: |
