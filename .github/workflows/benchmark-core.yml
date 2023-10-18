@@ -49,11 +49,16 @@ jobs:
         working-directory: current-pr/tools/benchmark-core
 
       - name: Run master benchmark
-        run: |
-          cd yew-master/tools/benchmark-core
-          touch ../output.log
-          cargo bench -q > ../output.log
+        run: cargo bench -q > ../output.log
         continue-on-error: true
+        with:
+          working-directory: yew-master/tools/benchmark-core
+
+      - name: Ignore master benchmark
+        run: touch ../output.log
+        if: failure()
+        with:
+          working-directory: yew-master/tools/benchmark-core
 
       - name: Write Pull Request ID
         run: |
