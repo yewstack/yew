@@ -55,7 +55,6 @@ jobs:
 
       - name: Ignore master benchmark
         run: touch yew-master/tools/output.log
-        if: failure()
 
       - name: Write Pull Request ID
         run: |
