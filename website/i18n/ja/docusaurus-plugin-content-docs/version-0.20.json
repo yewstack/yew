@@ -82,5 +82,21 @@
   "sidebar.docs.category.yew-router": {
     "message": "yew-router",
     "description": "The label for category yew-router in sidebar docs"
+  },
+  "sidebar.docs.category.Migration guides.link.generated-index.title": {
+    "message": "Migration guides",
+    "description": "The generated-index page title for category Migration guides in sidebar docs"
+  },
+  "sidebar.docs.category.yew.link.generated-index.title": {
+    "message": "yew",
+    "description": "The generated-index page title for category yew in sidebar docs"
+  },
+  "sidebar.docs.category.yew-agent.link.generated-index.title": {
+    "message": "yew-agent",
+    "description": "The generated-index page title for category yew-agent in sidebar docs"
+  },
+  "sidebar.docs.category.yew-router.link.generated-index.title": {
+    "message": "yew-router",
+    "description": "The generated-index page title for category yew-router in sidebar docs"
   }
 }
