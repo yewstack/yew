@@ -50,9 +50,9 @@ jobs:
 
       - name: Run master benchmark
         run: |
+          cd yew-master/tools/benchmark-core
           touch ../output.log
           cargo bench -q > ../output.log
-        working-directory: yew-master/tools/benchmark-core
         continue-on-error: true
 
       - name: Write Pull Request ID
