@@ -83,6 +83,7 @@ jobs:
         uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
+          workflow: benchmark-core.yml
           name: benchmark-core
           path: "benchmark-core/"
 
