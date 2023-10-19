@@ -97,7 +97,7 @@ impl Parse for HtmlElement {
                         open.to_spanned(),
                         "the tag `<textarea>` is a void element and cannot have children (hint: \
                          to provide default value to it, rewrite it as <textarea \
-                         ~defaultValue={x}/>",
+                         defaultvalue={x}/>",
                     ))
                 }
 
