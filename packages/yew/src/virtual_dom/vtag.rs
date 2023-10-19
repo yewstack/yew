@@ -102,6 +102,9 @@ impl InputFields {
     }
 }
 
+// Clippy doesn't recognise that `defaultvalue` is read in other files and in this very file when
+// the "ssr" feature is enabled.
+#[allow(unused)]
 #[derive(Debug, Clone, Default)]
 pub(crate) struct TextareaFields {
     /// Contains the value of an
@@ -188,7 +191,7 @@ impl VTag {
         checked: Option<bool>,
         node_ref: NodeRef,
         key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
+        // at the bottom for more readable macro-expanded code
         attributes: Attributes,
         listeners: Listeners,
     ) -> Self {
@@ -221,7 +224,7 @@ impl VTag {
         defaultvalue: Option<AttrValue>,
         node_ref: NodeRef,
         key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
+        // at the bottom for more readable macro-expanded code
         attributes: Attributes,
         listeners: Listeners,
     ) -> Self {
@@ -249,7 +252,7 @@ impl VTag {
         tag: AttrValue,
         node_ref: NodeRef,
         key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
+        // at the bottom for more readable macro-expanded code
         attributes: Attributes,
         listeners: Listeners,
         children: VNode,
