@@ -31,6 +31,8 @@ tower-http = { version = "0.3", features = ["fs"] }
 env_logger = "0.10"
 clap = { version = "4", features = ["derive"] }
 hyper = { version = "0.14", features = ["server", "http1"] }
+
+[target.'cfg(unix)'.dependencies]
 jemallocator = "0.5"
 
 [features]
