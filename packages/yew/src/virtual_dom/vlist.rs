@@ -204,8 +204,6 @@ mod feat_ssr {
                         .await;
                 }
                 _ => {
-                    // No idea why but clippy doesn't recognise the need for `w` to be mutable
-                    #[allow(clippy::needless_pass_by_ref_mut)]
                     async fn render_child_iter<'a, I>(
                         mut children: I,
                         w: &mut BufWriter,
