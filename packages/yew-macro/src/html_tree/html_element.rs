@@ -95,9 +95,10 @@ impl Parse for HtmlElement {
                 "textarea" => {
                     return Err(syn::Error::new_spanned(
                         open.to_spanned(),
-                        "the tag `<textarea>` is a void element and cannot have children \
-                         (hint: to provide value to it, rewrite it as `<textarea value={x} />`. \
-                         If you wish to set the default value, rewrite it as `<textarea defaultvalue={x} />`)",
+                        "the tag `<textarea>` is a void element and cannot have children (hint: \
+                         to provide value to it, rewrite it as `<textarea value={x} />`. If you \
+                         wish to set the default value, rewrite it as `<textarea defaultvalue={x} \
+                         />`)",
                     ))
                 }
 
