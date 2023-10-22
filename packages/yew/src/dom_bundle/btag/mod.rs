@@ -19,7 +19,7 @@ use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
-use crate::NodeRef;
+use crate::{NodeRef, AttrValue};
 
 /// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
@@ -68,6 +68,7 @@ pub(super) struct BTag {
     reference: Element,
     /// A node reference used for DOM access in Component lifecycle methods
     node_ref: NodeRef,
+    id: Option<AttrValue>,
     key: Option<Key>,
 }
 
@@ -118,10 +119,14 @@ impl Reconcilable for VTag {
             attributes,
             node_ref,
             key,
+            id,
             ..
         } = self;
         slot.insert(parent, &el);
 
+        if let Some(id) = &id {
+            el.set_id(id);
+        }
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
 
@@ -148,6 +153,7 @@ impl Reconcilable for VTag {
                 reference: el,
                 attributes,
                 key,
+                id,
                 node_ref,
             },
         )
@@ -195,6 +201,17 @@ impl Reconcilable for VTag {
         tag: &mut Self::Bundle,
     ) -> DomSlot {
         let el = &tag.reference;
+        match (self.id, &tag.id) {
+            (None, None) => (),
+            (None, Some(_)) => {
+                _ = el.remove_attribute("id");
+                tag.id = None;
+            }
+            (Some(new), old) => if Some(&new) == old.as_ref() {
+                el.set_id(&new);
+                tag.id = Some(new);
+            }
+        };
         self.attributes.apply_diff(root, el, &mut tag.attributes);
         self.listeners.apply_diff(root, el, &mut tag.listeners);
 
@@ -338,6 +355,7 @@ mod feat_hydration {
                 attributes,
                 node_ref,
                 key,
+                id
             } = self;
 
             // We trim all text nodes as it's likely these are whitespaces.
@@ -363,7 +381,10 @@ mod feat_hydration {
                 el.tag_name().to_lowercase(),
             );
 
-            // We simply registers listeners and updates all attributes.
+            // We simply register listeners and update all attributes.
+            if let Some(id) = &id {
+                el.set_id(id);
+            }
             let attributes = attributes.apply(root, &el);
             let listeners = listeners.apply(root, &el);
 
@@ -399,6 +420,7 @@ mod feat_hydration {
                 reference: el,
                 node_ref,
                 key,
+                id
             }
         }
     }
@@ -903,14 +925,14 @@ mod tests {
         let (root, scope, parent) = setup_parent();
 
         let node_ref_a = NodeRef::default();
-        let elem_a = html! { <div id="a" ref={node_ref_a.clone()} /> };
+        let elem_a = html! { <div ref={node_ref_a.clone()} /> };
         let (_, mut elem) = elem_a.attach(&root, &scope, &parent, DomSlot::at_end());
 
         // save the Node to check later that it has been reused.
         let node_a = node_ref_a.get().unwrap();
 
         let node_ref_b = NodeRef::default();
-        let elem_b = html! { <div id="b" ref={node_ref_b.clone()} /> };
+        let elem_b = html! { <div ref={node_ref_b.clone()} /> };
         elem_b.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut elem);
 
         let node_b = node_ref_b.get().unwrap();

@@ -126,6 +126,9 @@ pub struct VTag {
     pub(crate) inner: VTagInner,
     /// List of attached listeners.
     pub(crate) listeners: Listeners,
+    /// HTML element's 
+    /// [id](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/id)
+    pub(crate) id: Option<AttrValue>,
     /// A node reference used for DOM access in Component lifecycle methods
     pub node_ref: NodeRef,
     /// List of attributes.
@@ -152,6 +155,7 @@ impl VTag {
             Default::default(),
             Default::default(),
             Default::default(),
+            Default::default(),
         )
     }
 
@@ -170,6 +174,7 @@ impl VTag {
         checked: Option<bool>,
         node_ref: NodeRef,
         key: Option<Key>,
+        id: Option<AttrValue>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
         listeners: Listeners,
@@ -183,6 +188,7 @@ impl VTag {
             )),
             node_ref,
             key,
+            id,
             attributes,
             listeners,
         )
@@ -202,6 +208,7 @@ impl VTag {
         value: Option<AttrValue>,
         node_ref: NodeRef,
         key: Option<Key>,
+        id: Option<AttrValue>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
         listeners: Listeners,
@@ -212,6 +219,7 @@ impl VTag {
             },
             node_ref,
             key,
+            id,
             attributes,
             listeners,
         )
@@ -229,6 +237,7 @@ impl VTag {
         tag: Cow<'static, str>,
         node_ref: NodeRef,
         key: Option<Key>,
+        id: Option<AttrValue>,
         // at bottom for more readable macro-expanded coded
         attributes: Attributes,
         listeners: Listeners,
@@ -238,6 +247,7 @@ impl VTag {
             VTagInner::Other { tag, children },
             node_ref,
             key,
+            id,
             attributes,
             listeners,
         )
@@ -245,11 +255,11 @@ impl VTag {
 
     /// Constructs a [VTag] from [VTagInner] and fields common to all [VTag] kinds
     #[inline]
-    #[allow(clippy::too_many_arguments)]
     fn new_base(
         inner: VTagInner,
         node_ref: NodeRef,
         key: Option<Key>,
+        id: Option<AttrValue>,
         attributes: Attributes,
         listeners: Listeners,
     ) -> Self {
@@ -258,7 +268,8 @@ impl VTag {
             attributes,
             listeners,
             node_ref,
-            key,
+            key: key.or_else(|| id.as_ref().map(|id| id.clone().into())),
+            id
         }
     }
 
@@ -437,6 +448,7 @@ impl PartialEq for VTag {
             (Other { tag: tag_l, .. }, Other { tag: tag_r, .. }) => tag_l == tag_r,
             _ => false,
         }) && self.listeners.eq(&other.listeners)
+            && self.id == other.id
             && self.attributes == other.attributes
             // Diff children last, as recursion is the most expensive
             && match (&self.inner, &other.inner) {
@@ -495,6 +507,9 @@ mod feat_ssr {
                 }
             }
 
+            if let Some(id) = &self.id {
+                write_attr(w, "id", Some(id));
+            }
             for (k, v) in self.attributes.iter() {
                 write_attr(w, k, Some(v));
             }
@@ -678,5 +693,10 @@ mod ssr_tests {
             s,
             r#"<style>html { background: black } body > a { color: white } </style>"#
         );
+    }
+
+    #[test]
+    async fn id_is_key_fallback() {
+        assert!(html!{ <div id="yew"/> }.has_key())
     }
 }

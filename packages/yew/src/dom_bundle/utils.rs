@@ -52,6 +52,11 @@ mod feat_hydration {
 pub(super) use feat_hydration::*;
 
 #[cfg(test)]
+// this is needed because clippy doesn't like the import not being used
+#[allow(unused_imports)]
+pub(super) use tests::*;
+
+#[cfg(test)]
 mod tests {
     #![allow(dead_code)]
 
@@ -87,8 +92,3 @@ mod tests {
         (root, scope, parent, sibling)
     }
 }
-
-#[cfg(test)]
-// this is needed because clippy doesn't like the import not being used
-#[allow(unused_imports)]
-pub(super) use tests::*;

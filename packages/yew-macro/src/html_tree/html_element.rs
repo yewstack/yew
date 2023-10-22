@@ -117,12 +117,17 @@ impl ToTokens for HtmlElement {
             checked,
             listeners,
             special,
+            id
         } = &props;
 
         // attributes with special treatment
 
         let node_ref = special.wrap_node_ref_attr();
         let key = special.wrap_key_attr();
+        let id = id
+            .as_ref()
+            .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
+            .unwrap_or(quote! { ::std::option::Option::None });
         let value = value
             .as_ref()
             .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
@@ -336,6 +341,7 @@ impl ToTokens for HtmlElement {
                                     #checked,
                                     #node_ref,
                                     #key,
+                                    #id,
                                     #attributes,
                                     #listeners,
                                 ),
@@ -349,6 +355,7 @@ impl ToTokens for HtmlElement {
                                     #value,
                                     #node_ref,
                                     #key,
+                                    #id,
                                     #attributes,
                                     #listeners,
                                 ),
@@ -362,6 +369,7 @@ impl ToTokens for HtmlElement {
                                     ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
                                     #node_ref,
                                     #key,
+                                    #id,
                                     #attributes,
                                     #listeners,
                                     #children,
@@ -432,6 +440,7 @@ impl ToTokens for HtmlElement {
                                 #checked,
                                 #node_ref,
                                 #key,
+                                #id,
                                 #attributes,
                                 #listeners,
                             )
@@ -441,6 +450,7 @@ impl ToTokens for HtmlElement {
                                 #value,
                                 #node_ref,
                                 #key,
+                                #id,
                                 #attributes,
                                 #listeners,
                             )
@@ -450,6 +460,7 @@ impl ToTokens for HtmlElement {
                                 #vtag_name,
                                 #node_ref,
                                 #key,
+                                #id,
                                 #attributes,
                                 #listeners,
                                 #children,

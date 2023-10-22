@@ -4,6 +4,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
 
+use crate::AttrValue;
 use crate::html::ImplicitClone;
 
 /// Represents the (optional) key of Yew's virtual nodes.
@@ -31,6 +32,16 @@ impl Deref for Key {
 impl From<Rc<str>> for Key {
     fn from(key: Rc<str>) -> Self {
         Self { key }
+    }
+}
+
+impl From<AttrValue> for Key {
+    fn from(key: AttrValue) -> Self {
+        let key = match key {
+            AttrValue::Static(x) => Rc::from(x),
+            AttrValue::Rc(x) => x
+        };
+        Self::from(key)
     }
 }
 
