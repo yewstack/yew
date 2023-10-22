@@ -59,7 +59,7 @@ impl Parse for ElementProps {
             booleans: booleans.into_vec(),
             value,
             special,
-            id
+            id,
         })
     }
 }

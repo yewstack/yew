@@ -126,7 +126,7 @@ pub struct VTag {
     pub(crate) inner: VTagInner,
     /// List of attached listeners.
     pub(crate) listeners: Listeners,
-    /// HTML element's 
+    /// HTML element's
     /// [id](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/id)
     pub(crate) id: Option<AttrValue>,
     /// A node reference used for DOM access in Component lifecycle methods
@@ -269,7 +269,7 @@ impl VTag {
             listeners,
             node_ref,
             key: key.or_else(|| id.as_ref().map(|id| id.clone().into())),
-            id
+            id,
         }
     }
 
@@ -697,6 +697,6 @@ mod ssr_tests {
 
     #[test]
     async fn id_is_key_fallback() {
-        assert!(html!{ <div id="yew"/> }.has_key())
+        assert!(html! { <div id="yew"/> }.has_key())
     }
 }

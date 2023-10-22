@@ -19,7 +19,7 @@ use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
 use crate::virtual_dom::{Attributes, Key, VTag};
-use crate::{NodeRef, AttrValue};
+use crate::{AttrValue, NodeRef};
 
 /// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
@@ -207,9 +207,11 @@ impl Reconcilable for VTag {
                 _ = el.remove_attribute("id");
                 tag.id = None;
             }
-            (Some(new), old) => if Some(&new) == old.as_ref() {
-                el.set_id(&new);
-                tag.id = Some(new);
+            (Some(new), old) => {
+                if Some(&new) == old.as_ref() {
+                    el.set_id(&new);
+                    tag.id = Some(new);
+                }
             }
         };
         self.attributes.apply_diff(root, el, &mut tag.attributes);
@@ -355,7 +357,7 @@ mod feat_hydration {
                 attributes,
                 node_ref,
                 key,
-                id
+                id,
             } = self;
 
             // We trim all text nodes as it's likely these are whitespaces.
@@ -420,7 +422,7 @@ mod feat_hydration {
                 reference: el,
                 node_ref,
                 key,
-                id
+                id,
             }
         }
     }

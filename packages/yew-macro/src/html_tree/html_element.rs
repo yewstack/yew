@@ -117,7 +117,7 @@ impl ToTokens for HtmlElement {
             checked,
             listeners,
             special,
-            id
+            id,
         } = &props;
 
         // attributes with special treatment
