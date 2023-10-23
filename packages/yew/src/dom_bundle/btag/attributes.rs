@@ -8,7 +8,7 @@ use yew::AttrValue;
 
 use super::Apply;
 use crate::dom_bundle::BSubtree;
-use crate::virtual_dom::vtag::{InputFields, Value};
+use crate::virtual_dom::vtag::{InputFields, TextareaFields, Value};
 use crate::virtual_dom::{ApplyAttributeAs, Attributes};
 
 impl<T: AccessValue> Apply for Value<T> {
@@ -85,6 +85,22 @@ impl Apply for InputFields {
         }
 
         self.value.apply_diff(root, el, &mut bundle.value);
+    }
+}
+
+impl Apply for TextareaFields {
+    type Bundle = Value<TextAreaElement>;
+    type Element = TextAreaElement;
+
+    fn apply(self, root: &BSubtree, el: &Self::Element) -> Self::Bundle {
+        if let Some(def) = self.defaultvalue {
+            _ = el.set_default_value(def.as_str());
+        }
+        self.value.apply(root, el)
+    }
+
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self::Bundle) {
+        self.value.apply_diff(root, el, bundle)
     }
 }
 

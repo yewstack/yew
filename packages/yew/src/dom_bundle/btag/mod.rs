@@ -17,7 +17,9 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
+use crate::virtual_dom::vtag::{
+    InputFields, TextareaFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE,
+};
 use crate::virtual_dom::{Attributes, Key, VTag};
 use crate::NodeRef;
 
@@ -130,8 +132,8 @@ impl Reconcilable for VTag {
                 let f = f.apply(root, el.unchecked_ref());
                 BTagInner::Input(f)
             }
-            VTagInner::Textarea { value } => {
-                let value = value.apply(root, el.unchecked_ref());
+            VTagInner::Textarea(f) => {
+                let value = f.apply(root, el.unchecked_ref());
                 BTagInner::Textarea { value }
             }
             VTagInner::Other { children, tag } => {
@@ -202,7 +204,10 @@ impl Reconcilable for VTag {
             (VTagInner::Input(new), BTagInner::Input(old)) => {
                 new.apply_diff(root, el.unchecked_ref(), old);
             }
-            (VTagInner::Textarea { value: new }, BTagInner::Textarea { value: old }) => {
+            (
+                VTagInner::Textarea(TextareaFields { value: new, .. }),
+                BTagInner::Textarea { value: old },
+            ) => {
                 new.apply_diff(root, el.unchecked_ref(), old);
             }
             (
@@ -363,7 +368,7 @@ mod feat_hydration {
                 el.tag_name().to_lowercase(),
             );
 
-            // We simply registers listeners and updates all attributes.
+            // We simply register listeners and update all attributes.
             let attributes = attributes.apply(root, &el);
             let listeners = listeners.apply(root, &el);
 
@@ -373,8 +378,8 @@ mod feat_hydration {
                     let f = f.apply(root, el.unchecked_ref());
                     BTagInner::Input(f)
                 }
-                VTagInner::Textarea { value } => {
-                    let value = value.apply(root, el.unchecked_ref());
+                VTagInner::Textarea(f) => {
+                    let value = f.apply(root, el.unchecked_ref());
 
                     BTagInner::Textarea { value }
                 }

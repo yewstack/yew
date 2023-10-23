@@ -64,6 +64,8 @@ fn compile_fail() {
 
     // void element with children
     html! { <input type="text"></input> };
+    // <textarea> should have a custom error message explaining how to set its default value
+    html! { <textarea>{"default value"}</textarea> }
     // make sure that capitalization doesn't matter for the void children check
     html! { <iNpUt type="text"></iNpUt> };
 

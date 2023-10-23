@@ -25,6 +25,7 @@ pub struct ElementProps {
     pub classes: Option<ClassesForm>,
     pub booleans: Vec<Prop>,
     pub value: Option<Prop>,
+    pub defaultvalue: Option<Prop>,
     pub checked: Option<Prop>,
     pub special: SpecialProps,
 }
@@ -47,6 +48,7 @@ impl Parse for ElementProps {
             .map(|prop| ClassesForm::from_expr(prop.value));
         let value = props.pop("value");
         let checked = props.pop("checked");
+        let defaultvalue = props.pop("defaultvalue");
         let special = props.special;
 
         Ok(Self {
@@ -57,6 +59,7 @@ impl Parse for ElementProps {
             booleans: booleans.into_vec(),
             value,
             special,
+            defaultvalue,
         })
     }
 }

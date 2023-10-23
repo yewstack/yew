@@ -71,7 +71,7 @@ impl<'s> NodeWriter<'s> {
     }
 
     /// Shift a bundle into place without patching it
-    fn shift(&self, bundle: &mut BNode) {
+    fn shift(&self, bundle: &BNode) {
         bundle.shift(self.parent, self.slot.clone());
     }
 
@@ -323,7 +323,7 @@ impl BList {
                         // it should be
                         Ordering::Equal => barrier_idx += 1,
                         // shift the node unconditionally, don't start a run
-                        Ordering::Less => writer.shift(&mut r_bundle),
+                        Ordering::Less => writer.shift(&r_bundle),
                         // start a run
                         Ordering::Greater => {
                             current_run = Some(RunInformation {
