@@ -404,7 +404,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
 
     assert_eq!(
         result.as_str(),
-        r#"<div class="content-area"><textarea value="I am writing a long story..."></textarea><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
+        r#"<div class="content-area"><textarea>I am writing a long story</textarea><div class="action-area"><button class="take-a-break">Take a break!</button></div></div>"#
     );
     gloo::utils::document()
         .query_selector(".take-a-break")
