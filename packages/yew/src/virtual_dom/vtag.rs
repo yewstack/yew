@@ -102,9 +102,6 @@ impl InputFields {
     }
 }
 
-// Clippy doesn't recognise that `defaultvalue` is read in other files and in this very file when
-// the "ssr" feature is enabled.
-#[allow(unused)]
 #[derive(Debug, Clone, Default)]
 pub(crate) struct TextareaFields {
     /// Contains the value of an
@@ -112,6 +109,7 @@ pub(crate) struct TextareaFields {
     pub(crate) value: Value<TextAreaElement>,
     /// Contains the default value of
     /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea).
+    #[allow(unused)] // unused only if both "csr" and "ssr" features are off
     pub(crate) defaultvalue: Option<AttrValue>,
 }
 
@@ -506,26 +504,16 @@ mod feat_ssr {
                 }
             };
 
-            match &self.inner {
-                VTagInner::Input(InputFields { value, checked }) => {
-                    if let Some(value) = value.as_deref() {
-                        write_attr(w, "value", Some(value));
-                    }
-
-                    // Setting is as an attribute sets the `defaultChecked` property. Only emit this
-                    // if it's explicitly set to checked.
-                    if *checked == Some(true) {
-                        write_attr(w, "checked", None);
-                    }
+            if let VTagInner::Input(InputFields { value, checked }) = &self.inner {
+                if let Some(value) = value.as_deref() {
+                    write_attr(w, "value", Some(value));
                 }
 
-                VTagInner::Textarea(TextareaFields { value, .. }) => {
-                    if let Some(value) = value.as_deref() {
-                        write_attr(w, "value", Some(value));
-                    }
+                // Setting is as an attribute sets the `defaultChecked` property. Only emit this
+                // if it's explicitly set to checked.
+                if *checked == Some(true) {
+                    write_attr(w, "checked", None);
                 }
-
-                _ => (),
             }
 
             for (k, v) in self.attributes.iter() {
@@ -536,8 +524,11 @@ mod feat_ssr {
 
             match &self.inner {
                 VTagInner::Input(_) => {}
-                VTagInner::Textarea(TextareaFields { defaultvalue, .. }) => {
-                    if let Some(def) = defaultvalue {
+                VTagInner::Textarea(TextareaFields {
+                    value,
+                    defaultvalue,
+                }) => {
+                    if let Some(def) = value.as_ref().or(defaultvalue.as_ref()) {
                         VText::new(def.clone())
                             .render_into_stream(w, parent_scope, hydratable, VTagKind::Other)
                             .await;
@@ -656,10 +647,11 @@ mod ssr_tests {
             .render()
             .await;
 
-        assert_eq!(s, r#"<textarea value="teststring"></textarea>"#);
+        assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_textarea_w_defaultvalue() {
         #[function_component]
         fn Comp() -> Html {
@@ -672,6 +664,22 @@ mod ssr_tests {
             .await;
 
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
+    }
+
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
+    async fn test_value_precedence_over_defaultvalue() {
+        #[function_component]
+        fn Comp() -> Html {
+            html! { <textarea defaultvalue="defaultvalue" value="value" /> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<textarea>value</textarea>"#);
     }
 
     #[cfg_attr(not(target_os = "wasi"), test)]
