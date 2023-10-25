@@ -18,6 +18,10 @@ const Hero = () => {
             <section className={clsx('hero__subtitle', styles.heroSubtitle)}>
                 {siteConfig.tagline}
             </section>
+            <section className={clsx('hero__subtitle', styles.heroSubtitle)}>
+                Yew (pronounced yo͞o with a soft y, like in "you") is named after the giant humanoid yew tree from the movie "A Monster Calls", who said it best: <b>"Only Yew can help you"</b>.
+                Together with the type-safety of Rust, Yew helps you create stable and reliable web applications, so you can focus on the actual content of your website.
+            </section>
             <section className={styles.callToActions}>
                 <Link
                     className="button button--lg button--outline button--primary margin--lg"
