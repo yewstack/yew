@@ -32,6 +32,24 @@ npm run build
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
+Code formatting is done with [prettier](https://www.npmjs.com/package/prettier). Install with
+
+```console
+npm i prettier
+```
+
+and run it with
+
+```console
+npx prettier . --write
+```
+
+You can check with npm if your code is formatted correctly:
+
+```console
+npm run fmt
+```
+
 ## Localization
 
 Localization is done on [GitLocalize](https://gitlocalize.com/repo/7052/whole_project).
