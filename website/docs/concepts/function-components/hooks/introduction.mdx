@@ -1,5 +1,5 @@
 ---
-title: 'Hooks'
+title: 'Storing state with Hooks'
 slug: /concepts/function-components/hooks
 ---
 
@@ -7,9 +7,12 @@ slug: /concepts/function-components/hooks
 
 Hooks are functions that let you store state and perform side effects.
 
-Yew comes with a few pre-defined hooks. You can also create your own or discover many [community-made hooks](/community/awesome#hooks).
+Yew comes with a few [predefined hooks](/concepts/function-components/hooks/predefined-hooks).
+There are cases where you want to define your own Hooks to encapsulate potentially stateful logic from a component into reusable functions.
+See the [Defining custom hooks](concepts/function-components/hooks/custom-hooks.mdx#defining-custom-hooks) section for more information.
+You can also discover many [community-made hooks](/community/awesome#hooks).
 
-## Rules of hooks
+## Rules for hooks
 
 1. A hook function name always has to start with `use_`
 2. Hooks can only be used in the following locations:
@@ -21,31 +24,7 @@ Yew comes with a few pre-defined hooks. You can also create your own or discover
 
 These rules are enforced by either compile-time or run-time errors.
 
-### Pre-defined Hooks
-
-Yew comes with the following predefined Hooks:
-
--   `use_state`
--   `use_state_eq`
--   `use_memo`
--   `use_callback`
--   `use_mut_ref`
--   `use_node_ref`
--   `use_reducer`
--   `use_reducer_eq`
--   `use_effect`
--   `use_effect_with`
--   `use_context`
--   `use_force_update`
-
-The documentation for these hooks can be found in the [Yew API docs](https://yew-rs-api.web.app/next/yew/functional/)
-
-### Custom Hooks
-
-There are cases where you want to define your own Hooks to encapsulate potentially stateful logic from a component into reusable functions.
-See the [Defining custom hooks](concepts/function-components/hooks/custom-hooks.mdx#defining-custom-hooks) section for more information.
-
 ## Further reading
 
--   The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
-    These are not the same as Yew's hooks, but the underlying concept is similar.
+The React documentation has a section on [React hooks](https://reactjs.org/docs/hooks-intro.html).
+These are not the same as Yew's hooks, but the underlying concept is similar.

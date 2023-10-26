@@ -67,11 +67,11 @@ module.exports = {
                                 id: 'concepts/function-components/hooks/introduction',
                             },
                             items: [
+                                'concepts/function-components/hooks/predefined-hooks',
                                 'concepts/function-components/hooks/custom-hooks',
                             ],
                         },
                         'concepts/function-components/node-refs',
-                        'concepts/function-components/state',
                         'concepts/function-components/communication',
                         'concepts/function-components/generics',
                     ],
