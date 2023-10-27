@@ -18,6 +18,9 @@ fn vnode_clone(bencher: divan::Bencher) {
             <span>{"Hello"}</span>
             <strong style="color:red">{"World"}</strong>
             <Stuff />
+            <Suspense fallback={html!("Loading...")}>
+                <Stuff />
+            </Suspense>
         </div>
     };
 
