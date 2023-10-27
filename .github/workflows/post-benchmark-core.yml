@@ -33,13 +33,13 @@ jobs:
           #### Yew Master
           \`\`\`
           EOF
-          cat benchmark-core/yew-master/tools/output.json >>comment.txt
+          cat benchmark-core/yew-master/tools/output.log >>comment.txt
           cat - >>comment.txt <<EOF
           \`\`\`
           #### Pull Request" >> comment.txt
           \`\`\`
           EOF
-          cat benchmark-core/current-pr/tools/output.json >>comment.txt
+          cat benchmark-core/current-pr/tools/output.log >>comment.txt
           cat - >>comment.txt <<EOF
           \`\`\`
           EOF
