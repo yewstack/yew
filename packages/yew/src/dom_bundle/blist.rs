@@ -4,13 +4,13 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
-use std::rc::Rc;
 
 use web_sys::Element;
 
 use super::{test_log, BNode, BSubtree, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
+use crate::utils::RcExt;
 use crate::virtual_dom::{Key, VList, VNode, VText};
 
 /// This struct represents a mounted [VList]
@@ -30,10 +30,8 @@ impl VList {
 
         let children = self
             .children
-            .map(Rc::try_unwrap)
-            .unwrap_or_else(|| Ok(Vec::new()))
-            // Rc::unwrap_or_clone is not stable yet.
-            .unwrap_or_else(|m| m.to_vec());
+            .map(RcExt::unwrap_or_clone)
+            .unwrap_or_default();
 
         (self.key, fully_keyed, children)
     }
