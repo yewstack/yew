@@ -330,7 +330,6 @@ impl ToTokens for HtmlElement {
                 let node = match &*name {
                     "input" => {
                         quote! {
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_input(
                                     #value,
                                     #checked,
@@ -338,26 +337,22 @@ impl ToTokens for HtmlElement {
                                     #key,
                                     #attributes,
                                     #listeners,
-                                ),
                             )
                         }
                     }
                     "textarea" => {
                         quote! {
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_textarea(
                                     #value,
                                     #node_ref,
                                     #key,
                                     #attributes,
                                     #listeners,
-                                ),
                             )
                         }
                     }
                     _ => {
                         quote! {
-                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
                                     ::yew::virtual_dom::AttrValue::Static(#name),
                                     #node_ref,
@@ -365,7 +360,6 @@ impl ToTokens for HtmlElement {
                                     #attributes,
                                     #listeners,
                                     #children,
-                                ),
                             )
                         }
                     }
