@@ -36,7 +36,7 @@ jobs:
           cat benchmark-core/yew-master/tools/output.log >>comment.txt
           cat - >>comment.txt <<EOF
           \`\`\`
-          #### Pull Request" >> comment.txt
+          #### Pull Request
           \`\`\`
           EOF
           cat benchmark-core/current-pr/tools/output.log >>comment.txt
