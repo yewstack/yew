@@ -143,7 +143,7 @@ where
 impl IntoPropValue<VNode> for VList {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(self)
+        VNode::VList(Rc::new(self))
     }
 }
 impl IntoPropValue<VNode> for VText {
@@ -163,7 +163,7 @@ impl IntoPropValue<VNode> for () {
 impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(self.into())
+        VNode::VList(Rc::new(self.into()))
     }
 }
 
@@ -204,7 +204,7 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
 impl IntoPropValue<VNode> for Vec<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(VList::with_children(self, None))
+        VNode::VList(Rc::new(VList::with_children(self, None)))
     }
 }
 
