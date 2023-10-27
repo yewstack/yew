@@ -46,18 +46,18 @@ where
 {
     #[inline(always)]
     fn to_html(&self) -> Html {
-        Html::VList(VList::with_children(
+        Html::VList(Rc::new(VList::with_children(
             self.iter().map(ToHtml::to_html).collect(),
             None,
-        ))
+        )))
     }
 
     #[inline(always)]
     fn into_html(self) -> Html {
-        Html::VList(VList::with_children(
+        Html::VList(Rc::new(VList::with_children(
             self.into_iter().map(ToHtml::into_html).collect(),
             None,
-        ))
+        )))
     }
 }
 
@@ -81,7 +81,7 @@ impl ToHtml for Vec<VNode> {
 
     #[inline(always)]
     fn into_html(self) -> Html {
-        Html::VList(VList::with_children(self, None))
+        Html::VList(Rc::new(VList::with_children(self, None)))
     }
 }
 
@@ -105,7 +105,7 @@ impl ToHtml for VList {
 
     #[inline(always)]
     fn into_html(self) -> Html {
-        Html::VList(self)
+        Html::VList(Rc::new(self))
     }
 }
 
@@ -132,7 +132,7 @@ where
 
     #[inline(always)]
     fn into_html(self) -> Html {
-        VNode::VComp(self.into())
+        VNode::VComp(Rc::new(self.into()))
     }
 }
 

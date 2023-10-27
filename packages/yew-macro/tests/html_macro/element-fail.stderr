@@ -703,20 +703,15 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
            and $N others
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<{integer}>` is not satisfied
   --> tests/html_macro/element-fail.rs:77:15
    |
 77 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
+   |               ^^^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::IString`
    |
    = help: the following other types implement trait `From<T>`:
-             <Cow<'a, CStr> as From<&'a CStr>>
-             <Cow<'a, CStr> as From<&'a CString>>
-             <Cow<'a, CStr> as From<CString>>
-             <Cow<'a, OsStr> as From<&'a OsStr>>
-             <Cow<'a, OsStr> as From<&'a OsString>>
-             <Cow<'a, OsStr> as From<OsString>>
-             <Cow<'a, Path> as From<&'a Path>>
-             <Cow<'a, Path> as From<&'a PathBuf>>
-           and $N others
-   = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
+             <implicit_clone::unsync::IString as From<&'static str>>
+             <implicit_clone::unsync::IString as From<Cow<'static, str>>>
+             <implicit_clone::unsync::IString as From<Rc<str>>>
+             <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `{integer}`
