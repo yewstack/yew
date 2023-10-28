@@ -75,7 +75,7 @@ and follow the repository's README.
 
 ## Writing APIs
 
-When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error mesages? Would this API integrate well with other APIs? Is it intuitive to use this API?
+When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error messages? Would this API integrate well with other APIs? Is it intuitive to use this API?
 
 Below, you can find some useful guidance and best practices on how to write APIs. These are only _guidelines_ and while they are helpful and should be followed where possible, in some cases, it may not be possible to do so.
 
