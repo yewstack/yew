@@ -276,6 +276,7 @@ impl Apply for Attributes {
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
+    use std::rc::Rc;
 
     use gloo::utils::document;
     use js_sys::Reflect;
@@ -300,7 +301,7 @@ mod tests {
             AttrValue::Static("href") => AttributeOrProperty::Property(JsValue::from_str("https://example.com/")),
             AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
         };
-        let attrs = Attributes::IndexMap(attrs);
+        let attrs = Attributes::IndexMap(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -327,7 +328,7 @@ mod tests {
             AttrValue::Static("href") => AttributeOrProperty::Attribute(AttrValue::from("https://example.com/")),
             AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
         };
-        let attrs = Attributes::IndexMap(attrs);
+        let attrs = Attributes::IndexMap(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
