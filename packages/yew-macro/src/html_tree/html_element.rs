@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 use syn::{Block, Expr, Ident, Lit, LitStr, Token};
 
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop, PropDirective};
+use crate::props::{ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
 use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
 
@@ -190,39 +190,11 @@ impl ToTokens for HtmlElement {
                     ))
                 },
             );
-            let class_attr = classes.as_ref().and_then(|classes| match classes {
-                ClassesForm::Tuple(classes) => {
-                    let span = classes.span();
-                    let classes: Vec<_> = classes.elems.iter().collect();
-                    let n = classes.len();
 
-                    let deprecation_warning = quote_spanned! {span=>
-                        #[deprecated(
-                            note = "the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead."
-                        )]
-                        fn deprecated_use_of_class() {}
-
-                        if false {
-                            deprecated_use_of_class();
-                        };
-                    };
-
-                    Some((
-                        LitStr::new("class", span),
-                        Value::Dynamic(quote! {
-                            {
-                                #deprecation_warning
-
-                                let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
-                                #(__yew_classes.push(#classes);)*
-                                __yew_classes
-                            }
-                        }),
-                        None,
-                    ))
-                }
-                ClassesForm::Single(classes) => {
-                    match classes.try_into_lit() {
+            let class_attr =
+                classes
+                    .as_ref()
+                    .and_then(|classes| match classes.value.try_into_lit() {
                         Some(lit) => {
                             if lit.value().is_empty() {
                                 None
@@ -235,17 +207,16 @@ impl ToTokens for HtmlElement {
                             }
                         }
                         None => {
+                            let expr = &classes.value;
                             Some((
-                                LitStr::new("class", classes.span()),
+                                LitStr::new("class", classes.label.span()),
                                 Value::Dynamic(quote! {
-                                    ::std::convert::Into::<::yew::html::Classes>::into(#classes)
+                                    ::std::convert::Into::<::yew::html::Classes>::into(#expr)
                                 }),
                                 None,
                             ))
                         }
-                    }
-                }
-            });
+                    });
 
             fn apply_as(directive: Option<&PropDirective>) -> TokenStream {
                 match directive {
