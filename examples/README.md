@@ -3,7 +3,7 @@
 ## How to Run
 
 The examples are built with [trunk](https://github.com/thedodd/trunk).
-Once you have the development envrionment fully set up (see [documentation](https://yew.rs/docs/next/getting-started/introduction)),
+Once you have the development environment fully set up (see [documentation](https://yew.rs/docs/next/getting-started/introduction)),
 running an example is as easy as running a single command:
 
 ```bash
