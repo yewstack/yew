@@ -271,8 +271,8 @@ impl ToTokens for HtmlElement {
                                 ::std::convert::Into::into(#v)
                             ))
                         }
-                        None => quote!(::yew::virtual_dom::AttributeOrProperty::Attribute(
-                            ::yew::virtual_dom::AttrValue::Static(#v)
+                        None => quote!(::yew::virtual_dom::AttributeOrProperty::Static(
+                            #v
                         )),
                     };
                     kv.push(quote! { ( #k, #v) });

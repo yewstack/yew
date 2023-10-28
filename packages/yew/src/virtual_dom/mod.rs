@@ -177,6 +177,13 @@ mod feat_ssr {
 #[allow(missing_docs)]
 #[derive(PartialEq, Clone, Debug)]
 pub enum AttributeOrProperty {
+    // This exists as a workaround to support Rust <1.72
+    // Previous versions of Rust did not See
+    // `AttributeOrProperty::Attribute(AttrValue::Static(_))` as `'static` that html! macro
+    // used, and thus failed with "temporary value dropped while borrowed"
+    //
+    // See: https://github.com/yewstack/yew/pull/3458#discussion_r1350362215
+    Static(&'static str),
     Attribute(AttrValue),
     Property(JsValue),
 }
@@ -224,6 +231,7 @@ impl Attributes {
             Self::Static(arr) => Box::new(arr.iter().filter_map(|(k, v)| match v {
                 AttributeOrProperty::Attribute(v) => Some((*k, v.as_ref())),
                 AttributeOrProperty::Property(_) => None,
+                AttributeOrProperty::Static(v) => Some((*k, v)),
             })),
             Self::Dynamic { keys, values } => {
                 Box::new(keys.iter().zip(values.iter()).filter_map(|(k, v)| match v {
@@ -254,7 +262,9 @@ impl Attributes {
         match self {
             Self::IndexMap(m) => Rc::make_mut(m),
             Self::Static(arr) => {
-                *self = Self::IndexMap(Rc::new(arr.iter().map(|(k, v)| ((*k).into(), v.clone())).collect()));
+                *self = Self::IndexMap(Rc::new(
+                    arr.iter().map(|(k, v)| ((*k).into(), v.clone())).collect(),
+                ));
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
