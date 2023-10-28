@@ -73,9 +73,8 @@ impl List {
             .filter(|c| !c.props.hide)
             .enumerate()
             .map(|(i, mut c)| {
-                let mut props = (*c.props).clone();
-                props.name = format!("#{} - {}", i + 1, props.name);
-                c.props = Rc::new(props);
+                let props = Rc::make_mut(&mut c.props);
+                props.name = format!("#{} - {}", i + 1, props.name).into();
                 c
             })
             .collect::<Html>()

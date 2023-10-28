@@ -434,16 +434,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::
 43 |     html! { <input type={()} /> };
    |                          ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `()`
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:44:27
@@ -451,16 +442,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::
 44 |     html! { <input value={()} /> };
    |                           ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `()`
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:45:22
@@ -468,16 +450,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::
 45 |     html! { <a href={()} /> };
    |                      ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::IString>>` is not implemented for `()`
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:46:28
@@ -493,7 +466,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <&'static str as IntoPropValue<String>>
              <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
+             <&String as IntoPropValue<VNode>>
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
@@ -510,6 +483,7 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
              <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
+             <Option<VNode> as IntoPropValue<VNode>>
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -525,6 +499,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
+             <Option<VNode> as IntoPropValue<VNode>>
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
   --> tests/html_macro/element-fail.rs:51:28
@@ -613,16 +588,7 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
 56 |     html! { <input ref={()} /> };
    |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
@@ -639,6 +605,7 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
+             <Option<VNode> as IntoPropValue<VNode>>
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
@@ -682,7 +649,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <&'static str as IntoPropValue<String>>
              <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
+             <&String as IntoPropValue<VNode>>
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
@@ -691,32 +658,18 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
 62 |     html! { <input ref={()} /> };
    |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `Cow<'static, str>: From<{integer}>` is not satisfied
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<{integer}>` is not satisfied
   --> tests/html_macro/element-fail.rs:77:15
    |
 77 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `From<{integer}>` is not implemented for `Cow<'static, str>`
+   |               ^^^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::IString`
    |
    = help: the following other types implement trait `From<T>`:
-             <Cow<'a, CStr> as From<&'a CStr>>
-             <Cow<'a, CStr> as From<&'a CString>>
-             <Cow<'a, CStr> as From<CString>>
-             <Cow<'a, OsStr> as From<&'a OsStr>>
-             <Cow<'a, OsStr> as From<&'a OsString>>
-             <Cow<'a, OsStr> as From<OsString>>
-             <Cow<'a, Path> as From<&'a Path>>
-             <Cow<'a, Path> as From<&'a PathBuf>>
-           and $N others
-   = note: required because of the requirements on the impl of `Into<Cow<'static, str>>` for `{integer}`
+             <implicit_clone::unsync::IString as From<&'static str>>
+             <implicit_clone::unsync::IString as From<Cow<'static, str>>>
+             <implicit_clone::unsync::IString as From<Rc<str>>>
+             <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `{integer}`

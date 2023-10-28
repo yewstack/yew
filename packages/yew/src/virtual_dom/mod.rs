@@ -22,6 +22,7 @@ pub mod vtag;
 pub mod vtext;
 
 use std::hint::unreachable_unchecked;
+use std::rc::Rc;
 
 use indexmap::IndexMap;
 use wasm_bindgen::JsValue;
@@ -205,7 +206,7 @@ pub enum Attributes {
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<AttrValue, AttributeOrProperty>),
+    IndexMap(Rc<IndexMap<AttrValue, AttributeOrProperty>>),
 }
 
 impl Attributes {
@@ -243,7 +244,7 @@ impl Attributes {
         macro_rules! unpack {
             () => {
                 match self {
-                    Self::IndexMap(m) => m,
+                    Self::IndexMap(m) => Rc::make_mut(m),
                     // SAFETY: unreachable because we set self to the `IndexMap` variant above.
                     _ => unsafe { unreachable_unchecked() },
                 }
@@ -251,19 +252,19 @@ impl Attributes {
         }
 
         match self {
-            Self::IndexMap(m) => m,
+            Self::IndexMap(m) => Rc::make_mut(m),
             Self::Static(arr) => {
-                *self = Self::IndexMap(arr.iter().map(|(k, v)| ((*k).into(), v.clone())).collect());
+                *self = Self::IndexMap(Rc::new(arr.iter().map(|(k, v)| ((*k).into(), v.clone())).collect()));
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
-                *self = Self::IndexMap(
+                *self = Self::IndexMap(Rc::new(
                     std::mem::take(values)
                         .iter_mut()
                         .zip(keys.iter())
                         .filter_map(|(v, k)| v.take().map(|v| (AttrValue::from(*k), v)))
                         .collect(),
-                );
+                ));
                 unpack!()
             }
         }
@@ -276,7 +277,7 @@ impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
             .into_iter()
             .map(|(k, v)| (k, AttributeOrProperty::Attribute(v)))
             .collect();
-        Self::IndexMap(v)
+        Self::IndexMap(Rc::new(v))
     }
 }
 
@@ -296,7 +297,7 @@ impl From<IndexMap<&'static str, JsValue>> for Attributes {
             .into_iter()
             .map(|(k, v)| (AttrValue::Static(k), (AttributeOrProperty::Property(v))))
             .collect();
-        Self::IndexMap(v)
+        Self::IndexMap(Rc::new(v))
     }
 }
 

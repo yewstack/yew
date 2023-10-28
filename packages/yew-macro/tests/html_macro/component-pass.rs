@@ -82,12 +82,12 @@ impl ::std::convert::From<::yew::virtual_dom::VChild<AltChild>> for ChildrenVari
 impl ::std::convert::Into<::yew::virtual_dom::VNode> for ChildrenVariants {
     fn into(self) -> ::yew::virtual_dom::VNode {
         match self {
-            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::rc::Rc::new(::std::convert::Into::<
                 ::yew::virtual_dom::VComp,
-            >::into(comp)),
-            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+            >::into(comp))),
+            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::rc::Rc::new(::std::convert::Into::<
                 ::yew::virtual_dom::VComp,
-            >::into(comp)),
+            >::into(comp))),
         }
     }
 }
