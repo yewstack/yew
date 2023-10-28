@@ -1,10 +1,10 @@
-use proc_macro2::{Delimiter, Span, TokenStream};
+use proc_macro2::{Delimiter, Group, Span, TokenStream};
 use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Block, Expr, Ident, Lit, LitStr, Token};
+use syn::{Expr, Ident, Lit, LitStr, Token};
 
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ElementProps, Prop, PropDirective};
@@ -354,7 +354,7 @@ impl ToTokens for HtmlElement {
             }
             TagName::Expr(name) => {
                 let vtag = Ident::new("__yew_vtag", name.span());
-                let expr = &name.expr;
+                let expr = name.expr.as_ref().map(Group::stream);
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
 
                 let void_children = Ident::new("__yew_void_children", Span::mixed_site());
@@ -382,10 +382,6 @@ impl ToTokens for HtmlElement {
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
-                    #[allow(unused_braces)]
-                    // e.g. html!{<@{"div"}/>} will set `#expr` to `{"div"}`
-                    // (note the extra braces). Hence the need for the `allow`.
-                    // Anyways to remove the braces?
                     let mut #vtag_name = ::std::convert::Into::<
                         ::yew::virtual_dom::AttrValue
                     >::into(#expr);
@@ -471,7 +467,7 @@ fn wrap_attr_value<T: ToTokens>(value: T) -> TokenStream {
 
 pub struct DynamicName {
     at: Token![@],
-    expr: Option<Block>,
+    expr: Option<Group>,
 }
 
 impl Peek<'_, ()> for DynamicName {
@@ -495,12 +491,7 @@ impl Parse for DynamicName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let at = input.parse()?;
         // the expression block is optional, closing tags don't have it.
-        let expr = if input.cursor().group(Delimiter::Brace).is_some() {
-            Some(input.parse()?)
-        } else {
-            None
-        };
-
+        let expr = input.parse().ok();
         Ok(Self { at, expr })
     }
 }
