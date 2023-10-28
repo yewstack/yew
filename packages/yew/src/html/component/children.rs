@@ -193,10 +193,11 @@ where
     /// ```
     /// # let children = Children::new(Vec::new());
     /// # use yew::{classes, html, Children};
+    /// # let _ =
     /// children.map(|children| {
     ///     html! {
     ///         <div class={classes!("container")}>
-    ///             {children}
+    ///             {children.clone()}
     ///         </div>
     ///     }
     /// })
