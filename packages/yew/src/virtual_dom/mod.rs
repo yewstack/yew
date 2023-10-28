@@ -287,7 +287,7 @@ impl From<IndexMap<&'static str, AttrValue>> for Attributes {
             .into_iter()
             .map(|(k, v)| (AttrValue::Static(k), (AttributeOrProperty::Attribute(v))))
             .collect();
-        Self::IndexMap(v)
+        Self::IndexMap(Rc::new(v))
     }
 }
 
