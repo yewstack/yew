@@ -105,7 +105,7 @@ impl App {
             <div class="last-hovered">
                 { "Last hovered:"}
                 <span class="last-hovered-text">
-                    { self.hovered.clone() }
+                    { &self.hovered }
                 </span>
             </div>
         }

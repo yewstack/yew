@@ -40,13 +40,15 @@ impl<COMP: Component> PartialEq for WeakComponentLink<COMP> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Hovered {
     Header,
-    Item(String),
+    Item(AttrValue),
     List,
     None,
 }
+
+impl ImplicitClone for Hovered {}
 
 impl fmt::Display for Hovered {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -63,7 +65,7 @@ impl fmt::Display for Hovered {
     }
 }
 
-impl IntoPropValue<Html> for Hovered {
+impl IntoPropValue<Html> for &Hovered {
     fn into_prop_value(self) -> Html {
         html! {<>{self.to_string()}</>}
     }
