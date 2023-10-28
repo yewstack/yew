@@ -1,11 +1,11 @@
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(PartialEq, Eq, Properties, Clone)]
 pub struct Props {
     pub unresolved_card_pairs: u8,
 }
 
-#[function_component]
+#[component]
 pub fn GameProgress(props: &Props) -> Html {
     html! {
         <div class="game-progress">

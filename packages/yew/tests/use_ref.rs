@@ -14,7 +14,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_ref_works() {
-    #[function_component(UseRefComponent)]
+    #[component(UseRefComponent)]
     fn use_ref_comp() -> Html {
         let ref_example = use_mut_ref(|| 0);
         *ref_example.borrow_mut().deref_mut() += 1;

@@ -5,7 +5,7 @@ struct Props {
     a: usize,
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 fn comp(props: &Props, invalid: String) -> Html {
     html! {
         <p>
@@ -15,7 +15,7 @@ fn comp(props: &Props, invalid: String) -> Html {
     }
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 fn comp3(props: &Props, invalid: String, another_invalid: u32) -> Html {
     html! {
         <p>

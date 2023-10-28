@@ -17,7 +17,7 @@ fn get_value_from_input_event(e: InputEvent) -> String {
 }
 
 /// Controlled Text Input Component
-#[function_component(TextInput)]
+#[component(TextInput)]
 pub fn text_input(props: &Props) -> Html {
     let Props { value, on_change } = props.clone();
 

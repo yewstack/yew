@@ -145,7 +145,7 @@ impl Reducible for AppState {
     }
 }
 
-#[function_component(App)]
+#[component(App)]
 fn app() -> Html {
     let state = use_reducer(AppState::default);
 
@@ -222,7 +222,7 @@ pub struct JumbotronProps {
     pub on_swap: Callback<()>,
 }
 
-#[function_component(Jumbotron)]
+#[component(Jumbotron)]
 fn jumbotron(props: &JumbotronProps) -> Html {
     html! {
         <div class="jumbotron">
@@ -265,7 +265,7 @@ struct RowProps {
     data: RowData,
 }
 
-#[function_component(Row)]
+#[component(Row)]
 fn row(props: &RowProps) -> Html {
     html! {
         <tr class={if props.selected { "danger" } else  { "" }}>

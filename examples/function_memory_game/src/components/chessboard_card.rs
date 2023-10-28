@@ -1,6 +1,6 @@
 use web_sys::MouseEvent;
 use yew::prelude::*;
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 use crate::constant::CardName;
 use crate::state::{Card, RawCard};
@@ -11,7 +11,7 @@ pub struct Props {
     pub on_flip: Callback<RawCard>,
 }
 
-#[function_component]
+#[component]
 pub fn ChessboardCard(props: &Props) -> Html {
     let Props { card, on_flip } = props.clone();
     let Card { flipped, name, id } = card;

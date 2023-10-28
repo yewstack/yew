@@ -29,7 +29,7 @@ pub enum Route {
     NotFound,
 }
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     html! {
         <BrowserRouter>
@@ -58,7 +58,7 @@ pub struct ServerAppProps {
     pub queries: HashMap<String, String>,
 }
 
-#[function_component]
+#[component]
 pub fn ServerApp(props: &ServerAppProps) -> Html {
     let history = AnyHistory::from(MemoryHistory::new());
     history

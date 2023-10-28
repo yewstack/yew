@@ -13,7 +13,7 @@ pub struct EntryProps {
     pub onedit: Callback<(usize, String)>,
 }
 
-#[function_component(Entry)]
+#[component(Entry)]
 pub fn entry(props: &EntryProps) -> Html {
     let id = props.entry.id;
     let mut class = Classes::from("todo");
@@ -83,7 +83,7 @@ pub struct EntryEditProps {
     pub editing: bool,
 }
 
-#[function_component(EntryEdit)]
+#[component(EntryEdit)]
 pub fn entry_edit(props: &EntryEditProps) -> Html {
     if props.editing {
         let id = props.entry.id;

@@ -50,7 +50,7 @@ impl<T: fmt::Debug> fmt::Debug for UseFutureHandle<T> {
 ///                    action=query&origin=*&format=json&generator=search&\
 ///                    gsrnamespace=0&gsrlimit=5&gsrsearch='New_England_Patriots'";
 ///
-/// #[function_component]
+/// #[component]
 /// fn WikipediaSearch() -> HtmlResult {
 ///     let res = use_future(|| async { Request::get(URL).send().await?.text().await })?;
 ///     let result_html = match *res {

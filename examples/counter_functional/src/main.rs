@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let state = use_state(|| 0);
 

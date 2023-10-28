@@ -7,7 +7,7 @@ pub struct HeaderInputProps {
     pub onadd: Callback<String>,
 }
 
-#[function_component(HeaderInput)]
+#[component(HeaderInput)]
 pub fn header_input(props: &HeaderInputProps) -> Html {
     let onkeypress = {
         let onadd = props.onadd.clone();

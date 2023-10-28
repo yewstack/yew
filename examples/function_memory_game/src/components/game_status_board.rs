@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew::{function_component, html, Properties};
+use yew::{component, html, Properties};
 
 use crate::constant::Status;
 
@@ -10,7 +10,7 @@ pub struct Props {
     pub on_reset: Callback<()>,
 }
 
-#[function_component]
+#[component]
 pub fn GameStatusBoard(props: &Props) -> Html {
     let get_content = {
         let onclick = props.on_reset.reform(move |e: MouseEvent| {

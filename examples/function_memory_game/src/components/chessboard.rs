@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew::{function_component, html, Properties};
+use yew::{component, html, Properties};
 
 use crate::components::chessboard_card::ChessboardCard;
 use crate::state::{Card, RawCard};
@@ -9,7 +9,7 @@ pub struct Props {
     pub cards: Vec<Card>,
     pub on_flip: Callback<RawCard>,
 }
-#[function_component]
+#[component]
 pub fn Chessboard(props: &Props) -> Html {
     html! {
         <div class="chess-board">

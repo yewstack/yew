@@ -134,7 +134,7 @@ where
 /// use yew::prelude::*;
 /// # use std::rc::Rc;
 ///
-/// #[function_component(UseEffect)]
+/// #[component(UseEffect)]
 /// fn effect() -> Html {
 ///     let counter = use_state(|| 0);
 ///
@@ -186,7 +186,7 @@ where
 /// # Example
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with, Html, Properties};
+/// use yew::{component, html, use_effect_with, Html, Properties};
 /// # use gloo::console::log;
 ///
 /// #[derive(Properties, PartialEq)]
@@ -194,7 +194,7 @@ where
 ///     pub is_loading: bool,
 /// }
 ///
-/// #[function_component]
+/// #[component]
 /// fn HelloWorld(props: &Props) -> Html {
 ///     let is_loading = props.is_loading.clone();
 ///
@@ -216,10 +216,10 @@ where
 /// render of a component.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with, Html};
+/// use yew::{component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
-/// #[function_component]
+/// #[component]
 /// fn HelloWorld() -> Html {
 ///     use_effect_with((), move |_| {
 ///         log!("I got rendered, yay!");
@@ -235,10 +235,10 @@ where
 /// It will only get called when the component is removed from view / gets destroyed.
 ///
 /// ```rust
-/// use yew::{function_component, html, use_effect_with, Html};
+/// use yew::{component, html, use_effect_with, Html};
 /// # use gloo::console::log;
 ///
-/// #[function_component]
+/// #[component]
 /// fn HelloWorld() -> Html {
 ///     use_effect_with((), move |_| {
 ///         || {

@@ -24,14 +24,14 @@ The recommended way to use suspense is with hooks.
 ```rust ,ignore
 use yew::prelude::*;
 
-#[function_component(Content)]
+#[component(Content)]
 fn content() -> HtmlResult {
     let user = use_user()?;
 
     Ok(html! {<div>{"Hello, "}{&user.name}</div>})
 }
 
-#[function_component(App)]
+#[component(App)]
 fn app() -> Html {
     let fallback = html! {<div>{"Loading..."}</div>};
 
@@ -131,14 +131,14 @@ fn use_user() -> SuspensionResult<User> {
     }
 }
 
-#[function_component(Content)]
+#[component(Content)]
 fn content() -> HtmlResult {
     let user = use_user()?;
 
     Ok(html! {<div>{"Hello, "}{&user.name}</div>})
 }
 
-#[function_component(App)]
+#[component(App)]
 fn app() -> Html {
     let fallback = html! {<div>{"Loading..."}</div>};
 

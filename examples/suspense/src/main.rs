@@ -11,12 +11,12 @@ struct PleaseWaitProps {
     from: &'static str,
 }
 
-#[function_component(PleaseWait)]
+#[component(PleaseWait)]
 fn please_wait(props: &PleaseWaitProps) -> Html {
     html! {<div class="content-area">{"Please wait 5 Seconds for "}{props.from}{" component to load..."}</div>}
 }
 
-#[function_component(AppContent)]
+#[component(AppContent)]
 fn app_content() -> HtmlResult {
     let resleep = use_sleep()?;
 
@@ -45,7 +45,7 @@ fn app_content() -> HtmlResult {
     })
 }
 
-#[function_component(App)]
+#[component(App)]
 fn app() -> Html {
     let fallback_fn = html! {<PleaseWait from="function" />};
     let fallback_struct = html! {<PleaseWait from="struct" />};

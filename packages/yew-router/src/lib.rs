@@ -19,7 +19,7 @@
 //!     NotFound,
 //! }
 //!
-//! #[function_component(Secure)]
+//! #[component(Secure)]
 //! fn secure() -> Html {
 //!     let navigator = use_navigator().unwrap();
 //!
@@ -32,7 +32,7 @@
 //!     }
 //! }
 //!
-//! #[function_component(Main)]
+//! #[component(Main)]
 //! fn app() -> Html {
 //!     html! {
 //!         <BrowserRouter>

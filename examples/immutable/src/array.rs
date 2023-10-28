@@ -8,7 +8,7 @@ struct FolksViewProps {
     folks: IArray<IString>,
 }
 
-#[function_component(FolksView)]
+#[component(FolksView)]
 fn folks_view(props: &FolksViewProps) -> Html {
     html! {
         <>
@@ -20,7 +20,7 @@ fn folks_view(props: &FolksViewProps) -> Html {
     }
 }
 
-#[function_component(ArrayExample)]
+#[component(ArrayExample)]
 pub fn array_example() -> Html {
     let folks = use_state(IArray::<IString>::default);
     let onkeyup = {

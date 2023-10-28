@@ -16,7 +16,7 @@ use gloo::utils::window;
 use std::mem::drop;
 
 
-#[function_component(ShowStorageChanged)]
+#[component(ShowStorageChanged)]
 pub fn show_storage_changed() -> Html {
     let state_storage_changed = use_state(|| false);
 

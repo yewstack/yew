@@ -9,7 +9,7 @@ mod bindings;
 
 static WASM_BINDGEN_SNIPPETS_PATH: OnceCell<String> = OnceCell::new();
 
-#[function_component]
+#[component]
 fn Important() -> Html {
     let msg = use_memo((), |_| bindings::hello());
     html! {
@@ -35,7 +35,7 @@ fn use_do_bye() -> SuspensionResult<String> {
     Ok((*s).clone())
 }
 
-#[function_component]
+#[component]
 fn UnImportant() -> HtmlResult {
     let msg = use_do_bye()?;
     Ok(html! {
@@ -46,7 +46,7 @@ fn UnImportant() -> HtmlResult {
     })
 }
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let showing_unimportant = use_state(|| false);
 

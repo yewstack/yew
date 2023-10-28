@@ -53,7 +53,7 @@ fn bench_baseline() -> Duration {
 async fn bench_hello_world() -> Duration {
     static TOTAL: usize = 1_000_000;
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {<div>{"Hello, World!"}</div>}
     }
@@ -92,14 +92,14 @@ async fn bench_many_providers() -> Duration {
         children: Html,
     }
 
-    #[function_component]
+    #[component]
     fn Provider(props: &ProviderProps) -> Html {
         let ProviderProps { children } = props.clone();
 
         children
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         // Let's make 10 providers.
         html! {
@@ -139,7 +139,7 @@ async fn bench_concurrent_task() -> Duration {
 
     let start_time = Instant::now();
 
-    #[function_component]
+    #[component]
     fn Comp() -> HtmlResult {
         let _state = use_prepared_state!((), async move |_| -> () {
             sleep(Duration::from_secs(1)).await;
@@ -148,7 +148,7 @@ async fn bench_concurrent_task() -> Duration {
         Ok(Html::default())
     }
 
-    #[function_component]
+    #[component]
     fn Parent() -> Html {
         html! {
             <>
@@ -160,7 +160,7 @@ async fn bench_concurrent_task() -> Duration {
         }
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {
             <Suspense fallback={Html::default()}>

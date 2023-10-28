@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-#[function_component(InfoFooter)]
+#[component(InfoFooter)]
 pub fn info_footer() -> Html {
     html! {
         <footer class="info">

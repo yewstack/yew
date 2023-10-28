@@ -41,7 +41,7 @@ struct Props {
     a: ::std::primitive::usize,
 }
 
-#[::yew::function_component(Comp)]
+#[::yew::component(Comp)]
 fn comp(props: &Props) -> ::yew::Html {
     ::yew::html! {
         <p>

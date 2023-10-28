@@ -8,7 +8,7 @@ struct DisplayProps {
     values: IMap<u32, IString>,
 }
 
-#[function_component]
+#[component]
 fn Display(props: &DisplayProps) -> Html {
     html! {
         <>

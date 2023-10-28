@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::functional::function_component;
+use yew::functional::component;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -47,7 +47,7 @@ enum Routes {
     Search,
 }
 
-#[function_component(NavigationMenu)]
+#[component(NavigationMenu)]
 fn navigation_menu() -> Html {
     html! {
         <ul>
@@ -80,7 +80,7 @@ fn navigation_menu() -> Html {
     }
 }
 
-#[function_component(RootForBrowserRouter)]
+#[component(RootForBrowserRouter)]
 fn root_for_browser_router() -> Html {
     html! {
         <BrowserRouter>
@@ -115,7 +115,7 @@ async fn link_in_browser_router() {
     );
 }
 
-#[function_component(RootForBasename)]
+#[component(RootForBasename)]
 fn root_for_basename() -> Html {
     html! {
         <BrowserRouter basename="/base/">
@@ -153,7 +153,7 @@ async fn link_with_basename() {
     );
 }
 
-#[function_component(RootForHashRouter)]
+#[component(RootForHashRouter)]
 fn root_for_hash_router() -> Html {
     html! {
         <HashRouter>

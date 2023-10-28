@@ -268,7 +268,7 @@ where
 ///     }
 /// }
 ///
-/// #[function_component(UseReducer)]
+/// #[component(UseReducer)]
 /// fn reducer() -> Html {
 ///     // The use_reducer hook takes an initialization function which will be called only once.
 ///     let counter = use_reducer(CounterState::default);

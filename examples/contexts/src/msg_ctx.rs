@@ -23,7 +23,7 @@ pub struct MessageProviderProps {
     pub children: Html,
 }
 
-#[function_component]
+#[component]
 pub fn MessageProvider(props: &MessageProviderProps) -> Html {
     let msg = use_reducer(|| Message {
         inner: "No message yet.".to_string(),

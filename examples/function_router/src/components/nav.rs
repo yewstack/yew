@@ -3,7 +3,7 @@ use yew_router::prelude::*;
 
 use crate::Route;
 
-#[function_component]
+#[component]
 pub fn Nav() -> Html {
     let navbar_active = use_state_eq(|| false);
 

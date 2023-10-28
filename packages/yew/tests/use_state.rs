@@ -13,7 +13,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_state_works() {
-    #[function_component(UseComponent)]
+    #[component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
         if *counter < 5 {
@@ -39,7 +39,7 @@ async fn use_state_works() {
 
 #[wasm_bindgen_test]
 async fn multiple_use_state_setters() {
-    #[function_component(UseComponent)]
+    #[component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
@@ -82,7 +82,7 @@ async fn use_state_eq_works() {
     use std::sync::atomic::{AtomicUsize, Ordering};
     static RENDER_COUNT: AtomicUsize = AtomicUsize::new(0);
 
-    #[function_component(UseComponent)]
+    #[component(UseComponent)]
     fn use_state_comp() -> Html {
         RENDER_COUNT.fetch_add(1, Ordering::Relaxed);
         let counter = use_state_eq(|| 0);

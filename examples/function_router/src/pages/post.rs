@@ -28,7 +28,7 @@ impl Reducible for PostState {
     }
 }
 
-#[function_component]
+#[component]
 pub fn Post(props: &Props) -> Html {
     let seed = props.seed;
 

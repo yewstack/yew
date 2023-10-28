@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::functional::function_component;
+use yew::functional::component;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -32,7 +32,7 @@ struct NoProps {
     id: u32,
 }
 
-#[function_component(No)]
+#[component(No)]
 fn no(props: &NoProps) -> Html {
     let route = props.id.to_string();
 
@@ -46,7 +46,7 @@ fn no(props: &NoProps) -> Html {
     }
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 fn component() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -97,7 +97,7 @@ fn component() -> Html {
     }
 }
 
-#[function_component(Root)]
+#[component(Root)]
 fn root() -> Html {
     html! {
         <BrowserRouter basename="/base/">

@@ -289,7 +289,7 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::{function_component, html, Html};
+    use crate::{component, html, Html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     async fn macro_syntax_works() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <a href="https://example.com/" ~alt="abc" /> }
         }

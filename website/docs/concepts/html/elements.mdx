@@ -19,7 +19,7 @@ use web_sys::{Element, Node};
 use yew::prelude::*;
 use gloo::utils::document;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     // memoize as this only needs to be executed once
     let node = use_memo(

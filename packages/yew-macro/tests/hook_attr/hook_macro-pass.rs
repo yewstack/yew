@@ -15,7 +15,7 @@ macro_rules! use_some_macro {
     };
 }
 
-#[::yew::functional::function_component]
+#[::yew::functional::component]
 fn Comp() -> ::yew::Html {
     let a = use_some_macro!();
     let b = use_some_macro!("b");
