@@ -167,10 +167,10 @@ mod scoped {
 }
 
 fn compile_pass() {
-    ::yew::html! { <Child int=1 /> };
-    ::yew::html! { <Child int=1 r#fn=1 /> };
+    _ = ::yew::html! { <Child int=1 /> };
+    _ = ::yew::html! { <Child int=1 r#fn=1 /> };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 />
             <scoped::Child int=1 />
@@ -179,7 +179,7 @@ fn compile_pass() {
 
     let props = <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child ..::std::clone::Clone::clone(&props) />
             <Child int={1} ..props />
@@ -191,7 +191,7 @@ fn compile_pass() {
         </>
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 string="child" />
             <Child int=1 />
@@ -207,17 +207,17 @@ fn compile_pass() {
     };
 
     let name_expr = "child";
-    ::yew::html! {
+    _ = ::yew::html! {
         <Child int=1 string={name_expr} />
     };
 
     let string = "child";
     let int = 1;
-    ::yew::html! {
+    _ = ::yew::html! {
         <Child {int} {string} />
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 />
             <Child int=1 optional_callback={::std::option::Option::Some(<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ()))} />
@@ -227,7 +227,7 @@ fn compile_pass() {
     };
 
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 r#ref={node_ref} />
         </>
@@ -235,7 +235,7 @@ fn compile_pass() {
 
     let int = 1;
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child {int} r#ref={node_ref} />
         </>
@@ -244,7 +244,7 @@ fn compile_pass() {
     let props = <<Container as ::yew::Component>::Properties as ::std::default::Default>::default();
     let child_props =
         <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Container int=1 />
             <Container int=1></Container>
@@ -287,7 +287,7 @@ fn compile_pass() {
         </>
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <ChildContainer int=1 />
             <ChildContainer int=1></ChildContainer>
@@ -296,7 +296,7 @@ fn compile_pass() {
         </>
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <ChildContainer int=1>
             <AltChild />
             <Child int=1 />
@@ -318,13 +318,13 @@ fn compile_pass() {
         ::yew::html_nested! { <Child int=1 /> },
         ::yew::html_nested! { <Child int=2 /> },
     ];
-    ::yew::html! {
+    _ = ::yew::html! {
         <ChildContainer int=1>
             { ::std::clone::Clone::clone(&children) }
         </ChildContainer>
     };
     // https://github.com/yewstack/yew/issues/1527
-    ::yew::html! {
+    _ = ::yew::html! {
         <ChildContainer int=1>
             { for children }
         </ChildContainer>
@@ -343,7 +343,7 @@ fn compile_pass() {
         ]
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             {
                 ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
@@ -372,7 +372,7 @@ fn compile_pass() {
         </>
     };
 
-    ::yew::html_nested! { 1 };
+    _ = ::yew::html_nested! { 1 };
 }
 
 #[derive(
