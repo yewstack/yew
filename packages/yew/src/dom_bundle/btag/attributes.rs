@@ -275,8 +275,8 @@ impl Apply for Attributes {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
     use std::rc::Rc;
+    use std::time::Duration;
 
     use gloo::utils::document;
     use js_sys::Reflect;
@@ -348,10 +348,7 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[(
-            "class",
-            AttributeOrProperty::Attribute(AttrValue::Static("thing")),
-        )]);
+        let attrs = Attributes::Static(&[("class", AttributeOrProperty::Static("thing"))]);
 
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
