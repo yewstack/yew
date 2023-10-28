@@ -672,10 +672,10 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `implicit_clone::unsync::IString: From<{integer}>` is not satisfied
-  --> tests/html_macro/element-fail.rs:77:15
+  --> tests/html_macro/element-fail.rs:77:16
    |
 77 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::IString`
+   |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::IString`
    |
    = help: the following other types implement trait `From<T>`:
              <implicit_clone::unsync::IString as From<&'static str>>
