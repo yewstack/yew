@@ -145,35 +145,11 @@ error: dynamic closing tags must not have a body (hint: replace it with just `</
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Tuple {
            attrs: [],
            paren_token: Paren,
-           elems: [
-               Expr::Lit {
-                   attrs: [],
-                   lit: Lit::Str {
-                       token: "deprecated",
-                   },
-               },
-               Comma,
-               Expr::Lit {
-                   attrs: [],
-                   lit: Lit::Str {
-                       token: "warning",
-                   },
-               },
-           ],
-       }
-  --> tests/html_macro/element-fail.rs:83:24
-   |
-83 |     html! { <div class=("deprecated", "warning") /> };
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Tuple {
-           attrs: [],
-           paren_token: Paren,
            elems: [],
        }
-  --> tests/html_macro/element-fail.rs:84:24
+  --> tests/html_macro/element-fail.rs:80:24
    |
-84 |     html! { <input ref=() /> };
+80 |     html! { <input ref=() /> };
    |                        ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Tuple {
@@ -181,9 +157,9 @@ error: the property value must be either a literal or enclosed in braces. Consid
            paren_token: Paren,
            elems: [],
        }
-  --> tests/html_macro/element-fail.rs:85:24
+  --> tests/html_macro/element-fail.rs:81:24
    |
-85 |     html! { <input ref=() ref=() /> };
+81 |     html! { <input ref=() ref=() /> };
    |                        ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Call {
@@ -197,7 +173,7 @@ error: the property value must be either a literal or enclosed in braces. Consid
                        PathSegment {
                            ident: Ident {
                                ident: "Some",
-                               span: #0 bytes(2632..2636),
+                               span: #0 bytes(2482..2486),
                            },
                            arguments: PathArguments::None,
                        },
@@ -214,9 +190,9 @@ error: the property value must be either a literal or enclosed in braces. Consid
                },
            ],
        }
-  --> tests/html_macro/element-fail.rs:86:28
+  --> tests/html_macro/element-fail.rs:82:28
    |
-86 |     html! { <input onfocus=Some(5) /> };
+82 |     html! { <input onfocus=Some(5) /> };
    |                            ^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Path {
@@ -228,16 +204,16 @@ error: the property value must be either a literal or enclosed in braces. Consid
                    PathSegment {
                        ident: Ident {
                            ident: "NotToString",
-                           span: #0 bytes(2672..2683),
+                           span: #0 bytes(2522..2533),
                        },
                        arguments: PathArguments::None,
                    },
                ],
            },
        }
-  --> tests/html_macro/element-fail.rs:87:27
+  --> tests/html_macro/element-fail.rs:83:27
    |
-87 |     html! { <input string=NotToString /> };
+83 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Call {
@@ -251,7 +227,7 @@ error: the property value must be either a literal or enclosed in braces. Consid
                        PathSegment {
                            ident: Ident {
                                ident: "Some",
-                               span: #0 bytes(2711..2715),
+                               span: #0 bytes(2561..2565),
                            },
                            arguments: PathArguments::None,
                        },
@@ -269,7 +245,7 @@ error: the property value must be either a literal or enclosed in braces. Consid
                            PathSegment {
                                ident: Ident {
                                    ident: "NotToString",
-                                   span: #0 bytes(2716..2727),
+                                   span: #0 bytes(2566..2577),
                                },
                                arguments: PathArguments::None,
                            },
@@ -278,9 +254,9 @@ error: the property value must be either a literal or enclosed in braces. Consid
                },
            ],
        }
-  --> tests/html_macro/element-fail.rs:88:22
+  --> tests/html_macro/element-fail.rs:84:22
    |
-88 |     html! { <a media=Some(NotToString) /> };
+84 |     html! { <a media=Some(NotToString) /> };
    |                      ^^^^^^^^^^^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Call {
@@ -294,7 +270,7 @@ error: the property value must be either a literal or enclosed in braces. Consid
                        PathSegment {
                            ident: Ident {
                                ident: "Some",
-                               span: #0 bytes(2755..2759),
+                               span: #0 bytes(2605..2609),
                            },
                            arguments: PathArguments::None,
                        },
@@ -311,9 +287,9 @@ error: the property value must be either a literal or enclosed in braces. Consid
                },
            ],
        }
-  --> tests/html_macro/element-fail.rs:89:21
+  --> tests/html_macro/element-fail.rs:85:21
    |
-89 |     html! { <a href=Some(5) /> };
+85 |     html! { <a href=Some(5) /> };
    |                     ^^^^^^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Tuple {
@@ -321,9 +297,9 @@ error: the property value must be either a literal or enclosed in braces. Consid
            paren_token: Paren,
            elems: [],
        }
-  --> tests/html_macro/element-fail.rs:90:25
+  --> tests/html_macro/element-fail.rs:86:25
    |
-90 |     html! { <input type=() /> };
+86 |     html! { <input type=() /> };
    |                         ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Tuple {
@@ -331,9 +307,9 @@ error: the property value must be either a literal or enclosed in braces. Consid
            paren_token: Paren,
            elems: [],
        }
-  --> tests/html_macro/element-fail.rs:91:26
+  --> tests/html_macro/element-fail.rs:87:26
    |
-91 |     html! { <input value=() /> };
+87 |     html! { <input value=() /> };
    |                          ^^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Path {
@@ -345,25 +321,17 @@ error: the property value must be either a literal or enclosed in braces. Consid
                    PathSegment {
                        ident: Ident {
                            ident: "NotToString",
-                           span: #0 bytes(2862..2873),
+                           span: #0 bytes(2712..2723),
                        },
                        arguments: PathArguments::None,
                    },
                ],
            },
        }
-  --> tests/html_macro/element-fail.rs:92:27
+  --> tests/html_macro/element-fail.rs:88:27
    |
-92 |     html! { <input string=NotToString /> };
+88 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
-
-warning: use of deprecated function `compile_fail::deprecated_use_of_class`: the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead.
-  --> tests/html_macro/element-fail.rs:80:25
-   |
-80 |     html! { <div class={("deprecated", "warning")} /> };
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(deprecated)]` on by default
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:36:28
@@ -662,10 +630,10 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `implicit_clone::unsync::IString: From<{integer}>` is not satisfied
-  --> tests/html_macro/element-fail.rs:77:15
+  --> tests/html_macro/element-fail.rs:77:16
    |
 77 |     html! { <@{55}></@> };
-   |               ^^^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::IString`
+   |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::IString`
    |
    = help: the following other types implement trait `From<T>`:
              <implicit_clone::unsync::IString as From<&'static str>>
