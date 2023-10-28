@@ -830,11 +830,11 @@ mod tests {
     fn dynamic_tags_work() {
         let (root, scope, parent) = setup_parent();
 
-        let elem = html! { <@{
+        let elem = html! { <@{{
             let mut builder = String::new();
             builder.push('a');
             builder
-        }/> };
+        }}/> };
 
         let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         let vtag = assert_btag_mut(&mut elem);
