@@ -31,7 +31,7 @@ implicit-clone = { version = "0.4.1", features = ["map"] }
 base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { version = "1.3.3", optional = true }
 serde = { version = "1", features = ["derive"] }
-tracing = "0.1.37"
+tracing = "0.1.40"
 prokio = "0.1.0"
 rustversion = "1"
 
@@ -40,7 +40,7 @@ wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
-tokio = { version = "1.32", features = ["rt"] }
+tokio = { version = "1.33", features = ["rt"] }
 
 [dependencies.web-sys]
 version = "^0.3.64"
@@ -79,7 +79,7 @@ features = [
 ]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.32", features = ["full"] }
+tokio = { version = "1.33", features = ["full"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
