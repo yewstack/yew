@@ -22,7 +22,8 @@ impl Parse for HtmlNode {
                 Lit::ByteStr(lit) => {
                     return Err(syn::Error::new(
                         lit.span(),
-                        "byte-strings can't be converted to HTML text\nnote: remove the `b` prefix",
+                        "byte-strings can't be converted to HTML text
+                         note: remove the `b` prefix or convert this to a `String`",
                     ))
                 }
                 Lit::Verbatim(lit) => {
