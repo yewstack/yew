@@ -84,7 +84,11 @@ impl VList {
 
     #[doc(hidden)]
     /// Used by `html!` to avoid calling `.recheck_fully_keyed()` when possible.
-    pub fn __macro_new(children: Vec<VNode>, key: Option<Key>, fully_keyed: FullyKeyedState) -> Self {
+    pub fn __macro_new(
+        children: Vec<VNode>,
+        key: Option<Key>,
+        fully_keyed: FullyKeyedState,
+    ) -> Self {
         VList {
             children: Some(Rc::new(children)),
             fully_keyed,
