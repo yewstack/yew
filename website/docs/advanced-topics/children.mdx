@@ -137,7 +137,7 @@ fn List(props: &Props) -> Html {
             props.value = format!("item-{}", props.value);
             item
     });
-    html! { modified_children }
+    html! {{for modified_children}}
 }
 
 html! {
