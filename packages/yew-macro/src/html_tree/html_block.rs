@@ -63,7 +63,7 @@ impl ToNodeIterator for HtmlBlock {
     fn is_singular(&self) -> bool {
         match &self.content {
             BlockContent::Node(node) => node.is_singular(),
-            BlockContent::Iterable(_) => false
+            BlockContent::Iterable(_) => false,
         }
     }
 }
