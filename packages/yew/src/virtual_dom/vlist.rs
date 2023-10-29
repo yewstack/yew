@@ -5,8 +5,9 @@ use std::rc::Rc;
 use super::{Key, VNode};
 use crate::html::ImplicitClone;
 
+#[doc(hidden)]
 #[derive(Clone, Copy, Debug, PartialEq)]
-enum FullyKeyedState {
+pub enum FullyKeyedState {
     KnownFullyKeyed,
     KnownMissingKeys,
     Unknown,
@@ -79,6 +80,16 @@ impl VList {
         };
         vlist.recheck_fully_keyed();
         vlist
+    }
+
+    #[doc(hidden)]
+    /// Used by `html!` to avoid calling `.recheck_fully_keyed()` when possible.
+    pub fn __macro_new(children: Vec<VNode>, key: Option<Key>, fully_keyed: FullyKeyedState) -> Self {
+        VList {
+            children: Some(Rc::new(children)),
+            fully_keyed,
+            key,
+        }
     }
 
     // Returns a mutable reference to children, allocates the children if it hasn't been done.

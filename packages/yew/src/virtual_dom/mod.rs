@@ -35,6 +35,8 @@ pub use self::listeners::*;
 pub use self::vcomp::{VChild, VComp};
 #[doc(inline)]
 pub use self::vlist::VList;
+#[doc(hidden)]
+pub use self::vlist::FullyKeyedState;
 #[doc(inline)]
 pub use self::vnode::VNode;
 #[doc(inline)]

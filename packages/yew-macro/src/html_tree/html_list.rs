@@ -10,7 +10,7 @@ use crate::props::Prop;
 use crate::{Peek, PeekValue};
 
 pub struct HtmlList {
-    open: HtmlListOpen,
+    pub open: HtmlListOpen,
     pub children: HtmlChildrenTree,
     close: HtmlListClose,
 }
@@ -85,9 +85,9 @@ impl ToTokens for HtmlList {
     }
 }
 
-struct HtmlListOpen {
+pub struct HtmlListOpen {
     tag: TagTokens,
-    props: HtmlListProps,
+    pub props: HtmlListProps,
 }
 impl HtmlListOpen {
     fn to_spanned(&self) -> impl ToTokens {
@@ -121,8 +121,8 @@ impl Parse for HtmlListOpen {
     }
 }
 
-struct HtmlListProps {
-    key: Option<Expr>,
+pub struct HtmlListProps {
+    pub key: Option<Expr>,
 }
 impl Parse for HtmlListProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {

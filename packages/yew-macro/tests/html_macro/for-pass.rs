@@ -55,4 +55,22 @@ fn main() {
         }
     };
 
+    fn rand_number() -> ::std::primitive::u32 {
+        4 // chosen by fair dice roll. guaranteed to be random.
+    }
+
+    _ = ::yew::html!{
+        for _ in 0..5 {
+            <div>
+                {{
+                    loop {
+                        let a = rand_number();
+                        if a % 2 == 0 {
+                            break a;
+                        }
+                    }
+                }}
+            </div>
+        }
+    }
 }

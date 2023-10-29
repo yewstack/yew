@@ -352,6 +352,37 @@ impl HtmlChildrenTree {
     pub fn size_hint(&self) -> Option<usize> {
         self.only_single_node_children().then_some(self.0.len())
     }
+
+    pub fn fully_keyed(&self) -> Option<bool> {
+        for child in self.0.iter() {
+            match child {
+                HtmlTree::Block(block) => {
+                    return if let BlockContent::Node(node) = &block.content {
+                        matches!(&**node, HtmlNode::Literal(_)).then_some(false)
+                    } else {
+                        None
+                    }
+                }
+                HtmlTree::Component(comp) => {
+                    if comp.props.props.special.key.is_none() {
+                        return Some(false);
+                    }
+                }
+                HtmlTree::List(list) => {
+                    if list.open.props.key.is_none() {
+                        return Some(false);
+                    }
+                }
+                HtmlTree::Element(element) => {
+                    if element.props.special.key.is_none() {
+                        return Some(false);
+                    }
+                }
+                HtmlTree::If(_) | HtmlTree::For(_) | HtmlTree::Empty => return Some(false),
+            }
+        }
+        Some(true)
+    }
 }
 
 impl ToTokens for HtmlChildrenTree {
