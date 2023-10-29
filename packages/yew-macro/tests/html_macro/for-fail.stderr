@@ -22,6 +22,13 @@ error: unexpected end of input, expected curly braces
   |
   = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
+error: diverging expression in the body of a for loop
+       `break` or `continue` are not allowed in `html!` for loops
+ --> tests/html_macro/for-fail.rs:9:16
+  |
+9 |         <span>{break}</span>
+  |                ^^^^^
+
 error[E0308]: mismatched types
  --> tests/html_macro/for-fail.rs:5:26
   |
