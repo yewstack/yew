@@ -66,11 +66,7 @@ impl ToTokens for HtmlFor {
         let Self { pat, iter, body } = self;
         let acc = Ident::new("__yew_v", iter.span());
 
-        let alloc_opt = body.size_hint().map(|size| {
-            quote!(
-                #acc.reserve(#size);
-            )
-        });
+        let alloc_opt = body.size_hint().map(|size| quote!( #acc.reserve(#size) ));
 
         let vlist_gen = match body.fully_keyed() {
             Some(true) => quote! {
@@ -84,7 +80,7 @@ impl ToTokens for HtmlFor {
                 ::yew::virtual_dom::VList::__macro_new(
                     #acc,
                     ::std::option::Option::None,
-                    ::yew::virtual_dom::FullyKeyedState::KnownFullyKeyed
+                    ::yew::virtual_dom::FullyKeyedState::KnownMissingKeys
                 )
             },
             None => quote! {

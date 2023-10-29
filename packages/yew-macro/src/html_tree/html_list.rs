@@ -71,16 +71,23 @@ impl ToTokens for HtmlList {
             quote! { ::std::option::Option::None }
         };
 
-        let spanned = {
+        let span = {
             let open = open.to_spanned();
             let close = close.to_spanned();
             quote! { #open #close }
-        };
+        }
+        .span();
 
-        tokens.extend(quote_spanned! {spanned.span()=>
-            ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
+        tokens.extend(match children.fully_keyed() {
+            Some(true) => quote_spanned!{span=>
+                ::yew::virtual_dom::VList::__macro_new(#children, #key, ::yew::virtual_dom::FullyKeyedState::KnownFullyKeyed)
+            },
+            Some(false) => quote_spanned!{span=>
+                ::yew::virtual_dom::VList::__macro_new(#children, #key, ::yew::virtual_dom::FullyKeyedState::KnownMissingKeys)
+            },
+            None => quote_spanned!{span=>
                 ::yew::virtual_dom::VList::with_children(#children, #key)
-            ))
+            }
         });
     }
 }
