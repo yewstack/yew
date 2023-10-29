@@ -1,0 +1,34 @@
+error: unexpected end of input, expected `in`
+ --> tests/html_macro/for-fail.rs:2:9
+  |
+2 |     _ = ::yew::html!{for x};
+  |         ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected an expression
+ --> tests/html_macro/for-fail.rs:3:9
+  |
+3 |     _ = ::yew::html!{for x in};
+  |         ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected curly braces
+ --> tests/html_macro/for-fail.rs:4:9
+  |
+4 |     _ = ::yew::html!{for x in 0 .. 10};
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0308]: mismatched types
+ --> tests/html_macro/for-fail.rs:5:26
+  |
+5 |     _ = ::yew::html!{for (x, y) in 0 .. 10 {
+  |                          ^^^^^^    ------- this is an iterator with items of type `{integer}`
+  |                          |
+  |                          expected integer, found tuple
+  |
+  = note: expected type `{integer}`
+            found tuple `(_, _)`

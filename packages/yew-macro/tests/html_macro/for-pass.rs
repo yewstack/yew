@@ -36,28 +36,23 @@ pub struct u8;
 #[allow(non_camel_case_types)]
 pub struct usize;
 
-fn empty_vec() -> ::std::vec::Vec<::yew::Html> {
-    ::std::vec::Vec::<::yew::Html>::new()
-}
-
-fn empty_iter() -> impl ::std::iter::Iterator<Item = ::yew::Html> {
-    ::std::iter::empty::<::yew::Html>()
-}
-
 fn main() {
-    _ = ::yew::html! { {for empty_iter()} };
-    _ = ::yew::html! { {for { empty_iter() }} };
+    _ = ::yew::html!{
+        for i in 0 .. 10 {
+            <span>{i}</span>
+        }
+    };
 
-    let empty = empty_vec();
-    _ = ::yew::html! { {for empty} };
+    struct Pair {
+        value1: &'static ::std::primitive::str,
+        value2: ::std::primitive::i32
+    }
 
-    _ = ::yew::html! {<>
-        {for empty_vec()}
-    </>};
-    _ = ::yew::html! {<>
-        {for ::std::iter::IntoIterator::into_iter(empty_vec())}
-    </>};
-    _ = ::yew::html! {<>
-        {for ::std::iter::Iterator::map(0..3, |num| { ::yew::html! { <span>{ num }</span> } })}
-    </>};
+    _ = ::yew::html! {
+        for Pair { value1, value2 } in ::std::iter::Iterator::map(0 .. 10, |value2| Pair { value1: "Yew", value2 }) {
+            <span>{value1}</span>
+            <span>{value2}</span>
+        }
+    };
+
 }
