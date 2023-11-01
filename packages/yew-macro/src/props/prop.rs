@@ -335,7 +335,7 @@ impl PropList {
             if let Some(other_prop) = self.get_by_label(key) {
                 return Err(syn::Error::new_spanned(
                     // OK to unwrap since pop/get_by_label can be Some only if PropLabel::Static
-                    &String::try_from(&other_prop.label).unwrap(),
+                    String::try_from(&other_prop.label).unwrap(),
                     format!("`{key}` can only be specified once"),
                 ));
             }
@@ -380,7 +380,7 @@ impl PropList {
         crate::join_errors(self.iter_duplicates().map(|prop| {
             syn::Error::new_spanned(
                 // OK to unwrap since iter_duplicates iterates only over PropLabel::Static
-                &String::try_from(&prop.label).unwrap(),
+                String::try_from(&prop.label).unwrap(),
                 format!(
                     "`{}` can only be specified once but is given here again",
                     String::try_from(&prop.label).unwrap()
