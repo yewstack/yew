@@ -197,7 +197,7 @@ where
     /// children.map(|children| {
     ///     html! {
     ///         <div class={classes!("container")}>
-    ///             {children.clone()}
+    ///             {children}
     ///         </div>
     ///     }
     /// })
