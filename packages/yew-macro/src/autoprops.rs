@@ -105,7 +105,7 @@ impl Autoprops {
         let fn_name = &sig.ident;
         let (impl_generics, type_generics, where_clause) = sig.generics.split_for_impl();
         let inputs = if sig.inputs.is_empty() {
-            quote! { (): &() }
+            quote! {}
         } else {
             // NOTE: function components currently don't accept receivers, we're just passing the
             //       information to the next macro to fail and give its own error message
