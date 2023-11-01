@@ -326,6 +326,7 @@ impl_into_prop_value_via_display!(f64);
 
 impl_into_prop_value_via_attr_value!(String);
 impl_into_prop_value_via_attr_value!(AttrValue);
+impl_into_prop_value_via_attr_value!(&AttrValue);
 impl_into_prop_value_via_attr_value!(Rc<str>);
 impl_into_prop_value_via_attr_value!(Cow<'static, str>);
 

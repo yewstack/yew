@@ -1675,9 +1675,9 @@ dependencies = [
 
 [[package]]
 name = "implicit-clone"
-version = "0.4.1"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af3d77000817fd9e7db159e8d52ed9b5941a2cdbfbdc8ca646e59887ae2b2dd1"
+checksum = "789a53d49d2276908b1fcccb9dfcf65c7a6e884c1df639f26aeff4f142b3ef9e"
 dependencies = [
  "indexmap 2.0.2",
 ]
@@ -2088,6 +2088,7 @@ dependencies = [
 name = "nested_list"
 version = "0.1.0"
 dependencies = [
+ "implicit-clone",
  "log",
  "wasm-logger",
  "yew",
