@@ -45,9 +45,13 @@ where
 ///
 /// Attribute names are lowercased before being compared (so pass "href" for `name` and not "HREF").
 fn get_attribute<'a>(props: &'a ElementProps, name: &str) -> Option<&'a Prop> {
-    props.attributes.iter().find(|item| {
-        String::try_from(&item.label).is_ok_and(|label| label.eq_ignore_ascii_case(name))
-    })
+    props
+        .attributes
+        .iter()
+        .find(|item| match String::try_from(&item.label) {
+            Ok(label) if label.eq_ignore_ascii_case(name) => true,
+            _ => false,
+        })
 }
 
 /// Lints to check if anchor (`<a>`) tags have valid `href` attributes defined.
