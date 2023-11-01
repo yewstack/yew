@@ -64,17 +64,13 @@ impl syn::parse::Parse for Autoprops {
             })?;
 
         for input in &sig.inputs {
-            match input {
-                syn::FnArg::Typed(syn::PatType { pat, .. }) => match pat.as_ref() {
-                    syn::Pat::Wild(wild) => {
-                        return Err(syn::Error::new_spanned(
-                            wild,
-                            "cannot use `_` as field name",
-                        ));
-                    }
-                    _ => {}
-                },
-                _ => {}
+            if let syn::FnArg::Typed(syn::PatType { pat, .. }) = input {
+                if let syn::Pat::Wild(wild) = pat.as_ref() {
+                    return Err(syn::Error::new_spanned(
+                        wild,
+                        "cannot use `_` as field name",
+                    ));
+                }
             }
         }
 
