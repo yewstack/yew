@@ -59,7 +59,7 @@ impl syn::parse::Parse for Autoprops {
                 syn::Error::new_spanned(
                     sig,
                     "could not find #[function_component] attribute in function declaration \
-                     (#[autoprops] must be place *before* #[function_component])",
+                     (#[autoprops] must be placed *before* #[function_component])",
                 )
             })?;
 
