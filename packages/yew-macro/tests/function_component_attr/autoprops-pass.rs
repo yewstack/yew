@@ -93,6 +93,7 @@ fn const_generics<const N: ::std::primitive::usize>(xs: [::std::primitive::u32; 
 fn compile_pass() {
     ::yew::html! { <CompUseFnName /> };
     ::yew::html! { <CompNoProperties /> };
+    ::yew::html! { <CompNoGenerics a="foo" /> };
     ::yew::html! { <CompNoGenerics b=true a="foo" /> };
     ::yew::html! { <CompGenerics<::std::primitive::bool, ::yew::AttrValue> b=true a="foo" /> };
 
