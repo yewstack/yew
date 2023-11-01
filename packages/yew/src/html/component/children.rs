@@ -3,10 +3,7 @@
 use std::fmt;
 use std::rc::Rc;
 
-use implicit_clone::{unsync::IArray, ImplicitClone};
-
 use crate::html::Html;
-use crate::utils::RcExt;
 use crate::virtual_dom::{VChild, VComp, VList, VNode};
 use crate::{BaseComponent, Properties};
 
@@ -155,13 +152,11 @@ pub type ChildrenWithProps<CHILD> = ChildrenRenderer<VChild<CHILD>>;
 
 /// A type used for rendering children html.
 #[derive(Clone)]
-pub struct ChildrenRenderer<T: Clone + 'static> {
-    pub(crate) children: IArray<Rc<T>>,
+pub struct ChildrenRenderer<T> {
+    pub(crate) children: Vec<T>,
 }
 
-impl<T: Clone> ImplicitClone for ChildrenRenderer<T> {}
-
-impl<T: Clone + PartialEq> PartialEq for ChildrenRenderer<T> {
+impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
     fn eq(&self, other: &Self) -> bool {
         self.children == other.children
     }
@@ -169,13 +164,11 @@ impl<T: Clone + PartialEq> PartialEq for ChildrenRenderer<T> {
 
 impl<T> ChildrenRenderer<T>
 where
-    T: Clone + 'static,
+    T: Clone,
 {
     /// Create children
     pub fn new(children: Vec<T>) -> Self {
-        Self {
-            children: children.into_iter().map(Rc::new).collect(),
-        }
+        Self { children }
     }
 
     /// Children list is empty
@@ -192,8 +185,7 @@ where
     pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
         // clone each child lazily.
         // This way `self.iter().next()` only has to clone a single node.
-        // TODO not sure if I shouldnt keep the Rc here
-        self.children.iter().map(RcExt::unwrap_or_clone)
+        self.children.iter().cloned()
     }
 
     /// Convert the children elements to another object (if there are any).
@@ -205,7 +197,7 @@ where
     /// children.map(|children| {
     ///     html! {
     ///         <div class={classes!("container")}>
-    ///             {children}
+    ///             {children.clone()}
     ///         </div>
     ///     }
     /// })
@@ -218,63 +210,37 @@ where
             closure(self)
         }
     }
-
-    pub(crate) fn to_vec(&self) -> Vec<T> {
-        self.iter().collect()
-    }
 }
 
-impl<T: Clone> Default for ChildrenRenderer<T> {
+impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
         Self {
-            children: Default::default(),
+            children: Vec::new(),
         }
     }
 }
 
-impl<T: Clone> fmt::Debug for ChildrenRenderer<T> {
+impl<T> fmt::Debug for ChildrenRenderer<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("ChildrenRenderer<_>")
     }
 }
 
-#[derive(Debug)]
-#[doc(hidden)]
-pub struct Iter<T: Clone + 'static> {
-    children: implicit_clone::unsync::Iter<Rc<T>>,
-}
-
-impl<T: Clone + 'static> Iterator for Iter<T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.children.next().map(|x| RcExt::unwrap_or_clone(x))
-    }
-}
-
-impl<T: ImplicitClone> IntoIterator for ChildrenRenderer<T> {
-    type IntoIter = Iter<T>;
+impl<T> IntoIterator for ChildrenRenderer<T> {
+    type IntoIter = std::vec::IntoIter<Self::Item>;
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        Iter {
-            children: self.children.iter(),
-        }
-    }
-}
-
-impl<T: Clone> FromIterator<T> for ChildrenRenderer<T> {
-    fn from_iter<IT: IntoIterator<Item = T>>(it: IT) -> Self {
-        Self {
-            children: it.into_iter().map(Rc::new).collect(),
-        }
+        self.children.into_iter()
     }
 }
 
 impl From<ChildrenRenderer<Html>> for Html {
-    fn from(val: ChildrenRenderer<Html>) -> Self {
+    fn from(mut val: ChildrenRenderer<Html>) -> Self {
         if val.children.len() == 1 {
-            return RcExt::unwrap_or_clone(val.children[0].clone());
+            if let Some(m) = val.children.pop() {
+                return m;
+            }
         }
 
         Html::VList(Rc::new(val.into()))
@@ -286,7 +252,7 @@ impl From<ChildrenRenderer<Html>> for VList {
         if val.is_empty() {
             return VList::new();
         }
-        VList::with_children(val.to_vec(), None)
+        VList::with_children(val.children, None)
     }
 }
 
@@ -319,7 +285,7 @@ mod tests {
 
     #[test]
     fn children_map() {
-        let children = Children::new(Default::default());
+        let children = Children::new(vec![]);
         let res = children.map(|children| Some(children.clone()));
         assert!(res.is_none());
         let children = Children::new(vec![Default::default()]);

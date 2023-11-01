@@ -86,47 +86,47 @@ where
 impl<T, C> IntoPropValue<ChildrenRenderer<C>> for VChild<T>
 where
     T: BaseComponent,
-    C: ImplicitClone + Into<VNode>,
+    C: Clone + Into<VNode>,
     VChild<T>: Into<C>,
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<C> {
-        [self.into()].into_iter().collect()
+        ChildrenRenderer::new(vec![self.into()])
     }
 }
 
 impl<T, C> IntoPropValue<Option<ChildrenRenderer<C>>> for VChild<T>
 where
     T: BaseComponent,
-    C: ImplicitClone + Into<VNode>,
+    C: Clone + Into<VNode>,
     VChild<T>: Into<C>,
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<C>> {
-        Some([self.into()].into_iter().collect())
+        Some(ChildrenRenderer::new(vec![self.into()]))
     }
 }
 
 impl<T, C> IntoPropValue<Option<ChildrenRenderer<C>>> for Option<VChild<T>>
 where
     T: BaseComponent,
-    C: ImplicitClone + Into<VNode>,
+    C: Clone + Into<VNode>,
     VChild<T>: Into<C>,
 {
     #[inline]
     fn into_prop_value(self) -> Option<ChildrenRenderer<C>> {
-        self.map(|m| [m.into()].into_iter().collect())
+        self.map(|m| ChildrenRenderer::new(vec![m.into()]))
     }
 }
 
 impl<T, R> IntoPropValue<ChildrenRenderer<R>> for Vec<T>
 where
     T: Into<R>,
-    R: ImplicitClone + Into<VNode>,
+    R: Clone + Into<VNode>,
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<R> {
-        self.into_iter().map(|m| m.into()).collect()
+        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect())
     }
 }
 
@@ -167,33 +167,24 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
     }
 }
 
-impl IntoPropValue<VNode> for &ChildrenRenderer<VNode> {
-    #[inline]
-    fn into_prop_value(self) -> VNode {
-        VNode::VList(Rc::new(self.clone().into()))
-    }
-}
-
 impl IntoPropValue<ChildrenRenderer<VNode>> for VNode {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
-        [self].into_iter().collect()
+        ChildrenRenderer::new(vec![self])
     }
 }
 
 impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
-        [self.into()].into_iter().collect()
+        ChildrenRenderer::new(vec![self.into()])
     }
 }
 
 impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
     #[inline]
     fn into_prop_value(self) -> VList {
-        // TODO converting IArray to Vec doesn't seem optimal, but it's too complicated to change
-        //      VList for now
-        VList::with_children(self.to_vec(), None)
+        VList::with_children(self.children, None)
     }
 }
 
@@ -206,7 +197,7 @@ impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
 
 impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
-        [VNode::VText(VText::new(self))].into_iter().collect()
+        ChildrenRenderer::new(vec![VNode::VText(VText::new(self))])
     }
 }
 
