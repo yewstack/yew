@@ -48,6 +48,7 @@
 //!
 //! Please refer to [https://github.com/yewstack/yew](https://github.com/yewstack/yew) for how to set this up.
 
+mod autoprops;
 mod classes;
 mod derive_props;
 mod function_component;
@@ -58,6 +59,7 @@ mod stringify;
 mod use_prepared_state;
 mod use_transitive_state;
 
+use autoprops::{Autoprops, AutopropsArgs};
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
 use hook::{hook_impl, HookFn};
@@ -146,6 +148,16 @@ pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::T
     function_component_impl(attr, item)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
+}
+
+#[proc_macro_error::proc_macro_error]
+#[proc_macro_attribute]
+pub fn autoprops(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+    let mut autoprops = parse_macro_input!(item as Autoprops);
+    let args = parse_macro_input!(attr as AutopropsArgs);
+    autoprops.apply_args(args);
+
+    TokenStream::from(autoprops.into_token_stream())
 }
 
 #[proc_macro_error::proc_macro_error]

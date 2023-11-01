@@ -34,6 +34,8 @@ use crate::Properties;
 
 mod hooks;
 pub use hooks::*;
+/// This attribute creates a user-defined hook from a normal Rust function.
+pub use yew_macro::hook;
 /// This attribute creates a function component from a normal Rust function.
 ///
 /// Functions with this attribute **must** return `Html` and can optionally take an argument
@@ -60,9 +62,7 @@ pub use hooks::*;
 ///     }
 /// }
 /// ```
-pub use yew_macro::function_component;
-/// This attribute creates a user-defined hook from a normal Rust function.
-pub use yew_macro::hook;
+pub use yew_macro::{autoprops, function_component};
 
 type ReRender = Rc<dyn Fn()>;
 

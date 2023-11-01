@@ -47,6 +47,32 @@ impl Parse for FunctionComponent {
             block,
         } = func;
 
+        if let Some(_attr) = attrs.iter().find(|attr| {
+            match &attr.meta {
+                syn::Meta::Path(path) => {
+                    if let Some(last_segment) = path.segments.last() {
+                        if last_segment.ident == "autoprops" {
+                            return true;
+                        }
+                    }
+                }
+                syn::Meta::List(syn::MetaList { path, .. }) => {
+                    if let Some(last_segment) = path.segments.last() {
+                        if last_segment.ident == "autoprops" {
+                            return true;
+                        }
+                    }
+                }
+                _ => {}
+            }
+            false
+        }) {
+            return Err(syn::Error::new_spanned(
+                sig,
+                "#[autoprops] must be placed *before* #[function_component]",
+            ));
+        }
+
         if sig.generics.lifetimes().next().is_some() {
             return Err(syn::Error::new_spanned(
                 sig.generics,
@@ -111,7 +137,8 @@ impl Parse for FunctionComponent {
                 }
                 ty => {
                     let msg = format!(
-                        "expected a reference to a `Properties` type (try: `&{}`)",
+                        "expected a reference to a `Properties` type \
+                        (try: `&{}` or use #[autoprops])",
                         ty.to_token_stream()
                     );
                     return Err(syn::Error::new_spanned(ty, msg));
@@ -133,7 +160,8 @@ impl Parse for FunctionComponent {
             let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
             return Err(syn::Error::new_spanned(
                 params,
-                "function components can accept at most one parameter for the props",
+                "function components can accept at most one parameter for the props, \
+                maybe you wanted to use #[autoprops]?",
             ));
         }
 
@@ -393,7 +421,7 @@ impl FunctionComponent {
 }
 
 pub struct FunctionComponentName {
-    component_name: Option<Ident>,
+    pub component_name: Option<Ident>,
 }
 
 impl Parse for FunctionComponentName {

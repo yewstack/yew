@@ -1,0 +1,83 @@
+error: function components can't accept a receiver
+ --> tests/function_component_attr/autoprops-fail.rs:5:23
+  |
+5 | fn CantAcceptReceiver(&self, b: bool) -> Html {
+  |                       ^^^^^
+
+error: could not find #[function_component] attribute in function declaration (#[autoprops] must be place *before* #[function_component])
+  --> tests/function_component_attr/autoprops-fail.rs:12:1
+   |
+12 | fn not_a_function_component(b: bool) -> Html {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: #[autoprops] must be placed *before* #[function_component]
+  --> tests/function_component_attr/autoprops-fail.rs:20:1
+   |
+20 | fn wrong_attrs_order(b: bool) -> Html {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected identifier, found keyword `let`
+  --> tests/function_component_attr/autoprops-fail.rs:27:22
+   |
+27 | #[function_component(let)]
+   |                      ^^^
+
+error: cannot use `_` as field name
+  --> tests/function_component_attr/autoprops-fail.rs:60:21
+   |
+60 | fn InvalidFieldName(_: u32) -> Html {
+   |                     ^
+
+error[E0277]: the trait bound `NotClonable: Clone` is not satisfied
+  --> tests/function_component_attr/autoprops-fail.rs:39:19
+   |
+37 | #[autoprops]
+   | ------------ required by a bound introduced by this call
+38 | #[function_component]
+39 | fn TypeIsNotClone(stuff: NotClonable) -> Html {
+   |                   ^^^^^ the trait `Clone` is not implemented for `NotClonable`
+   |
+help: consider annotating `NotClonable` with `#[derive(Clone)]`
+   |
+35 | #[derive(Clone)]
+   |
+
+error[E0369]: binary operation `==` cannot be applied to type `NotPartialEq`
+  --> tests/function_component_attr/autoprops-fail.rs:51:23
+   |
+49 | #[autoprops]
+   | ------------ in this procedural macro expansion
+50 | #[function_component]
+51 | fn TypeIsNotPartialEq(stuff: NotPartialEq) -> Html {
+   |                       ^^^^^^^^^^^^^^^^^^^
+   |
+note: an implementation of `PartialEq<_>` might be missing for `NotPartialEq`
+  --> tests/function_component_attr/autoprops-fail.rs:47:1
+   |
+47 | struct NotPartialEq(u32);
+   | ^^^^^^^^^^^^^^^^^^^ must implement `PartialEq<_>`
+   = note: this error originates in the derive macro `::std::cmp::PartialEq` which comes from the expansion of the attribute macro `autoprops` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `NotPartialEq` with `#[derive(PartialEq)]`
+   |
+47 | #[derive(PartialEq)]
+   |
+
+error[E0369]: binary operation `!=` cannot be applied to type `NotPartialEq`
+  --> tests/function_component_attr/autoprops-fail.rs:51:23
+   |
+49 | #[autoprops]
+   | ------------ in this procedural macro expansion
+50 | #[function_component]
+51 | fn TypeIsNotPartialEq(stuff: NotPartialEq) -> Html {
+   |                       ^^^^^^^^^^^^^^^^^^^
+   |
+note: an implementation of `PartialEq<_>` might be missing for `NotPartialEq`
+  --> tests/function_component_attr/autoprops-fail.rs:47:1
+   |
+47 | struct NotPartialEq(u32);
+   | ^^^^^^^^^^^^^^^^^^^ must implement `PartialEq<_>`
+   = note: this error originates in the derive macro `::std::cmp::PartialEq` which comes from the expansion of the attribute macro `autoprops` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider annotating `NotPartialEq` with `#[derive(PartialEq)]`
+   |
+47 | #[derive(PartialEq)]
+   |
