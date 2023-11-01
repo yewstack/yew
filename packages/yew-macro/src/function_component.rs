@@ -137,8 +137,8 @@ impl Parse for FunctionComponent {
                 }
                 ty => {
                     let msg = format!(
-                        "expected a reference to a `Properties` type \
-                        (try: `&{}` or use #[autoprops])",
+                        "expected a reference to a `Properties` type (try: `&{}` or use \
+                         #[autoprops])",
                         ty.to_token_stream()
                     );
                     return Err(syn::Error::new_spanned(ty, msg));
@@ -160,8 +160,8 @@ impl Parse for FunctionComponent {
             let params: TokenStream = inputs.map(|it| it.to_token_stream()).collect();
             return Err(syn::Error::new_spanned(
                 params,
-                "function components can accept at most one parameter for the props, \
-                maybe you wanted to use #[autoprops]?",
+                "function components can accept at most one parameter for the props, maybe you \
+                 wanted to use #[autoprops]?",
             ));
         }
 
