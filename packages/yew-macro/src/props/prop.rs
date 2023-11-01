@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
 use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
-use quote::{quote, quote_spanned};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
@@ -16,9 +16,79 @@ pub enum PropDirective {
     ApplyAsProperty(Token![~]),
 }
 
+pub enum PropLabel {
+    Static(HtmlDashedName),
+    Dynamic(Expr),
+}
+
+impl From<HtmlDashedName> for PropLabel {
+    fn from(value: HtmlDashedName) -> Self {
+        Self::Static(value)
+    }
+}
+
+impl TryFrom<PropLabel> for HtmlDashedName {
+    type Error = ();
+
+    fn try_from(value: PropLabel) -> Result<Self, Self::Error> {
+        use PropLabel::*;
+        match value {
+            Static(dashed_name) => Ok(dashed_name),
+            Dynamic(_) => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a PropLabel> for &'a HtmlDashedName {
+    type Error = ();
+
+    fn try_from(value: &'a PropLabel) -> Result<Self, Self::Error> {
+        use PropLabel::*;
+        match value {
+            Static(dashed_name) => Ok(dashed_name),
+            Dynamic(_) => Err(()),
+        }
+    }
+}
+
+impl TryFrom<PropLabel> for String {
+    type Error = ();
+
+    fn try_from(value: PropLabel) -> Result<Self, Self::Error> {
+        HtmlDashedName::try_from(value).map(|dashed_name| dashed_name.to_string())
+    }
+}
+
+impl TryFrom<&PropLabel> for String {
+    type Error = ();
+
+    fn try_from(value: &PropLabel) -> Result<Self, Self::Error> {
+        <&HtmlDashedName>::try_from(value).map(|dashed_name| dashed_name.to_string())
+    }
+}
+
+impl PartialEq<PropLabel> for PropLabel {
+    fn eq(&self, other: &PropLabel) -> bool {
+        match (self, other) {
+            (Self::Static(l), Self::Static(r)) => l == r,
+            // NOTE: Dynamic props may repeat
+            _ => false,
+        }
+    }
+}
+
+impl ToTokens for PropLabel {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(match self {
+            PropLabel::Static(dashed_name) => quote! {#dashed_name},
+            PropLabel::Dynamic(expr) => quote! {#expr}, // FIXME this probably wanted its group back
+        });
+    }
+}
+
 pub struct Prop {
     pub directive: Option<PropDirective>,
-    pub label: HtmlDashedName,
+    pub label: PropLabel,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
@@ -30,7 +100,7 @@ impl Parse for Prop {
             .map(PropDirective::ApplyAsProperty)
             .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input, directive)
+            Self::parse_shorthand_or_dynamic_prop_assignment(input, directive)
         } else {
             Self::parse_prop_assignment(input, directive)
         }
@@ -39,16 +109,31 @@ impl Parse for Prop {
 
 /// Helpers for parsing props
 impl Prop {
-    /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
-    /// This only allows for labels with no hyphens, as it would otherwise create
-    /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(
+    /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`,
+    /// or using the `{label}={value}` dynamic label syntax.
+    ///
+    /// Shorthand syntax only allows for labels with no hyphens,
+    /// as it would otherwise create an ambiguity in the syntax.
+    fn parse_shorthand_or_dynamic_prop_assignment(
         input: ParseStream,
         directive: Option<PropDirective>,
     ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
+
+        // dynamic here
+        if input.peek(Token![=]) {
+            input.parse::<Token![=]>().unwrap();
+            let value = parse_prop_value(input)?;
+            return Ok(Self {
+                label: PropLabel::Dynamic(expr),
+                value,
+                directive,
+            });
+        }
+        // otherwise, shorthand
+
         let label = if let Expr::Path(ExprPath {
             ref attrs,
             qself: None,
@@ -72,7 +157,7 @@ impl Prop {
         }?;
 
         Ok(Self {
-            label,
+            label: label.into(),
             value: expr,
             directive,
         })
@@ -102,7 +187,7 @@ impl Prop {
 
         let value = parse_prop_value(input)?;
         Ok(Self {
-            label,
+            label: label.into(),
             value,
             directive,
         })
@@ -226,12 +311,16 @@ impl PropList {
     }
 
     fn position(&self, key: &str) -> Option<usize> {
-        self.0.iter().position(|it| it.label.to_string() == key)
+        self.0
+            .iter()
+            .position(|it| String::try_from(&it.label).is_ok_and(|dashed_name| dashed_name == key))
     }
 
     /// Get the first prop with the given key.
     pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
-        self.0.iter().find(|it| it.label.to_string() == key)
+        self.0
+            .iter()
+            .find(|it| String::try_from(&it.label).is_ok_and(|dashed_name| dashed_name == key))
     }
 
     /// Pop the first prop with the given key.
@@ -245,7 +334,8 @@ impl PropList {
         if prop.is_some() {
             if let Some(other_prop) = self.get_by_label(key) {
                 return Err(syn::Error::new_spanned(
-                    &other_prop.label,
+                    // OK to unwrap since pop/get_by_label can be Some only if PropLabel::Static
+                    &String::try_from(&other_prop.label).unwrap(),
                     format!("`{key}` can only be specified once"),
                 ));
             }
@@ -289,10 +379,11 @@ impl PropList {
     pub fn check_no_duplicates(&self) -> syn::Result<()> {
         crate::join_errors(self.iter_duplicates().map(|prop| {
             syn::Error::new_spanned(
-                &prop.label,
+                // OK to unwrap since iter_duplicates iterates only over PropLabel::Static
+                &String::try_from(&prop.label).unwrap(),
                 format!(
                     "`{}` can only be specified once but is given here again",
-                    prop.label
+                    String::try_from(&prop.label).unwrap()
                 ),
             )
         }))
