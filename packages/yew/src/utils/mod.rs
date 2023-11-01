@@ -1,5 +1,7 @@
 //! This module contains useful utilities to get information about the current document.
 
+use implicit_clone::unsync::IArray;
+use implicit_clone::ImplicitClone;
 use std::marker::PhantomData;
 
 use yew::html::ChildrenRenderer;

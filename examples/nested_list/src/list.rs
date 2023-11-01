@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew::virtual_dom::VChild;
 
@@ -14,9 +15,9 @@ pub enum Msg {
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     #[prop_or_default]
-    pub header: Vec<VChild<ListHeader>>,
+    pub header: IArray<VChild<ListHeader>>,
     #[prop_or_default]
-    pub children: Vec<VChild<ListItem>>,
+    pub children: IArray<VChild<ListItem>>,
 
     pub on_hover: Callback<Hovered>,
     pub weak_link: WeakComponentLink<List>,
@@ -56,7 +57,7 @@ impl Component for List {
         html! {
             <div class="list-container" {onmouseover}>
                 <div class={classes!("list", inactive)}>
-                    { ctx.props().header.clone() }
+                    { &ctx.props().header }
                     <div class="items">
                         { Self::view_items(ctx.props().children.clone()) }
                     </div>
@@ -67,9 +68,9 @@ impl Component for List {
 }
 
 impl List {
-    fn view_items(children: Vec<VChild<ListItem>>) -> Html {
+    fn view_items(children: IArray<VChild<ListItem>>) -> Html {
         children
-            .into_iter()
+            .iter()
             .filter(|c| !c.props.hide)
             .enumerate()
             .map(|(i, mut c)| {
