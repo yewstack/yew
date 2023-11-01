@@ -19,17 +19,17 @@ impl Parse for ElementProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut props = input.parse::<Props>()?;
 
-        let listeners = props.drain_filter(|prop| match String::try_from(&prop.label) {
-            Ok(prop) if LISTENER_SET.contains(prop.as_str()) => true,
-            _ => false,
+        let listeners = props.drain_filter(|prop| {
+            matches!(String::try_from(&prop.label),
+            Ok(prop) if LISTENER_SET.contains(prop.as_str()))
         });
 
         // Multiple listener attributes are allowed, but no others
         props.check_no_duplicates()?;
 
-        let booleans = props.drain_filter(|prop| match String::try_from(&prop.label) {
-            Ok(prop) if BOOLEAN_SET.contains(prop.as_str()) => true,
-            _ => false,
+        let booleans = props.drain_filter(|prop| {
+            matches!(String::try_from(&prop.label),
+            Ok(prop) if BOOLEAN_SET.contains(prop.as_str()))
         });
 
         let classes = props.pop("class");

@@ -311,20 +311,16 @@ impl PropList {
     }
 
     fn position(&self, key: &str) -> Option<usize> {
-        self.0
-            .iter()
-            .position(|it| match String::try_from(&it.label) {
-                Ok(dashed_name) if dashed_name == key => true,
-                _ => false,
-            })
+        self.0.iter().position(
+            |it| matches!(String::try_from(&it.label), Ok(dashed_name) if dashed_name == key),
+        )
     }
 
     /// Get the first prop with the given key.
     pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
-        self.0.iter().find(|it| match String::try_from(&it.label) {
-            Ok(dashed_name) if dashed_name == key => true,
-            _ => false,
-        })
+        self.0
+            .iter()
+            .find(|it| matches!(String::try_from(&it.label), Ok(dashed_name) if dashed_name == key))
     }
 
     /// Pop the first prop with the given key.
