@@ -216,6 +216,17 @@ where
     }
 }
 
+impl<COMP> VChild<COMP>
+where
+    COMP: BaseComponent,
+    COMP::Properties: Clone,
+{
+    /// Get a mutable reference to the underlying properties.
+    pub fn get_mut(&mut self) -> &mut COMP::Properties {
+        Rc::make_mut(&mut self.props)
+    }
+}
+
 impl<COMP> From<VChild<COMP>> for VComp
 where
     COMP: BaseComponent,

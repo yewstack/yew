@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 use yew::virtual_dom::VChild;
@@ -74,7 +72,7 @@ impl List {
             .filter(|c| !c.props.hide)
             .enumerate()
             .map(|(i, mut c)| {
-                let props = Rc::make_mut(&mut c.props);
+                let props = c.get_mut();
                 props.name = format!("#{} - {}", i + 1, props.name).into();
                 c
             })
