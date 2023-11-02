@@ -104,9 +104,7 @@ impl Autoprops {
 
         let fn_name = &sig.ident;
         let (impl_generics, type_generics, where_clause) = sig.generics.split_for_impl();
-        let inputs = if sig.inputs.is_empty() {
-            quote! {}
-        } else {
+        let inputs = if self.needs_a_properties_struct() {
             // NOTE: function components currently don't accept receivers, we're just passing the
             //       information to the next macro to fail and give its own error message
             let receivers = sig
@@ -125,7 +123,19 @@ impl Autoprops {
                     _ => None,
                 })
                 .collect::<Vec<_>>();
-            quote! { #(#receivers,)* #properties_name { #(#args),* }: &#properties_name #type_generics }
+            let phantom = sig.generics.type_params().next().is_some().then(|| {
+                quote! {
+                    , phantom: _
+                }
+            });
+            quote! {
+                #(#receivers,)* #properties_name {
+                    #(#args),*
+                    #phantom
+                }: &#properties_name #type_generics
+            }
+        } else {
+            quote! {}
         };
         let clones = sig
             .inputs
@@ -153,7 +163,7 @@ impl Autoprops {
         let properties_name = &self.properties_name;
         let syn::ItemFn { vis, sig, .. } = &self.item_fn;
 
-        if sig.inputs.is_empty() {
+        if !self.needs_a_properties_struct() {
             return quote! {};
         }
 
@@ -171,13 +181,30 @@ impl Autoprops {
                 _ => None,
             })
             .collect::<Vec<_>>();
+        let type_params = sig
+            .generics
+            .type_params()
+            .map(|param| &param.ident)
+            .collect::<Vec<_>>();
+        let phantom = (!type_params.is_empty()).then(|| {
+            quote! {
+                #[prop_or_default]
+                phantom: ::std::marker::PhantomData <( #(#type_params),* )>,
+            }
+        });
 
         quote! {
             #[derive(::yew::Properties, ::std::cmp::PartialEq)]
             #vis struct #properties_name #impl_generics #where_clause {
                 #(#fields)*
+                #phantom
             }
         }
+    }
+
+    fn needs_a_properties_struct(&self) -> bool {
+        let syn::ItemFn { sig, .. } = &self.item_fn;
+        !sig.inputs.is_empty() || sig.generics.type_params().next().is_some()
     }
 }
 

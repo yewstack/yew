@@ -80,6 +80,18 @@ where
 }
 
 #[::yew::autoprops]
+#[::yew::function_component(CompGenericsWithoutField)]
+fn comp_generics_without_field<T1, T2>(b: ::std::primitive::bool) -> ::yew::Html
+where
+    T1: ::std::cmp::PartialEq,
+    T2: ::std::cmp::PartialEq,
+{
+    ::yew::html! {
+        <p></p>
+    }
+}
+
+#[::yew::autoprops]
 #[::yew::function_component(ConstGenerics)]
 fn const_generics<const N: ::std::primitive::usize>(xs: [::std::primitive::u32; N]) -> ::yew::Html {
     let _: [::std::primitive::u32; N] = xs;
