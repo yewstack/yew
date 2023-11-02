@@ -4,7 +4,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Lit, LitStr, Token};
+use syn::{Expr, ExprLit, Ident, Lit, LitStr, Token};
 
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ElementProps, Prop, PropDirective, PropLabel};
@@ -253,7 +253,7 @@ impl ToTokens for HtmlElement {
                         || matches!(d, Some(PropDirective::ApplyAsProperty(_)))
                 }) {
                     // don't try to make a static attribute list if there are any properties to
-                    // assign
+                    // assign or any labels are dynamic
                     return None;
                 }
                 let mut kv = Vec::with_capacity(src.len());
@@ -278,13 +278,24 @@ impl ToTokens for HtmlElement {
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
             }
 
-            let attrs = normal_attrs
-                .chain(boolean_attrs)
-                .chain(class_attr)
-                .collect::<Vec<(Key, Value, Option<PropDirective>)>>();
-            try_into_static(&attrs).unwrap_or_else(|| {
-                let keys = attrs.iter().map(|(k, ..)| quote! { #k });
-                let values = attrs.iter().map(|(_, v, directive)| {
+            /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Dynamic`
+            fn try_into_dynamic(
+                src: &[(Key, Value, Option<PropDirective>)],
+            ) -> Option<TokenStream> {
+                if src.iter().any(|(k, ..)| {
+                    !matches!(
+                        k,
+                        Key::Dynamic(Expr::Lit(ExprLit {
+                            lit: Lit::Str(_),
+                            ..
+                        })) | Key::Static(_)
+                    )
+                }) {
+                    // use IndexMap if there are any dynamic-expr labels
+                    return None;
+                }
+                let keys = src.iter().map(|(k, ..)| quote! { #k });
+                let values = src.iter().map(|(_, v, directive)| {
                     let value = match directive {
                         Some(PropDirective::ApplyAsProperty(token)) => {
                             quote_spanned!(token.span()=> ::std::option::Option::Some(
@@ -302,11 +313,48 @@ impl ToTokens for HtmlElement {
                     };
                     quote! { #value }
                 });
-                quote! {
+                Some(quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
                         values: ::std::boxed::Box::new([#(#values),*]),
                     }
+                })
+            }
+
+            let attrs = normal_attrs
+                .chain(boolean_attrs)
+                .chain(class_attr)
+                .collect::<Vec<(Key, Value, Option<PropDirective>)>>();
+            try_into_static(&attrs).or_else(|| try_into_dynamic(&attrs)).unwrap_or_else(|| {
+                let results = attrs.iter()
+                    .map(|(k, v, directive)| {
+                        let value = match directive {
+                            Some(PropDirective::ApplyAsProperty(token)) => {
+                                quote_spanned!(token.span()=> ::std::option::Option::Some(
+                                    ::yew::virtual_dom::AttributeOrProperty::Property(
+                                        ::std::convert::Into::into(#v)
+                                    ))
+                                )
+                            }
+                            None => {
+                                let value = wrap_attr_value(v);
+                                quote! {
+                                    ::std::option::Option::map(#value, ::yew::virtual_dom::AttributeOrProperty::Attribute)
+                                }
+                            },
+                        };
+                        quote! { (::std::convert::Into::into(#k), #value) }
+                    });
+                quote! {
+                    ::yew::virtual_dom::Attributes::IndexMap(
+                        ::std::rc::Rc::new(
+                            [#(#results),*]
+                                .into_iter()
+                                // FIXME verify if i understood it correctly
+                                .filter_map(|(k, v)| v.map(|v| (k, v)))
+                                .collect()
+                        )
+                    )
                 }
             })
         };
