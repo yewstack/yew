@@ -4,7 +4,7 @@ error: function components can't accept a receiver
 5 | fn CantAcceptReceiver(&self, b: bool) -> Html {
   |                       ^^^^^
 
-error: could not find #[function_component] attribute in function declaration (#[autoprops] must be place *before* #[function_component])
+error: could not find #[function_component] attribute in function declaration (#[autoprops] must be placed *before* #[function_component])
   --> tests/function_component_attr/autoprops-fail.rs:12:1
    |
 12 | fn not_a_function_component(b: bool) -> Html {
