@@ -81,11 +81,7 @@ where
 
 #[::yew::autoprops]
 #[::yew::function_component(CompGenericsWithoutField)]
-fn comp_generics_without_field<T1, T2>(b: ::std::primitive::bool) -> ::yew::Html
-where
-    T1: ::std::cmp::PartialEq,
-    T2: ::std::cmp::PartialEq,
-{
+fn comp_generics_without_field<T1, T2>(b: ::std::primitive::bool) -> ::yew::Html {
     ::yew::html! {
         <p></p>
     }

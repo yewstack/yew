@@ -196,7 +196,7 @@ impl Autoprops {
             .inputs
             .iter()
             .filter_map(|arg| match arg {
-                syn::FnArg::Typed(syn::PatType { attrs, pat, ty, .. }) => Some(quote! {
+                syn::FnArg::Typed(syn::PatType { pat, .. }) => Some(quote! {
                     self.#pat == rhs.#pat &&
                 }),
                 _ => None,
