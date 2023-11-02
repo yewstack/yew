@@ -4,6 +4,8 @@ permissions:
   contents: write
 
 on:
+  schedule:
+    - cron: 0 0 1 * *
   workflow_dispatch:
     inputs:
       level:
@@ -54,22 +56,58 @@ jobs:
         env:
           PACKAGES: ${{ github.event.inputs.packages }}
         run: |
+          if [[ "${{ github.event.inputs.packages }}" == "" ]]; then
+            packages="yew yew-macro yew-router yew-router-macro yew-agent yew-agent-macro" # publish all the crates
+          else
+            packages="${{ github.event.inputs.packages }}"
+          fi
+    
           output=""
-          for pkg in ${{ github.event.inputs.packages }}
+          for pkg in $packages
           do
             output+="--package $pkg " 
           done
           echo "pkg=$output" >> $GITHUB_ENV
 
+      - name: Inputs
+        shell: bash
+        run: |
+          if [[ "${{ github.event.inputs.level }}" == "" ]]; then
+            echo "level=minor" >> $GITHUB_ENV
+          else
+            echo "level=${{ github.event.inputs.level }}" >> $GITHUB_ENV
+          fi
+
+      - name: Build changelog generator
+        run: cargo build --release -p changelog -- 
+
+      - name: Write changelog
+        shell: bash
+        id: changelog
+        run: |
+          ./target/release/changelog yew minor -t ${{ secrets.GITHUB_TOKEN }} -f "$(pwd)/CHANGELOG.md"
+          ./target/release/changelog yew-router minor -t ${{ secrets.GITHUB_TOKEN }} -f "$(pwd)/CHANGELOG.md"
+          ./target/release/changelog yew-agent minor -t ${{ secrets.GITHUB_TOKEN }} -f "$(pwd)/CHANGELOG.md"
+
       - name: Release yew
-        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm ${{ env.pkg }}
+        run: cargo release ${{ env.level }} --execute --no-confirm ${{ env.pkg }}
 
       - name: Get tag
         id: gettag
         uses: WyriHaximus/github-action-get-previous-tag@v1
+      
+      - name: Website version
+        run: |
+          npm install
+          npx docusaurus docs:version "${{ steps.gettag.outputs.tag }}"
+        working-directory: website
+
+      - name: Commit and push website changes
+        run: git add . && git commit -m "version website"
+        working-directory: website
 
       - name: Create a version branch
-        if: github.event.inputs.level != 'patch'
+        if: env.level != 'patch'
         uses: peterjgrainger/action-create-branch@v2.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,3 +120,4 @@ jobs:
           token: ${{ secrets.YEWTEMPBOT_TOKEN }}
           tag_name: ${{ steps.gettag.outputs.tag }}
           body: ${{ steps.changelog.outputs.stdout }}
+          
