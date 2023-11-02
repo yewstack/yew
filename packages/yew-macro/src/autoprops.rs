@@ -167,7 +167,7 @@ impl Autoprops {
             return quote! {};
         }
 
-        let (impl_generics, _type_generics, where_clause) = sig.generics.split_for_impl();
+        let (impl_generics, type_generics, where_clause) = sig.generics.split_for_impl();
         let fields = sig
             .inputs
             .iter()
@@ -192,12 +192,29 @@ impl Autoprops {
                 phantom: ::std::marker::PhantomData <( #(#type_params),* )>,
             }
         });
+        let fields_eq = sig
+            .inputs
+            .iter()
+            .filter_map(|arg| match arg {
+                syn::FnArg::Typed(syn::PatType { attrs, pat, ty, .. }) => Some(quote! {
+                    self.#pat == rhs.#pat &&
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
 
         quote! {
-            #[derive(::yew::Properties, ::std::cmp::PartialEq)]
+            #[derive(::yew::Properties)]
             #vis struct #properties_name #impl_generics #where_clause {
                 #(#fields)*
                 #phantom
+            }
+
+            impl #impl_generics ::std::cmp::PartialEq for #properties_name #type_generics
+            #where_clause {
+                fn eq(&self, rhs: &Self) -> ::std::primitive::bool {
+                    #(#fields_eq)* true
+                }
             }
         }
     }
