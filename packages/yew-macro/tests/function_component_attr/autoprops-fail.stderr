@@ -43,40 +43,17 @@ help: consider annotating `NotClonable` with `#[derive(Clone)]`
    |
 
 error[E0369]: binary operation `==` cannot be applied to type `NotPartialEq`
-  --> tests/function_component_attr/autoprops-fail.rs:51:23
+  --> tests/function_component_attr/autoprops-fail.rs:49:1
    |
 49 | #[autoprops]
-   | ------------ in this procedural macro expansion
-50 | #[function_component]
-51 | fn TypeIsNotPartialEq(stuff: NotPartialEq) -> Html {
-   |                       ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^
    |
 note: an implementation of `PartialEq<_>` might be missing for `NotPartialEq`
   --> tests/function_component_attr/autoprops-fail.rs:47:1
    |
 47 | struct NotPartialEq(u32);
    | ^^^^^^^^^^^^^^^^^^^ must implement `PartialEq<_>`
-   = note: this error originates in the derive macro `::std::cmp::PartialEq` which comes from the expansion of the attribute macro `autoprops` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: consider annotating `NotPartialEq` with `#[derive(PartialEq)]`
-   |
-47 | #[derive(PartialEq)]
-   |
-
-error[E0369]: binary operation `!=` cannot be applied to type `NotPartialEq`
-  --> tests/function_component_attr/autoprops-fail.rs:51:23
-   |
-49 | #[autoprops]
-   | ------------ in this procedural macro expansion
-50 | #[function_component]
-51 | fn TypeIsNotPartialEq(stuff: NotPartialEq) -> Html {
-   |                       ^^^^^^^^^^^^^^^^^^^
-   |
-note: an implementation of `PartialEq<_>` might be missing for `NotPartialEq`
-  --> tests/function_component_attr/autoprops-fail.rs:47:1
-   |
-47 | struct NotPartialEq(u32);
-   | ^^^^^^^^^^^^^^^^^^^ must implement `PartialEq<_>`
-   = note: this error originates in the derive macro `::std::cmp::PartialEq` which comes from the expansion of the attribute macro `autoprops` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the attribute macro `autoprops` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: consider annotating `NotPartialEq` with `#[derive(PartialEq)]`
    |
 47 | #[derive(PartialEq)]
