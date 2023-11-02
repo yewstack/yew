@@ -1,4 +1,5 @@
-use quote::quote;
+use quote::{quote, quote_spanned};
+use syn::spanned::Spanned;
 
 use crate::function_component::FunctionComponentName;
 
@@ -196,8 +197,8 @@ impl Autoprops {
             .inputs
             .iter()
             .filter_map(|arg| match arg {
-                syn::FnArg::Typed(syn::PatType { pat, .. }) => Some(quote! {
-                    self.#pat == rhs.#pat &&
+                syn::FnArg::Typed(syn::PatType { pat, ty, .. }) => Some(quote_spanned! {
+                    ty.span() => self.#pat == rhs.#pat &&
                 }),
                 _ => None,
             })
