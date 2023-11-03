@@ -275,9 +275,9 @@ use yew::prelude::*;
 #[function_component]
 fn Greetings(
     #[prop_or("Hello".into())]
-    message: AttrValue,
+    message: &AttrValue,
     #[prop_or("World".into())]
-    name: AttrValue,
+    name: &AttrValue,
 ) -> Html {
     html! {<>{message}{name}</>}
 }
