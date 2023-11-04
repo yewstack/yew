@@ -123,7 +123,7 @@ module.exports = {
             appId: 'F8S2ICRD2T',
             apiKey: '2dc337d68f84389c3713a393aff39816',
             indexName: 'yew-rs',
-            contextualSearch: false,
+            contextualSearch: true,
             insights: true, // Optional, automatically send insights when user interacts with search results
             searchPagePath: 'search',
         },
@@ -154,9 +154,9 @@ module.exports = {
                 gtag: {
                     trackingID: 'G-DENCL8P4YP',
                     anonymizeIP: true,
-                }
+                },
             },
-        ]
+        ],
     ],
     plugins: [
         'docusaurus-plugin-sass',
