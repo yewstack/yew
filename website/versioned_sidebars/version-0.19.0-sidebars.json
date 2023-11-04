@@ -231,10 +231,18 @@
         {
             "type": "category",
             "label": "Migration guides",
+            "link": {
+                "type": "generated-index",
+                "title": "Migration guides"
+            },
             "items": [
                 {
                     "type": "category",
                     "label": "yew",
+                    "link": {
+                        "type": "generated-index",
+                        "title": "yew"
+                    },
                     "items": [
                         {
                             "type": "doc",
@@ -247,6 +255,10 @@
                 {
                     "type": "category",
                     "label": "yew-agent",
+                    "link": {
+                        "type": "generated-index",
+                        "title": "yew-agent"
+                    },
                     "items": [
                         {
                             "type": "doc",
@@ -259,6 +271,10 @@
                 {
                     "type": "category",
                     "label": "yew-router",
+                    "link": {
+                        "type": "generated-index",
+                        "title": "yew-router"
+                    },
                     "items": [
                         {
                             "type": "doc",

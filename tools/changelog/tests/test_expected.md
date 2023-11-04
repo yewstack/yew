@@ -1,21 +1,23 @@
 # Changelog
 
+[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+
 ## ✨ yew **0.0.0** *(date_goes_here)* Changelog
 
 ### ⚡️ Features
 
-- Incremental performance improvements to element creation. [[@Greg Johnston](https://github.com/Greg Johnston), [#3169](https://github.com/yewstack/yew/pull/3169)]
+- Incremental performance improvements to element creation. [[@Greg Johnston](https://github.com/gbj), [#3169](https://github.com/yewstack/yew/pull/3169)]
 
 ### 🚨 Breaking changes
 
-- Enable PartialEq for all virtual dom types. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#3206](https://github.com/yewstack/yew/pull/3206)]
-- Pass hook dependencies as the first function argument. [[@Arniu Tseng](https://github.com/Arniu Tseng), [#2861](https://github.com/yewstack/yew/pull/2861)]
+- Enable PartialEq for all virtual dom types. [[@Kaede Hoshikawa](https://github.com/futursolo), [#3206](https://github.com/yewstack/yew/pull/3206)]
+- Pass hook dependencies as the first function argument. [[@Arniu Tseng](https://github.com/arniu), [#2861](https://github.com/yewstack/yew/pull/2861)]
 
 ## ✨ yew **0.0.0** *(date_goes_here)* Changelog
 
 ### 🛠 Fixes
 
-- Fix defaulted type parameter.. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2284](https://github.com/yewstack/yew/pull/2284)]
+- Fix defaulted type parameter.. [[@Kaede Hoshikawa](https://github.com/futursolo), [#2284](https://github.com/yewstack/yew/pull/2284)]
 
 ### ⚡️ Features
 

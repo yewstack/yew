@@ -19,6 +19,12 @@ pub fn write_changelog_file(
 
     writeln!(
         version_only_changelog,
+        "[Link to all migration guides](https://yew.rs/docs/category/migration-guides)"
+    )?;
+    writeln!(version_only_changelog)?;
+
+    writeln!(
+        version_only_changelog,
         "## ✨ {package} **{next_version}** *({release_date})* Changelog",
         next_version = next_version,
         package = package,

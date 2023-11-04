@@ -1,5 +1,7 @@
 # Changelog
 
+[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+
 ## ✨ yew **0.21.0** *(2023-09-23)*
 
 #### Changelog

@@ -62,7 +62,7 @@ fn generate_yew_changelog_file() -> Result<()> {
     let lines = expected_reader_lines.zip(after_reader_lines);
 
     for (i, (expected_line, after_line)) in lines.enumerate() {
-        if i == 2 || i == 13 {
+        if i == 4 || i == 15 {
             // these lines have dynamic things that may break the tests
             let expected_line_updated = expected_line?.replace(
                 "date_goes_here",
