@@ -123,6 +123,13 @@ module.exports = {
             trackingID: 'G-DENCL8P4YP',
             anonymizeIP: true,
         },
+        algolia: {
+            appId: 'F8S2ICRD2T',
+            apiKey: '2dc337d68f84389c3713a393aff39816',
+            indexName: 'yew-rs',
+            insights: true, // Optional, automatically send insights when user interacts with search results
+            searchPagePath: 'search'
+        }
     },
     i18n: {
         defaultLocale: 'en',
@@ -175,13 +182,6 @@ module.exports = {
                         from: ['/docs/next'], // string | string[]
                     },
                 ],
-            },
-        ],
-        [
-            '@easyops-cn/docusaurus-search-local',
-            {
-                hashed: true,
-                indexBlog: false,
             },
         ],
     ],
