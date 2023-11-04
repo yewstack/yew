@@ -23,7 +23,7 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
 
 但是我们可以更进一步！对于任何实现了 `PartialEq` 的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。
 
-```rust title="neq\_assign.rs"
+```rust title="neq_assign.rs"
 pub trait NeqAssign {
     fn neq_assign(&mut self, new: Self) -> ShouldRender;
 }
@@ -43,7 +43,6 @@ fn change(&mut self, props: Self::Properties) -> ShouldRender {
     self.props.neq_assign(props)
 }
 ```
-
 
 该 trait 称为 `NeqAssign` 是因为如果目标值和新值不相等，它将赋为新值。
 

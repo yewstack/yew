@@ -36,7 +36,6 @@ html! {
 }
 ```
 
-
 ```rust title="container.rs"
 pub struct Container(Props);
 
@@ -60,7 +59,6 @@ impl Component for Container {
 }
 ```
 
-
 ## 指定子結點的型別
 
 如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， `List` 元件包裹 `ListItem` 元件。另一個真實的範例是 `yew-router` 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 `nested-list` 範例。
@@ -74,7 +72,6 @@ html! {
     </List>
 }
 ```
-
 
 ```rust title="list.rs"
 pub struct List(Props);
@@ -99,4 +96,3 @@ impl Component for List {
     }
 }
 ```
-
