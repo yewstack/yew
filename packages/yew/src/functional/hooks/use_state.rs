@@ -4,6 +4,8 @@ use std::rc::Rc;
 
 use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
 use crate::functional::hook;
+use crate::html::IntoPropValue;
+use crate::Callback;
 
 struct UseStateReducer<T> {
     value: T,
@@ -171,6 +173,18 @@ where
     }
 }
 
+impl<T> From<UseStateSetter<T>> for Callback<T> {
+    fn from(value: UseStateSetter<T>) -> Self {
+        Self::from(value.inner)
+    }
+}
+
+impl<T> IntoPropValue<Callback<T>> for UseStateSetter<T> {
+    fn into_prop_value(self) -> Callback<T> {
+        self.inner.into_prop_value()
+    }
+}
+
 impl<T> PartialEq for UseStateSetter<T> {
     fn eq(&self, rhs: &Self) -> bool {
         self.inner == rhs.inner
@@ -181,5 +195,11 @@ impl<T> UseStateSetter<T> {
     /// Replaces the value
     pub fn set(&self, value: T) {
         self.inner.dispatch(value)
+    }
+
+    /// Get a callback, invoking which is equivalent to calling `set()`
+    /// on this same setter.
+    pub fn to_callback(&self) -> Callback<T> {
+        self.inner.to_callback()
     }
 }
