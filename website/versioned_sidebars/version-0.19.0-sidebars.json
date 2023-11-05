@@ -1,5 +1,5 @@
 {
-    "version-0.19.0/sidebar": [
+    "docs": [
         {
             "type": "category",
             "label": "Getting Started",
@@ -10,15 +10,15 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/getting-started/introduction"
+                            "id": "getting-started/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/getting-started/project-setup/using-trunk"
+                            "id": "getting-started/project-setup/using-trunk"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/getting-started/project-setup/using-wasm-pack"
+                            "id": "getting-started/project-setup/using-wasm-pack"
                         }
                     ],
                     "collapsible": true,
@@ -26,15 +26,15 @@
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/getting-started/build-a-sample-app"
+                    "id": "getting-started/build-a-sample-app"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/getting-started/examples"
+                    "id": "getting-started/examples"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/getting-started/starter-templates"
+                    "id": "getting-started/starter-templates"
                 }
             ],
             "collapsible": true,
@@ -50,11 +50,11 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/wasm-bindgen/introduction"
+                            "id": "concepts/wasm-bindgen/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/wasm-bindgen/web-sys"
+                            "id": "concepts/wasm-bindgen/web-sys"
                         }
                     ],
                     "collapsible": true,
@@ -66,27 +66,27 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/components/introduction"
+                            "id": "concepts/components/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/components/callbacks"
+                            "id": "concepts/components/callbacks"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/components/scope"
+                            "id": "concepts/components/scope"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/components/properties"
+                            "id": "concepts/components/properties"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/components/children"
+                            "id": "concepts/components/children"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/components/refs"
+                            "id": "concepts/components/refs"
                         }
                     ],
                     "collapsible": true,
@@ -98,35 +98,35 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/introduction"
+                            "id": "concepts/html/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/components"
+                            "id": "concepts/html/components"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/elements"
+                            "id": "concepts/html/elements"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/events"
+                            "id": "concepts/html/events"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/classes"
+                            "id": "concepts/html/classes"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/fragments"
+                            "id": "concepts/html/fragments"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/lists"
+                            "id": "concepts/html/lists"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/html/literals-and-expressions"
+                            "id": "concepts/html/literals-and-expressions"
                         }
                     ],
                     "collapsible": true,
@@ -138,19 +138,19 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/function-components/introduction"
+                            "id": "concepts/function-components/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/function-components/attribute"
+                            "id": "concepts/function-components/attribute"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/function-components/pre-defined-hooks"
+                            "id": "concepts/function-components/pre-defined-hooks"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/concepts/function-components/custom-hooks"
+                            "id": "concepts/function-components/custom-hooks"
                         }
                     ],
                     "collapsible": true,
@@ -158,15 +158,15 @@
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/concepts/agents"
+                    "id": "concepts/agents"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/concepts/contexts"
+                    "id": "concepts/contexts"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/concepts/router"
+                    "id": "concepts/router"
                 }
             ],
             "collapsible": true,
@@ -178,15 +178,15 @@
             "items": [
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/advanced-topics/how-it-works"
+                    "id": "advanced-topics/how-it-works"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/advanced-topics/optimizations"
+                    "id": "advanced-topics/optimizations"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/advanced-topics/portals"
+                    "id": "advanced-topics/portals"
                 }
             ],
             "collapsible": true,
@@ -198,31 +198,31 @@
             "items": [
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/debugging"
+                    "id": "more/debugging"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/development-tips"
+                    "id": "more/development-tips"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/external-libs"
+                    "id": "more/external-libs"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/css"
+                    "id": "more/css"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/testing"
+                    "id": "more/testing"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/roadmap"
+                    "id": "more/roadmap"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.19.0/more/wasm-build-tools"
+                    "id": "more/wasm-build-tools"
                 }
             ],
             "collapsible": true,
@@ -238,7 +238,7 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/migration-guides/yew/from-0_18_0-to-0_19_0"
+                            "id": "migration-guides/yew/from-0_18_0-to-0_19_0"
                         }
                     ],
                     "collapsible": true,
@@ -250,7 +250,7 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/migration-guides/yew-agent/from-0_0_0-to-0_1_0"
+                            "id": "migration-guides/yew-agent/from-0_0_0-to-0_1_0"
                         }
                     ],
                     "collapsible": true,
@@ -262,7 +262,7 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.19.0/migration-guides/yew-router/from-0_15_0-to-0_16_0"
+                            "id": "migration-guides/yew-router/from-0_15_0-to-0_16_0"
                         }
                     ],
                     "collapsible": true,
