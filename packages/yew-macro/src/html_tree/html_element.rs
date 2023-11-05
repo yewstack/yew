@@ -348,11 +348,13 @@ impl ToTokens for HtmlElement {
                 quote! {
                     ::yew::virtual_dom::Attributes::IndexMap(
                         ::std::rc::Rc::new(
-                            [#(#results),*]
-                                .into_iter()
-                                // FIXME verify if i understood it correctly
-                                .filter_map(|(k, v)| v.map(|v| (k, v)))
-                                .collect()
+                            ::std::iter::Iterator::collect(
+                                ::std::iter::Iterator::filter_map(
+                                    ::std::iter::IntoIterator::into_iter([#(#results),*]),
+                                    // FIXME verify if i understood it correctly
+                                    |(k, v)| v.map(|v| (k, v))
+                                )
+                            )
                         )
                     )
                 }
