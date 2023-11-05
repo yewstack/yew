@@ -1,0 +1,33 @@
+error: expected a valid Rust identifier
+  --> tests/html_macro/dyn-prop-fail.rs:66:34
+   |
+66 |     _ = ::yew::html! { <Simple { "test" }={ "" } /> }
+   |                                  ^^^^^^
+
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<Fail>` is not satisfied
+  --> tests/html_macro/dyn-prop-fail.rs:61:9
+   |
+61 |     _ = ::yew::html! { <span { Fail }={ "" } /> };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<Fail>` is not implemented for `implicit_clone::unsync::IString`
+   |
+   = help: the following other types implement trait `From<T>`:
+             <implicit_clone::unsync::IString as From<&'static str>>
+             <implicit_clone::unsync::IString as From<Cow<'static, str>>>
+             <implicit_clone::unsync::IString as From<Rc<str>>>
+             <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `Fail`
+   = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<Fail>` is not satisfied
+  --> tests/html_macro/dyn-prop-fail.rs:64:9
+   |
+64 |     _ = ::yew::html! { <span { dyn_prop() }={ "" } /> };
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<Fail>` is not implemented for `implicit_clone::unsync::IString`
+   |
+   = help: the following other types implement trait `From<T>`:
+             <implicit_clone::unsync::IString as From<&'static str>>
+             <implicit_clone::unsync::IString as From<Cow<'static, str>>>
+             <implicit_clone::unsync::IString as From<Rc<str>>>
+             <implicit_clone::unsync::IString as From<String>>
+   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::IString>` for `Fail`
+   = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
