@@ -170,7 +170,10 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
 impl IntoPropValue<VNode> for &ChildrenRenderer<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(Rc::new(self.clone().into()))
+        VNode::VList(Rc::new(VList::with_children(
+            self.children.iter().cloned().collect(),
+            None,
+        )))
     }
 }
 
