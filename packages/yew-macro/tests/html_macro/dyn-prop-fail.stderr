@@ -1,22 +1,22 @@
-error: expected a valid Rust identifier
+error: components expect valid Rust identifiers for their property names
   --> tests/html_macro/dyn-prop-fail.rs:66:32
    |
 66 |     _ = ::yew::html! { <Simple "test"="" /> };
    |                                ^^^^^^
 
-error: expected a valid Rust identifier
+error: components expect valid Rust identifiers for their property names
   --> tests/html_macro/dyn-prop-fail.rs:67:32
    |
 67 |     _ = ::yew::html! { <Simple "test"={ "" } /> };
    |                                ^^^^^^
 
-error: expected a valid Rust identifier
+error: components expect valid Rust identifiers for their property names
   --> tests/html_macro/dyn-prop-fail.rs:68:34
    |
 68 |     _ = ::yew::html! { <Simple { "test" }={ "" } /> };
    |                                  ^^^^^^
 
-error: expected a valid Rust identifier
+error: components expect valid Rust identifiers for their property names
   --> tests/html_macro/dyn-prop-fail.rs:69:34
    |
 69 |     _ = ::yew::html! { <Simple { dyn_prop() }={ "" } /> };
