@@ -66,9 +66,8 @@ impl Component for List {
 }
 
 impl List {
-    fn view_items(children: impl AsRef<IArray<VChild<ListItem>>>) -> Html {
+    fn view_items(children: &IArray<VChild<ListItem>>) -> Html {
         children
-            .as_ref()
             .iter()
             .filter(|c| !c.props.hide)
             .enumerate()
