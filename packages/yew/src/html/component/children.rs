@@ -182,9 +182,13 @@ where
     T: Clone,
 {
     /// Create children
-    pub fn new(children: impl Into<Rc<Vec<T>>>) -> Self {
-        Self {
-            children: Some(children.into()),
+    pub fn new(children: Vec<T>) -> Self {
+        if children.is_empty() {
+            Self { children: None }
+        } else {
+            Self {
+                children: Some(Rc::new(children)),
+            }
         }
     }
 
