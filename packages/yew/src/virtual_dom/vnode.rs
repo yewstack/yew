@@ -65,8 +65,7 @@ impl VNode {
             match *self {
                 Self::VList(ref mut m) => return Rc::make_mut(m),
                 _ => {
-                    *self =
-                        VNode::VList(Rc::new(VList::with_children(vec![mem::take(self)], None)));
+                    *self = VNode::VList(Rc::new(VList::from_iter([mem::take(self)].into_iter())));
                 }
             }
         }
@@ -172,9 +171,8 @@ impl<T: ToString> From<T> for VNode {
 
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        VNode::VList(Rc::new(VList::with_children(
-            iter.into_iter().map(|n| n.into()).collect::<Vec<_>>(),
-            None,
+        VNode::VList(Rc::new(VList::from_iter(
+            iter.into_iter().map(|n| n.into()),
         )))
     }
 }

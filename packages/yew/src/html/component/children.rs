@@ -278,14 +278,7 @@ impl From<ChildrenRenderer<Html>> for Html {
 
 impl From<ChildrenRenderer<Html>> for VList {
     fn from(val: ChildrenRenderer<Html>) -> Self {
-        if let Some(children) = val.children {
-            if children.is_empty() {
-                return VList::new();
-            }
-            VList::with_children(children, None)
-        } else {
-            VList::new()
-        }
+        VList::from(val.children)
     }
 }
 

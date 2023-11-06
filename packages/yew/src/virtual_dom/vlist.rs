@@ -61,6 +61,37 @@ impl DerefMut for VList {
     }
 }
 
+impl<A: Into<VNode>> FromIterator<A> for VList {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+        let children = iter.into_iter().map(|n| n.into()).collect::<Vec<_>>();
+        if children.is_empty() {
+            VList::new()
+        } else {
+            VList {
+                children: Some(Rc::new(children)),
+                key: None,
+                fully_keyed: FullyKeyedState::KnownFullyKeyed,
+            }
+        }
+    }
+}
+
+impl From<Option<Rc<Vec<VNode>>>> for VList {
+    fn from(children: Option<Rc<Vec<VNode>>>) -> Self {
+        if children.as_ref().map(|x| x.is_empty()).unwrap_or(true) {
+            VList::new()
+        } else {
+            let mut vlist = VList {
+                fully_keyed: FullyKeyedState::Unknown,
+                children,
+                key: None,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
+    }
+}
+
 impl VList {
     /// Creates a new empty [VList] instance.
     pub const fn new() -> Self {
@@ -72,14 +103,22 @@ impl VList {
     }
 
     /// Creates a new [VList] instance with children.
-    pub fn with_children(children: impl Into<Rc<Vec<VNode>>>, key: Option<Key>) -> Self {
-        let mut vlist = VList {
-            fully_keyed: FullyKeyedState::Unknown,
-            children: Some(children.into()),
-            key,
-        };
-        vlist.recheck_fully_keyed();
-        vlist
+    pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
+        if children.is_empty() {
+            VList {
+                fully_keyed: FullyKeyedState::KnownFullyKeyed,
+                children: None,
+                key,
+            }
+        } else {
+            let mut vlist = VList {
+                fully_keyed: FullyKeyedState::Unknown,
+                children: Some(Rc::new(children)),
+                key,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
     }
 
     // Returns a mutable reference to children, allocates the children if it hasn't been done.

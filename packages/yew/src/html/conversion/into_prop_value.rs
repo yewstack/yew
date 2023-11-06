@@ -170,11 +170,7 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
 impl IntoPropValue<VNode> for &ChildrenRenderer<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        if let Some(children) = self.children.clone() {
-            VNode::VList(Rc::new(VList::with_children(children, None)))
-        } else {
-            VNode::VList(Rc::new(VList::new()))
-        }
+        VNode::VList(Rc::new(VList::from(self.children.clone())))
     }
 }
 
@@ -195,18 +191,14 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
 impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
     #[inline]
     fn into_prop_value(self) -> VList {
-        if let Some(children) = self.children {
-            VList::with_children(children, None)
-        } else {
-            VList::new()
-        }
+        VList::from(self.children)
     }
 }
 
 impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
     #[inline]
     fn into_prop_value(self) -> VList {
-        VList::with_children(vec![self.into()], None)
+        VList::from_iter([VNode::from(self)].into_iter())
     }
 }
 
@@ -219,7 +211,7 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
 impl IntoPropValue<VNode> for Vec<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(Rc::new(VList::with_children(self, None)))
+        VNode::VList(Rc::new(VList::from_iter(self)))
     }
 }
 
