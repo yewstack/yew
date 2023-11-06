@@ -69,8 +69,8 @@ impl<A: Into<VNode>> FromIterator<A> for VList {
         } else {
             VList {
                 children: Some(Rc::new(children)),
+                fully_keyed: FullyKeyedState::Unknown,
                 key: None,
-                fully_keyed: FullyKeyedState::KnownFullyKeyed,
             }
         }
     }
@@ -82,8 +82,8 @@ impl From<Option<Rc<Vec<VNode>>>> for VList {
             VList::new()
         } else {
             let mut vlist = VList {
-                fully_keyed: FullyKeyedState::Unknown,
                 children,
+                fully_keyed: FullyKeyedState::Unknown,
                 key: None,
             };
             vlist.recheck_fully_keyed();
