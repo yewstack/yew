@@ -132,21 +132,9 @@ impl VList {
 
     /// Creates a new [VList] instance with children.
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        if children.is_empty() {
-            VList {
-                fully_keyed: FullyKeyedState::KnownFullyKeyed,
-                children: None,
-                key,
-            }
-        } else {
-            let mut vlist = VList {
-                fully_keyed: FullyKeyedState::Unknown,
-                children: Some(Rc::new(children)),
-                key,
-            };
-            vlist.recheck_fully_keyed();
-            vlist
-        }
+        let mut vlist = VList::from(children);
+        vlist.key = key;
+        vlist
     }
 
     // Returns a mutable reference to children, allocates the children if it hasn't been done.
