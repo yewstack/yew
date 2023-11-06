@@ -126,7 +126,7 @@ where
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<R> {
-        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect())
+        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect::<Vec<_>>())
     }
 }
 

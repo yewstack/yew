@@ -3,7 +3,8 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::html::Html;
+use crate::html::{Html, ImplicitClone};
+use crate::utils::RcExt;
 use crate::virtual_dom::{VChild, VComp, VList, VNode};
 use crate::{BaseComponent, Properties};
 
@@ -151,10 +152,20 @@ pub type Children = ChildrenRenderer<Html>;
 pub type ChildrenWithProps<CHILD> = ChildrenRenderer<VChild<CHILD>>;
 
 /// A type used for rendering children html.
-#[derive(Clone)]
 pub struct ChildrenRenderer<T> {
-    pub(crate) children: Vec<T>,
+    // TODO wrap in Option?
+    pub(crate) children: Rc<Vec<T>>,
 }
+
+impl<T> Clone for ChildrenRenderer<T> {
+    fn clone(&self) -> Self {
+        Self {
+            children: self.children.clone(),
+        }
+    }
+}
+
+impl<T> ImplicitClone for ChildrenRenderer<T> {}
 
 impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
     fn eq(&self, other: &Self) -> bool {
@@ -167,8 +178,10 @@ where
     T: Clone,
 {
     /// Create children
-    pub fn new(children: Vec<T>) -> Self {
-        Self { children }
+    pub fn new(children: impl Into<Rc<Vec<T>>>) -> Self {
+        Self {
+            children: children.into(),
+        }
     }
 
     /// Children list is empty
@@ -215,7 +228,7 @@ where
 impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
         Self {
-            children: Vec::new(),
+            children: Default::default(),
         }
     }
 }
@@ -226,19 +239,21 @@ impl<T> fmt::Debug for ChildrenRenderer<T> {
     }
 }
 
-impl<T> IntoIterator for ChildrenRenderer<T> {
+impl<T: Clone> IntoIterator for ChildrenRenderer<T> {
     type IntoIter = std::vec::IntoIter<Self::Item>;
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.children.into_iter()
+        let children = RcExt::unwrap_or_clone(self.children);
+        children.into_iter()
     }
 }
 
 impl From<ChildrenRenderer<Html>> for Html {
     fn from(mut val: ChildrenRenderer<Html>) -> Self {
         if val.children.len() == 1 {
-            if let Some(m) = val.children.pop() {
+            let children = Rc::make_mut(&mut val.children);
+            if let Some(m) = children.pop() {
                 return m;
             }
         }
@@ -266,7 +281,7 @@ where
                 .into_iter()
                 .map(VComp::from)
                 .map(VNode::from)
-                .collect(),
+                .collect::<Vec<_>>(),
         )
     }
 }

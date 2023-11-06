@@ -72,10 +72,10 @@ impl VList {
     }
 
     /// Creates a new [VList] instance with children.
-    pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
+    pub fn with_children(children: impl Into<Rc<Vec<VNode>>>, key: Option<Key>) -> Self {
         let mut vlist = VList {
             fully_keyed: FullyKeyedState::Unknown,
-            children: Some(Rc::new(children)),
+            children: Some(children.into()),
             key,
         };
         vlist.recheck_fully_keyed();
