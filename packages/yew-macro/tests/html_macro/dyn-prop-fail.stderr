@@ -1,13 +1,31 @@
 error: expected a valid Rust identifier
-  --> tests/html_macro/dyn-prop-fail.rs:66:34
+  --> tests/html_macro/dyn-prop-fail.rs:66:32
    |
-66 |     _ = ::yew::html! { <Simple { "test" }={ "" } /> }
+66 |     _ = ::yew::html! { <Simple "test"="" /> };
+   |                                ^^^^^^
+
+error: expected a valid Rust identifier
+  --> tests/html_macro/dyn-prop-fail.rs:67:32
+   |
+67 |     _ = ::yew::html! { <Simple "test"={ "" } /> };
+   |                                ^^^^^^
+
+error: expected a valid Rust identifier
+  --> tests/html_macro/dyn-prop-fail.rs:68:34
+   |
+68 |     _ = ::yew::html! { <Simple { "test" }={ "" } /> };
    |                                  ^^^^^^
 
-error[E0277]: the trait bound `implicit_clone::unsync::IString: From<Fail>` is not satisfied
-  --> tests/html_macro/dyn-prop-fail.rs:61:9
+error: expected a valid Rust identifier
+  --> tests/html_macro/dyn-prop-fail.rs:69:34
    |
-61 |     _ = ::yew::html! { <span { Fail }={ "" } /> };
+69 |     _ = ::yew::html! { <Simple { dyn_prop() }={ "" } /> };
+   |                                  ^^^^^^^^^^
+
+error[E0277]: the trait bound `implicit_clone::unsync::IString: From<Fail>` is not satisfied
+  --> tests/html_macro/dyn-prop-fail.rs:63:9
+   |
+63 |     _ = ::yew::html! { <span { Fail }={ "" } /> };
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `From<Fail>` is not implemented for `implicit_clone::unsync::IString`
    |
    = help: the following other types implement trait `From<T>`:

@@ -6,7 +6,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token};
+use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token, LitStr, parse_quote};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
@@ -24,6 +24,12 @@ pub enum PropLabel {
 impl From<HtmlDashedName> for PropLabel {
     fn from(value: HtmlDashedName) -> Self {
         Self::Static(value)
+    }
+}
+
+impl From<LitStr> for PropLabel {
+    fn from(value: LitStr) -> Self {
+        Self::Dynamic(parse_quote! { #value })
     }
 }
 
@@ -100,7 +106,9 @@ impl Parse for Prop {
             .map(PropDirective::ApplyAsProperty)
             .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_or_dynamic_prop_assignment(input, directive)
+            Self::parse_shorthand_or_expr_dynamic_prop_assignment(input, directive)
+        } else if input.peek(LitStr) {
+            Self::parse_literal_dynamic_prop_assignment(input, directive)
         } else {
             Self::parse_prop_assignment(input, directive)
         }
@@ -114,7 +122,7 @@ impl Prop {
     ///
     /// Shorthand syntax only allows for labels with no hyphens,
     /// as it would otherwise create an ambiguity in the syntax.
-    fn parse_shorthand_or_dynamic_prop_assignment(
+    fn parse_shorthand_or_expr_dynamic_prop_assignment(
         input: ParseStream,
         directive: Option<PropDirective>,
     ) -> syn::Result<Self> {
@@ -159,6 +167,37 @@ impl Prop {
         Ok(Self {
             label: label.into(),
             value: expr,
+            directive,
+        })
+    }
+
+    /// Parse a prop of the form `"label"={value}`
+    fn parse_literal_dynamic_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
+        let label = input.parse::<LitStr>()?;
+        let equals = input.parse::<Token![=]>().map_err(|_| {
+            let display = label.stringify();
+            syn::Error::new_spanned(
+                &label,
+                format!(
+                    "`{display}` doesn't have a value. (hint: set the value to `true` or `false` \
+                     for boolean attributes)"
+                ),
+            )
+        })?;
+        if input.is_empty() {
+            return Err(syn::Error::new_spanned(
+                equals,
+                "expected an expression following this equals sign",
+            ));
+        }
+
+        let value = parse_prop_value(input)?;
+        Ok(Self {
+            label: label.into(),
+            value,
             directive,
         })
     }
