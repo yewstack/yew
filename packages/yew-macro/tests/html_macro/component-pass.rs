@@ -67,6 +67,8 @@ pub enum ChildrenVariants {
     AltChild(::yew::virtual_dom::VChild<AltChild>),
 }
 
+impl ::yew::html::ImplicitClone for ChildrenVariants {}
+
 impl ::std::convert::From<::yew::virtual_dom::VChild<Child>> for ChildrenVariants {
     fn from(comp: ::yew::virtual_dom::VChild<Child>) -> Self {
         ChildrenVariants::Child(comp)
