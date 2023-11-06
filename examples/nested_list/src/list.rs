@@ -57,7 +57,7 @@ impl Component for List {
                 <div class={classes!("list", inactive)}>
                     { &ctx.props().header }
                     <div class="items">
-                        { Self::view_items(ctx.props().children.clone()) }
+                        { Self::view_items(&ctx.props().children) }
                     </div>
                 </div>
             </div>
@@ -66,8 +66,9 @@ impl Component for List {
 }
 
 impl List {
-    fn view_items(children: IArray<VChild<ListItem>>) -> Html {
+    fn view_items(children: impl AsRef<IArray<VChild<ListItem>>>) -> Html {
         children
+            .as_ref()
             .iter()
             .filter(|c| !c.props.hide)
             .enumerate()
