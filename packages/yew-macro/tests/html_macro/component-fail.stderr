@@ -259,7 +259,7 @@ error: the property value must be either a literal or enclosed in braces. Consid
 86 |     html! { <Child ref=() /> };
    |                        ^^
 
-error: expected a valid Rust identifier
+error: components expect valid Rust identifiers for their property names
   --> tests/html_macro/component-fail.rs:87:20
    |
 87 |     html! { <Child invalid-prop-name=0 /> };

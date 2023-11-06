@@ -194,7 +194,7 @@ fn validate(props: Props) -> Result<Props, syn::Error> {
         PropLabel::Static(dashed_name) if dashed_name.extended.is_empty() => Ok(()),
         _ => Err(syn::Error::new_spanned(
             &prop.label,
-            "expected a valid Rust identifier",
+            "components expect valid Rust identifiers for their property names",
         )),
     })?;
 
