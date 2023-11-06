@@ -58,10 +58,13 @@ impl ::yew::Component for Simple {
 pub struct Fail;
 
 fn main() {
-    _ = ::yew::html! { <span { Fail }={ "" } /> };
-
     let dyn_prop = || Fail;
+
+    _ = ::yew::html! { <span { Fail }={ "" } /> };
     _ = ::yew::html! { <span { dyn_prop() }={ "" } /> };
     
-    _ = ::yew::html! { <Simple { "test" }={ "" } /> }
+    _ = ::yew::html! { <Simple "test"="" /> };
+    _ = ::yew::html! { <Simple "test"={ "" } /> };
+    _ = ::yew::html! { <Simple { "test" }={ "" } /> };
+    _ = ::yew::html! { <Simple { dyn_prop() }={ "" } /> };
 }

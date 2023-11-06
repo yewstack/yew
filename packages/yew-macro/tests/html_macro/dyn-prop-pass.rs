@@ -43,6 +43,8 @@ fn main() {
     // but valid html! (any checks can happen only during runtime)
 
     // literal
+    _ = ::yew::html! { <span "hx-on:click"="alert('Clicked!')" /> };
+    _ = ::yew::html! { <span "hx-on:click"="alert('Clicked!')" "hx-on:click"="alert('Clicked!')" /> };
     _ = ::yew::html! { <span { "hx-on:click" }={ "alert('Clicked!')" } /> };
     _ = ::yew::html! { <span { "hx-on:click" }={ "alert('Clicked!')" } { "hx-on:click" }={ "alert('Clicked!')" } /> };
 
