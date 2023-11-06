@@ -6,7 +6,10 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token, LitStr, parse_quote};
+use syn::{
+    braced, parse_quote, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, LitStr, Stmt,
+    Token,
+};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
