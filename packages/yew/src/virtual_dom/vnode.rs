@@ -65,7 +65,7 @@ impl VNode {
             match *self {
                 Self::VList(ref mut m) => return Rc::make_mut(m),
                 _ => {
-                    *self = VNode::VList(Rc::new(VList::from_iter([mem::take(self)])));
+                    *self = VNode::VList(Rc::new(VList::from(mem::take(self))));
                 }
             }
         }

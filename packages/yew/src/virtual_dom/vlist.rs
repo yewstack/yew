@@ -92,6 +92,34 @@ impl From<Option<Rc<Vec<VNode>>>> for VList {
     }
 }
 
+impl From<Vec<VNode>> for VList {
+    fn from(children: Vec<VNode>) -> Self {
+        if children.is_empty() {
+            VList::new()
+        } else {
+            let mut vlist = VList {
+                children: Some(Rc::new(children)),
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
+    }
+}
+
+impl From<VNode> for VList {
+    fn from(child: VNode) -> Self {
+        let mut vlist = VList {
+            children: Some(Rc::new(vec![child])),
+            fully_keyed: FullyKeyedState::Unknown,
+            key: None,
+        };
+        vlist.recheck_fully_keyed();
+        vlist
+    }
+}
+
 impl VList {
     /// Creates a new empty [VList] instance.
     pub const fn new() -> Self {

@@ -198,7 +198,7 @@ impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
 impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
     #[inline]
     fn into_prop_value(self) -> VList {
-        VList::from_iter([VNode::from(self)])
+        VList::from(VNode::from(self))
     }
 }
 
@@ -211,7 +211,7 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
 impl IntoPropValue<VNode> for Vec<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(Rc::new(VList::from_iter(self)))
+        VNode::VList(Rc::new(VList::from(self)))
     }
 }
 
