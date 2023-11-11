@@ -53,6 +53,7 @@ mod derive_props;
 mod function_component;
 mod hook;
 mod html_tree;
+mod mdx;
 mod props;
 mod stringify;
 mod use_prepared_state;
@@ -186,4 +187,20 @@ pub fn use_transitive_state_with_closure(input: TokenStream) -> TokenStream {
 pub fn use_transitive_state_without_closure(input: TokenStream) -> TokenStream {
     let transitive_state = parse_macro_input!(input as TransitiveState);
     transitive_state.to_token_stream_without_closure().into()
+}
+
+#[proc_macro]
+pub fn mdx(input: TokenStream) -> TokenStream {
+    let mdx_tokens = mdx::mdx(input);
+    html(mdx_tokens)
+}
+
+#[proc_macro]
+pub fn mdx_style(input: TokenStream) -> TokenStream {
+    mdx::mdx_style(input)
+}
+
+#[proc_macro]
+pub fn include_mdx(input: TokenStream) -> TokenStream {
+    html(mdx::include_mdx(input))
 }
