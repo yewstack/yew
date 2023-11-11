@@ -28,3 +28,4 @@ prettyplease = "0.2"
 rustversion = "1"
 trybuild = "1"
 yew = { path = "../yew" }
+implicit-clone = "0.4"

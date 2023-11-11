@@ -61,7 +61,7 @@ impl ::yew::Component for Container {
     }
 }
 
-#[derive(::std::clone::Clone, ::yew::html::ImplicitClone, ::std::cmp::PartialEq)]
+#[derive(::std::clone::Clone, ::implicit_clone::ImplicitClone, ::std::cmp::PartialEq)]
 pub enum ChildrenVariants {
     Child(::yew::virtual_dom::VChild<Child>),
     AltChild(::yew::virtual_dom::VChild<AltChild>),
