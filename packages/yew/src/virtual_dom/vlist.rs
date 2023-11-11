@@ -5,7 +5,7 @@ use std::rc::Rc;
 use super::{Key, VNode};
 use crate::html::ImplicitClone;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, ImplicitClone, Copy, Debug, PartialEq)]
 enum FullyKeyedState {
     KnownFullyKeyed,
     KnownMissingKeys,
@@ -23,8 +23,6 @@ pub struct VList {
 
     pub key: Option<Key>,
 }
-
-impl ImplicitClone for VList {}
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {

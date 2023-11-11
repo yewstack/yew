@@ -9,7 +9,7 @@ use crate::html::ImplicitClone;
 /// Represents the (optional) key of Yew's virtual nodes.
 ///
 /// Keys are cheap to clone.
-#[derive(Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Clone, ImplicitClone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Key {
     key: Rc<str>,
 }
@@ -40,8 +40,6 @@ impl From<&'_ str> for Key {
         Self::from(key)
     }
 }
-
-impl ImplicitClone for Key {}
 
 macro_rules! key_impl_from_to_string {
     ($type:ty) => {

@@ -6,10 +6,9 @@ use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
 use crate::callback::Callback;
-use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
+use crate::html::{BaseComponent, ChildrenRenderer, Component, Scope};
 use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
 
-impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 

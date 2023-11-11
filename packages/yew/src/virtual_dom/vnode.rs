@@ -13,7 +13,7 @@ use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, ImplicitClone, PartialEq)]
 #[must_use = "html does not do anything unless returned to Yew for rendering."]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
@@ -35,8 +35,6 @@ pub enum VNode {
     /// Also see: [`VNode::from_html_unchecked`]
     VRaw(VRaw),
 }
-
-impl ImplicitClone for VNode {}
 
 impl VNode {
     pub fn key(&self) -> Option<&Key> {
