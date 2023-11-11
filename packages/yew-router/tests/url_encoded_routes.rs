@@ -1,5 +1,4 @@
-// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
-#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
+#![cfg(not(target_os = "wasi"))]
 
 use std::time::Duration;
 
@@ -20,7 +19,7 @@ enum AppRoute {
     Search { query: String },
 }
 
-#[component]
+#[function_component]
 fn Comp() -> Html {
     let switch = move |routes: AppRoute| match routes {
         AppRoute::Root => html! {
@@ -40,7 +39,7 @@ fn Comp() -> Html {
     }
 }
 
-#[component(Root)]
+#[function_component(Root)]
 fn root() -> Html {
     html! {
         <BrowserRouter>

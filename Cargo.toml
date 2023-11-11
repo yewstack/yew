@@ -4,11 +4,10 @@ members = [
     "tools/*",
     "examples/*",
 ]
-exclude = ["examples/.cargo"]
 default-members = [
     "packages/*",
 ]
-resolver = "3"
+resolver = "2"
 
 [profile.release]
 lto = true
@@ -21,14 +20,3 @@ lto = true
 codegen-units = 1
 opt-level = 3
 
-[workspace.lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-    "cfg(documenting)",
-    "cfg(verbose_tests)",
-    "cfg(yew_lints)",
-    "cfg(nightly_yew)",
-    "cfg(wasm_bindgen_unstable_test_coverage)"
-]}
-[workspace.dependencies]
-tokio = { version = "1.48.0" }
-implicit-clone = { version = "0.6.0" }

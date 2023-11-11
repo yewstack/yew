@@ -133,7 +133,9 @@ fn main() {
 Yew 支援以單一執行緒進行服務端渲染，透過 `yew::LocalServerRenderer`。這種模式適用於像 WASI 這樣的單執行緒環境。
 
 ```rust
-// 使用 `wasm32-wasip1` 或 `wasm32-wasip2` 目標建置。
+// 建置時使用 `wasm32-wasip1` 或 `wasm32-wasip2` 目標（在 rustc 1.78 之後）。
+// 如果您使用的是較舊版本的 rustc（1.84 之前），您仍然可以使用 `wasm32-wasi` 目標進行建置。
+// 有關更多信息，請參見 https://blog.rust-lang.org/2024/04/09/updates-to-rusts-wasi-targets.html。
 
 use yew::prelude::*;
 use yew::LocalServerRenderer;

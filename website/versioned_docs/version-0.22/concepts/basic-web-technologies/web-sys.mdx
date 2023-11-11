@@ -74,13 +74,13 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 }
 ```
 
-_[Inheritance in `web-sys` in The `wasm-bindgen` Guide](https://wasm-bindgen.github.io/wasm-bindgen/web-sys/inheritance.html)._
+_[Inheritance in `web-sys` in The `wasm-bindgen` Guide](https://rustwasm.github.io/wasm-bindgen/web-sys/inheritance.html)._
 
 ## The `Node` in `NodeRef`
 
 Yew uses a [`NodeRef`](concepts/function-components/node-refs.mdx) to provide a way for keeping a reference to
 a `Node` made by the [`html!`](concepts/html/introduction.mdx) macro. The `Node` part of `NodeRef` is referring to
-[`web_sys::Node`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
+[`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html). The
 `NodeRef::get` method will return a `Option<Node>` value, however, most of the time in Yew you want
 to cast this value to a specific element so you can use its specific methods. This casting
 can be done using [`JsCast`](./wasm-bindgen.mdx#JsCast) on the `Node` value, if present, but Yew
@@ -88,7 +88,7 @@ provides the `NodeRef::cast` method to perform this casting for convenience and 
 necessarily have to include the `wasm-bindgen` dependency for the `JsCast` trait.
 
 The two code blocks below do essentially the same thing, the first is using `NodeRef::cast` and
-the second is using [`JsCast::dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+the second is using [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 on the `web_sys::Node` returned from `NodeRef::get`.
 
 <Tabs>

@@ -1,5 +1,4 @@
-// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
-#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
+#![cfg(not(target_os = "wasi"))]
 
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
@@ -8,7 +7,7 @@ use gloo::utils::window;
 use js_sys::{JsString, Object, Reflect};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::functional::component;
+use yew::functional::function_component;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -59,7 +58,7 @@ struct NavigationMenuProps {
     assertion: Option<fn(&Navigator, &Location)>,
 }
 
-#[component(NavigationMenu)]
+#[function_component(NavigationMenu)]
 fn navigation_menu(props: &NavigationMenuProps) -> Html {
     let navigator = use_navigator().unwrap();
     let location = use_location().unwrap();
@@ -98,7 +97,7 @@ fn navigation_menu(props: &NavigationMenuProps) -> Html {
     }
 }
 
-#[component(RootForBrowserRouter)]
+#[function_component(RootForBrowserRouter)]
 fn root_for_browser_router() -> Html {
     html! {
         <BrowserRouter>
@@ -140,7 +139,7 @@ struct BasenameProps {
     assertion: fn(&Navigator, &Location),
 }
 
-#[component(RootForBasename)]
+#[function_component(RootForBasename)]
 fn root_for_basename(props: &BasenameProps) -> Html {
     html! {
         <BrowserRouter basename={props.basename.clone()}>
@@ -283,7 +282,7 @@ async fn link_with_basename(correct_initial_path: bool) {
     assert_eq!(RENDERS.load(Ordering::Relaxed), 5);
 }
 
-#[component(RootForHashRouter)]
+#[function_component(RootForHashRouter)]
 fn root_for_hash_router() -> Html {
     html! {
         <HashRouter>

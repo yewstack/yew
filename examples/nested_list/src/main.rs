@@ -40,13 +40,15 @@ impl<COMP: Component> PartialEq for WeakComponentLink<COMP> {
     }
 }
 
-#[derive(Debug, Clone, ImplicitClone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Hovered {
     Header,
     Item(AttrValue),
     List,
     None,
 }
+
+impl ImplicitClone for Hovered {}
 
 impl fmt::Display for Hovered {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

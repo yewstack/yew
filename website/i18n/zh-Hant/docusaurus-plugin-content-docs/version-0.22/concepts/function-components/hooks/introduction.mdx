@@ -14,10 +14,10 @@ Yew 提供了一些預先定義的 hooks。您也可以創建自己的 hooks，�
 1. 每個 Hook 函數的名稱必須以 `use_` 開頭
 2. Hooks 只能在下列位置使用：
 
-- 函數/ Hook 的頂層
-- 函數/ Hook 內的區塊，只要它沒有被分支
-- 函數/ Hook 內頂層 `if` 表達式的條件
-- 函數/ Hook 內頂層 `match` 表達式的選擇器
+-   函數/ Hook 的頂層
+-   函數/ Hook 內的區塊，只要它沒有被分支
+-   函數/ Hook 內頂層 `if` 表達式的條件
+-   函數/ Hook 內頂層 `match` 表達式的選擇器
 
 3. 每次渲染時，Hooks 必須以相同的順序呼叫。只有在使用 [Suspense](../../suspense.mdx) 時才允許提前返回
 
@@ -27,19 +27,19 @@ Yew 提供了一些預先定義的 hooks。您也可以創建自己的 hooks，�
 
 Yew 提供了以下預定義 Hooks：
 
-- `use_state`
-- `use_state_eq`
-- `use_memo`
-- `use_callback`
-- `use_ref`
-- `use_mut_ref`
-- `use_node_ref`
-- `use_reducer`
-- `use_reducer_eq`
-- `use_effect`
-- `use_effect_with`
-- `use_context`
-- `use_force_update`
+-   `use_state`
+-   `use_state_eq`
+-   `use_memo`
+-   `use_callback`
+-   `use_ref`
+-   `use_mut_ref`
+-   `use_node_ref`
+-   `use_reducer`
+-   `use_reducer_eq`
+-   `use_effect`
+-   `use_effect_with`
+-   `use_context`
+-   `use_force_update`
 
 這些 hooks 的文檔可以在 [Yew API 文件](https://yew-rs-api.web.app/next/yew/functional/)中找到。
 
@@ -49,4 +49,4 @@ Yew 提供了以下預定義 Hooks：
 
 ## 進一步閱讀
 
-- React 文件中有一個關於 [React hooks](https://reactjs.org/docs/hooks-intro.html) 的部分。
+-   React 文件中有一個關於 [React hooks](https://reactjs.org/docs/hooks-intro.html) 的部分。

@@ -156,16 +156,16 @@ pub fn ThemedButton() -> Html {
 
 我們有兩種選擇在結構體組件中使用上下文：
 
-- [高階元件](../advanced-topics/struct-components/hoc)：高階函數元件將使用上下文並將資料傳遞給需要它的結構體元件。
-- 直接在結構體組件中使用上下文。請參閱 [結構體組件作​​為消費者的範例](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
+-   [高階元件](../advanced-topics/struct-components/hoc.mdx)：高階函數元件將使用上下文並將資料傳遞給需要它的結構體元件。
+-   直接在結構體組件中使用上下文。請參閱 [結構體組件作​​為消費者的範例](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
 
 ## 使用場景
 
 通常，如果某些資料需要在樹的不同部分的遠端元件中使用，上下文可能會對你有所幫助。
 以下是一些這樣的例子：
 
-- **主題**：你可以在應用程式的頂部放置一個上下文來保存你的應用程式主題，並使用它來調整視覺外觀，如上例所示。
-- **目前使用者帳戶**：在許多情況下，元件需要知道目前登入的使用者。你可以使用上下文將目前使用者物件提供給元件。
+-   **主題**：你可以在應用程式的頂部放置一個上下文來保存你的應用程式主題，並使用它來調整視覺外觀，如上例所示。
+-   **目前使用者帳戶**：在許多情況下，元件需要知道目前登入的使用者。你可以使用上下文將目前使用者物件提供給元件。
 
 ### 使用上下文前的考慮
 
@@ -186,4 +186,4 @@ pub fn ThemedButton() -> Html {
 
 ## 進一步閱讀
 
-- [上下文範例](https://github.com/yewstack/yew/tree/master/examples/contexts)
+-   [上下文範例](https://github.com/yewstack/yew/tree/master/examples/contexts)

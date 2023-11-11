@@ -3,8 +3,7 @@
 use std::fmt;
 use std::rc::Rc;
 
-use crate::html::{Html, ImplicitClone};
-use crate::utils::RcExt;
+use crate::html::Html;
 use crate::virtual_dom::{VChild, VComp, VList, VNode};
 use crate::{BaseComponent, Properties};
 
@@ -152,28 +151,14 @@ pub type Children = ChildrenRenderer<Html>;
 pub type ChildrenWithProps<CHILD> = ChildrenRenderer<VChild<CHILD>>;
 
 /// A type used for rendering children html.
+#[derive(Clone)]
 pub struct ChildrenRenderer<T> {
-    pub(crate) children: Option<Rc<Vec<T>>>,
+    pub(crate) children: Vec<T>,
 }
-
-impl<T> Clone for ChildrenRenderer<T> {
-    fn clone(&self) -> Self {
-        Self {
-            children: self.children.clone(),
-        }
-    }
-}
-
-impl<T> ImplicitClone for ChildrenRenderer<T> {}
 
 impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
     fn eq(&self, other: &Self) -> bool {
-        match (self.children.as_ref(), other.children.as_ref()) {
-            (Some(a), Some(b)) => a == b,
-            (Some(a), None) => a.is_empty(),
-            (None, Some(b)) => b.is_empty(),
-            (None, None) => true,
-        }
+        self.children == other.children
     }
 }
 
@@ -183,30 +168,24 @@ where
 {
     /// Create children
     pub fn new(children: Vec<T>) -> Self {
-        if children.is_empty() {
-            Self { children: None }
-        } else {
-            Self {
-                children: Some(Rc::new(children)),
-            }
-        }
+        Self { children }
     }
 
     /// Children list is empty
     pub fn is_empty(&self) -> bool {
-        self.children.as_ref().map(|x| x.is_empty()).unwrap_or(true)
+        self.children.is_empty()
     }
 
     /// Number of children elements
     pub fn len(&self) -> usize {
-        self.children.as_ref().map(|x| x.len()).unwrap_or(0)
+        self.children.len()
     }
 
     /// Render children components and return `Iterator`
     pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
         // clone each child lazily.
         // This way `self.iter().next()` only has to clone a single node.
-        self.children.iter().flat_map(|x| x.iter()).cloned()
+        self.children.iter().cloned()
     }
 
     /// Convert the children elements to another object (if there are any).
@@ -218,7 +197,7 @@ where
     /// children.map(|children| {
     ///     html! {
     ///         <div class={classes!("container")}>
-    ///             {children}
+    ///             {children.clone()}
     ///         </div>
     ///     }
     /// })
@@ -236,7 +215,7 @@ where
 impl<T> Default for ChildrenRenderer<T> {
     fn default() -> Self {
         Self {
-            children: Default::default(),
+            children: Vec::new(),
         }
     }
 }
@@ -247,28 +226,20 @@ impl<T> fmt::Debug for ChildrenRenderer<T> {
     }
 }
 
-impl<T: Clone> IntoIterator for ChildrenRenderer<T> {
+impl<T> IntoIterator for ChildrenRenderer<T> {
     type IntoIter = std::vec::IntoIter<Self::Item>;
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        if let Some(children) = self.children {
-            let children = RcExt::unwrap_or_clone(children);
-            children.into_iter()
-        } else {
-            Vec::new().into_iter()
-        }
+        self.children.into_iter()
     }
 }
 
 impl From<ChildrenRenderer<Html>> for Html {
     fn from(mut val: ChildrenRenderer<Html>) -> Self {
-        if let Some(children) = val.children.as_mut() {
-            if children.len() == 1 {
-                let children = Rc::make_mut(children);
-                if let Some(m) = children.pop() {
-                    return m;
-                }
+        if val.children.len() == 1 {
+            if let Some(m) = val.children.pop() {
+                return m;
             }
         }
 
@@ -278,7 +249,10 @@ impl From<ChildrenRenderer<Html>> for Html {
 
 impl From<ChildrenRenderer<Html>> for VList {
     fn from(val: ChildrenRenderer<Html>) -> Self {
-        VList::from(val.children)
+        if val.is_empty() {
+            return VList::new();
+        }
+        VList::with_children(val.children, None)
     }
 }
 
@@ -292,7 +266,7 @@ where
                 .into_iter()
                 .map(VComp::from)
                 .map(VNode::from)
-                .collect::<Vec<_>>(),
+                .collect(),
         )
     }
 }

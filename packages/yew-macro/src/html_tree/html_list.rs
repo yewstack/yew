@@ -10,7 +10,7 @@ use crate::props::Prop;
 use crate::{Peek, PeekValue};
 
 pub struct HtmlList {
-    pub open: HtmlListOpen,
+    open: HtmlListOpen,
     pub children: HtmlChildrenTree,
     close: HtmlListClose,
 }
@@ -71,30 +71,23 @@ impl ToTokens for HtmlList {
             quote! { ::std::option::Option::None }
         };
 
-        let span = {
+        let spanned = {
             let open = open.to_spanned();
             let close = close.to_spanned();
             quote! { #open #close }
-        }
-        .span();
+        };
 
-        tokens.extend(match children.fully_keyed() {
-            Some(true) => quote_spanned!{span=>
-                ::yew::virtual_dom::VList::__macro_new(#children, #key, ::yew::virtual_dom::FullyKeyedState::KnownFullyKeyed)
-            },
-            Some(false) => quote_spanned!{span=>
-                ::yew::virtual_dom::VList::__macro_new(#children, #key, ::yew::virtual_dom::FullyKeyedState::KnownMissingKeys)
-            },
-            None => quote_spanned!{span=>
+        tokens.extend(quote_spanned! {spanned.span()=>
+            ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
                 ::yew::virtual_dom::VList::with_children(#children, #key)
-            }
+            ))
         });
     }
 }
 
-pub struct HtmlListOpen {
+struct HtmlListOpen {
     tag: TagTokens,
-    pub props: HtmlListProps,
+    props: HtmlListProps,
 }
 impl HtmlListOpen {
     fn to_spanned(&self) -> impl ToTokens {
@@ -128,8 +121,8 @@ impl Parse for HtmlListOpen {
     }
 }
 
-pub struct HtmlListProps {
-    pub key: Option<Expr>,
+struct HtmlListProps {
+    key: Option<Expr>,
 }
 impl Parse for HtmlListProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {

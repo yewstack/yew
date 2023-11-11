@@ -32,15 +32,9 @@ jobs:
 
       - name: Write Optimisation Flags
         run: |
-          if [ -x ci/write-min-size-flags.sh ] ; then
-            ci/write-min-size-flags.sh
-          else
-            # this branch is a fallback used only for compatibility with earlier commits
-            # in the repository and other branches and can be removed in the future.
-            echo 'build-std = ["std", "panic_abort"]' >> .cargo/config.toml
-            echo '[build]' >> .cargo/config.toml
-            echo 'rustflags = ["-Cpanic=abort"]' >> .cargo/config.toml
-          fi
+          echo 'share-generics = true' >> .cargo/config.toml
+          echo 'build-std = ["std", "panic_abort"]' >> .cargo/config.toml
+          echo 'build-std-features = ["panic_immediate_abort"]' >> .cargo/config.toml
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -55,22 +49,16 @@ jobs:
           shared-key: size-compare
 
       - name: Setup Trunk
-        uses: jetli/trunk-action@v0.5.1
+        uses: jetli/trunk-action@v0.5.0
         with:
           version: "latest"
 
-      - name: Get latest wasm-opt version
-        id: wasm-opt
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: WebAssembly/binaryen
-          excludes: prerelease, draft
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build examples
-        run: cargo run -p build-examples --bin build-examples
+        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        working-directory: examples
         env:
-          LATEST_WASM_OPT_VERSION: ${{ steps.wasm-opt.outputs.release }}
+          RUSTUP_TOOLCHAIN: nightly
+          RUSTFLAGS: --cfg nightly_yew
 
       - name: Collect size information
         run: python3 ci/collect_sizes.py

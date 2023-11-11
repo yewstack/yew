@@ -7,6 +7,8 @@ pub struct VRaw {
     pub html: AttrValue,
 }
 
+impl ImplicitClone for VRaw {}
+
 impl From<AttrValue> for VRaw {
     fn from(html: AttrValue) -> Self {
         Self { html }

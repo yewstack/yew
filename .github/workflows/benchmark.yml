@@ -42,9 +42,9 @@ jobs:
         uses: jetli/wasm-pack-action@v0.4.0
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: "lts/Jod"
+          node-version: ">=18"
           cache: "npm"
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
@@ -57,7 +57,7 @@ jobs:
 
       - name: Setup chrome
         id: setup-chrome
-        uses: browser-actions/setup-chrome@v2
+        uses: browser-actions/setup-chrome@v1
         with:
           install-chromedriver: true
 
@@ -79,7 +79,7 @@ jobs:
       - name: Build benchmark-struct app
         working-directory: yew/tools/benchmark-struct
         run: |
-          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build \
+          wasm-pack build \
             --release \
             --target web \
             --no-typescript \
@@ -101,7 +101,7 @@ jobs:
       - name: Build benchmark-hooks app
         working-directory: yew/tools/benchmark-hooks
         run: |
-          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build \
+          wasm-pack build \
             --release \
             --target web \
             --no-typescript \
@@ -117,9 +117,6 @@ jobs:
         run: |
           npm start &
           sleep 5
-
-      # https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
-      - run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
 
       - name: Run js-framework-benchmark/webdriver-ts npm run bench
         working-directory: js-framework-benchmark/webdriver-ts

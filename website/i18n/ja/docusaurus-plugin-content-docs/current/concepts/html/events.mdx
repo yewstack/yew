@@ -4,7 +4,7 @@ title: 'イベント'
 
 ## 紹介
 
-Yew は [`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/) クレートと統合されており、このクレートのイベントを使用します。以下の[表](#event-types)には、`html!` マクロで受け入れられるすべての `web-sys` イベントが一覧表示されています。
+Yew は [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) クレートと統合されており、このクレートのイベントを使用します。以下の[表](#event-types)には、`html!` マクロで受け入れられるすべての `web-sys` イベントが一覧表示されています。
 
 下記の表に記載されていないイベントについても、[`Callback`](../function-components/callbacks.mdx) を追加してリッスンすることができます。詳細は[手動イベントリスナー](#manual-event-listener)を参照してください。
 
@@ -33,7 +33,7 @@ html! {
 
 ## イベントキャプチャ {#event-bubbling}
 
-Yew がディスパッチするイベントは仮想 DOM 階層に従い、リスナーに向かってバブルアップします。現在、リスナーのバブルフェーズのみがサポートされています。仮想 DOM 階層は通常（ただし常にではありません）実際の DOM 階層と同じです。[ポータル](../../advanced-topics/portals)やその他の高度な技術を扱う際には、この違いが重要です。よく設計されたコンポーネントでは、直感的にイベントは子コンポーネントから親コンポーネントにバブルアップするはずです。これにより、`html!` で記述した階層がイベントハンドラによって観察される階層となります。
+Yew がディスパッチするイベントは仮想 DOM 階層に従い、リスナーに向かってバブルアップします。現在、リスナーのバブルフェーズのみがサポートされています。仮想 DOM 階層は通常（ただし常にではありません）実際の DOM 階層と同じです。[ポータル](../../advanced-topics/portals.mdx)やその他の高度な技術を扱う際には、この違いが重要です。よく設計されたコンポーネントでは、直感的にイベントは子コンポーネントから親コンポーネントにバブルアップするはずです。これにより、`html!` で記述した階層がイベントハンドラによって観察される階層となります。
 
 イベントのバブルアップを避けたい場合は、アプリケーションを起動する前に以下のコードを呼び出すことができます
 
@@ -47,14 +47,14 @@ yew::set_event_bubbling(false);
 
 驚くかもしれませんが、イベントリスナーはレンダリングされた要素に直接登録されるわけではありません。代わりに、イベントは Yew アプリケーションのサブツリーのルートノードから委譲されます。ただし、イベントはそのネイティブ形式で渡され、合成形式は作成されません。これにより、HTML リスナーで予期されるイベントと Yew で発生するイベントとの間に不一致が生じる可能性があります。
 
-- [`Event::current_target`] はリスナーが追加された要素ではなく、Yew サブツリーのルートノードを指します。基になる `HtmlElement` にアクセスしたい場合は、[`NodeRef`](../function-components/node-refs.mdx) を使用してください。
-- [`Event::event_phase`] は常に [`Event::CAPTURING_PHASE`] です。内部的には、イベントはバブリングフェーズにあるかのように振る舞い、イベント伝播が再生され、イベントは[上位にバブルアップ](#event-bubbling)します。つまり、仮想 DOM 内の上位のイベントリスナーが下位のイベントリスナーの後にトリガーされます。現在、Yew はキャプチャリスナーをサポートしていません。
+-   [`Event::current_target`] はリスナーが追加された要素ではなく、Yew サブツリーのルートノードを指します。基になる `HtmlElement` にアクセスしたい場合は、[`NodeRef`](../function-components/node-refs.mdx) を使用してください。
+-   [`Event::event_phase`] は常に [`Event::CAPTURING_PHASE`] です。内部的には、イベントはバブリングフェーズにあるかのように振る舞い、イベント伝播が再生され、イベントは[上位にバブルアップ](#event-bubbling)します。つまり、仮想 DOM 内の上位のイベントリスナーが下位のイベントリスナーの後にトリガーされます。現在、Yew はキャプチャリスナーをサポートしていません。
 
 これも意味するところは、Yew によって登録されたイベントは通常、他のイベントリスナーよりも先にトリガーされるということです。
 
-[`event::current_target`]: https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
-[`event::event_phase`]: https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
-[`event::capturing_phase`]: https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#associatedconstant.CAPTURING_PHASE
+[`event::current_target`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
+[`event::event_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
+[`event::capturing_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#associatedconstant.CAPTURING_PHASE
 
 ## 型付きイベントターゲット
 
@@ -66,7 +66,7 @@ yew::set_event_bubbling(false);
 
 イベント `Callback` の中で、イベントのターゲットを取得したい場合があります。例えば、`change` イベントは何かが変更されたことを通知するだけで、具体的な情報を提供しません。
 
-Yew では、正しい型でターゲット要素を取得する方法がいくつかあり、ここで順を追って説明します。イベント上の [`web_sys::Event::target`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target) を呼び出すと、オプションの [`web_sys::EventTarget`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html) 型が返されますが、入力要素の値を知りたい場合にはあまり役に立たないかもしれません。
+Yew では、正しい型でターゲット要素を取得する方法がいくつかあり、ここで順を追って説明します。イベント上の [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target) を呼び出すと、オプションの [`web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html) 型が返されますが、入力要素の値を知りたい場合にはあまり役に立たないかもしれません。
 
 以下のすべての方法で、同じ問題を解決します。これにより、方法の違いが明確になり、問題に対処することができます。
 
@@ -84,7 +84,7 @@ pub enum Msg {
 
 ### `JsCast` の使用
 
-[`wasm-bindgen`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) クレートには便利なトレイトがあります：[`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)。これにより、型が `JsCast` を実装している限り、型間の直接キャストが可能になります。慎重にキャストすることもできますが、これはランタイムチェックと `Option` や `Result` のロジックを処理することを伴います。また、強制的にキャストすることもできます。
+[`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) クレートには便利なトレイトがあります：[`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)。これにより、型が `JsCast` を実装している限り、型間の直接キャストが可能になります。慎重にキャストすることもできますが、これはランタイムチェックと `Option` や `Result` のロジックを処理することを伴います。また、強制的にキャストすることもできます。
 
 コードを見てみましょう：
 
@@ -156,7 +156,7 @@ fn MyComponent() -> Html {
 }
 ```
 
-`JsCast` が提供するメソッドは [`dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) と [`unchecked_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into) です。これらのメソッドを使用すると、`EventTarget` から [`HtmlInputElement`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html) への変換が可能になります。`dyn_into` メソッドは慎重で、実行時に型が実際に `HtmlInputElement` であるかどうかをチェックし、そうでない場合は `Err(JsValue)` を返します。[`JsValue`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) は汎用型で、元のオブジェクトを返し、別の型への変換を再試行することができます。
+`JsCast` が提供するメソッドは [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) と [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into) です。これらのメソッドを使用すると、`EventTarget` から [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html) への変換が可能になります。`dyn_into` メソッドは慎重で、実行時に型が実際に `HtmlInputElement` であるかどうかをチェックし、そうでない場合は `Err(JsValue)` を返します。[`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) は汎用型で、元のオブジェクトを返し、別の型への変換を再試行することができます。
 
 ここで、危険なバージョンを使用するタイミングについて考えるかもしれません。上記のケースでは、子要素のない要素に `Callback` を設定しているため、ターゲットは同じ要素である必要があるため、安全です<sup>1</sup>。
 
@@ -321,9 +321,9 @@ fn MyComponent() -> Html {
 
 Yew の `html` マクロがサポートしていないイベントをリッスンしたい場合があります。サポートされているイベントのリストは[こちら](#event-types)を参照してください。
 
-手動で要素にイベントリスナーを追加するには、[`NodeRef`](../function-components/node-refs.mdx) を使用して、`use_effect_with` 内で [`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/index.html) と [wasm-bindgen](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API を使用してリスナーを追加します。
+手動で要素にイベントリスナーを追加するには、[`NodeRef`](../function-components/node-refs.mdx) を使用して、`use_effect_with` 内で [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) と [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API を使用してリスナーを追加します。
 
-以下の例では、架空の `custard` イベントにリスナーを追加する方法を示します。Yew がサポートしていないすべてのイベントやカスタムイベントは、[`web_sys::Event`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html) として表現できます。カスタム/サポートされていないイベントの特定のメソッドやフィールドにアクセスする必要がある場合は、[`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) のメソッドを使用して必要な型に変換できます。
+以下の例では、架空の `custard` イベントにリスナーを追加する方法を示します。Yew がサポートしていないすべてのイベントやカスタムイベントは、[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) として表現できます。カスタム/サポートされていないイベントの特定のメソッドやフィールドにアクセスする必要がある場合は、[`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) のメソッドを使用して必要な型に変換できます。
 
 ### `Closure` を使用する（冗長バージョン）
 
@@ -379,7 +379,7 @@ fn MyComponent() -> Html {
 }
 ```
 
-`Closure` の詳細については、[wasm-bindgen ガイド](https://wasm-bindgen.github.io/wasm-bindgen/examples/closures.html) を参照してください。
+`Closure` の詳細については、[wasm-bindgen ガイド](https://rustwasm.github.io/wasm-bindgen/examples/closures.html) を参照してください。
 
 ### `gloo` を使用する（簡潔なバージョン）
 

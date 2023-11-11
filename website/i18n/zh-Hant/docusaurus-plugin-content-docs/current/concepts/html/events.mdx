@@ -4,7 +4,7 @@ title: '事件'
 
 ## 介紹
 
-Yew 與 [`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/) crate 集成，並使用該 crate 中的事件。下面的[表格](#event-types)列出了在 `html!` 巨集中接受的所有 `web-sys` 事件。
+Yew 與 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate 集成，並使用該 crate 中的事件。下面的[表格](#event-types)列出了在 `html!` 巨集中接受的所有 `web-sys` 事件。
 
 您仍然可以為下表中未列出的事件新增 [`Callback`](../function-components/callbacks.mdx)，請參閱[手動事件監聽器](#manual-event-listener)。
 
@@ -33,7 +33,7 @@ html! {
 
 ## 事件捕獲 {#event-bubbling}
 
-Yew 調度的事件遵循虛擬 DOM 層次結構，向上冒泡到監聽器。目前，僅支援監聽器的冒泡階段。請注意，虛擬 DOM 層次結構通常（但並非總是）與實際 DOM 層次結構相同。在處理[傳送門](../../advanced-topics/portals)和其他更高級技術時，這一區別很重要。對於良好實現的元件，直覺應該是事件從子元件冒泡到父元件。這樣，您在 `html!` 中所寫的層次結構就是事件處理程序觀察到的層次結構。
+Yew 調度的事件遵循虛擬 DOM 層次結構，向上冒泡到監聽器。目前，僅支援監聽器的冒泡階段。請注意，虛擬 DOM 層次結構通常（但並非總是）與實際 DOM 層次結構相同。在處理[傳送門](../../advanced-topics/portals.mdx)和其他更高級技術時，這一區別很重要。對於良好實現的元件，直覺應該是事件從子元件冒泡到父元件。這樣，您在 `html!` 中所寫的層次結構就是事件處理程序觀察到的層次結構。
 
 如果您不想要事件冒泡，可以透過呼叫
 
@@ -47,14 +47,14 @@ yew::set_event_bubbling(false);
 
 可能會讓人驚訝的是，事件監聽器並不是直接註冊在它們被渲染的元素上。相反，事件是從 Yew 應用的子樹根節點委託的。不過，事件仍然以其原生形式傳遞，並且不會創建任何合成形式。這可能會導致 HTML 監聽器中預期的事件與 Yew 中出現的事件之間的不符。
 
-- [`Event::current_target`] 指向 Yew 子樹根節點，而不是新增監聽器的元素。如果您想存取底層的 `HtmlElement`，請使用 [`NodeRef`](../function-components/node-refs.mdx)。
-- [`Event::event_phase`] 總是 [`Event::CAPTURING_PHASE`]。在內部，事件將表現得像是在冒泡階段，事件傳播將被重播，並且事件會[向上冒泡](#event-bubbling)，即虛擬DOM 中較高的事件監聽器將在較低的事件監聽器之後觸發。目前，Yew 不支援捕獲監聽器。
+-   [`Event::current_target`] 指向 Yew 子樹根節點，而不是新增監聽器的元素。如果您想存取底層的 `HtmlElement`，請使用 [`NodeRef`](../function-components/node-refs.mdx)。
+-   [`Event::event_phase`] 總是 [`Event::CAPTURING_PHASE`]。在內部，事件將表現得像是在冒泡階段，事件傳播將被重播，並且事件會[向上冒泡](#event-bubbling)，即虛擬DOM 中較高的事件監聽器將在較低的事件監聽器之後觸發。目前，Yew 不支援捕獲監聽器。
 
 這也意味著由 Yew 註冊的事件通常會在其他事件監聽器之前觸發。
 
-[`event::current_target`]: https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
-[`event::event_phase`]: https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
-[`event::capturing_phase`]: https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#associatedconstant.CAPTURING_PHASE
+[`event::current_target`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
+[`event::event_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
+[`event::capturing_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#associatedconstant.CAPTURING_PHASE
 
 ## 具備類型的事件目標
 
@@ -66,7 +66,7 @@ yew::set_event_bubbling(false);
 
 在事件 `Callback` 中，您可能想要取得該事件的目標。例如，`change` 事件沒有提供任何訊息，但用於通知某些內容已更改。
 
-在 Yew 中，以正確的類型獲取目標元素可以透過幾種方式完成，我們將在這裡逐一介紹。呼叫事件上的[`web_sys::Event::target`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target) 傳回一個可選的[ `web_sys::EventTarget`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html) 類型，當您想知道輸入元素的值時，這可能看起來不太有用。
+在 Yew 中，以正確的類型獲取目標元素可以透過幾種方式完成，我們將在這裡逐一介紹。呼叫事件上的[`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target) 傳回一個可選的[ `web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html) 類型，當您想知道輸入元素的值時，這可能看起來不太有用。
 
 在下面的所有方法中，我們將解決相同的問題，以便清楚地了解方法的不同之處，而不是手邊的問題。
 
@@ -84,7 +84,7 @@ pub enum Msg {
 
 ### 使用 `JsCast`
 
-[`wasm-bindgen`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate 有一個有用的trait：[`JsCast`](https://rustwasm.github .io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)，它允許我們在類型之間直接轉換，只要它實現了`JsCast` 就行。我們可以謹慎地轉換，這涉及運行時檢查和處理 `Option` 和 `Result` 的邏輯，或者我們也可以冒險直接強行轉換。
+[`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate 有一個有用的trait：[`JsCast`](https://rustwasm.github .io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)，它允許我們在類型之間直接轉換，只要它實現了`JsCast` 就行。我們可以謹慎地轉換，這涉及運行時檢查和處理 `Option` 和 `Result` 的邏輯，或者我們也可以冒險直接強行轉換。
 
 多說無益，看代碼：
 
@@ -154,11 +154,11 @@ fn MyComponent() -> Html {
 }
 ```
 
-`JsCast` 提供的方法是 [`dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
-和 [`unchecked_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)。
-如你所見，它們允許我們從 `EventTarget` 轉換為 [`HtmlInputElement`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html)。
+`JsCast` 提供的方法是 [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+和 [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)。
+如你所見，它們允許我們從 `EventTarget` 轉換為 [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html)。
 `dyn_into` 方法是謹慎的，因為它會在運行時檢查類型是否實際為 `HtmlInputElement`，如果不是則返回
-`Err(JsValue)`。 [`JsValue`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+`Err(JsValue)`。 [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 是一個通用類型，將原來的物件回傳給你，以便再次嘗試轉換為別的類型。
 
 這會兒你可能會想，什麼時候可以使用危險版本？在上面的情況下，它是安全的<sup>1</sup>，因為我們將 `Callback` 設定在一個沒有子元素的元素上，所以目標只能是同一個元素。
@@ -323,11 +323,11 @@ fn MyComponent() -> Html {
 
 您可能想要監聽 Yew 的 `html` 巨集不支援的事件，請查看[這裡列出的支援的事件](#event-types)。
 
-為了手動為某個元素新增事件監聽器，我們需要藉助 [`NodeRef`](../function-components/node-refs.mdx)，以便在 `use_effect_with` 中使用 [`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/index.html) 和 [wasm-bindgen](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API 新增監聽器。
+為了手動為某個元素新增事件監聽器，我們需要藉助 [`NodeRef`](../function-components/node-refs.mdx)，以便在 `use_effect_with` 中使用 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) 和 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API 新增監聽器。
 
 以下範例將展示如何為虛構的 `custard` 事件新增監聽器。所有不受 yew 支援的事件或自訂事件都可以表示為
-[`web_sys::Event`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html)。如果您需要存取自訂/不受支援事件的特定方法或字段，可以使用
-[`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) 的方法將其轉換為所需的類型。
+[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html)。如果您需要存取自訂/不受支援事件的特定方法或字段，可以使用
+[`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) 的方法將其轉換為所需的類型。
 
 ### 使用 `Closure`（冗長版本）
 
@@ -383,7 +383,7 @@ fn MyComponent() -> Html {
 }
 ```
 
-有關 `Closure` 的更多信息，請參見 [wasm-bindgen 指南](https://wasm-bindgen.github.io/wasm-bindgen/examples/closures.html)。
+有關 `Closure` 的更多信息，請參見 [wasm-bindgen 指南](https://rustwasm.github.io/wasm-bindgen/examples/closures.html)。
 
 ### 使用 `gloo`（簡潔版本）
 

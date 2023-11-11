@@ -12,7 +12,6 @@ mod html_block;
 mod html_component;
 mod html_dashed_name;
 mod html_element;
-mod html_for;
 mod html_if;
 mod html_iterable;
 mod html_list;
@@ -31,7 +30,6 @@ use html_node::HtmlNode;
 use tag::TagTokens;
 
 use self::html_block::BlockContent;
-use self::html_for::HtmlFor;
 
 pub enum HtmlType {
     Block,
@@ -39,7 +37,6 @@ pub enum HtmlType {
     List,
     Element,
     If,
-    For,
     Empty,
 }
 
@@ -49,7 +46,6 @@ pub enum HtmlTree {
     List(Box<HtmlList>),
     Element(Box<HtmlElement>),
     If(Box<HtmlIf>),
-    For(Box<HtmlFor>),
     Empty,
 }
 
@@ -57,15 +53,15 @@ impl Parse for HtmlTree {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_type = Self::peek_html_type(input)
             .ok_or_else(|| input.error("expected a valid html element"))?;
-        Ok(match html_type {
-            HtmlType::Empty => Self::Empty,
-            HtmlType::Component => Self::Component(Box::new(input.parse()?)),
-            HtmlType::Element => Self::Element(Box::new(input.parse()?)),
-            HtmlType::Block => Self::Block(Box::new(input.parse()?)),
-            HtmlType::List => Self::List(Box::new(input.parse()?)),
-            HtmlType::If => Self::If(Box::new(input.parse()?)),
-            HtmlType::For => Self::For(Box::new(input.parse()?)),
-        })
+        let html_tree = match html_type {
+            HtmlType::Empty => HtmlTree::Empty,
+            HtmlType::Component => HtmlTree::Component(Box::new(input.parse()?)),
+            HtmlType::Element => HtmlTree::Element(Box::new(input.parse()?)),
+            HtmlType::Block => HtmlTree::Block(Box::new(input.parse()?)),
+            HtmlType::List => HtmlTree::List(Box::new(input.parse()?)),
+            HtmlType::If => HtmlTree::If(Box::new(input.parse()?)),
+        };
+        Ok(html_tree)
     }
 }
 
@@ -76,16 +72,17 @@ impl HtmlTree {
     /// returns with the appropriate type. If invalid html tag, returns `None`.
     fn peek_html_type(input: ParseStream) -> Option<HtmlType> {
         let input = input.fork(); // do not modify original ParseStream
-        let cursor = input.cursor();
 
         if input.is_empty() {
             Some(HtmlType::Empty)
-        } else if HtmlBlock::peek(cursor).is_some() {
+        } else if input
+            .cursor()
+            .group(proc_macro2::Delimiter::Brace)
+            .is_some()
+        {
             Some(HtmlType::Block)
-        } else if HtmlIf::peek(cursor).is_some() {
+        } else if HtmlIf::peek(input.cursor()).is_some() {
             Some(HtmlType::If)
-        } else if HtmlFor::peek(cursor).is_some() {
-            Some(HtmlType::For)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
 
@@ -125,21 +122,21 @@ impl ToTokens for HtmlTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         lint::lint_all(self);
         match self {
-            Self::Empty => tokens.extend(quote! {
+            HtmlTree::Empty => tokens.extend(quote! {
                 <::yew::virtual_dom::VNode as ::std::default::Default>::default()
             }),
-            Self::Component(comp) => comp.to_tokens(tokens),
-            Self::Element(tag) => tag.to_tokens(tokens),
-            Self::List(list) => list.to_tokens(tokens),
-            Self::Block(block) => block.to_tokens(tokens),
-            Self::If(block) => block.to_tokens(tokens),
-            Self::For(block) => block.to_tokens(tokens),
+            HtmlTree::Component(comp) => comp.to_tokens(tokens),
+            HtmlTree::Element(tag) => tag.to_tokens(tokens),
+            HtmlTree::List(list) => list.to_tokens(tokens),
+            HtmlTree::Block(block) => block.to_tokens(tokens),
+            HtmlTree::If(block) => block.to_tokens(tokens),
         }
     }
 }
 
 pub enum HtmlRoot {
     Tree(HtmlTree),
+    Iterable(Box<HtmlIterable>),
     Node(Box<HtmlNode>),
 }
 
@@ -147,6 +144,8 @@ impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_root = if HtmlTree::peek_html_type(input).is_some() {
             Self::Tree(input.parse()?)
+        } else if HtmlIterable::peek(input.cursor()).is_some() {
+            Self::Iterable(Box::new(input.parse()?))
         } else {
             Self::Node(Box::new(input.parse()?))
         };
@@ -169,6 +168,7 @@ impl ToTokens for HtmlRoot {
         match self {
             Self::Tree(tree) => tree.to_tokens(tokens),
             Self::Node(node) => node.to_tokens(tokens),
+            Self::Iterable(iterable) => iterable.to_tokens(tokens),
         }
     }
 }
@@ -200,25 +200,14 @@ pub trait ToNodeIterator {
     /// each element. If the resulting iterator only ever yields a single item this function
     /// should return None instead.
     fn to_node_iterator_stream(&self) -> Option<TokenStream>;
-    /// Returns a boolean indicating whether the node can only ever unfold into 1 node
-    /// Same as calling `.to_node_iterator_stream().is_none()`,
-    /// but doesn't actually construct any token stream
-    fn is_singular(&self) -> bool;
 }
 
 impl ToNodeIterator for HtmlTree {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
-            Self::Block(block) => block.to_node_iterator_stream(),
+            HtmlTree::Block(block) => block.to_node_iterator_stream(),
             // everything else is just a single node.
             _ => None,
-        }
-    }
-
-    fn is_singular(&self) -> bool {
-        match self {
-            Self::Block(block) => block.is_singular(),
-            _ => true,
         }
     }
 }
@@ -242,7 +231,10 @@ impl HtmlChildrenTree {
     // Check if each child represents a single node.
     // This is the case when no expressions are used.
     fn only_single_node_children(&self) -> bool {
-        self.0.iter().all(HtmlTree::is_singular)
+        self.0
+            .iter()
+            .map(ToNodeIterator::to_node_iterator_stream)
+            .all(|s| s.is_none())
     }
 
     pub fn to_build_vec_token_stream(&self) -> TokenStream {
@@ -255,7 +247,7 @@ impl HtmlChildrenTree {
                 .iter()
                 .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
             return quote! {
-                [#(#children_into),*].to_vec()
+                ::std::vec![#(#children_into),*]
             };
         }
 
@@ -347,41 +339,6 @@ impl HtmlChildrenTree {
                 )
             },
         }
-    }
-
-    pub fn size_hint(&self) -> Option<usize> {
-        self.only_single_node_children().then_some(self.0.len())
-    }
-
-    pub fn fully_keyed(&self) -> Option<bool> {
-        for child in self.0.iter() {
-            match child {
-                HtmlTree::Block(block) => {
-                    return if let BlockContent::Node(node) = &block.content {
-                        matches!(&**node, HtmlNode::Literal(_)).then_some(false)
-                    } else {
-                        None
-                    }
-                }
-                HtmlTree::Component(comp) => {
-                    if comp.props.props.special.key.is_none() {
-                        return Some(false);
-                    }
-                }
-                HtmlTree::List(list) => {
-                    if list.open.props.key.is_none() {
-                        return Some(false);
-                    }
-                }
-                HtmlTree::Element(element) => {
-                    if element.props.special.key.is_none() {
-                        return Some(false);
-                    }
-                }
-                HtmlTree::If(_) | HtmlTree::For(_) | HtmlTree::Empty => return Some(false),
-            }
-        }
-        Some(true)
     }
 }
 

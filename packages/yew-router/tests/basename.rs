@@ -1,11 +1,10 @@
-// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
-#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
+#![cfg(not(target_os = "wasi"))]
 
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::functional::component;
+use yew::functional::function_component;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -35,7 +34,7 @@ struct NoProps {
     id: u32,
 }
 
-#[component(No)]
+#[function_component(No)]
 fn no(props: &NoProps) -> Html {
     let route = props.id.to_string();
 
@@ -49,7 +48,7 @@ fn no(props: &NoProps) -> Html {
     }
 }
 
-#[component(Comp)]
+#[function_component(Comp)]
 fn component() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -100,7 +99,7 @@ fn component() -> Html {
     }
 }
 
-#[component(Root)]
+#[function_component(Root)]
 fn root() -> Html {
     html! {
         <BrowserRouter basename="/base/">

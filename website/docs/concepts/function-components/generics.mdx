@@ -1,16 +1,16 @@
 ---
 title: 'Generic Components'
-description: 'The #[component] attribute'
+description: 'The #[function_component] attribute'
 ---
 
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-The `#[component]` attribute also works with generic functions for creating generic components.
+The `#[function_component]` attribute also works with generic functions for creating generic components.
 
 ```rust
 use std::fmt::Display;
-use yew::{component, html, Properties, Html};
+use yew::{function_component, html, Properties, Html};
 
 #[derive(Properties, PartialEq)]
 pub struct Props<T>
@@ -20,7 +20,7 @@ where
     data: T,
 }
 
-#[component]
+#[function_component]
 pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
 where
     T: PartialEq + Clone + Into<Html>,

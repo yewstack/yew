@@ -54,7 +54,7 @@ pub async fn render() -> Result<String> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let ret = render().await?;
-    println!("{ret}");
+    println!("{}", ret);
 
     Ok(())
 }

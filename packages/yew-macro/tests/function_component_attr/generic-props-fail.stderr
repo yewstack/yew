@@ -9,22 +9,21 @@ help: you might be missing a type parameter
 20 | fn compile_fail<INVALID>() {
    |                +++++++++
 
-error[E0277]: not all required properties have been provided
+error[E0277]: the trait bound `AssertAllProps: HasProp<a, _>` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:22:14
    |
 22 |     html! { <Comp<Props> /> };
-   |              ^^^^ missing required properties for this component
+   |              ^^^^ the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
    |
-   = help: the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
    = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `HasPropsa<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             <HasPropsa<B> as HasProp<a, HasPropsa<B>>>
+             <HasPropsa<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <HasContextProviderPropscontext<B> as HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>>
+             <HasContextProviderPropscontext<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <HasContextProviderPropschildren<B> as HasProp<children, HasContextProviderPropschildren<B>>>
+             <HasContextProviderPropschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
+             <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
            and $N others
 note: required for `CheckPropsAll<AssertAllProps>` to implement `HasAllProps<Props, (_,)>`
   --> tests/function_component_attr/generic-props-fail.rs:3:17
@@ -57,16 +56,16 @@ error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisf
    |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
    |
    = help: the following other types implement trait `yew::Properties`:
-             ()
-             ChildrenProps
-             ContextProviderProps<T>
              Props
+             ContextProviderProps<T>
+             ChildrenProps
              SuspenseProps
+             ()
 note: required by a bound in `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:11:8
    |
-8  | #[component(Comp)]
-   |             ---- required by a bound in this struct
+8  | #[function_component(Comp)]
+   |                      ---- required by a bound in this struct
 ...
 11 |     P: Properties + PartialEq,
    |        ^^^^^^^^^^ required by this bound in `Comp`
@@ -75,8 +74,8 @@ note: required by a bound in `Comp`
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
    |
-8  | #[component(Comp)]
-   | ---------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
+8  | #[function_component(Comp)]
+   | ------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
 ...
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
@@ -111,10 +110,10 @@ error[E0107]: missing generics for struct `Comp`
    |              ^^^^ expected 1 generic argument
    |
 note: struct defined here, with 1 generic parameter: `P`
-  --> tests/function_component_attr/generic-props-fail.rs:8:13
+  --> tests/function_component_attr/generic-props-fail.rs:8:22
    |
-8  | #[component(Comp)]
-   |             ^^^^
+8  | #[function_component(Comp)]
+   |                      ^^^^
 9  | fn comp<P>(_props: &P) -> Html
    |         -
 help: add missing generic argument

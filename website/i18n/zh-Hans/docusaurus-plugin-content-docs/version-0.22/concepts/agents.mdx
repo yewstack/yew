@@ -29,11 +29,11 @@ The code can be found in the <desc> tag of the svgs.
 
 ### 范围
 
-- 公开 - 在任何给定时间，公共代理的实例最多只有一个。桥梁将在 Web Worker 中生成或连接到已经生成的代理。当没有桥梁连接到此代理时，代理将消失。
+-   公开 - 在任何给定时间，公共代理的实例最多只有一个。桥梁将在 Web Worker 中生成或连接到已经生成的代理。当没有桥梁连接到此代理时，代理将消失。
 
-- 私有 - 为每个新的桥梁在 Web Worker 中生成一个新的代理。这对于将与浏览器通信的共享但独立的行为从组件中移出是很好的。当连接的桥梁被丢弃时，代理将消失。
+-   私有 - 为每个新的桥梁在 Web Worker 中生成一个新的代理。这对于将与浏览器通信的共享但独立的行为从组件中移出是很好的。当连接的桥梁被丢弃时，代理将消失。
 
-- 全局 \(WIP\)
+-   全局 \(WIP\)
 
 ## 代理与组件之间的通信
 
@@ -53,4 +53,4 @@ The code can be found in the <desc> tag of the svgs.
 
 ## 进一步阅读
 
-- [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) 示例展示了组件如何向代理发送消息并接收来自代理的消息。
+-   [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) 示例展示了组件如何向代理发送消息并接收来自代理的消息。

@@ -14,6 +14,8 @@ pub struct VSuspense {
     pub(crate) key: Option<Key>,
 }
 
+impl ImplicitClone for VSuspense {}
+
 impl VSuspense {
     pub fn new(children: VNode, fallback: VNode, suspended: bool, key: Option<Key>) -> Self {
         Self {

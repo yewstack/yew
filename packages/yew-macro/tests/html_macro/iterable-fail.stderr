@@ -1,47 +1,67 @@
-error: unexpected end of input, expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`
- --> tests/html_macro/iterable-fail.rs:4:5
+error: expected an expression after the keyword `for`
+ --> tests/html_macro/iterable-fail.rs:4:13
   |
 4 |     html! { for };
-  |     ^^^^^^^^^^^^^
-  |
-  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: unexpected end of input, expected `in`
- --> tests/html_macro/iterable-fail.rs:5:5
-  |
-5 |     html! { for () };
-  |     ^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: expected `in`
- --> tests/html_macro/iterable-fail.rs:7:33
-  |
-7 |     html! { for Vec::<()>::new().into_iter() };
-  |                                 ^
-
-error: unexpected end of input, expected `in`
-  --> tests/html_macro/iterable-fail.rs:10:5
-   |
-10 |     html! { for empty };
-   |     ^^^^^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+  |             ^^^
 
 error[E0277]: `()` is not an iterator
- --> tests/html_macro/iterable-fail.rs:6:18
+ --> tests/html_macro/iterable-fail.rs:5:17
   |
-6 |     html! { {for ()} };
-  |                  ^^ `()` is not an iterator
+5 |     html! { for () };
+  |                 ^^ `()` is not an iterator
+  |
+  = help: the trait `Iterator` is not implemented for `()`
+  = note: required for `()` to implement `IntoIterator`
+
+error[E0277]: `()` is not an iterator
+ --> tests/html_macro/iterable-fail.rs:6:17
+  |
+6 |     html! { for {()} };
+  |                 ^--^
+  |                 ||
+  |                 |this tail expression is of type `()`
+  |                 `()` is not an iterator
   |
   = help: the trait `Iterator` is not implemented for `()`
   = note: required for `()` to implement `IntoIterator`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> tests/html_macro/iterable-fail.rs:13:18
+ --> tests/html_macro/iterable-fail.rs:7:17
+  |
+7 |     html! { for Vec::<()>::new().into_iter() };
+  |                 ^^^ `()` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+  = help: the trait `FromIterator<A>` is implemented for `VNode`
+  = note: required for `()` to implement `ToString`
+  = note: required for `VNode` to implement `From<()>`
+  = note: required for `()` to implement `Into<VNode>`
+  = note: required for `VNode` to implement `FromIterator<()>`
+note: required by a bound in `collect`
+ --> $RUST/core/src/iter/traits/iterator.rs
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> tests/html_macro/iterable-fail.rs:10:17
    |
-13 |     html! { {for empty.iter()} };
-   |                  ^^^^^ `()` cannot be formatted with the default formatter
+10 |     html! { for empty };
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
+   |
+   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+   = help: the trait `FromIterator<A>` is implemented for `VNode`
+   = note: required for `()` to implement `ToString`
+   = note: required for `VNode` to implement `From<()>`
+   = note: required for `()` to implement `Into<VNode>`
+   = note: required for `VNode` to implement `FromIterator<()>`
+note: required by a bound in `collect`
+  --> $RUST/core/src/iter/traits/iterator.rs
+
+error[E0277]: `()` doesn't implement `std::fmt::Display`
+  --> tests/html_macro/iterable-fail.rs:13:17
+   |
+13 |     html! { for empty.iter() };
+   |                 ^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
@@ -70,26 +90,3 @@ note: required by a bound in `into_node_iter`
    | where
    |     IT: IntoIterator<Item = T>,
    |         ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `into_node_iter`
-
-error[E0277]: `()` is not an iterator
-  --> tests/html_macro/iterable-fail.rs:15:5
-   |
-15 | /     html! {
-16 | |         <>
-17 | |             <div/>
-18 | |             { for () }
-19 | |         </>
-20 | |     };
-   | |_____^ `()` is not an iterator
-   |
-   = help: the trait `Iterator` is not implemented for `()`
-   = note: required for `()` to implement `IntoIterator`
-note: required by a bound in `into_node_iter`
-  --> $WORKSPACE/packages/yew/src/utils/mod.rs
-   |
-   | pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
-   |        -------------- required by a bound in this function
-   | where
-   |     IT: IntoIterator<Item = T>,
-   |         ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `into_node_iter`
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

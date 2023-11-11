@@ -171,6 +171,8 @@ pub enum Listeners {
     Pending(Box<[Option<Rc<dyn Listener>>]>),
 }
 
+impl ImplicitClone for Listeners {}
+
 impl PartialEq for Listeners {
     fn eq(&self, rhs: &Self) -> bool {
         use Listeners::*;

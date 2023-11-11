@@ -29,11 +29,11 @@ The code can be found in the <desc> tag of the svgs.
 
 ### 範圍
 
-- 公開 - 在任何給定時間，公共代理的實例最多只有一個。橋樑將在 Web Worker 中產生或連接到已經產生的代理程式。當沒有橋樑連接到此代理時，代理將消失。
+-   公開 - 在任何給定時間，公共代理的實例最多只有一個。橋樑將在 Web Worker 中產生或連接到已經產生的代理程式。當沒有橋樑連接到此代理時，代理將消失。
 
-- 私有 - 為每個新的橋樑在 Web Worker 中產生一個新的代理程式。這對於將與瀏覽器通訊的共享但獨立的行為從元件中移出是很好的。當連接的橋樑被丟棄時，代理將消失。
+-   私有 - 為每個新的橋樑在 Web Worker 中產生一個新的代理程式。這對於將與瀏覽器通訊的共享但獨立的行為從元件中移出是很好的。當連接的橋樑被丟棄時，代理將消失。
 
-- 全域 \(WIP\)
+-   全域 \(WIP\)
 
 ## 代理與元件之間的通信
 
@@ -53,4 +53,4 @@ The code can be found in the <desc> tag of the svgs.
 
 ## 進一步閱讀
 
-- [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) 範例展示了元件如何向代理程式傳送訊息並接收來自代理程式的訊息。
+-   [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) 範例展示了元件如何向代理程式傳送訊息並接收來自代理程式的訊息。

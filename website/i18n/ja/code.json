@@ -1,6 +1,6 @@
 {
   "theme.ErrorPageContent.title": {
-    "message": "ページがクラッシュしました。",
+    "message": "This page crashed.",
     "description": "The title of the fallback page when the page crashed"
   },
   "theme.ErrorPageContent.tryAgain": {
@@ -24,7 +24,7 @@
     "description": "The ARIA label for close button of announcement bar"
   },
   "theme.BackToTopButton.buttonAriaLabel": {
-    "message": "ページの先頭に戻る",
+    "message": "Scroll back to top",
     "description": "The ARIA label for the back to top button"
   },
   "theme.blog.archive.title": {
@@ -192,15 +192,15 @@
     "description": "The ARIA label for the link to full blog posts from excerpts"
   },
   "theme.colorToggle.ariaLabel": {
-    "message": "ダークモードとライトモードを切り替える (現在は {mode})",
-    "description": "The ARIA label for the color mode toggle"
+    "message": "Switch between dark and light mode (currently {mode})",
+    "description": "The ARIA label for the navbar color mode toggle"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
-    "message": "ダークモード",
+    "message": "dark mode",
     "description": "The name for the dark color mode"
   },
   "theme.colorToggle.ariaLabel.mode.light": {
-    "message": "ライトモード",
+    "message": "light mode",
     "description": "The name for the light color mode"
   },
   "theme.docs.versionBadge.label": {
@@ -226,7 +226,7 @@
     "message": "See all results"
   },
   "theme.SearchBar.label": {
-    "message": "検索",
+    "message": "Search",
     "description": "The ARIA label and placeholder for search button"
   },
   "theme.SearchPage.existingResultsTitle": {
@@ -242,7 +242,7 @@
     "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
   },
   "theme.SearchPage.noResultsText": {
-    "message": "見つかりませんでした。",
+    "message": "No documents were found",
     "description": "The paragraph for empty search result"
   },
   "theme.admonition.note": {
@@ -262,7 +262,7 @@
     "description": "The default label used for the Info admonition (:::info)"
   },
   "theme.admonition.caution": {
-    "message": "注意",
+    "message": "caution",
     "description": "The default label used for the Caution admonition (:::caution)"
   },
   "theme.tags.tagsPageTitle": {
@@ -307,7 +307,7 @@
   },
   "theme.SearchPage.algoliaLabel": {
     "message": "Algoliaで検索",
-    "description": "The description label for Algolia mention"
+    "description": "The ARIA label for Algolia mention"
   },
   "theme.SearchPage.fetchingNewResults": {
     "message": "新しい検索結果を取得しています...",
@@ -327,15 +327,15 @@
   },
   "theme.SearchModal.startScreen.noRecentSearchesText": {
     "message": "最近の検索履歴はありません",
-    "description": "The text when there are no recent searches"
+    "description": "The text when no recent searches"
   },
   "theme.SearchModal.startScreen.saveRecentSearchButtonTitle": {
     "message": "この検索をお気に入りに追加",
-    "description": "The title for save recent search button"
+    "description": "The label for save recent search button"
   },
   "theme.SearchModal.startScreen.removeRecentSearchButtonTitle": {
     "message": "この検索を履歴から削除",
-    "description": "The title for remove recent search button"
+    "description": "The label for remove recent search button"
   },
   "theme.SearchModal.startScreen.favoriteSearchesTitle": {
     "message": "お気に入り",
@@ -343,63 +343,63 @@
   },
   "theme.SearchModal.startScreen.removeFavoriteSearchButtonTitle": {
     "message": "この検索をお気に入りから削除",
-    "description": "The title for remove favorite search button"
+    "description": "The label for remove favorite search button"
   },
   "theme.SearchModal.errorScreen.titleText": {
     "message": "検索結果の取得に失敗しました",
-    "description": "The title for error screen"
+    "description": "The title for error screen of search modal"
   },
   "theme.SearchModal.errorScreen.helpText": {
     "message": "ネットワーク接続を確認してください",
-    "description": "The help text for error screen"
+    "description": "The help text for error screen of search modal"
   },
   "theme.SearchModal.footer.selectText": {
     "message": "選ぶ",
-    "description": "The select text for footer"
+    "description": "The explanatory text of the action for the enter key"
   },
   "theme.SearchModal.footer.selectKeyAriaLabel": {
     "message": "エンターキー",
-    "description": "The ARIA label for select key in footer"
+    "description": "The ARIA label for the Enter key button that makes the selection"
   },
   "theme.SearchModal.footer.navigateText": {
     "message": "移動",
-    "description": "The navigate text for footer"
+    "description": "The explanatory text of the action for the Arrow up and Arrow down key"
   },
   "theme.SearchModal.footer.navigateUpKeyAriaLabel": {
     "message": "上矢印キー",
-    "description": "The ARIA label for navigate up key in footer"
+    "description": "The ARIA label for the Arrow up key button that makes the navigation"
   },
   "theme.SearchModal.footer.navigateDownKeyAriaLabel": {
     "message": "下矢印キー",
-    "description": "The ARIA label for navigate down key in footer"
+    "description": "The ARIA label for the Arrow down key button that makes the navigation"
   },
   "theme.SearchModal.footer.closeText": {
     "message": "閉じる",
-    "description": "The close text for footer"
+    "description": "The explanatory text of the action for Escape key"
   },
   "theme.SearchModal.footer.closeKeyAriaLabel": {
     "message": "エスケープキー",
-    "description": "The ARIA label for close key in footer"
+    "description": "The ARIA label for the Escape key button that close the modal"
   },
   "theme.SearchModal.footer.searchByText": {
     "message": "検索",
-    "description": "The 'Powered by' text for footer"
+    "description": "The text explain that the search is making by Algolia"
   },
   "theme.SearchModal.noResultsScreen.noResultsText": {
     "message": "見つかりませんでした",
-    "description": "The text when there are no results"
+    "description": "The text explains that there are no results for the following search"
   },
   "theme.SearchModal.noResultsScreen.suggestedQueryText": {
     "message": "次の検索を試す:",
-    "description": "The text for suggested query"
+    "description": "The text for the suggested query when no results are found for the following search"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsText": {
     "message": "よりよい検索結果がありますか?",
-    "description": "The text for reporting missing results"
+    "description": "The text for the question where the user thinks there are missing results"
   },
   "theme.SearchModal.noResultsScreen.reportMissingResultsLinkText": {
     "message": "報告する",
-    "description": "The link text for reporting missing results"
+    "description": "The text for the link to report missing results"
   },
   "theme.SearchModal.placeholder": {
     "message": "ドキュメントを検索",
@@ -430,131 +430,11 @@
     "description": "The unlisted content banner message"
   },
   "theme.contentVisibility.draftBanner.title": {
-    "message": "下書きページ",
+    "message": "Draft page",
     "description": "The draft content banner title"
   },
   "theme.contentVisibility.draftBanner.message": {
-    "message": "このページは下書きです。開発環境でのみ表示され、本番ビルドからは除外されます。",
+    "message": "This page is a draft. It will only be visible in dev and be excluded from the production build.",
     "description": "The draft content banner message"
-  },
-  "theme.blog.author.noPosts": {
-    "message": "この著者による投稿はまだありません。",
-    "description": "The text for authors with 0 blog post"
-  },
-  "theme.colorToggle.ariaLabel.mode.system": {
-    "message": "システムモード",
-    "description": "The name for the system color mode"
-  },
-  "theme.navbar.mobileDropdown.collapseButton.expandAriaLabel": {
-    "message": "ドロップダウンを展開",
-    "description": "The ARIA label of the button to expand the mobile dropdown navbar item"
-  },
-  "theme.navbar.mobileDropdown.collapseButton.collapseAriaLabel": {
-    "message": "ドロップダウンを折りたたむ",
-    "description": "The ARIA label of the button to collapse the mobile dropdown navbar item"
-  },
-  "theme.IconExternalLink.ariaLabel": {
-    "message": "(opens in new tab)",
-    "description": "The ARIA label for the external link icon"
-  },
-  "theme.SearchModal.searchBox.placeholderText": {
-    "message": "ドキュメントを検索",
-    "description": "The placeholder text for the main search input field"
-  },
-  "theme.SearchModal.searchBox.placeholderTextAskAi": {
-    "message": "別の質問をする...",
-    "description": "The placeholder text when in AI question mode"
-  },
-  "theme.SearchModal.searchBox.placeholderTextAskAiStreaming": {
-    "message": "回答中...",
-    "description": "The placeholder text for search box when AI is streaming an answer"
-  },
-  "theme.SearchModal.searchBox.enterKeyHint": {
-    "message": "検索",
-    "description": "The hint for the search box enter key text"
-  },
-  "theme.SearchModal.searchBox.enterKeyHintAskAi": {
-    "message": "確定",
-    "description": "The hint for the Ask AI search box enter key text"
-  },
-  "theme.SearchModal.searchBox.searchInputLabel": {
-    "message": "検索",
-    "description": "The ARIA label for search input"
-  },
-  "theme.SearchModal.searchBox.backToKeywordSearchButtonText": {
-    "message": "キーワード検索に戻る",
-    "description": "The text for back to keyword search button"
-  },
-  "theme.SearchModal.searchBox.backToKeywordSearchButtonAriaLabel": {
-    "message": "キーワード検索に戻る",
-    "description": "The ARIA label for back to keyword search button"
-  },
-  "theme.SearchModal.startScreen.recentConversationsTitle": {
-    "message": "最近の会話",
-    "description": "The title for recent conversations"
-  },
-  "theme.SearchModal.startScreen.removeRecentConversationButtonTitle": {
-    "message": "この会話を履歴から削除",
-    "description": "The title for remove recent conversation button"
-  },
-  "theme.SearchModal.resultsScreen.askAiPlaceholder": {
-    "message": "AIに質問：",
-    "description": "The placeholder text for Ask AI input"
-  },
-  "theme.SearchModal.askAiScreen.disclaimerText": {
-    "message": "回答はAIによって生成されており、誤りがある可能性があります。必ず内容を確認してください。",
-    "description": "The disclaimer text for AI answers"
-  },
-  "theme.SearchModal.askAiScreen.relatedSourcesText": {
-    "message": "関連ソース",
-    "description": "The text for related sources"
-  },
-  "theme.SearchModal.askAiScreen.thinkingText": {
-    "message": "考え中...",
-    "description": "The text when AI is thinking"
-  },
-  "theme.SearchModal.askAiScreen.copyButtonText": {
-    "message": "コピー",
-    "description": "The text for copy button"
-  },
-  "theme.SearchModal.askAiScreen.copyButtonCopiedText": {
-    "message": "コピーしました！",
-    "description": "The text for copy button when copied"
-  },
-  "theme.SearchModal.askAiScreen.copyButtonTitle": {
-    "message": "コピー",
-    "description": "The title for copy button"
-  },
-  "theme.SearchModal.askAiScreen.likeButtonTitle": {
-    "message": "いいね",
-    "description": "The title for like button"
-  },
-  "theme.SearchModal.askAiScreen.dislikeButtonTitle": {
-    "message": "よくない",
-    "description": "The title for dislike button"
-  },
-  "theme.SearchModal.askAiScreen.thanksForFeedbackText": {
-    "message": "フィードバックありがとうございます！",
-    "description": "The text for thanks for feedback"
-  },
-  "theme.SearchModal.askAiScreen.preToolCallText": {
-    "message": "検索中...",
-    "description": "The text before tool call"
-  },
-  "theme.SearchModal.askAiScreen.duringToolCallText": {
-    "message": "検索中：",
-    "description": "The text during tool call"
-  },
-  "theme.SearchModal.askAiScreen.afterToolCallText": {
-    "message": "検索完了：",
-    "description": "The text after tool call"
-  },
-  "theme.SearchModal.footer.submitQuestionText": {
-    "message": "質問を送信",
-    "description": "The submit question text for footer"
-  },
-  "theme.SearchModal.footer.backToSearchText": {
-    "message": "検索に戻る",
-    "description": "The back to search text for footer"
   }
 }
