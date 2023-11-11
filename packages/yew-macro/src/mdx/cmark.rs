@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
 use proc_macro::TokenStream;
-use proc_macro_error::ResultExt;
 use pulldown_cmark::{Event, Options, Parser, Tag};
 use quote::quote;
 
@@ -102,18 +99,20 @@ pub fn parse_commonmark(input: &str) -> TokenStream {
                         tags
                     }
                 },
-                Tag::List(_) => dyn_tag("ul", Side::Start),
+                Tag::List(None) => dyn_tag("ul", Side::Start),
+                Tag::List(Some(0)) => dyn_tag("ol", Side::Start),
+                Tag::List(Some(0..=u64::MAX)) => dyn_tag("ol", Side::Start),
                 Tag::Item => dyn_tag("li", Side::Start),
                 Tag::FootnoteDefinition(_) => todo!(),
-                Tag::Table(_) => todo!(),
-                Tag::TableHead => todo!(),
-                Tag::TableRow => todo!(),
-                Tag::TableCell => todo!(),
+                Tag::Table(_) => dyn_tag("table", Side::Start),
+                Tag::TableHead => dyn_tag("thead", Side::Start),
+                Tag::TableRow => dyn_tag("tr", Side::Start),
+                Tag::TableCell => dyn_tag("td", Side::Start),
                 Tag::Emphasis => dyn_tag("em", Side::Start),
                 Tag::Strong => dyn_tag("strong", Side::Start),
                 Tag::Strikethrough => dyn_tag("s", Side::Start),
-                Tag::Link(_type, url, _title) => {
-                    format!("<{} href=\"{}\">", dyn_tag_name("a").to_string(), url)
+                Tag::Link(_type, url, title) => {
+                    format!("<{} href=\"{}\">{}", dyn_tag_name("a").to_string(), url, title)
                         .parse()
                         .unwrap()
                 }
@@ -131,13 +130,15 @@ pub fn parse_commonmark(input: &str) -> TokenStream {
                 Tag::CodeBlock(_) => {
                     FromIterator::from_iter(["</code>".parse().unwrap(), dyn_tag("pre", Side::End)])
                 }
-                Tag::List(_) => dyn_tag("ul", Side::End),
+                Tag::List(None) => dyn_tag("ul", Side::End),
+                Tag::List(Some(0)) => dyn_tag("ol", Side::End),
+                Tag::List(Some(0..=u64::MAX)) => dyn_tag("ol", Side::End),
                 Tag::Item => dyn_tag("li", Side::End),
                 Tag::FootnoteDefinition(_) => todo!(),
-                Tag::Table(_) => todo!(),
-                Tag::TableHead => todo!(),
-                Tag::TableRow => todo!(),
-                Tag::TableCell => todo!(),
+                Tag::Table(_) => dyn_tag("table", Side::End),
+                Tag::TableHead => dyn_tag("thead", Side::End),
+                Tag::TableRow => dyn_tag("tr", Side::End),
+                Tag::TableCell => dyn_tag("td", Side::End),
                 Tag::Emphasis => dyn_tag("em", Side::End),
                 Tag::Strong => dyn_tag("strong", Side::End),
                 Tag::Strikethrough => dyn_tag("s", Side::End),
@@ -156,6 +157,10 @@ pub fn parse_commonmark(input: &str) -> TokenStream {
                 format!("<{tag} />").parse().unwrap()
             }
             Event::SoftBreak => "{{\" \"}}".parse().unwrap(),
+            Event::HardBreak => {
+                let tag = dyn_tag_name("br");
+                format!("<{tag} />").parse().unwrap()
+            },
             Event::Html(html) => html.parse().unwrap(),
             _ => quote! {}.into(),
         };
