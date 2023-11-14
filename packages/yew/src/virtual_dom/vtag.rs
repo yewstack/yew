@@ -555,7 +555,7 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), feature = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {

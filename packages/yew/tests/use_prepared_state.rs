@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
 #![cfg(feature = "hydration")]
 #![cfg_attr(nightly_yew, feature(async_closure))]
 

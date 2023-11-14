@@ -490,7 +490,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
@@ -567,7 +567,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
 #[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;

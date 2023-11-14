@@ -12,7 +12,7 @@ repository = "https://github.com/yewstack/yew"
 rust-version = "1.64.0"
 
 [dependencies]
-yew = { version = "0.21.0", path = "../yew", default-features= false }
+yew = { version = "0.21.0", path = "../yew", default-features = false }
 yew-router-macro = { version = "0.18.0", path = "../yew-router-macro" }
 
 wasm-bindgen = "0.2"
@@ -26,11 +26,7 @@ urlencoding = "2.1.3"
 
 [dependencies.web-sys]
 version = "0.3"
-features = [
-    "Document",
-    "HtmlBaseElement",
-    "Window",
-]
+features = ["Document", "HtmlBaseElement", "Window"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -39,6 +35,8 @@ yew = { version = "0.21.0", path = "../yew", features = ["csr"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"
-features = [
-    "HtmlHeadElement",
-]
+features = ["HtmlHeadElement"]
+
+[features]
+wasi = []
+default = []

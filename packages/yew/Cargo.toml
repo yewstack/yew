@@ -35,10 +35,10 @@ tracing = "0.1.40"
 prokio = "0.1.0"
 rustversion = "1"
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
+[target.'cfg(all(target_arch = "wasm32", not(feature = "wasi")))'.dependencies]
 wasm-bindgen-futures = "0.4"
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+[target.'cfg(any(not(target_arch = "wasm32"), feature = "wasi"))'.dependencies]
 # We still need tokio as we have docs linked to it.
 tokio = { version = "1.33", features = ["rt"] }
 
@@ -78,7 +78,7 @@ features = [
   "SubmitEvent",
 ]
 
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+[target.'cfg(any(not(target_arch = "wasm32"), feature = "wasi"))'.dev-dependencies]
 tokio = { version = "1.33", features = ["full"] }
 
 [dev-dependencies]
@@ -95,6 +95,7 @@ features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
+wasi = []
 default = []
 
 [package.metadata.docs.rs]
