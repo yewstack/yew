@@ -11,6 +11,7 @@ use yew::suspense::{Suspension, SuspensionResult};
 ///
 /// A [Suspension] is created from the passed future and the result of the future
 /// is the output of the suspension.
+#[derive(Clone)]
 pub struct UseFutureHandle<O> {
     inner: UseStateHandle<Option<O>>,
 }
