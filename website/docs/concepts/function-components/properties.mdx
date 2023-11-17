@@ -290,6 +290,7 @@ generate the `Properties` struct for you.
 ```rust
 use yew::prelude::*;
 
+// the #[autoprops] macro must appear BEFORE #[function_component], the order matters
 #[autoprops]
 #[function_component]
 fn Greetings(
