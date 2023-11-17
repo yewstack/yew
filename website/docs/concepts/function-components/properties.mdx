@@ -60,14 +60,14 @@ pub struct Props {
 }
 
 #[function_component]
-fn HelloWorld(props: &Props) -> Html {
-    html! { <>{"Am I loading? - "}{props.is_loading.clone()}</> }
+fn HelloWorld(&Props { is_loading }: &Props) -> Html {
+    html! { <>{"Am I loading? - "}{is_loading}</> }
 }
 
 // Then supply the prop
 #[function_component]
 fn App() -> Html {
-    html! {<HelloWorld is_loading={true} />}
+    html! { <HelloWorld is_loading=true /> }
 }
 
 ```
@@ -91,7 +91,7 @@ fn HelloWorld() -> Html {
 // No props to supply
 #[function_component]
 fn App() -> Html {
-    html! {<HelloWorld />}
+    html! { <HelloWorld /> }
 }
 
 ```
@@ -126,8 +126,8 @@ pub struct Props {
 }
 
 #[function_component]
-fn HelloWorld(props: &Props) -> Html {
-    if props.is_loading.clone() {
+fn HelloWorld(&Props { is_loading }: &Props) -> Html {
+    if is_loading {
         html! { "Loading" }
     } else {
         html! { "Hello world" }
@@ -137,12 +137,12 @@ fn HelloWorld(props: &Props) -> Html {
 // Then use like this with default
 #[function_component]
 fn Case1() -> Html {
-    html! {<HelloWorld />}
+    html! { <HelloWorld /> }
 }
 // Or no override the default
 #[function_component]
 fn Case2() -> Html {
-    html! {<HelloWorld is_loading={true} />}
+    html! { <HelloWorld is_loading=true /> }
 }
 ```
 
@@ -158,26 +158,32 @@ use yew::{function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
+    #[prop_or_default]
+    pub is_loading: bool,
     // highlight-start
-    #[prop_or("Bob".to_string())]
+    #[prop_or(AttrValue::Static("Bob"))]
     // highlight-end
-    pub name: String,
+    pub name: AttrValue,
 }
 
 #[function_component]
-fn HelloWorld(props: &Props) -> Html {
-    html! {<>{"Hello world"}{props.name.clone()}</>}
+fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{"Hello "}{name} </>}
+    }
 }
 
 // Then use like this with default
 #[function_component]
 fn Case1() -> Html {
-    html! {<HelloWorld />}
+    html! { <Hello /> }
 }
 // Or no override the default
 #[function_component]
 fn Case2() -> Html {
-    html! {<HelloWorld name={"Sam".to_string()} />}
+    html! { <Hello name="Sam" /> }
 }
 ```
 
@@ -190,32 +196,38 @@ The function is called when no explicit value has been given for that attribute.
 ```rust
 use yew::{function_component, html, Html, Properties};
 
-fn create_default_name() -> String {
-    "Bob".to_string()
+fn create_default_name() -> AttrValue {
+    AttrValue::Static("Bob")
 }
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
+    #[prop_or_default]
+    pub is_loading: bool,
     // highlight-start
     #[prop_or_else(create_default_name)]
     // highlight-end
-    pub name: String,
+    pub name: AttrValue,
 }
 
 #[function_component]
-fn HelloWorld(props: &Props) -> Html {
-    html! {<>{"Hello world"}{props.name.clone()}</>}
+fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{"Hello "}{name}</> }
+    }
 }
 
 // Then use like this with default
 #[function_component]
 fn Case1() -> Html {
-    html! {<HelloWorld />}
+    html! { <Hello /> }
 }
 // Or no override the default
 #[function_component]
 fn Case2() -> Html {
-    html! {<HelloWorld name={"Sam".to_string()} />}
+    html! { <Hello name="Sam" /> }
 }
 ```
 
@@ -243,13 +255,19 @@ use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrVa
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    #[prop_or(AttrValue::from("Bob"))]
+    #[prop_or_default]
+    pub is_loading: bool,
+    #[prop_or(AttrValue::Static("Bob"))]
     pub name: AttrValue,
 }
 
 #[function_component]
-fn HelloWorld(props: &Props) -> Html {
-    html! {<>{"Hello world"}{props.name.clone()}</>}
+fn Hello(&Props { name }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{"Hello "}{name}</> }
+    }
 }
 
 #[function_component]
@@ -259,14 +277,15 @@ fn App() -> Html {
         Props {} // Notice we did not need to specify name prop
     };
     // highlight-end
-    html! {<HelloWorld ..pre_made_props />}
+    html! { <Hello ..pre_made_props /> }
 }
 ```
 
-## Automatically generate properties (autoprops)
+## Automatically generate properties (yew-autoprops)
 
 In order to streamline your development process, you can also use the macro
-`#[autoprops]` that will automatically generate the `Properties` struct for you.
+`#[autoprops]` (from the crate `yew-autoprops`) that will automatically
+generate the `Properties` struct for you.
 
 ```rust
 use yew::prelude::*;
@@ -274,15 +293,24 @@ use yew::prelude::*;
 #[autoprops]
 #[function_component]
 fn Greetings(
-    #[prop_or("Hello".into())]
+    #[prop_or_default]
+    is_loading: bool,
+    #[prop_or(AttrValue::Static("Hello"))]
     message: &AttrValue,
-    #[prop_or("World".into())]
+    #[prop_or(AttrValue::Static("World"))]
     name: &AttrValue,
 ) -> Html {
-    html! {<>{message}{name}</>}
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{message}{" "}{name}</> }
+    }
 }
 
 // The properties struct "GreetingsProps" will be generated automatically.
+//
+// `is_loading` will be passed as value to the components while `message` and
+// `name` will use references because of the leading `&` in the definition.
 ```
 
 ## Evaluation Order
