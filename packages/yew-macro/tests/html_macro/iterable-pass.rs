@@ -45,13 +45,13 @@ fn empty_iter() -> impl ::std::iter::Iterator<Item = ::yew::Html> {
 }
 
 fn main() {
-    ::yew::html! { for empty_iter() };
-    ::yew::html! { for { empty_iter() } };
+    _ = ::yew::html! { for empty_iter() };
+    _ = ::yew::html! { for { empty_iter() } };
 
     let empty = empty_vec();
-    ::yew::html! { for empty };
+    _ = ::yew::html! { for empty };
 
-    ::yew::html! { for empty_vec() };
-    ::yew::html! { for ::std::iter::IntoIterator::into_iter(empty_vec()) };
-    ::yew::html! { for ::std::iter::Iterator::map(0..3, |num| { ::yew::html! { <span>{ num }</span> } }) };
+    _ = ::yew::html! { for empty_vec() };
+    _ = ::yew::html! { for ::std::iter::IntoIterator::into_iter(empty_vec()) };
+    _ = ::yew::html! { for ::std::iter::Iterator::map(0..3, |num| { ::yew::html! { <span>{ num }</span> } }) };
 }
