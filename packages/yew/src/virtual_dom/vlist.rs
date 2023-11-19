@@ -5,7 +5,7 @@ use std::rc::Rc;
 use super::{Key, VNode};
 use crate::html::ImplicitClone;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, ImplicitClone, Copy, Debug, PartialEq)]
 enum FullyKeyedState {
     KnownFullyKeyed,
     KnownMissingKeys,
@@ -23,8 +23,6 @@ pub struct VList {
 
     pub key: Option<Key>,
 }
-
-impl ImplicitClone for VList {}
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
@@ -61,6 +59,65 @@ impl DerefMut for VList {
     }
 }
 
+impl<A: Into<VNode>> FromIterator<A> for VList {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+        let children = iter.into_iter().map(|n| n.into()).collect::<Vec<_>>();
+        if children.is_empty() {
+            VList::new()
+        } else {
+            VList {
+                children: Some(Rc::new(children)),
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            }
+        }
+    }
+}
+
+impl From<Option<Rc<Vec<VNode>>>> for VList {
+    fn from(children: Option<Rc<Vec<VNode>>>) -> Self {
+        if children.as_ref().map(|x| x.is_empty()).unwrap_or(true) {
+            VList::new()
+        } else {
+            let mut vlist = VList {
+                children,
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
+    }
+}
+
+impl From<Vec<VNode>> for VList {
+    fn from(children: Vec<VNode>) -> Self {
+        if children.is_empty() {
+            VList::new()
+        } else {
+            let mut vlist = VList {
+                children: Some(Rc::new(children)),
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
+    }
+}
+
+impl From<VNode> for VList {
+    fn from(child: VNode) -> Self {
+        let mut vlist = VList {
+            children: Some(Rc::new(vec![child])),
+            fully_keyed: FullyKeyedState::Unknown,
+            key: None,
+        };
+        vlist.recheck_fully_keyed();
+        vlist
+    }
+}
+
 impl VList {
     /// Creates a new empty [VList] instance.
     pub const fn new() -> Self {
@@ -73,12 +130,8 @@ impl VList {
 
     /// Creates a new [VList] instance with children.
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        let mut vlist = VList {
-            fully_keyed: FullyKeyedState::Unknown,
-            children: Some(Rc::new(children)),
-            key,
-        };
-        vlist.recheck_fully_keyed();
+        let mut vlist = VList::from(children);
+        vlist.key = key;
         vlist
     }
 

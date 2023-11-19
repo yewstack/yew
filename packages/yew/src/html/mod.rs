@@ -87,7 +87,7 @@ impl IntoHtmlResult for Html {
 /// ```
 /// ## Relevant examples
 /// - [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)
-#[derive(Default, Clone)]
+#[derive(Default, Clone, ImplicitClone)]
 pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
 impl PartialEq for NodeRef {

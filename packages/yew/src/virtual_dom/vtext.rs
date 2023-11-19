@@ -8,13 +8,11 @@ use crate::html::ImplicitClone;
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
-#[derive(Clone)]
+#[derive(Clone, ImplicitClone)]
 pub struct VText {
     /// Contains a text of the node.
     pub text: AttrValue,
 }
-
-impl ImplicitClone for VText {}
 
 impl VText {
     /// Creates new virtual text node with a content.
