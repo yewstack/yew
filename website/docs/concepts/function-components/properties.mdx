@@ -154,7 +154,7 @@ For example, to default a boolean prop to `true`, use the attribute `#[prop_or(t
 is evaluated when the properties are constructed and no explicit value has been given.
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -194,7 +194,7 @@ Call `function` to initialize the prop value. `function` should have the signatu
 The function is called when no explicit value has been given for that attribute.
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::prelude::*;
 
 fn create_default_name() -> AttrValue {
     AttrValue::Static("Bob")
@@ -251,7 +251,7 @@ The macro uses the same syntax as a struct expression except that you can't use 
 The type path can either point to the props directly (`path::to::Props`) or the associated properties of a component (`MyComp::Properties`).
 
 ```rust
-use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrValue};
+use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -262,7 +262,7 @@ pub struct Props {
 }
 
 #[function_component]
-fn Hello(&Props { name }: &Props) -> Html {
+fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
     } else {
@@ -273,7 +273,7 @@ fn Hello(&Props { name }: &Props) -> Html {
 #[function_component]
 fn App() -> Html {
     // highlight-start
-    let pre_made_props = props! {
+    let pre_made_props = yew::props! {
         Props {} // Notice we did not need to specify name prop
     };
     // highlight-end
@@ -289,6 +289,7 @@ generate the `Properties` struct for you.
 
 ```rust
 use yew::prelude::*;
+use yew_autoprops::autoprops;
 
 // the #[autoprops] macro must appear BEFORE #[function_component], the order matters
 #[autoprops]

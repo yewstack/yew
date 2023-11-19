@@ -3615,6 +3615,7 @@ dependencies = [
  "weblog",
  "yew",
  "yew-agent",
+ "yew-autoprops",
  "yew-router",
 ]
 
@@ -3874,6 +3875,17 @@ dependencies = [
  "syn 2.0.38",
  "trybuild",
  "yew-agent",
+]
+
+[[package]]
+name = "yew-autoprops"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0158e8f0ff40eaa82648dc0f7f33e9970157116deda097c73a16d247b8cc7f1e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.38",
 ]
 
 [[package]]
