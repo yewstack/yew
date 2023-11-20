@@ -1,0 +1,13 @@
+[package]
+name = "wasi_ssr"
+version = "0.1.0"
+edition = "2021"
+authors = ["langyo <langyo.china@gmail.com>"]
+
+[dependencies]
+anyhow = "^1"
+serde = { version = "^1", features = ["derive"] }
+serde_json = "^1"
+tokio_wasi = { version = "^1", features = ["full"] }
+
+yew = { path = "../../packages/yew", features = ["ssr", "hydration", "wasi"] }
