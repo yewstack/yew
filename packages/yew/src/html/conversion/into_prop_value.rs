@@ -250,6 +250,70 @@ impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) })
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 impl_into_prop!(|value: Cow<'static, str>| -> AttrValue { AttrValue::from(value) });
 
+macro_rules! impl_primitive_into_prop {
+    ($from_ty:ty => $to_ty:ty) => {
+        // implement V -> T
+        impl IntoPropValue<$to_ty> for $from_ty {
+            #[inline]
+            fn into_prop_value(self) -> $to_ty {
+                self.into()
+            }
+        }
+        // implement V -> Option<T>
+        impl IntoPropValue<Option<$to_ty>> for $from_ty {
+            #[inline]
+            fn into_prop_value(self) -> Option<$to_ty> {
+                Some(self.into())
+            }
+        }
+        // implement Option<V> -> Option<T>
+        impl IntoPropValue<Option<$to_ty>> for Option<$from_ty> {
+            #[inline]
+            fn into_prop_value(self) -> Option<$to_ty> {
+                self.map(Into::into)
+            }
+        }
+    };
+}
+
+// implemented for casting primitive values automatically
+impl_primitive_into_prop!(u8 => u16);
+impl_primitive_into_prop!(u8 => u32);
+impl_primitive_into_prop!(u8 => u64);
+impl_primitive_into_prop!(u8 => u128);
+impl_primitive_into_prop!(u8 => usize);
+impl_primitive_into_prop!(u16 => u32);
+impl_primitive_into_prop!(u16 => u64);
+impl_primitive_into_prop!(u16 => u128);
+impl_primitive_into_prop!(u16 => usize);
+impl_primitive_into_prop!(u32 => u64);
+impl_primitive_into_prop!(u32 => u128);
+impl_primitive_into_prop!(u64 => u128);
+
+impl_primitive_into_prop!(i8 => i16);
+impl_primitive_into_prop!(i8 => i32);
+impl_primitive_into_prop!(i8 => i64);
+impl_primitive_into_prop!(i8 => i128);
+impl_primitive_into_prop!(i8 => isize);
+impl_primitive_into_prop!(i16 => i32);
+impl_primitive_into_prop!(i16 => i64);
+impl_primitive_into_prop!(i16 => i128);
+impl_primitive_into_prop!(i16 => isize);
+impl_primitive_into_prop!(i32 => i64);
+impl_primitive_into_prop!(i32 => i128);
+impl_primitive_into_prop!(i64 => i128);
+
+impl_primitive_into_prop!(i8 => f32);
+impl_primitive_into_prop!(u8 => f32);
+impl_primitive_into_prop!(i16 => f32);
+impl_primitive_into_prop!(u16 => f32);
+impl_primitive_into_prop!(i8 => f64);
+impl_primitive_into_prop!(u8 => f64);
+impl_primitive_into_prop!(i16 => f64);
+impl_primitive_into_prop!(u16 => f64);
+impl_primitive_into_prop!(i32 => f64);
+impl_primitive_into_prop!(u32 => f64);
+
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
         IArray::from(self)
@@ -341,6 +405,54 @@ mod test {
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
         let _: Option<AttrValue> = Cow::Borrowed("foo").into_prop_value();
+    }
+
+    #[test]
+    fn primitives() {
+        macro_rules! assert_into_prop_value {
+            ($src_ty:ty => $dst_ty:ty) => {{
+                let _: $dst_ty = <$src_ty as Default>::default().into_prop_value();
+                let _: Option<$dst_ty> = <$src_ty as Default>::default().into_prop_value();
+                let _: Option<$dst_ty> = Some(<$src_ty as Default>::default()).into_prop_value();
+            }};
+        }
+
+        assert_into_prop_value!(u8 => u16);
+        assert_into_prop_value!(u8 => u32);
+        assert_into_prop_value!(u8 => u64);
+        assert_into_prop_value!(u8 => u128);
+        assert_into_prop_value!(u8 => usize);
+        assert_into_prop_value!(u16 => u32);
+        assert_into_prop_value!(u16 => u64);
+        assert_into_prop_value!(u16 => u128);
+        assert_into_prop_value!(u16 => usize);
+        assert_into_prop_value!(u32 => u64);
+        assert_into_prop_value!(u32 => u128);
+        assert_into_prop_value!(u64 => u128);
+
+        assert_into_prop_value!(i8 => i16);
+        assert_into_prop_value!(i8 => i32);
+        assert_into_prop_value!(i8 => i64);
+        assert_into_prop_value!(i8 => i128);
+        assert_into_prop_value!(i8 => isize);
+        assert_into_prop_value!(i16 => i32);
+        assert_into_prop_value!(i16 => i64);
+        assert_into_prop_value!(i16 => i128);
+        assert_into_prop_value!(i16 => isize);
+        assert_into_prop_value!(i32 => i64);
+        assert_into_prop_value!(i32 => i128);
+        assert_into_prop_value!(i64 => i128);
+
+        assert_into_prop_value!(i8 => f32);
+        assert_into_prop_value!(u8 => f32);
+        assert_into_prop_value!(i16 => f32);
+        assert_into_prop_value!(u16 => f32);
+        assert_into_prop_value!(i8 => f64);
+        assert_into_prop_value!(u8 => f64);
+        assert_into_prop_value!(i16 => f64);
+        assert_into_prop_value!(u16 => f64);
+        assert_into_prop_value!(i32 => f64);
+        assert_into_prop_value!(u32 => f64);
     }
 
     #[test]

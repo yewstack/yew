@@ -251,7 +251,7 @@ pub use yew_macro::html_nested;
 /// # assert_eq!(props.name, "Minka");
 /// // ... or build the associated properties of a component
 /// let props = yew::props!(MyComponent::Properties {
-///     id: 2,
+///     id: 2_usize,
 ///     name: Cow::from("Lemmy")
 /// });
 /// # assert_eq!(props.id, 2);
