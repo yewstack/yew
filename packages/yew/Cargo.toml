@@ -35,10 +35,10 @@ tracing = "0.1.40"
 prokio = "0.1.0"
 rustversion = "1"
 
-[target.'cfg(all(target_arch = "wasm32", not(feature = "wasi")))'.dependencies]
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
 
-[target.'cfg(any(not(target_arch = "wasm32"), feature = "wasi"))'.dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
 tokio = { version = "1.33", features = ["rt"] }
 
@@ -78,7 +78,7 @@ features = [
   "SubmitEvent",
 ]
 
-[target.'cfg(any(not(target_arch = "wasm32"), feature = "wasi"))'.dev-dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.33", features = ["full"] }
 
 [dev-dependencies]

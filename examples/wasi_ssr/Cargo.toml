@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["langyo <langyo.china@gmail.com>"]
 
+[[bin]]
+name = "wasi_ssr"
+path = "src/bin/wasi_ssr_render.rs"
+
 [dependencies]
 anyhow = "^1"
 serde = { version = "^1", features = ["derive"] }
