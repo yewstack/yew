@@ -334,4 +334,36 @@ where
 
         rx
     }
+
+    /// Renders Yew Application into a string Stream.
+    ///
+    /// This function will not create a new tokio task,
+    /// but will completely transfer the asynchronous control to the user.
+    async fn render_stream_async(self) -> impl Stream<Item = String> {
+        let Self {
+            create_props,
+            hydratable,
+            ..
+        } = self;
+
+        let props = create_props();
+        let s = LocalServerRenderer::<COMP>::with_props(props)
+            .hydratable(hydratable)
+            .render_stream();
+        s
+    }
+
+    /// Renders Yew Application into a string.
+    ///
+    /// As opposed to the traditional method,
+    /// this method completely transfers the asynchronous control to the user,
+    /// and will not try to create additional tokio threads in the environment internally.
+    ///
+    /// This method is most suitable for single-threaded environments such as WASI.
+    pub async fn render_async(self) -> String {
+        let s = self.render_stream_async();
+        futures::pin_mut!(s);
+
+        s.await.collect::<String>().await
+    }
 }
