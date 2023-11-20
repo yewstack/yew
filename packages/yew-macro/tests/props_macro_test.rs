@@ -15,7 +15,7 @@ fn props_order() {
         last: usize,
     }
 
-    let mut g = 1..=3;
+    let mut g = 1_usize..=3_usize;
     let props = yew::props!(Props {
         first: g.next().unwrap(),
         second: g.next().unwrap(),

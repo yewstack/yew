@@ -267,8 +267,8 @@ mod value_into_some_value_in_props {
     #[::yew::function_component]
     fn Main() -> ::yew::html::Html {
         ::yew::html! {<>
-            <Inner required=3 optional=5/>
-            <Inner required={::std::option::Option::Some(6)}/>
+            <Inner required=3_usize optional=5_usize />
+            <Inner required={::std::option::Option::Some(6_usize)} />
         </>}
     }
 }
