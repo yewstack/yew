@@ -1,12 +1,6 @@
 [workspace]
-members = [
-    "packages/*",
-    "tools/*",
-    "examples/*",
-]
-default-members = [
-    "packages/*",
-]
+members = ["packages/*", "tools/*", "examples/*"]
+default-members = ["packages/*"]
 resolver = "2"
 
 [profile.release]
@@ -20,3 +14,7 @@ lto = true
 codegen-units = 1
 panic = "abort"
 opt-level = 3
+
+[patch.crates-io]
+gloo = { git = "https://github.com/langyo/gloo", branch = "wasi-fix" }
+prokio = { git = "https://github.com/langyo/prokio", branch = "wasi-fix" }
