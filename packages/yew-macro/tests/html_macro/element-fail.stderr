@@ -452,6 +452,7 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
              <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
              <Option<VNode> as IntoPropValue<VNode>>
+           and $N others
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -468,6 +469,7 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
              <Option<VNode> as IntoPropValue<VNode>>
+           and $N others
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
   --> tests/html_macro/element-fail.rs:51:28
@@ -574,6 +576,7 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<String> as IntoPropValue<Option<implicit_clone::unsync::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
              <Option<VNode> as IntoPropValue<VNode>>
+           and $N others
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
