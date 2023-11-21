@@ -29,6 +29,7 @@ pub async fn render() -> Result<String> {
 async fn main() -> Result<()> {
     let ret = render().await?;
     println!("{}", ret);
+    println!("{}", "Oh");
 
     Ok(())
 }
