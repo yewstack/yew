@@ -1,6 +1,9 @@
-use anyhow::Result;
+#![allow(unused_imports)]
+#![allow(non_snake_case)]
 
-use yew::{function_component, prelude::*, ServerRenderer};
+use anyhow::Result;
+use yew::prelude::*;
+use yew::{function_component, ServerRenderer};
 
 #[function_component]
 fn App() -> Html {
