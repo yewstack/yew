@@ -4,11 +4,9 @@
 mod router;
 
 use anyhow::Result;
-
+use router::{switch, Route};
 use yew::prelude::*;
 use yew::{function_component, ServerRenderer};
-
-use router::{switch, Route};
 
 #[function_component]
 fn Content() -> Html {
@@ -24,10 +22,8 @@ fn Content() -> Html {
 
 #[function_component]
 fn App() -> Html {
-    use yew_router::{
-        history::{AnyHistory, History, MemoryHistory},
-        prelude::*,
-    };
+    use yew_router::history::{AnyHistory, History, MemoryHistory};
+    use yew_router::prelude::*;
 
     let history = AnyHistory::from(MemoryHistory::new());
     history.push("/");
