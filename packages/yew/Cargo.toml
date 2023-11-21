@@ -96,7 +96,7 @@ ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
 wasi = ["gloo/wasi"]
-default = ["wasi"]
+default = []
 
 [package.metadata.docs.rs]
 all-features = true
