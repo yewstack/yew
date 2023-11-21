@@ -337,9 +337,8 @@ where
 
     /// Renders Yew Application into a string Stream.
     ///
-    /// This function will not create a new tokio task,
-    /// but will completely transfer the asynchronous control to the user.
-    async fn render_stream_async(self) -> impl Stream<Item = String> {
+    /// It would return a stream that yields a string for each rendered chunk.
+    pub async fn render_stream_async(self) -> impl Stream<Item = String> {
         let Self {
             create_props,
             hydratable,
@@ -354,15 +353,30 @@ where
 
     /// Renders Yew Application into a string.
     ///
-    /// As opposed to the traditional method,
-    /// this method completely transfers the asynchronous control to the user,
-    /// and will not try to create additional tokio threads in the environment internally.
-    ///
-    /// This method is most suitable for single-threaded environments such as WASI.
+    /// This method completely transfers the asynchronous control to the user,
+    /// and will not try to create additional async runtime tasks in the environment internally.
+    /// It's most suitable for single-threaded environments such as WASI.
     pub async fn render_async(self) -> String {
         let s = self.render_stream_async();
         futures::pin_mut!(s);
 
         s.await.collect::<String>().await
+    }
+
+    /// Renders Yew Application into a string.
+    ///
+    /// This method completely transfers the asynchronous control to the user,
+    /// and will not try to create additional async runtime tasks in the environment internally.
+    /// It's most suitable for single-threaded environments such as WASI.
+    pub async fn render_to_string_async(self, w: &mut String) {
+        let s = self.render_stream_async();
+        futures::pin_mut!(s);
+
+        s.await
+            .for_each(|m| {
+                w.push_str(&m);
+                async {}
+            })
+            .await;
     }
 }
