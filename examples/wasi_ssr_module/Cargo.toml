@@ -6,6 +6,7 @@ authors = ["langyo <langyo.china@gmail.com>"]
 
 [dependencies]
 yew = { path = "../../packages/yew", features = ["ssr", "wasi"] }
+yew-router = { path = "../../packages/yew-router", features = ["wasi"] }
 
 anyhow = "^1"
 bytes = "^1"
