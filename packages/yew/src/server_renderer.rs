@@ -347,10 +347,9 @@ where
         } = self;
 
         let props = create_props();
-        let s = LocalServerRenderer::<COMP>::with_props(props)
+        LocalServerRenderer::<COMP>::with_props(props)
             .hydratable(hydratable)
-            .render_stream();
-        s
+            .render_stream()
     }
 
     /// Renders Yew Application into a string.
