@@ -13,7 +13,7 @@ gloo = "0.10"
 wasm-bindgen = "0.2"
 
 [dependencies.web-sys]
-version = "0.3.64"
+version = "0.3.65"
 features = [
     "Document",
     "Element",
