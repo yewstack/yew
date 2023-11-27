@@ -140,6 +140,38 @@ Emmet support should work out of the box, if not please fall back to edditing th
 
 ### Neovim
 
+#### Vanilla Neovim
+
+> The configuration below works with any version of Neovim, add the following to where your `lspconfig` exists, this needs the `emmet_ls` server to be installed with lsp:
+
+```lua
+local function setup_emmet_rs()
+    local lspconfig = require 'lspconfig'
+    local configs = require 'lspconfig.configs'
+
+    configs.emmet_rs = {
+        init_options = {
+            userLanguages = {
+                eelixir = "html-eex",
+                eruby = "erb",
+                rust = "html",
+            },
+        },
+        default_config = {
+            cmd = {'emmet-ls', '--stdio'},
+            filetypes = { "rust" },
+            root_dir = function(fname)
+                return lspconfig.util.find_git_ancestor(fname)
+            end,
+            settings = {},
+        },
+    }
+    lspconfig.emmet_rs.setup{}
+end
+
+setup_emmet_rs()
+```
+
 #### Lazyvim
 
 > Below configuration works with [LazyVim](https://www.lazyvim.org) configuration and lazy.vim plugin, create a file in `lua/plugins/nvim-lspconfig.lua` (or update your `lspconfig`) with:
