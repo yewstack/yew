@@ -38,5 +38,4 @@ version = "0.3"
 features = ["HtmlHeadElement"]
 
 [features]
-wasi = ["gloo/wasi"]
 default = []

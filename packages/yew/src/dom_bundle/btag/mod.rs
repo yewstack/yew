@@ -288,13 +288,13 @@ impl BTag {
         self.key.as_ref()
     }
 
-    #[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
-    #[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn children(&self) -> Option<&BNode> {
         match &self.inner {
@@ -303,7 +303,7 @@ impl BTag {
         }
     }
 
-    #[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -403,7 +403,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
@@ -1000,7 +1000,7 @@ mod tests {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;

@@ -95,7 +95,6 @@ features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
-wasi = ["gloo/wasi"]
 default = []
 
 [package.metadata.docs.rs]

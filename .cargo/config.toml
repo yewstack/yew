@@ -1,4 +1,4 @@
-[target.'cfg(all(target_arch = "wasm32", not(feature = "wasi")))']
+[target.'cfg(all(target_arch = "wasm32", not(target_os = "wasi")))']
 runner = 'wasm-bindgen-test-runner'
 
 # This section needs to be last.
