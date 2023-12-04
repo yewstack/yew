@@ -66,7 +66,8 @@ impl ToTokens for HtmlFor {
         let Self { pat, iter, body } = self;
         let acc = Ident::new("__yew_v", iter.span());
 
-        let alloc_opt = body.size_hint()
+        let alloc_opt = body
+            .size_hint()
             .filter(|&size| size > 1) // explicitly reserving space for 1 more element is redundant
             .map(|size| quote!( #acc.reserve(#size) ));
 
