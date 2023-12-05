@@ -1,5 +1,6 @@
 [workspace]
 members = ["packages/*", "tools/*", "examples/*"]
+exclude = ["examples/wasi_ssr_module"]
 default-members = ["packages/*"]
 resolver = "2"
 
