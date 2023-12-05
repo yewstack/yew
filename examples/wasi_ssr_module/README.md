@@ -4,6 +4,8 @@ This example demonstrates how to use the WASI target to run a simple server-side
 
 It depends on [wasmtime](https://wasmtime.dev)'s WASI preview2.
 
+> It requires Rust 1.67 or newer.
+
 ## Building
 
 To build the example, run the following command from the root of the repository:
