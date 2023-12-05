@@ -167,7 +167,7 @@ jobs:
         run: |
           wget https://github.com/bytecodealliance/wasmtime/releases/download/v15.0.1/wasmtime-v15.0.1-x86_64-linux.tar.xz
           tar xf wasmtime-v15.0.1-x86_64-linux.tar.xz
-          mv wasmtime-v15.0.1-x86_64-linux/wasmtime-min ~/wasmtime
+          mv wasmtime-v15.0.1-x86_64-linux/wasmtime ~/wasmtime
           rm -rf wasmtime-v15.0.1-x86_64-linux.tar.xz wasmtime-v15.0.1-x86_64-linux
           chmod +x ~/wasmtime
 
