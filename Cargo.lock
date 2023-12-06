@@ -719,6 +719,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dns-parser"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4d33be9473d06f75f58220f71f7a9317aca647dc061dbd3c361b0bef505fbea"
+dependencies = [
+ "byteorder",
+ "quick-error 1.2.3",
+]
+
+[[package]]
 name = "dyn_create_destroy_apps"
 version = "0.1.0"
 dependencies = [
@@ -2083,6 +2093,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mio_wasi"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "826049861effde5245d1107a8eb21846bd8fc7a16486e60be4d0568361c947e5"
+dependencies = [
+ "libc",
+ "log",
+ "wasi",
+ "wasmedge_wasi_socket",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
 name = "mount_point"
 version = "0.1.0"
 dependencies = [
@@ -2474,6 +2497,12 @@ dependencies = [
  "memchr",
  "unicase",
 ]
+
+[[package]]
+name = "quick-error"
+version = "1.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quick-error"
@@ -3165,8 +3194,19 @@ dependencies = [
  "pin-project-lite",
  "signal-hook-registry",
  "socket2 0.5.4",
- "tokio-macros",
+ "tokio-macros 2.1.0",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "1.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d266c00fde287f55d3f1c3e96c500c362a2b8c695076ec180f27918820bc6df8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -3225,6 +3265,27 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "tokio_wasi"
+version = "1.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b3a7120cdbe4719425355a0f6b59191c67ab5ed4eebc64bdb12ea3bc8776adf"
+dependencies = [
+ "autocfg",
+ "bytes",
+ "libc",
+ "memchr",
+ "mio_wasi",
+ "num_cpus",
+ "parking_lot",
+ "pin-project-lite",
+ "signal-hook-registry",
+ "socket2 0.4.9",
+ "tokio-macros 1.8.2",
+ "wasmedge_wasi_socket",
+ "windows-sys 0.45.0",
 ]
 
 [[package]]
@@ -3521,6 +3582,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
+name = "wasi_ssr_module"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "lazy_static",
+ "serde",
+ "serde_json",
+ "tokio_wasi",
+ "yew",
+ "yew-router",
+]
+
+[[package]]
 name = "wasm-bindgen"
 version = "0.2.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3619,6 +3694,18 @@ dependencies = [
  "log",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "wasmedge_wasi_socket"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "900a4c17690ef5efcccbdc833853b3e48f2a0de589427a609ddb5e866e1cb91f"
+dependencies = [
+ "bytes",
+ "dns-parser",
+ "libc",
+ "rand",
 ]
 
 [[package]]
@@ -4019,7 +4106,7 @@ dependencies = [
  "itertools",
  "js-sys",
  "lazy_static",
- "quick-error",
+ "quick-error 2.0.1",
  "regex",
  "time",
 ]

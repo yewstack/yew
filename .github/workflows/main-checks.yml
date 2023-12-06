@@ -175,8 +175,8 @@ jobs:
 
       - name: Build and run example wasi_ssr_module
         run: |
-          cargo build --manifest-path examples/wasi_ssr_module/Cargo.toml --target wasm32-wasi
-          ~/wasmtime examples/wasi_ssr_module/target/wasm32-wasi/debug/wasi_ssr_module.wasm
+          cargo build --package wasi_ssr_module --target wasm32-wasi
+          ~/wasmtime --trap-unknown-imports target/wasm32-wasi/debug/wasi_ssr_module.wasm
 
   test-lints:
     name: Test lints on nightly
