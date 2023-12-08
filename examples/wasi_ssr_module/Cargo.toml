@@ -14,4 +14,4 @@ serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
 lazy_static = "^1"
 
-tokio_wasi = { version = "^1", features = ["full"] }
+tokio = { version = "^1", features = ["macros", "rt", "time"] }

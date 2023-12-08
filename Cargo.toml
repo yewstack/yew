@@ -14,7 +14,3 @@ lto = true
 codegen-units = 1
 panic = "abort"
 opt-level = 3
-
-[patch.crates-io]
-gloo = { git = "https://github.com/rustwasm/gloo", rev = "7516f26" }
-prokio = { git = "https://github.com/langyo/prokio", branch = "wasi-fix" }
