@@ -8,7 +8,6 @@ use crate::history::{AnyHistory, History, Location};
 #[cfg(not(target_os = "wasi"))]
 use crate::history::{BrowserHistory, HashHistory};
 use crate::navigator::Navigator;
-
 #[cfg(not(target_os = "wasi"))]
 use crate::utils::base_url;
 use crate::utils::strip_slash_suffix;

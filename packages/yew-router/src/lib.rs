@@ -89,7 +89,6 @@ pub mod history {
     pub use gloo::history::{
         AnyHistory, History, HistoryError, HistoryResult, Location, MemoryHistory,
     };
-
     #[cfg(not(target_os = "wasi"))]
     pub use gloo::history::{BrowserHistory, HashHistory};
 }
