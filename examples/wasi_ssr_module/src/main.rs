@@ -5,8 +5,7 @@ mod router;
 
 use anyhow::Result;
 use router::{switch, Route};
-use yew::prelude::*;
-use yew::{function_component, ServerRenderer};
+use yew::{prelude::*, LocalServerRenderer};
 
 #[function_component]
 fn Content() -> Html {
@@ -38,8 +37,8 @@ fn App() -> Html {
 }
 
 pub async fn render() -> Result<String> {
-    let renderer = ServerRenderer::<App>::new();
-    let html_raw = renderer.render_async().await;
+    let renderer = LocalServerRenderer::<App>::new();
+    let html_raw = renderer.render().await;
 
     let mut body = String::new();
     body.push_str("<body>");
