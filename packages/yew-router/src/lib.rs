@@ -78,16 +78,20 @@ pub mod switch;
 pub mod utils;
 
 pub use routable::{AnyRoute, Routable};
-pub use router::{BrowserRouter, HashRouter, Router};
+pub use router::Router;
+#[cfg(not(target_os = "wasi"))]
+pub use router::{BrowserRouter, HashRouter};
 pub use switch::Switch;
 
 pub mod history {
     //! A module that provides universal session history and location information.
 
     pub use gloo::history::{
-        AnyHistory, BrowserHistory, HashHistory, History, HistoryError, HistoryResult, Location,
-        MemoryHistory,
+        AnyHistory, History, HistoryError, HistoryResult, Location, MemoryHistory,
     };
+
+    #[cfg(not(target_os = "wasi"))]
+    pub use gloo::history::{BrowserHistory, HashHistory};
 }
 
 pub mod prelude {
@@ -102,5 +106,7 @@ pub mod prelude {
     pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};
     #[doc(no_inline)]
     pub use crate::Routable;
-    pub use crate::{BrowserRouter, HashRouter, Router, Switch};
+    #[cfg(not(target_os = "wasi"))]
+    pub use crate::{BrowserRouter, HashRouter};
+    pub use crate::{Router, Switch};
 }
