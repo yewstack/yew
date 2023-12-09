@@ -195,6 +195,52 @@ fn main() {
 Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
 Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
 
+## Single thread mode
+
+Yew supports single thread mode for server-side rendering by `yew::LocalServerRenderer`. This mode would work in a single thread environment like WASI.
+
+```rust
+// Build it by `wasm32-wasi` target
+
+use anyhow::Result;
+use yew::{prelude::*, LocalServerRenderer};
+
+#[function_component]
+fn App() -> Html {
+    use yew_router::prelude::*;
+
+    html! {
+        <>
+            <h1>{"Yew WASI SSR demo"}</h1>
+        </>
+    }
+}
+
+pub async fn render() -> Result<String> {
+    let renderer = LocalServerRenderer::<App>::new();
+    let html_raw = renderer.render().await;
+
+    let mut body = String::new();
+    body.push_str("<body>");
+    body.push_str("<div id='app'>");
+    body.push_str(&html_raw);
+    body.push_str("</div>");
+    body.push_str("</body>");
+
+    Ok(body)
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<()> {
+    let ret = render().await?;
+    println!("{}", ret);
+
+    Ok(())
+}
+```
+
+Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module)
+
 :::caution
 
 Server-side rendering is currently experimental. If you find a bug, please file
