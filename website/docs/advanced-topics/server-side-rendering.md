@@ -202,8 +202,8 @@ Yew supports single thread mode for server-side rendering by `yew::LocalServerRe
 ```rust
 // Build it by `wasm32-wasi` target
 
-use anyhow::Result;
-use yew::{prelude::*, LocalServerRenderer};
+use yew::prelude::*;
+use yew::LocalServerRenderer;
 
 #[function_component]
 fn App() -> Html {
@@ -216,7 +216,7 @@ fn App() -> Html {
     }
 }
 
-pub async fn render() -> Result<String> {
+pub async fn render() -> String {
     let renderer = LocalServerRenderer::<App>::new();
     let html_raw = renderer.render().await;
 
@@ -227,15 +227,12 @@ pub async fn render() -> Result<String> {
     body.push_str("</div>");
     body.push_str("</body>");
 
-    Ok(body)
+    body
 }
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<()> {
-    let ret = render().await?;
-    println!("{}", ret);
-
-    Ok(())
+async fn main() {
+    println!("{}", render().await);
 }
 ```
 
