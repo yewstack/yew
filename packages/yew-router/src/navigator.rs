@@ -12,7 +12,6 @@ pub type NavigationResult<T> = HistoryResult<T>;
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NavigatorKind {
     /// Browser History.
-    #[cfg(not(target_os = "wasi"))]
     Browser,
     /// Hash History.
     Hash,
@@ -151,9 +150,7 @@ impl Navigator {
     /// Returns the Navigator kind.
     pub fn kind(&self) -> NavigatorKind {
         match &self.inner {
-            #[cfg(not(target_os = "wasi"))]
             AnyHistory::Browser(_) => NavigatorKind::Browser,
-            #[cfg(not(target_os = "wasi"))]
             AnyHistory::Hash(_) => NavigatorKind::Hash,
             AnyHistory::Memory(_) => NavigatorKind::Memory,
         }
