@@ -16,4 +16,4 @@ panic = "abort"
 opt-level = 3
 
 [patch.crates-io]
-gloo = { git = "https://github.com/langyo/gloo", branch = "cargo-lock-update" }
+gloo = { git = "https://github.com/langyo/gloo", branch = "revert-wasi-macro" }
