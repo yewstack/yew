@@ -308,7 +308,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "getrandom",
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "rand",
  "serde",
  "web-sys",
@@ -529,7 +529,7 @@ checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
 name = "counter"
 version = "0.1.1"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "js-sys",
  "wasm-bindgen",
  "yew",
@@ -704,7 +704,7 @@ dependencies = [
 name = "dyn_create_destroy_apps"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "js-sys",
  "slab",
  "wasm-bindgen",
@@ -802,7 +802,7 @@ name = "file_upload"
 version = "0.1.0"
 dependencies = [
  "base64",
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "js-sys",
  "web-sys",
  "yew",
@@ -849,7 +849,7 @@ name = "function_memory_game"
 version = "0.1.0"
 dependencies = [
  "getrandom",
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "nanoid",
  "rand",
  "serde",
@@ -864,7 +864,7 @@ name = "function_router"
 version = "0.1.0"
 dependencies = [
  "getrandom",
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "instant",
  "lipsum",
  "log",
@@ -880,7 +880,7 @@ dependencies = [
 name = "function_todomvc"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "serde",
  "strum",
  "strum_macros",
@@ -892,7 +892,7 @@ dependencies = [
 name = "futures"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "pulldown-cmark",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -994,7 +994,7 @@ name = "game_of_life"
 version = "0.1.4"
 dependencies = [
  "getrandom",
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "log",
  "rand",
  "wasm-logger",
@@ -1076,34 +1076,35 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd35526c28cc55c1db77aed6296de58677dbab863b118483a27845631d870249"
 dependencies = [
- "gloo-console 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-dialogs 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-events 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-file 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-history 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gloo-console 0.3.0",
+ "gloo-dialogs 0.2.0",
+ "gloo-events 0.2.0",
+ "gloo-file 0.3.0",
+ "gloo-history 0.2.1",
  "gloo-net 0.4.0",
- "gloo-render 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-storage 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-timers 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-utils 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gloo-render 0.2.0",
+ "gloo-storage 0.3.0",
+ "gloo-timers 0.3.0",
+ "gloo-utils 0.2.0",
  "gloo-worker 0.4.0",
 ]
 
 [[package]]
 name = "gloo"
 version = "0.11.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d15282ece24eaf4bd338d73ef580c6714c8615155c4190c781290ee3fa0fd372"
 dependencies = [
- "gloo-console 0.3.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-dialogs 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-events 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-file 0.3.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-history 0.2.1 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-console 0.3.0",
+ "gloo-dialogs 0.2.0",
+ "gloo-events 0.2.0",
+ "gloo-file 0.3.0",
+ "gloo-history 0.2.1",
  "gloo-net 0.5.0",
- "gloo-render 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-storage 0.3.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-timers 0.3.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-utils 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-render 0.2.0",
+ "gloo-storage 0.3.0",
+ "gloo-timers 0.3.0",
+ "gloo-utils 0.2.0",
  "gloo-worker 0.5.0",
 ]
 
@@ -1126,19 +1127,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a17868f56b4a24f677b17c8cb69958385102fa879418052d60b50bc1727e261"
 dependencies = [
- "gloo-utils 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "js-sys",
- "serde",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "gloo-console"
-version = "0.3.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "gloo-utils 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-utils 0.2.0",
  "js-sys",
  "serde",
  "wasm-bindgen",
@@ -1166,15 +1155,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gloo-dialogs"
-version = "0.2.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "gloo-events"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1189,15 +1169,6 @@ name = "gloo-events"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27c26fb45f7c385ba980f5fa87ac677e363949e065a083722697ef1b2cc91e41"
-dependencies = [
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "gloo-events"
-version = "0.2.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
 dependencies = [
  "wasm-bindgen",
  "web-sys",
@@ -1222,19 +1193,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97563d71863fb2824b2e974e754a81d19c4a7ec47b09ced8a0e6656b6d54bd1f"
 dependencies = [
  "futures-channel",
- "gloo-events 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "js-sys",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "gloo-file"
-version = "0.3.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "futures-channel",
- "gloo-events 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-events 0.2.0",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
@@ -1263,24 +1222,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c4022e82f5f9e03cb1251b13c0a967e0600e97aa179c617f6519bac40640160"
 dependencies = [
  "getrandom",
- "gloo-events 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-utils 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde",
- "serde-wasm-bindgen 0.6.2",
- "serde_urlencoded",
- "thiserror",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "gloo-history"
-version = "0.2.1"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "getrandom",
- "gloo-events 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-utils 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-events 0.2.0",
+ "gloo-utils 0.2.0",
  "serde",
  "serde-wasm-bindgen 0.6.2",
  "serde_urlencoded",
@@ -1319,7 +1262,7 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-sink",
- "gloo-utils 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gloo-utils 0.2.0",
  "http",
  "js-sys",
  "pin-project",
@@ -1334,12 +1277,13 @@ dependencies = [
 [[package]]
 name = "gloo-net"
 version = "0.5.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43aaa242d1239a8822c15c645f02166398da4f8b5c4bae795c1f5b44e9eee173"
 dependencies = [
  "futures-channel",
  "futures-core",
  "futures-sink",
- "gloo-utils 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-utils 0.2.0",
  "http",
  "js-sys",
  "pin-project",
@@ -1372,15 +1316,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gloo-render"
-version = "0.2.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "gloo-storage"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1401,21 +1336,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fbc8031e8c92758af912f9bc08fbbadd3c6f3cfcbf6b64cdf3d6a81f0139277a"
 dependencies = [
- "gloo-utils 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "js-sys",
- "serde",
- "serde_json",
- "thiserror",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "gloo-storage"
-version = "0.3.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "gloo-utils 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-utils 0.2.0",
  "js-sys",
  "serde",
  "serde_json",
@@ -1439,17 +1360,6 @@ name = "gloo-timers"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbb143cf96099802033e0d4f4963b19fd2e0b728bcf076cd9cf7f6634f092994"
-dependencies = [
- "futures-channel",
- "futures-core",
- "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "gloo-timers"
-version = "0.3.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -1484,18 +1394,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gloo-utils"
-version = "0.2.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
-dependencies = [
- "js-sys",
- "serde",
- "serde_json",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "gloo-worker"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1520,8 +1418,8 @@ checksum = "76495d3dd87de51da268fa3a593da118ab43eb7f8809e17eb38d3319b424e400"
 dependencies = [
  "bincode",
  "futures 0.3.29",
- "gloo-utils 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gloo-worker-macros 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gloo-utils 0.2.0",
+ "gloo-worker-macros",
  "js-sys",
  "pinned",
  "serde",
@@ -1534,12 +1432,13 @@ dependencies = [
 [[package]]
 name = "gloo-worker"
 version = "0.5.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "085f262d7604911c8150162529cefab3782e91adb20202e8658f7275d2aefe5d"
 dependencies = [
  "bincode",
  "futures 0.3.29",
- "gloo-utils 0.2.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
- "gloo-worker-macros 0.1.0 (git+https://github.com/langyo/gloo?branch=revert-wasi-macro)",
+ "gloo-utils 0.2.0",
+ "gloo-worker-macros",
  "js-sys",
  "pinned",
  "serde",
@@ -1554,17 +1453,6 @@ name = "gloo-worker-macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "956caa58d4857bc9941749d55e4bd3000032d8212762586fa5705632967140e7"
-dependencies = [
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn 2.0.39",
-]
-
-[[package]]
-name = "gloo-worker-macros"
-version = "0.1.0"
-source = "git+https://github.com/langyo/gloo?branch=revert-wasi-macro#7cd71ba6b24ffda9c7e8e99a3c818e18e89b3962"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1844,7 +1732,7 @@ dependencies = [
 name = "inner_html"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "web-sys",
  "yew",
 ]
@@ -2120,7 +2008,7 @@ dependencies = [
 name = "mount_point"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -2385,7 +2273,7 @@ checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
 name = "portals"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -2648,7 +2536,7 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "getrandom",
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "instant",
  "lipsum",
  "log",
@@ -3128,7 +3016,7 @@ checksum = "ef927ca75afb808a4d64dd374f00a2adf8d0fcff8e7b184af886c3c87ec4a3f3"
 name = "timer"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "js-sys",
  "wasm-bindgen",
  "yew",
@@ -3162,7 +3050,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 name = "todomvc"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "serde",
  "serde_derive",
  "strum",
@@ -3393,7 +3281,7 @@ dependencies = [
 name = "two_apps"
 version = "0.1.0"
 dependencies = [
- "gloo 0.10.0",
+ "gloo 0.11.0",
  "yew",
 ]
 
