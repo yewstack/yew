@@ -111,7 +111,7 @@ Functions in JavaScript do not define the type of any variables they take in or 
 any valid JavaScript value, hence `JsValue`. If you are working with imported functions or types that
 accept a `JsValue`, then any imported value is _technically_ valid.
 
-Even though `JsValue` may be accepted by a JS function, that function may still only *actually* accept certain types.
+Even though `JsValue` may be accepted by a JS function, that function may still only _actually_ accept certain types.
 Passing an incorrect `JsValue` can lead to an exception which triggers a panic - so when using raw `wasm-bindgen` APIs,
 check the your JavaScript's documentation for types of inputs that will cause an exception (and a panic).
 
