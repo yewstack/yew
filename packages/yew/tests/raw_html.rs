@@ -1,13 +1,13 @@
 mod common;
 
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 use wasm_bindgen::JsCast;
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::prelude::*;
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-#[cfg(any(not(target_arch = "wasm32"), feature = "wasi"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 use tokio::test;
 
 macro_rules! create_test {
@@ -27,7 +27,7 @@ macro_rules! create_test {
                 }
             }
 
-            #[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+            #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
             {
                 use std::time::Duration;
 
@@ -46,7 +46,7 @@ macro_rules! create_test {
                     .unwrap();
                 assert_eq!(e.inner_html(), $expected);
             }
-            #[cfg(any(not(target_arch = "wasm32"), feature = "wasi"))]
+            #[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
             {
                 let actual = yew::ServerRenderer::<App>::new()
                     .hydratable(false)
@@ -74,7 +74,7 @@ create_test!(
 
 macro_rules! create_update_html_test {
     ($name:ident, $initial:expr, $updated:expr) => {
-        #[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+        #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
         #[test]
         async fn $name() {
             #[function_component]
@@ -150,7 +150,7 @@ create_update_html_test!(
     "<span>first</span><span>second</span>"
 );
 
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[test]
 async fn change_vnode_types_from_other_to_vraw() {
     #[function_component]
@@ -202,7 +202,7 @@ async fn change_vnode_types_from_other_to_vraw() {
     assert_eq!(e.inner_html(), "<span>second</span>");
 }
 
-#[cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[test]
 async fn change_vnode_types_from_vraw_to_other() {
     #[function_component]

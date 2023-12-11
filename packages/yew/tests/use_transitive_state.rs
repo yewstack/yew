@@ -1,5 +1,5 @@
 #![cfg(feature = "hydration")]
-#![cfg(all(target_arch = "wasm32", not(feature = "wasi")))]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 use std::time::Duration;
 
