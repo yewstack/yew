@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.67), test)]
+#[rustversion::attr(stable(1.68), test)]
 fn tests() {
     let t = trybuild::TestCases::new();
     t.pass("tests/hook_attr/*-pass.rs");
