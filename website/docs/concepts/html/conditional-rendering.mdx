@@ -71,3 +71,96 @@ html! {
 
   </TabItem>
 </Tabs>
+
+## Using typed children
+
+Assuming you have a component which uses `ChildrenRenderer<T>` or `ChildrenWithProps<T>`, it is currently not possible
+to use the `if` syntax. However, as it is possible to use an `Iterator<T>` and `Option<T>` implements the iterator trait
+in Rust, this can be transformed into using `for` instead.
+
+Assuming you have the following component structure, `Parent` only accepting children of the type `Child`:
+
+```rust
+use yew::prelude::*;
+
+#[function_component(Child)]
+fn child() -> Html {
+    html! {}
+}
+
+#[derive(PartialEq, Properties)]
+struct ParentProperties {
+    pub children: ChildrenWithProps<Child>,
+}
+
+#[function_component(Parent)]
+fn parent(props: &ParentProperties) -> Html {
+    html! {}
+}
+```
+
+Then it is possible to compose the children using `for`, translating the `bool` condition into an `Option` using
+`Option::then`:
+
+<Tabs>
+  <TabItem value="typed-children-valid" label="Using for">
+
+```rust
+use yew::prelude::*;
+
+// component definition
+
+#[function_component(Child)]
+fn child() -> Html { html! {} }
+
+#[derive(PartialEq, Properties)]
+struct ParentProperties {
+    pub children: ChildrenWithProps<Child>,
+}
+
+#[function_component(Parent)]
+fn parent(props: &ParentProperties) -> Html { html! {} }
+
+// Making use of the `for` construct
+
+#[function_component(Example)]
+fn example() -> Html {
+    let condition = true; // or false
+
+    html! {
+        <Parent>
+            <Child /> // first child
+            <Child /> // second child
+            { for condition.then(|| html_nested!(
+                <Child /> // optional third child
+            )) }
+        </Parent>
+    }
+}
+```
+
+  </TabItem>
+
+  <TabItem value="typed-children-invalid" label="Invalid">
+
+What does not work is to use the `if` keyword directly, as it turns the component into an untyped children, which
+cannot be assigned to the typed children types.
+
+```rust, compile_fail
+use yew::prelude::*;
+
+let condition = true; // or false
+
+html! {
+    <Parent>
+        <Child />
+        <Child />
+        if condition {
+            <Child /> // optional third child
+        }
+    </Parent>
+}
+```
+
+  </TabItem>
+</Tabs>
