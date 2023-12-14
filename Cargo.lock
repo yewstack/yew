@@ -1093,7 +1093,7 @@ dependencies = [
  "gloo-dialogs 0.1.1",
  "gloo-events 0.1.2",
  "gloo-file 0.2.3",
- "gloo-history 0.1.4",
+ "gloo-history 0.1.5",
  "gloo-net 0.3.1",
  "gloo-render 0.1.1",
  "gloo-storage 0.2.2",
@@ -1233,9 +1233,9 @@ dependencies = [
 
 [[package]]
 name = "gloo-history"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddfd137a4b629e72b8c949ec56c71ea9bd5491cc66358a0a7787e94875feec71"
+checksum = "85725d90bf0ed47063b3930ef28e863658a7905989e9929a8708aab74a1d5e7f"
 dependencies = [
  "gloo-events 0.1.2",
  "gloo-utils 0.1.7",

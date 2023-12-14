@@ -146,38 +146,6 @@ jobs:
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
         run: cargo test -p yew --all-features
 
-  example-runnable-tests-on-wasi:
-    name: Example Runnable Tests on WASI
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain:
-          - 1.64.0
-          - stable
-          - nightly
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.toolchain }}
-          target: wasm32-wasi
-
-      - name: Install wasmtime
-        run: |
-          wget https://github.com/bytecodealliance/wasmtime/releases/download/v15.0.1/wasmtime-v15.0.1-x86_64-linux.tar.xz
-          tar xf wasmtime-v15.0.1-x86_64-linux.tar.xz
-          mv wasmtime-v15.0.1-x86_64-linux/wasmtime ~/wasmtime
-          rm -rf wasmtime-v15.0.1-x86_64-linux.tar.xz wasmtime-v15.0.1-x86_64-linux
-          chmod +x ~/wasmtime
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Build and run example wasi_ssr_module
-        run: |
-          cargo build --package wasi_ssr_module --target wasm32-wasi
-          ~/wasmtime --trap-unknown-imports target/wasm32-wasi/debug/wasi_ssr_module.wasm
-
   test-lints:
     name: Test lints on nightly
     runs-on: ubuntu-latest

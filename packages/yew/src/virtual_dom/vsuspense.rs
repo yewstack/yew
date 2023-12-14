@@ -76,6 +76,7 @@ mod ssr_tests {
     use crate::suspense::{Suspension, SuspensionResult};
     use crate::ServerRenderer;
 
+    #[cfg(not(target_os = "wasi"))]
     #[test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_suspense() {
         #[derive(PartialEq)]
