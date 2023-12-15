@@ -127,23 +127,28 @@ macro_rules! create_update_html_test {
     };
 }
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     set_new_html_string,
     "<span>first</span>",
     "<span>second</span>"
 );
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     set_new_html_string_multiple_children,
     "<span>first</span><span>second</span>",
     "<span>second</span>"
 );
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     clear_html_string_multiple_children,
     "<span>first</span><span>second</span>",
     ""
 );
+
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     nothing_changes,
     "<span>first</span><span>second</span>",
