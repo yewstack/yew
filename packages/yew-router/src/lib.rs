@@ -78,9 +78,7 @@ pub mod switch;
 pub mod utils;
 
 pub use routable::{AnyRoute, Routable};
-pub use router::Router;
-#[cfg(not(target_os = "wasi"))]
-pub use router::{BrowserRouter, HashRouter};
+pub use router::{BrowserRouter, HashRouter, Router};
 pub use switch::Switch;
 
 pub mod history {
