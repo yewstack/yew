@@ -48,7 +48,7 @@ macro_rules! create_test {
             }
             #[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
             {
-                let actual = yew::ServerRenderer::<App>::new()
+                let actual = yew::LocalServerRenderer::<App>::new()
                     .hydratable(false)
                     .render()
                     .await;

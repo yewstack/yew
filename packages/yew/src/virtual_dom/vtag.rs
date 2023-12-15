@@ -562,9 +562,10 @@ mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::ServerRenderer;
+    use crate::LocalServerRenderer as ServerRenderer;
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag() {
         #[function_component]
         fn Comp() -> Html {
@@ -579,7 +580,8 @@ mod ssr_tests {
         assert_eq!(s, "<div></div>");
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_attr() {
         #[function_component]
         fn Comp() -> Html {
@@ -594,7 +596,8 @@ mod ssr_tests {
         assert_eq!(s, r#"<div class="abc"></div>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_content() {
         #[function_component]
         fn Comp() -> Html {
@@ -609,7 +612,8 @@ mod ssr_tests {
         assert_eq!(s, r#"<div>Hello!</div>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_nested_tag_and_input() {
         #[function_component]
         fn Comp() -> Html {
@@ -624,7 +628,8 @@ mod ssr_tests {
         assert_eq!(s, r#"<div>Hello!<input value="abc" type="text"></div>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_textarea() {
         #[function_component]
         fn Comp() -> Html {
@@ -639,7 +644,8 @@ mod ssr_tests {
         assert_eq!(s, r#"<textarea>teststring</textarea>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_escaping_in_style_tag() {
         #[function_component]
         fn Comp() -> Html {
@@ -654,7 +660,8 @@ mod ssr_tests {
         assert_eq!(s, r#"<style>body > a {color: #cc0;}</style>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_escaping_in_script_tag() {
         #[function_component]
         fn Comp() -> Html {
@@ -669,7 +676,8 @@ mod ssr_tests {
         assert_eq!(s, r#"<script>foo.bar = x < y;</script>"#);
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_multiple_vtext_in_style_tag() {
         #[function_component]
         fn Comp() -> Html {
