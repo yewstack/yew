@@ -3,11 +3,11 @@ name: Main Checks
 on:
   pull_request:
     paths:
-      - '.github/workflows/main-checks.yml'
-      - 'ci/**'
-      - 'packages/**/*'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
+      - ".github/workflows/main-checks.yml"
+      - "ci/**"
+      - "packages/**/*"
+      - "Cargo.toml"
+      - "Cargo.lock"
   push:
     branches: [master]
 
