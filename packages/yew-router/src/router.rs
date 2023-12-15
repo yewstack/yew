@@ -6,8 +6,7 @@ use yew::virtual_dom::AttrValue;
 
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
-use crate::utils::base_url;
-use crate::utils::strip_slash_suffix;
+use crate::utils::{base_url, strip_slash_suffix};
 
 /// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]
