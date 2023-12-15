@@ -1093,7 +1093,7 @@ dependencies = [
  "gloo-dialogs 0.1.1",
  "gloo-events 0.1.2",
  "gloo-file 0.2.3",
- "gloo-history 0.1.5",
+ "gloo-history 0.1.4",
  "gloo-net 0.3.1",
  "gloo-render 0.1.1",
  "gloo-storage 0.2.2",
@@ -1112,7 +1112,7 @@ dependencies = [
  "gloo-dialogs 0.2.0",
  "gloo-events 0.2.0",
  "gloo-file 0.3.0",
- "gloo-history 0.2.0",
+ "gloo-history 0.2.1",
  "gloo-net 0.4.0",
  "gloo-render 0.2.0",
  "gloo-storage 0.3.0",
@@ -1131,7 +1131,7 @@ dependencies = [
  "gloo-dialogs 0.2.0",
  "gloo-events 0.2.0",
  "gloo-file 0.3.0",
- "gloo-history 0.2.0",
+ "gloo-history 0.2.1",
  "gloo-net 0.5.0",
  "gloo-render 0.2.0",
  "gloo-storage 0.3.0",
@@ -1233,14 +1233,14 @@ dependencies = [
 
 [[package]]
 name = "gloo-history"
-version = "0.1.5"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85725d90bf0ed47063b3930ef28e863658a7905989e9929a8708aab74a1d5e7f"
+checksum = "ddfd137a4b629e72b8c949ec56c71ea9bd5491cc66358a0a7787e94875feec71"
 dependencies = [
  "gloo-events 0.1.2",
  "gloo-utils 0.1.7",
  "serde",
- "serde-wasm-bindgen",
+ "serde-wasm-bindgen 0.5.0",
  "serde_urlencoded",
  "thiserror",
  "wasm-bindgen",
@@ -1249,14 +1249,15 @@ dependencies = [
 
 [[package]]
 name = "gloo-history"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91be9f3dd048f35a59c8de3d716ef6d568360078c73ed35a7700776ed53153c8"
+checksum = "0c4022e82f5f9e03cb1251b13c0a967e0600e97aa179c617f6519bac40640160"
 dependencies = [
+ "getrandom",
  "gloo-events 0.2.0",
  "gloo-utils 0.2.0",
  "serde",
- "serde-wasm-bindgen",
+ "serde-wasm-bindgen 0.6.1",
  "serde_urlencoded",
  "thiserror",
  "wasm-bindgen",
@@ -1738,7 +1739,7 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af3d77000817fd9e7db159e8d52ed9b5941a2cdbfbdc8ca646e59887ae2b2dd1"
 dependencies = [
- "indexmap 2.0.2",
+ "indexmap 1.9.3",
 ]
 
 [[package]]
@@ -2759,6 +2760,17 @@ name = "serde-wasm-bindgen"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3b143e2833c57ab9ad3ea280d21fd34e285a42837aeb0ee301f4f41890fa00e"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "serde-wasm-bindgen"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17ba92964781421b6cef36bf0d7da26d201e96d84e1b10e7ae6ed416e516906d"
 dependencies = [
  "js-sys",
  "serde",
