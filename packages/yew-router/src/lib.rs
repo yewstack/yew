@@ -85,10 +85,9 @@ pub mod history {
     //! A module that provides universal session history and location information.
 
     pub use gloo::history::{
-        AnyHistory, History, HistoryError, HistoryResult, Location, MemoryHistory,
+        AnyHistory, BrowserHistory, HashHistory, History, HistoryError, HistoryResult, Location,
+        MemoryHistory,
     };
-    #[cfg(not(target_os = "wasi"))]
-    pub use gloo::history::{BrowserHistory, HashHistory};
 }
 
 pub mod prelude {
@@ -103,7 +102,5 @@ pub mod prelude {
     pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};
     #[doc(no_inline)]
     pub use crate::Routable;
-    #[cfg(not(target_os = "wasi"))]
-    pub use crate::{BrowserRouter, HashRouter};
-    pub use crate::{Router, Switch};
+    pub use crate::{BrowserRouter, HashRouter, Router, Switch};
 }
