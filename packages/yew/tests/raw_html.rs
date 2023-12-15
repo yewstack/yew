@@ -72,6 +72,7 @@ create_test!(
     r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#
 );
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 macro_rules! create_update_html_test {
     ($name:ident, $initial:expr, $updated:expr) => {
         #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
