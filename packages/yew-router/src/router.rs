@@ -4,11 +4,8 @@ use std::rc::Rc;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
-use crate::history::{AnyHistory, History, Location};
-#[cfg(not(target_os = "wasi"))]
-use crate::history::{BrowserHistory, HashHistory};
+use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
-#[cfg(not(target_os = "wasi"))]
 use crate::utils::base_url;
 use crate::utils::strip_slash_suffix;
 
@@ -148,7 +145,6 @@ pub struct ConcreteRouterProps {
 ///
 /// The router will by default use the value declared in `<base href="..." />` as its basename.
 /// You may also specify a different basename with props.
-#[cfg(not(target_os = "wasi"))]
 #[function_component(BrowserRouter)]
 pub fn browser_router(props: &ConcreteRouterProps) -> Html {
     let ConcreteRouterProps { children, basename } = props.clone();
@@ -172,7 +168,6 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
 /// # Warning
 ///
 /// Prefer [`BrowserRouter`] whenever possible and use this as a last resort.
-#[cfg(not(target_os = "wasi"))]
 #[function_component(HashRouter)]
 pub fn hash_router(props: &ConcreteRouterProps) -> Html {
     let ConcreteRouterProps { children, basename } = props.clone();

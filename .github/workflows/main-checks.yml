@@ -3,11 +3,11 @@ name: Main Checks
 on:
   pull_request:
     paths:
-      - ".github/workflows/main-checks.yml"
-      - "ci/**"
-      - "packages/**/*"
-      - "Cargo.toml"
-      - "Cargo.lock"
+      - '.github/workflows/main-checks.yml'
+      - 'ci/**'
+      - 'packages/**/*'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
   push:
     branches: [master]
 
@@ -164,7 +164,7 @@ jobs:
         env:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         run: cargo test -p yew-macro test_html_lints
-  
+
   unit_tests_wasi:
     name: Unit Tests (WASI) on ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
@@ -192,20 +192,14 @@ jobs:
           chmod +x ~/wasmtime
 
       - uses: Swatinem/rust-cache@v2
-  
+
       - name: Run WASI tests for yew
         run: |
           RUST_LOG=info
-          cargo test --features ssr --target wasm32-wasi -p yew --no-run 2>&1 |\
+          cargo test --features ssr,hydration --target wasm32-wasi -p yew --no-run 2>&1 |\
             grep -o "target/wasm32-wasi/debug/deps/[^ ]*\.wasm" |\
             xargs -I {} ~/wasmtime -W unknown-imports-trap=y {}
-  
-      - name: Run WASI tests for yew-router
-        run: |
-          cargo test --features ssr --target wasm32-wasi -p yew-router --no-run 2>&1 |\
-            grep -o "target/wasm32-wasi/debug/deps/[^ ]*\.wasm" |\
-            xargs -I {} ~/wasmtime -W unknown-imports-trap=y {}
-  
+
   example-runnable-tests-on-wasi:
     name: Example Runnable Tests on WASI
     runs-on: ubuntu-latest
@@ -232,9 +226,9 @@ jobs:
           mv wasmtime-v15.0.1-x86_64-linux/wasmtime ~/wasmtime
           rm -rf wasmtime-v15.0.1-x86_64-linux.tar.xz wasmtime-v15.0.1-x86_64-linux
           chmod +x ~/wasmtime
-  
+
       - uses: Swatinem/rust-cache@v2
-  
+
       - name: Build and run ${{ matrix.package }}
         run: |
           cargo build --target wasm32-wasi -p ${{ matrix.package }}
