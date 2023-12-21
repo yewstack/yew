@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
-use serde::Serialize;
-
+use crate::query::ToQuery;
 use crate::history::{AnyHistory, History, HistoryError, HistoryResult};
 use crate::routable::Routable;
 
@@ -93,58 +92,62 @@ impl Navigator {
     }
 
     /// Same as `.push()` but affix the queries to the end of the route.
-    pub fn push_with_query<R, Q>(&self, route: &R, query: &Q) -> NavigationResult<()>
+    pub fn push_with_query<R, Q>(&self, route: &R, query: Q) -> NavigationResult<()>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
+        HistoryError: From<<Q as ToQuery>::Error>
     {
-        self.inner
-            .push_with_query(self.prefix_basename(&route.to_path()), query)
+        Ok(self.inner
+            .push_with_query(self.prefix_basename(&route.to_path()), query)?)
     }
 
     /// Same as `.replace()` but affix the queries to the end of the route.
-    pub fn replace_with_query<R, Q>(&self, route: &R, query: &Q) -> NavigationResult<()>
+    pub fn replace_with_query<R, Q>(&self, route: &R, query: Q) -> NavigationResult<()>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
+        HistoryError: From<<Q as ToQuery>::Error>
     {
-        self.inner
-            .replace_with_query(self.prefix_basename(&route.to_path()), query)
+        Ok(self.inner
+            .replace_with_query(self.prefix_basename(&route.to_path()), query)?)
     }
 
     /// Same as `.push_with_state()` but affix the queries to the end of the route.
     pub fn push_with_query_and_state<R, Q, T>(
         &self,
         route: &R,
-        query: &Q,
+        query: Q,
         state: T,
     ) -> NavigationResult<()>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
         T: 'static,
+        HistoryError: From<<Q as ToQuery>::Error>
     {
-        self.inner
-            .push_with_query_and_state(self.prefix_basename(&route.to_path()), query, state)
+        Ok(self.inner
+            .push_with_query_and_state(self.prefix_basename(&route.to_path()), query, state)?)
     }
 
     /// Same as `.replace_with_state()` but affix the queries to the end of the route.
     pub fn replace_with_query_and_state<R, Q, T>(
         &self,
         route: &R,
-        query: &Q,
+        query: Q,
         state: T,
     ) -> NavigationResult<()>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
         T: 'static,
+        HistoryError: From<<Q as ToQuery>::Error>
     {
-        self.inner.replace_with_query_and_state(
+        Ok(self.inner.replace_with_query_and_state(
             self.prefix_basename(&route.to_path()),
             query,
             state,
-        )
+        )?)
     }
 
     /// Returns the Navigator kind.
