@@ -56,6 +56,15 @@ pub struct RawIdentProps {
     r#pointless_raw_name: ::std::primitive::usize,
 }
 
+#[derive(::std::cmp::PartialEq)]
+pub struct Stub<T>(::std::marker::PhantomData<::std::boxed::Box<T>>);
+
+#[derive(::yew::Properties, ::std::cmp::PartialEq)]
+pub struct SelfRefProps<T: ::std::cmp::PartialEq> {
+    x: Stub<T>,
+    y: Stub<Self>,
+}
+
 fn pass_raw_idents() {
     ::yew::props!(RawIdentProps { r#true: 5 });
     let (r#true, r#pointless_raw_name) = (3, 5);
