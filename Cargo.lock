@@ -1675,11 +1675,22 @@ dependencies = [
 
 [[package]]
 name = "implicit-clone"
-version = "0.4.1"
+version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af3d77000817fd9e7db159e8d52ed9b5941a2cdbfbdc8ca646e59887ae2b2dd1"
+checksum = "fc06a255cbf402a52ae399c05a518c68c569c916ea11423620111df576b9b9bb"
 dependencies = [
+ "implicit-clone-derive",
  "indexmap 2.0.2",
+]
+
+[[package]]
+name = "implicit-clone-derive"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9311685eb9a34808bbb0608ad2fcab9ae216266beca5848613e95553ac914e3b"
+dependencies = [
+ "quote",
+ "syn 2.0.38",
 ]
 
 [[package]]
@@ -3879,9 +3890,9 @@ dependencies = [
 
 [[package]]
 name = "yew-autoprops"
-version = "0.3.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0158e8f0ff40eaa82648dc0f7f33e9970157116deda097c73a16d247b8cc7f1e"
+checksum = "58865a8f2470a6ad839274e05c9627170d32930f39a2348f8c425880a6131792"
 dependencies = [
  "proc-macro2",
  "quote",
