@@ -56,13 +56,20 @@ pub struct RawIdentProps {
     r#pointless_raw_name: ::std::primitive::usize,
 }
 
-#[derive(::std::cmp::PartialEq)]
-pub struct Stub<T>(::std::marker::PhantomData<::std::boxed::Box<T>>);
+#[derive(::yew::Properties)]
+pub struct SelfRefProps<'a, T> {
+    x: ::std::boxed::Box<T>,
+    y: ::std::boxed::Box<Self>,
+    z: &'a Self,
+    a: ::std::marker::PhantomData<(&'a Self, Self)>,
+    b: ::std::marker::PhantomData<::std::boxed::Box<Self>>,
+    c: fn(&Self) -> Self,
+}
 
-#[derive(::yew::Properties, ::std::cmp::PartialEq)]
-pub struct SelfRefProps<T: ::std::cmp::PartialEq> {
-    x: Stub<T>,
-    y: Stub<Self>,
+impl<T> ::std::cmp::PartialEq for SelfRefProps<'_, T> {
+    fn eq(&self, _: &Self) -> ::std::primitive::bool {
+        ::std::todo!()
+    }
 }
 
 fn pass_raw_idents() {
