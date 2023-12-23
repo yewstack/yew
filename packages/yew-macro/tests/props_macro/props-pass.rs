@@ -68,7 +68,7 @@ pub struct SelfRefProps<'a, T> {
 
 impl<T> ::std::cmp::PartialEq for SelfRefProps<'_, T> {
     fn eq(&self, _: &Self) -> ::std::primitive::bool {
-        ::std::todo!()
+        ::std::unimplemented!()
     }
 }
 
