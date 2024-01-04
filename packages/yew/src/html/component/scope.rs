@@ -513,7 +513,7 @@ mod feat_csr {
     use crate::scheduler;
 
     impl AnyScope {
-        #[cfg(test)]
+        #[cfg(any(test, feature = "test"))]
         pub(crate) fn test() -> Self {
             Self {
                 type_id: TypeId::of::<()>(),

@@ -295,8 +295,8 @@ mod app_handle;
 #[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(feature = "csr")]
-#[cfg(test)]
+#[cfg(all(feature = "csr", any(test, feature = "test")))]
+/// Module containing utilities for testing yew-specific behavior.
 pub mod tests;
 
 /// The module that contains all events available in the framework.

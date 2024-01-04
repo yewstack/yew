@@ -30,13 +30,18 @@ impl Component for Comp {
     }
 }
 
+/// A struct which defines the string of HTML that is the expected output of a [`VNode`].
 #[derive(Debug)]
 pub struct TestLayout<'a> {
+    /// Name of the test layout for inspecability.
     pub name: &'a str,
+    /// The node which should be rendered.
     pub node: VNode,
+    /// The expected HTML string output of rendering `node`.
     pub expected: &'a str,
 }
 
+/// Iterate over multiple layouts and check them for correctness.
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo::utils::document();
     let scope: AnyScope = AnyScope::test();
