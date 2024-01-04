@@ -32,6 +32,8 @@ jobs:
           components: clippy
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: profile-${{ matrix.profile }}
 
       - name: Lint feature soundness
         if: matrix.profile == 'dev'
@@ -73,6 +75,8 @@ jobs:
           components: clippy
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: toolchain-${{ matrix.toolchain }}
 
       - name: Run clippy
         run: |

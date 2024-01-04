@@ -74,6 +74,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: toolchain-${{ matrix.toolchain }}
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -131,6 +133,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: toolchain-${{ matrix.toolchain }}
 
       - name: Run native tests
         env:
@@ -159,6 +163,8 @@ jobs:
           toolchain: nightly
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: toolchain-${{ matrix.toolchain }}
 
       - name: Run tests
         env:
