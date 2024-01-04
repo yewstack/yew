@@ -30,6 +30,28 @@ impl Component for Comp {
     }
 }
 
+/// Renders a [`Html`] and returns the [`web_sys::Element`] which allows
+/// for querying the DOM to verify specific parts of the component.
+///
+/// Use this if the node is very large and/or has many parts which are irrelevant
+/// to the test (e.g. styling).
+///
+/// Note that this only renders the node once and does not allow interaction
+/// with the node (i.e. does not trigger rerenders).
+pub fn render_node(vnode: Html) -> web_sys::Element {
+    let document = gloo::utils::document();
+    let scope: AnyScope = AnyScope::test();
+    let parent_element = document.create_element("div").unwrap();
+    let root = BSubtree::create_root(&parent_element);
+
+    let slot = DomSlot::at_end();
+    let mut bundle = Bundle::new();
+    bundle.reconcile(&root, &scope, &parent_element, slot, vnode);
+    scheduler::start_now();
+
+    parent_element
+}
+
 /// A struct which defines the string of HTML that is the expected output of a [`VNode`].
 #[derive(Debug)]
 pub struct TestLayout<'a> {
@@ -134,4 +156,18 @@ pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
         "END",
         "Failed to detach last layout"
     );
+}
+
+#[cfg(test)]
+mod test {
+    use wasm_bindgen_test::wasm_bindgen_test;
+
+    use super::*;
+    use crate::prelude::*;
+
+    #[wasm_bindgen_test]
+    fn render_node_returns_element_containing_expected_outer_html() {
+        let elem = render_node(html!("test string"));
+        assert_eq!(elem.outer_html(), "<div>test string</div>")
+    }
 }
