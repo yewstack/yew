@@ -18,7 +18,7 @@ rust-version = "1.64.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.10"
+gloo = "0.11"
 indexmap = { version = "2", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
@@ -40,10 +40,10 @@ wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
-tokio = { version = "1.33", features = ["rt"] }
+tokio = { version = "1.35", features = ["rt"] }
 
 [dependencies.web-sys]
-version = "^0.3.64"
+version = "^0.3.66"
 features = [
   "AnimationEvent",
   "Document",
@@ -79,11 +79,11 @@ features = [
 ]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.33", features = ["full"] }
+tokio = { version = "1.35", features = ["full"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.10", features = ["futures"] }
+gloo = { version = "0.11", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 trybuild = "1"
 
