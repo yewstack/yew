@@ -41,6 +41,7 @@
 * Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.
 * Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
 * Supports JavaScript interoperability, allowing developers to leverage NPM packages and integrate with existing JavaScript applications.
+* Yew is named after a certain type of evergreen tree, and is pronounced yo͞o with a soft y, like in 'you', not a hard 'dj' like in 'jam'.
 
 *Note: Yew is not 1.0 yet. Be prepared to do major refactoring due to breaking API changes.*
 
