@@ -13,7 +13,7 @@ rust-version = "1.64.0"
 
 [dependencies]
 yew = { version = "0.21.0", path = "../yew" }
-gloo-worker = { version = "0.4", features = ["futures"] }
+gloo-worker = { version = "0.5", features = ["futures"] }
 wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
