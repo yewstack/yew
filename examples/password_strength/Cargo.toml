@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
 zxcvbn = "2.2.2"
-time = "0.3.30"
-js-sys = "0.3.64"
+time = "0.3.31"
+js-sys = "0.3.67"
 web-sys = { version = "0.3", features = ["Event","EventTarget","InputEvent"] }
 wasm-bindgen = "0.2"
 chrono = { version = "0.4", features = ["wasmbind"] }
