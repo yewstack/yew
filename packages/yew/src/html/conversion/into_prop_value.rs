@@ -7,7 +7,7 @@ pub use implicit_clone::ImplicitClone;
 
 use crate::callback::Callback;
 use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
+use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VTag, VText};
 
 impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
@@ -153,6 +153,13 @@ impl IntoPropValue<VNode> for VText {
     }
 }
 
+impl IntoPropValue<VNode> for VTag {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VTag(Rc::new(self))
+    }
+}
+
 impl IntoPropValue<VNode> for () {
     #[inline]
     fn into_prop_value(self) -> VNode {
@@ -175,6 +182,13 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for VNode {
 }
 
 impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
+    #[inline]
+    fn into_prop_value(self) -> ChildrenRenderer<VNode> {
+        ChildrenRenderer::new(vec![self.into()])
+    }
+}
+
+impl IntoPropValue<ChildrenRenderer<VNode>> for VTag {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
         ChildrenRenderer::new(vec![self.into()])

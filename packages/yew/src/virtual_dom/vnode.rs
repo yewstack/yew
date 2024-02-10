@@ -261,3 +261,37 @@ mod feat_ssr {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{function_component, html_nested, Html};
+
+    #[function_component]
+    fn Comp() -> Html {
+        todo!()
+    }
+
+    #[test]
+    fn html_nested_types() {
+        let _vlist: VList = html_nested! {
+            <>
+                <div>{"Hello"}</div>
+                <div>{"World"}</div>
+            </>
+        };
+        let _vlist2: VList = html_nested! {};
+        let _vtext: VText = html_nested!("");
+        let _vcomp: VChild<Comp> = html_nested! { <Comp /> };
+        let _vtag: VTag = html_nested! { <div></div> };
+        let _vtag: VTag = html_nested! { <textarea /> };
+        let _vtag: VTag = html_nested! { <input /> };
+
+        let _vif: VList = html_nested! {
+            if true {
+                <div>
+                </div>
+            }
+        };
+    }
+}
