@@ -10,14 +10,12 @@ including: all entries, entered text and chosen filter.
 ## Concepts
 
 - Uses [`gloo_storage`](https://docs.rs/gloo-storage/latest/gloo_storage/) to persist the state
-- [`Refs`] are used to manipulate DOM elements after they're rendered (to automatically focus input fields for instance)
+- [`Refs`](https://yew.rs/docs/advanced-topics/struct-components/refs) are used to manipulate DOM elements after they're rendered (to automatically focus input fields for instance)
 
 ## Improvements
 
 - Use `yew-router` for the hash based routing
 - Clean up the code
-
-[`refs`]: https://yew.rs/docs/concepts/components/refs/
 
 ## Running
 
