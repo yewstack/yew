@@ -84,7 +84,11 @@ pub fn RenderLinks(props: &RenderLinksProps) -> Html {
             </>
         }
     } else {
-        html! { for range.map(|page| html! {<RenderLink to_page={page} props={props.clone()} />}) }
+        html! {
+            for page in range {
+                <RenderLink to_page={page} props={props.clone()} />
+            }
+        }
     }
 }
 

@@ -710,13 +710,13 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
     |         -------- required by a bound in this
     = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
+error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VList>` is not satisfied
    --> tests/html_macro/component-fail.rs:118:29
     |
 118 |     html! { <ChildContainer><></></ChildContainer> };
-    |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |                             ^ the trait `From<yew::virtual_dom::VList>` is not implemented for `VChild<Child>`
     |
-    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `yew::virtual_dom::VList`
 
 error[E0277]: the trait bound `VNode: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
    --> tests/html_macro/component-fail.rs:119:14
