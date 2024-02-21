@@ -16,7 +16,7 @@ where
         move |deps| {
             result.set(None);
             let future = f(deps);
-            wasm_bindgen_futures::spawn_local(async move {
+            yew::platform::spawn_local(async move {
                 let res = future.await;
                 result.set(Some(res));
             });
@@ -31,7 +31,7 @@ pub struct UseAsyncHandle<T> {
 }
 
 #[derive(Debug)]
-pub enum UseAsyncResult<'a, T> {
+pub enum UseAsyncStatus<'a, T> {
     Pending,
     Ready(&'a T),
 }
@@ -47,10 +47,10 @@ impl<T: fmt::Debug> fmt::Debug for UseAsyncHandle<T> {
 }
 
 impl<T> UseAsyncHandle<T> {
-    pub fn status(&self) -> UseAsyncResult<'_, T> {
+    pub fn status(&self) -> UseAsyncStatus<'_, T> {
         match &*self.inner {
-            None => UseAsyncResult::Pending,
-            Some(res) => UseAsyncResult::Ready(res),
+            None => UseAsyncStatus::Pending,
+            Some(res) => UseAsyncStatus::Ready(res),
         }
     }
 }
