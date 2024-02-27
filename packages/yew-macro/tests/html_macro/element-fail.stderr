@@ -638,6 +638,7 @@ error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{in
    = help: the following other types implement trait `From<T>`:
              <implicit_clone::unsync::string::IString as From<&'static str>>
              <implicit_clone::unsync::string::IString as From<&implicit_clone::unsync::string::IString>>
+             <implicit_clone::unsync::string::IString as From<Arguments<'_>>>
              <implicit_clone::unsync::string::IString as From<Cow<'static, str>>>
              <implicit_clone::unsync::string::IString as From<Rc<str>>>
              <implicit_clone::unsync::string::IString as From<String>>
