@@ -191,10 +191,7 @@ impl PartialEq for Listeners {
                     lhs.iter()
                         .zip(rhs.iter())
                         .all(|(lhs, rhs)| match (lhs, rhs) {
-                            (Some(lhs), Some(rhs)) =>
-                            {
-                                Rc::ptr_eq(lhs, rhs)
-                            }
+                            (Some(lhs), Some(rhs)) => Rc::ptr_eq(lhs, rhs),
                             (None, None) => true,
                             _ => false,
                         })
