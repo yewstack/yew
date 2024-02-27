@@ -2,7 +2,7 @@
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 use std::rc::Rc;
 
-use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
+use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
 use yew::virtual_dom::{VNode, VTag, VText};
 use yew::{html, Classes, Html};
 
@@ -50,38 +50,11 @@ pub fn render_markdown(src: &str) -> Html {
                 let l = spine.len();
                 assert!(l >= 1);
                 let mut top = spine.pop().unwrap();
-                if let Tag::CodeBlock(_) = tag {
+                if let TagEnd::CodeBlock = tag {
                     let mut pre = VTag::new("pre");
                     pre.add_child(top.into());
                     top = pre;
-                } else if let Tag::Table(aligns) = tag {
-                    if let Some(top_children) = top.children_mut() {
-                        for r in top_children.to_vlist_mut().iter_mut() {
-                            if let VNode::VTag(ref mut vtag) = r {
-                                if let Some(vtag_children) = Rc::make_mut(vtag).children_mut() {
-                                    for (i, c) in
-                                        vtag_children.to_vlist_mut().iter_mut().enumerate()
-                                    {
-                                        if let VNode::VTag(ref mut vtag) = c {
-                                            match aligns[i] {
-                                                Alignment::None => {}
-                                                Alignment::Left => {
-                                                    add_class(Rc::make_mut(vtag), "text-left")
-                                                }
-                                                Alignment::Center => {
-                                                    add_class(Rc::make_mut(vtag), "text-center")
-                                                }
-                                                Alignment::Right => {
-                                                    add_class(Rc::make_mut(vtag), "text-right")
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if let Tag::TableHead = tag {
+                } else if let TagEnd::TableHead = tag {
                     if let Some(top_children) = top.children_mut() {
                         for c in top_children.to_vlist_mut().iter_mut() {
                             if let VNode::VTag(ref mut vtag) = c {
@@ -118,7 +91,7 @@ pub fn render_markdown(src: &str) -> Html {
 fn make_tag(t: Tag) -> VTag {
     match t {
         Tag::Paragraph => VTag::new("p"),
-        Tag::Heading(n, ..) => VTag::new(n.to_string()),
+        Tag::Heading { level, .. } => VTag::new(level.to_string()),
         Tag::BlockQuote => {
             let mut el = VTag::new("blockquote");
             el.add_attribute("class", "blockquote");
@@ -151,9 +124,18 @@ fn make_tag(t: Tag) -> VTag {
             el
         }
         Tag::Item => VTag::new("li"),
-        Tag::Table(_) => {
+        Tag::Table(ref alignments) => {
             let mut el = VTag::new("table");
             el.add_attribute("class", "table");
+            for align in alignments.iter() {
+                match align {
+                    Alignment::None => {}
+                    Alignment::Left => add_class(&mut el, "text-left"),
+                    Alignment::Center => add_class(&mut el, "text-center"),
+                    Alignment::Right => add_class(&mut el, "text-right"),
+                }
+            }
+
             el
         }
         Tag::TableHead => VTag::new("th"),
@@ -169,7 +151,11 @@ fn make_tag(t: Tag) -> VTag {
             el.add_attribute("class", "font-weight-bold");
             el
         }
-        Tag::Link(_link_type, ref href, ref title) => {
+        Tag::Link {
+            dest_url: ref href,
+            ref title,
+            ..
+        } => {
             let mut el = VTag::new("a");
             el.add_attribute("href", href.to_string());
             let title = title.clone().into_string();
@@ -178,7 +164,11 @@ fn make_tag(t: Tag) -> VTag {
             }
             el
         }
-        Tag::Image(_link_type, ref src, ref title) => {
+        Tag::Image {
+            dest_url: ref src,
+            ref title,
+            ..
+        } => {
             let mut el = VTag::new("img");
             el.add_attribute("src", src.to_string());
             let title = title.clone().into_string();
@@ -195,5 +185,7 @@ fn make_tag(t: Tag) -> VTag {
             el.add_attribute("class", "text-decoration-strikethrough");
             el
         }
+        // empty div
+        Tag::HtmlBlock | Tag::MetadataBlock(_) => VTag::new("div"),
     }
 }
