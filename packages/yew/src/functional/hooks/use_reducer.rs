@@ -129,8 +129,10 @@ impl<T> PartialEq for UseReducerDispatcher<T>
 where
     T: Reducible,
 {
+    // TODO: remove this when bumping up the msrv to 1.76
+    #[rustversion::attr(stable(1.76), allow(ambiguous_wide_pointer_comparisons))]
+    #[rustversion::attr(before(1.76), allow(clippy::vtable_address_comparisons))]
     fn eq(&self, rhs: &Self) -> bool {
-        #[allow(clippy::vtable_address_comparisons)]
         Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
     }
 }

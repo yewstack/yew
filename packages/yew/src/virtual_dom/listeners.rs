@@ -173,6 +173,10 @@ pub enum Listeners {
 impl ImplicitClone for Listeners {}
 
 impl PartialEq for Listeners {
+    // TODO: remove this when bumping up the msrv to 1.76
+    #[rustversion::attr(stable(1.76), allow(ambiguous_wide_pointer_comparisons))]
+    #[rustversion::attr(before(1.76), allow(clippy::vtable_address_comparisons))]
+
     fn eq(&self, rhs: &Self) -> bool {
         use Listeners::*;
 
@@ -189,7 +193,6 @@ impl PartialEq for Listeners {
                         .all(|(lhs, rhs)| match (lhs, rhs) {
                             (Some(lhs), Some(rhs)) =>
                             {
-                                #[allow(clippy::vtable_address_comparisons)]
                                 Rc::ptr_eq(lhs, rhs)
                             }
                             (None, None) => true,

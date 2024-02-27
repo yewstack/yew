@@ -25,7 +25,9 @@ macro_rules! generate_callback_impls {
             }
         }
 
-        #[allow(clippy::vtable_address_comparisons)]
+        // TODO: remove this when bumping up the msrv to 1.76
+        #[rustversion::attr(stable(1.76), allow(ambiguous_wide_pointer_comparisons))]
+        #[rustversion::attr(before(1.76), allow(clippy::vtable_address_comparisons))]
         impl<IN, OUT> PartialEq for $callback<IN, OUT> {
             fn eq(&self, other: &$callback<IN, OUT>) -> bool {
                 let ($callback { cb }, $callback { cb: rhs_cb }) = (self, other);
