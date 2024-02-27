@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use std::future::Future;
 use std::path::PathBuf;
 
-use axum::body::StreamBody;
+use axum::body::Body;
 use axum::error_handling::HandleError;
 use axum::extract::{Query, State};
 use axum::handler::HandlerWithoutStateExt;
@@ -14,8 +14,6 @@ use axum::Router;
 use clap::Parser;
 use function_router::{ServerApp, ServerAppProps};
 use futures::stream::{self, StreamExt};
-use hyper::server::Server;
-use tower::ServiceExt;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
 
@@ -44,7 +42,7 @@ async fn render(
         queries,
     });
 
-    StreamBody::new(
+    Body::from_stream(
         stream::once(async move { index_html_before })
             .chain(renderer.render_stream())
             .chain(stream::once(async move { index_html_after }))
@@ -52,32 +50,8 @@ async fn render(
     )
 }
 
-// An executor to process requests on the Yew runtime.
-//
-// By spawning requests on the Yew runtime,
-// it processes request on the same thread as the rendering task.
-//
-// This increases performance in some environments (e.g.: in VM).
-#[derive(Clone, Default)]
-struct Executor {
-    inner: Runtime,
-}
-
-impl<F> hyper::rt::Executor<F> for Executor
-where
-    F: Future + Send + 'static,
-{
-    fn execute(&self, fut: F) {
-        self.inner.spawn_pinned(move || async move {
-            fut.await;
-        });
-    }
-}
-
 #[tokio::main]
 async fn main() {
-    let exec = Executor::default();
-
     env_logger::init();
 
     let opts = Opt::parse();
@@ -105,17 +79,25 @@ async fn main() {
             .fallback(
                 get(render)
                     .with_state((index_html_before.clone(), index_html_after.clone()))
-                    .into_service()
-                    .map_err(|err| -> std::io::Error { match err {} }),
+                    .into_service(),
             ),
         handle_error,
     ));
 
     println!("You can view the website at: http://localhost:8080/");
 
-    Server::bind(&"127.0.0.1:8080".parse().unwrap())
-        .executor(exec)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    // Process requests on the Yew runtime.
+    //
+    // By spawning requests on the Yew runtime, it processes request on the same thread as the
+    // rendering task.
+    //
+    // This increases performance in some environments (e.g.: in VM).
+
+    let rt = Runtime::default();
+    rt.spawn_pinned(move || async move {
+        let tcp = tokio::net::TcpListener::bind("127.0.0.1:8080")
+            .await
+            .unwrap();
+        axum::serve::serve(tcp, app).await.unwrap();
+    })
 }
