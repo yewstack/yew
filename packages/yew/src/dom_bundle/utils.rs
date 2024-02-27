@@ -90,5 +90,5 @@ mod tests {
 
 #[cfg(test)]
 // this is needed because clippy doesn't like the import not being used
-#[allow(unused_imports)]
+#[allow(unused_imports, clippy::items_after_test_module)]
 pub(super) use tests::*;
