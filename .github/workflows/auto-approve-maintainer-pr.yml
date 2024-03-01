@@ -23,7 +23,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto approve
-        uses: hmarr/auto-approve-action@v3
+        uses: hmarr/auto-approve-action@v4
         if: ${{ steps.is_organization_member.outputs.result == 'true' || github.actor == 'dependabot[bot]' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
