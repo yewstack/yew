@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo = { version = "0.10", features = ["futures"] }
+gloo = { version = "0.11", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 wasm-bindgen = "0.2"
 
