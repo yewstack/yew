@@ -233,7 +233,14 @@ impl Reconcilable for VTag {
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
         let tag = self.tag();
-
+        
+        // check for an xmlns attribute. If it exists, create an element with the specified namespace
+        let xmlns = self.attributes.iter().find(|(k, _)| *k == "xmlns").map(|(_, v)| v);
+        if let Some(xmlns) = xmlns {
+            document()
+                .create_element_ns(Some(xmlns), tag)
+                .expect("can't create namespaced element for vtag")
+        } else
         if tag == "svg"
             || parent
                 .namespace_uri()
