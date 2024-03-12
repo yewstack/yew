@@ -430,7 +430,9 @@ impl ComponentState {
         fields(component.id = self.comp_id)
     )]
     fn render(&mut self, shared_state: &Shared<Option<ComponentState>>) {
-        match self.inner.view() {
+        let view = self.inner.view();
+        tracing::trace!(?view, "render result");
+        match view {
             Ok(vnode) => self.commit_render(shared_state, vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(shared_state, susp),
         };
