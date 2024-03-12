@@ -130,7 +130,10 @@ where
     T: Reducible,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        #[allow(clippy::vtable_address_comparisons)]
+        // We are okay with comparisons from different compilation units to result in false
+        // not-equal results. This should only lead in the worst-case to some unneeded
+        // re-renders.
+        #[allow(ambiguous_wide_pointer_comparisons)]
         Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
     }
 }
