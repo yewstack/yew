@@ -11,7 +11,7 @@ use super::{test_log, BNode, BSubtree, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::utils::RcExt;
-use crate::virtual_dom::{Key, VList, VNode, VText};
+use crate::virtual_dom::{Key, VList, VNode};
 
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
@@ -427,15 +427,7 @@ impl Reconcilable for VList {
         // The left items are known since we want to insert them
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
-        let (key, mut fully_keyed, mut lefts) = self.split_for_blist();
-
-        if lefts.is_empty() {
-            // Without a placeholder the next element becomes first
-            // and corrupts the order of rendering
-            // We use empty text element to stake out a place
-            lefts.push(VText::new("").into());
-            fully_keyed = false;
-        }
+        let (key, fully_keyed, lefts) = self.split_for_blist();
 
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
