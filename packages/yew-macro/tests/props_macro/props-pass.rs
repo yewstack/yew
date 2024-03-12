@@ -44,8 +44,8 @@ struct Props {
 }
 
 fn pass_simple_props() {
-    ::yew::props!(Props { a: 5 });
-    let (a, b) = (3, 5);
+    ::yew::props!(Props { a: 5_usize });
+    let (a, b) = (3_usize, 5_usize);
     ::yew::props!(Props { a, b });
 }
 
@@ -57,8 +57,8 @@ pub struct RawIdentProps {
 }
 
 fn pass_raw_idents() {
-    ::yew::props!(RawIdentProps { r#true: 5 });
-    let (r#true, r#pointless_raw_name) = (3, 5);
+    ::yew::props!(RawIdentProps { r#true: 5_usize });
+    let (r#true, r#pointless_raw_name) = (3_usize, 5_usize);
     ::yew::props!(RawIdentProps { r#true, r#pointless_raw_name });
 }
 
@@ -68,7 +68,7 @@ struct BuildProp {
 }
 
 fn pass_build_prop() {
-    ::yew::props!(BuildProp { build: 5 });
+    ::yew::props!(BuildProp { build: 5_usize });
 }
 
 #[derive(::yew::Properties, ::std::cmp::PartialEq)]
