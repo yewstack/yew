@@ -14,9 +14,9 @@ required-features = ["ssr"]
 
 [dependencies]
 yew = { path = "../../packages/yew" }
-reqwest = { version = "0.11.22", features = ["json"] }
-serde = { version = "1.0.190", features = ["derive"] }
-uuid = { version = "1.5.0", features = ["serde"] }
+reqwest = { version = "0.11.26", features = ["json"] }
+serde = { version = "1.0.193", features = ["derive"] }
+uuid = { version = "1.7.0", features = ["serde"] }
 futures = "0.3"
 bytes = "1.5"
 
@@ -26,7 +26,7 @@ wasm-logger = "0.2"
 log = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.33.0", features = ["full"] }
+tokio = { version = "1.36.0", features = ["full"] }
 warp = "0.3"
 clap = { version = "4", features = ["derive"] }
 
