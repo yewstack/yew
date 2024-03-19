@@ -63,8 +63,8 @@ where
 /// # Caution
 ///
 /// The value held in the handle will reflect the value of at the time the
-/// handle is returned by the `use_reducer`. It is possible that the handle does
-/// not dereference to an up to date value if you are moving it into a
+/// handle is returned by the `use_state()` call. It is possible that the handle does
+/// not dereference to an up to date value, for example if you are moving it into a
 /// `use_effect_with` hook. You can register the
 /// state to the dependents so the hook can be updated when the value changes.
 ///
