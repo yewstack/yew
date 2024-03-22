@@ -5,13 +5,13 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-lipsum = "0.9.0"
+lipsum = "0.9.1"
 log = "0.4"
 rand = { version = "0.8", features = ["small_rng"] }
 yew = { path = "../../packages/yew" }
 yew-router = { path = "../../packages/yew-router" }
 serde = { version = "1.0", features = ["derive"] }
-gloo = "0.10"
+gloo = "0.11"
 wasm-logger = "0.2"
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 once_cell = "1"
