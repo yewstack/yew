@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn braw_works_svg() {
-        let (root, scope, parent) = setup_parent();
+        let (root, scope, parent) = setup_parent_svg();
 
         const HTML: &str = r#"<circle cx="50" cy="50" r="40" />"#;
         let elem = VNode::from_html_unchecked(HTML.into());
@@ -210,7 +210,7 @@ mod tests {
                 .unwrap()
                 .unchecked_into::<Element>()
                 .namespace_uri(),
-            Some(SVG_NAMESPACE)
+            Some(SVG_NAMESPACE.to_owned())
         );
     }
 
