@@ -18,7 +18,7 @@ impl BRaw {
     fn create_elements(html: &str, parent_namespace: Option<&str>) -> Vec<Node> {
         let div = if let Some(namespace) = parent_namespace {
             gloo::utils::document()
-                .create_element_ns("div", namespace)
+                .create_element_ns(namespace, "div")
                 .unwrap()
         } else {
             gloo::utils::document().create_element("div").unwrap()
