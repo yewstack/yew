@@ -177,7 +177,9 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::dom_bundle::utils::{setup_parent, setup_parent_and_sibling, SIBLING_CONTENT};
+    use crate::dom_bundle::utils::{
+        setup_parent, setup_parent_and_sibling, setup_parent_svg, SIBLING_CONTENT,
+    };
     use crate::virtual_dom::VNode;
 
     wasm_bindgen_test_configure!(run_in_browser);
