@@ -190,7 +190,22 @@ mod tests {
         let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
-        assert_eq!(parent.inner_html(), HTML)
+        assert_eq!(parent.inner_html(), HTML);
+    }
+
+    #[test]
+    fn braw_works_svg() {
+        let (root, scope, parent) = setup_parent();
+
+        const HTML: &str = r#"<circle cx="50" cy="50" r="40" />"#;
+        let elem = VNode::from_html_unchecked(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), HTML);
+        assert_eq!(
+            parent.first_child().unwrap().namespace_uri(),
+            Some(SVG_NAMESPACE)
+        );
     }
 
     #[test]
