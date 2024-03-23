@@ -205,7 +205,11 @@ mod tests {
         assert_braw(&mut elem);
         assert_eq!(parent.inner_html(), HTML);
         assert_eq!(
-            parent.first_child().unwrap().namespace_uri(),
+            parent
+                .first_child()
+                .unwrap()
+                .unchecked_into::<Element>()
+                .namespace_uri(),
             Some(SVG_NAMESPACE)
         );
     }
