@@ -199,7 +199,7 @@ mod tests {
     fn braw_works_svg() {
         let (root, scope, parent) = setup_parent_svg();
 
-        const HTML: &str = r#"<circle cx="50" cy="50" r="40"><circle/>"#;
+        const HTML: &str = r#"<circle cx="50" cy="50" r="40"></circle>"#;
         let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
