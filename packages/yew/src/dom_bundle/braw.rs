@@ -3,8 +3,8 @@ use web_sys::{Element, Node};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::VRaw;
 use crate::virtual_dom::vtag::{MATHML_NAMESPACE, SVG_NAMESPACE};
+use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
 #[derive(Debug)]
@@ -17,7 +17,9 @@ pub struct BRaw {
 impl BRaw {
     fn create_elements(html: &str, parent_namespace: Option<&str>) -> Vec<Node> {
         let div = if let Some(namespace) = parent_namespace {
-            gloo::utils::document().create_element_ns("div", namespace).unwrap()
+            gloo::utils::document()
+                .create_element_ns("div", namespace)
+                .unwrap()
         } else {
             gloo::utils::document().create_element("div").unwrap()
         };
@@ -77,13 +79,13 @@ impl Reconcilable for VRaw {
         slot: DomSlot,
     ) -> (DomSlot, Self::Bundle) {
         let namespace = if parent
-                .namespace_uri()
-                .map_or(false, |ns| ns == SVG_NAMESPACE)
+            .namespace_uri()
+            .map_or(false, |ns| ns == SVG_NAMESPACE)
         {
             Some(SVG_NAMESPACE)
         } else if parent
-                .namespace_uri()
-                .map_or(false, |ns| ns == MATHML_NAMESPACE)
+            .namespace_uri()
+            .map_or(false, |ns| ns == MATHML_NAMESPACE)
         {
             Some(MATHML_NAMESPACE)
         } else {
