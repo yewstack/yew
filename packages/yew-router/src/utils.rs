@@ -8,7 +8,7 @@ pub(crate) fn strip_slash_suffix(path: &str) -> &str {
 
 static BASE_URL_LOADED: std::sync::Once = std::sync::Once::new();
 thread_local! {
-    static BASE_URL: RefCell<Option<String>> = RefCell::new(None);
+    static BASE_URL: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 // This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API

@@ -48,6 +48,7 @@ impl Deref for VList {
                 // This is mutable because the Vec<VNode> is not Sync
                 static mut EMPTY: Vec<VNode> = Vec::new();
                 // SAFETY: The EMPTY value is always read-only
+                #[allow(static_mut_refs)]
                 unsafe { &EMPTY }
             }
         }
