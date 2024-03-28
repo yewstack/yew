@@ -49,7 +49,9 @@ impl Deref for VList {
                 static mut EMPTY: Vec<VNode> = Vec::new();
                 // SAFETY: The EMPTY value is always read-only
                 #[allow(static_mut_refs)]
-                unsafe { &EMPTY }
+                unsafe {
+                    &EMPTY
+                }
             }
         }
     }
