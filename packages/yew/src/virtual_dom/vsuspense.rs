@@ -61,7 +61,7 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
@@ -76,6 +76,7 @@ mod ssr_tests {
     use crate::suspense::{Suspension, SuspensionResult};
     use crate::ServerRenderer;
 
+    #[cfg(not(target_os = "wasi"))]
     #[test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_suspense() {
         #[derive(PartialEq)]

@@ -8,7 +8,7 @@ use crate::app_handle::AppHandle;
 use crate::html::BaseComponent;
 
 thread_local! {
-    static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
+    static PANIC_HOOK_IS_SET: Cell<bool> = const { Cell::new(false) };
 }
 
 /// Set a custom panic hook.
