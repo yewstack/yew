@@ -20,4 +20,4 @@ cargo build --manifest-path examples/wasi_ssr_module/Cargo.toml --target wasm32-
 wasmtime target/wasm32-wasi/release/wasi_ssr_module.wasm
 ```
 
-> Note: If your wasmtime CLI throws an error that it says some imports like `__wbindgen_placeholder__::__wbindgen_xxx` is invalid, try to run `cargo update`. See issue [#411](https://github.com/rustwasm/gloo/pull/411#discussion_r1421219033).
+> Note: If your wasmtime CLI throws an error that it says some imports like `__wbindgen_placeholder__::__wbindgen_xxx` is invalid, try to run `cargo update`. See issue [rustwasm/gloo#411](https://github.com/rustwasm/gloo/pull/411#discussion_r1421219033).
