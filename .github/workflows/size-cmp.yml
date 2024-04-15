@@ -65,7 +65,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.number }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: size-cmp-${{ matrix.target }}-info
           path: ".SIZE_CMP_INFO"

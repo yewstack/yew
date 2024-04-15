@@ -120,7 +120,7 @@ jobs:
           EVENT_INFO: ${{ toJSON(github.event) }}
 
       - name: Upload result artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: results
           path: artifacts/
