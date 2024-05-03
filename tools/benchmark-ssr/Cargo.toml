@@ -8,11 +8,11 @@ edition = "2021"
 [dependencies]
 yew = { path = "../../packages/yew", features = ["ssr"] }
 function_router = { path = "../../examples/function_router" }
-tokio = { version = "1.33", features = ["full"] }
-average = "0.14.1"
-tabled = "0.14.0"
-indicatif = "0.17.7"
-serde = { version = "1.0.190", features = ["derive"] }
+tokio = { version = "1.37", features = ["full"] }
+average = "0.15.1"
+tabled = "0.15.0"
+indicatif = "0.17.8"
+serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.107"
 clap = { version = "4", features = ["derive"] }
 
