@@ -64,10 +64,23 @@ mod tests {
 
     use crate::dom_bundle::{BSubtree, DomSlot};
     use crate::html::AnyScope;
+    use crate::virtual_dom::vtag::SVG_NAMESPACE;
 
     pub fn setup_parent() -> (BSubtree, AnyScope, Element) {
         let scope = AnyScope::test();
         let parent = document().create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+
+        document().body().unwrap().append_child(&parent).unwrap();
+
+        (root, scope, parent)
+    }
+
+    pub fn setup_parent_svg() -> (BSubtree, AnyScope, Element) {
+        let scope = AnyScope::test();
+        let parent = document()
+            .create_element_ns(Some(SVG_NAMESPACE), "svg")
+            .unwrap();
         let root = BSubtree::create_root(&parent);
 
         document().body().unwrap().append_child(&parent).unwrap();
