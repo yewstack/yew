@@ -4,11 +4,11 @@ use std::rc::Rc;
 use crate::functional::{hook, use_state, Hook, HookContext};
 use crate::NodeRef;
 
-struct UseRawRef<F> {
+struct UseRef<F> {
     init_fn: F,
 }
 
-impl<T: 'static, F: FnOnce() -> T> Hook for UseRawRef<F> {
+impl<T: 'static, F: FnOnce() -> T> Hook for UseRef<F> {
     type Output = Rc<T>;
 
     fn run(self, ctx: &mut HookContext) -> Self::Output {
@@ -37,7 +37,7 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseRawRef<F> {
 /// #[function_component(UseRef)]
 /// fn ref_hook() -> Html {
 ///     let message = use_state(|| "".to_string());
-///     let message_count = use_raw_ref(|| Cell::new(0));
+///     let message_count = use_ref(|| Cell::new(0));
 ///
 ///     let onclick = Callback::from(move |e| {
 ///         let window = gloo::utils::window();
@@ -65,11 +65,11 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseRawRef<F> {
 ///         </div>
 ///     }
 /// }
-pub fn use_raw_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<T>>
+pub fn use_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<T>>
 where
     F: FnOnce() -> T,
 {
-    UseRawRef { init_fn }
+    UseRef { init_fn }
 }
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
@@ -124,7 +124,7 @@ pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<RefCell<T
 where
     F: FnOnce() -> T,
 {
-    UseRawRef {
+    UseRef {
         init_fn: || RefCell::new(init_fn()),
     }
 }
