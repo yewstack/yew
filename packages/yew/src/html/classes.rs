@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::fmt::Display;
 use std::iter::FromIterator;
 use std::rc::Rc;
 
@@ -165,14 +166,14 @@ impl IntoIterator for &Classes {
     }
 }
 
-impl ToString for Classes {
-    fn to_string(&self) -> String {
+impl Display for Classes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut iter = self.set.iter().cloned();
 
         iter.next()
             .map(|first| build_attr_value(first, iter))
             .unwrap_or_default()
-            .to_string()
+            .fmt(f)
     }
 }
 

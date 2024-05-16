@@ -146,6 +146,7 @@ where
 ///
 /// Mostly a thin wrapper that passes the context to a component's lifecycle
 /// methods.
+#[allow(dead_code)]
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
     fn rendered(&mut self, first_render: bool);
@@ -742,7 +743,7 @@ mod feat_csr {
 #[cfg(feature = "csr")]
 pub(super) use feat_csr::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     extern crate self as yew;
@@ -799,7 +800,7 @@ mod tests {
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         #[allow(dead_code)]
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
         create_message: Option<bool>,
         update_message: RefCell<Option<bool>>,
         view_message: RefCell<Option<bool>>,
@@ -816,7 +817,7 @@ mod tests {
 
         fn create(ctx: &Context<Self>) -> Self {
             ctx.props().lifecycle.borrow_mut().push("create".into());
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
             if let Some(msg) = ctx.props().create_message {
                 ctx.link().send_message(msg);
             }
@@ -903,7 +904,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle: lifecycle.clone(),
-                #[cfg(target_arch = "wasm32")]
+                #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
                 create_message: Some(false),
                 ..Props::default()
             },
@@ -984,7 +985,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle,
-                #[cfg(target_arch = "wasm32")]
+                #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()

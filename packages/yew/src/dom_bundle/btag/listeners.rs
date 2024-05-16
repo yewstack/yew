@@ -1,3 +1,6 @@
+#![allow(clippy::empty_docs)]
+// TODO: https://github.com/rustwasm/wasm-bindgen/pull/3946
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -196,7 +199,7 @@ impl Registry {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use std::marker::PhantomData;

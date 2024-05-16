@@ -15,4 +15,4 @@ yew = { path = "../../packages/yew", features = ["csr"] }
 yew-router = { path = "../../packages/yew-router" }
 serde = { version = "1.0", features = ["derive"] }
 once_cell = "1"
-gloo = "0.10"
+gloo = "0.11"

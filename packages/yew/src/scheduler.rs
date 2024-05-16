@@ -55,6 +55,7 @@ impl TopologicalQueue {
 
     /// Take a single entry, preferring parents over children
     #[rustversion::since(1.66)]
+    #[allow(clippy::incompatible_msrv)]
     #[inline]
     fn pop_topmost(&mut self) -> Option<QueueEntry> {
         self.inner.pop_first().map(|(_, v)| v)
@@ -220,7 +221,7 @@ pub(crate) fn start_now() {
     });
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 mod arch {
     use crate::platform::spawn_local;
 
@@ -233,7 +234,7 @@ mod arch {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 mod arch {
     // Delayed rendering is not very useful in the context of server-side rendering.
     // There are no event listeners or other high priority events that need to be
