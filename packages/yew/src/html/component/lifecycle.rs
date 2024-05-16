@@ -146,6 +146,7 @@ where
 ///
 /// Mostly a thin wrapper that passes the context to a component's lifecycle
 /// methods.
+#[allow(dead_code)]
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
     fn rendered(&mut self, first_render: bool);

@@ -27,9 +27,9 @@ pub trait EventGrating {
     fn set_cache_key(&self, key: u32);
 }
 
+/// Duck-typing, not a real class on js-side. On rust-side, use impls of EventGrating below
 #[wasm_bindgen]
 extern "C" {
-    // Duck-typing, not a real class on js-side. On rust-side, use impls of EventGrating below
     type EventTargetable;
     #[wasm_bindgen(method, getter = __yew_subtree_id, structural)]
     fn subtree_id(this: &EventTargetable) -> Option<TreeId>;
