@@ -11,6 +11,7 @@ use crate::props::{ElementProps, Prop};
 /// Lints HTML elements to check if they are well formed. If the element is not well-formed, then
 /// use `proc-macro-error` (and the `emit_warning!` macro) to produce a warning. At present, these
 /// are only emitted on nightly.
+#[allow(dead_code)]
 pub trait Lint {
     fn lint(element: &HtmlElement);
 }
