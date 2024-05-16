@@ -37,7 +37,7 @@ async fn render(
     Query(queries): Query<HashMap<String, String>>,
     State((index_html_before, index_html_after)): State<(String, String)>,
 ) -> impl IntoResponse {
-    let url = url.to_string();
+    let url = url.path().to_owned();
 
     let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
         url: url.into(),
