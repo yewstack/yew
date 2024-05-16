@@ -1,3 +1,6 @@
+#![allow(clippy::empty_docs)]
+// TODO: https://github.com/rustwasm/wasm-bindgen/pull/3946
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
