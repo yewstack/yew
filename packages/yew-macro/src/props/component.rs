@@ -7,7 +7,7 @@ use syn::spanned::Spanned;
 use syn::token::DotDot;
 use syn::Expr;
 
-use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
+use super::{Prop, PropLabel, Props, SpecialProps, CHILDREN_LABEL};
 
 struct BaseExpr {
     pub dot_dot: DotDot,
@@ -190,15 +190,12 @@ impl TryFrom<Props> for ComponentProps {
 
 fn validate(props: Props) -> Result<Props, syn::Error> {
     props.check_no_duplicates()?;
-    props.check_all(|prop| {
-        if !prop.label.extended.is_empty() {
-            Err(syn::Error::new_spanned(
-                &prop.label,
-                "expected a valid Rust identifier",
-            ))
-        } else {
-            Ok(())
-        }
+    props.check_all(|prop| match &prop.label {
+        PropLabel::Static(dashed_name) if dashed_name.extended.is_empty() => Ok(()),
+        _ => Err(syn::Error::new_spanned(
+            &prop.label,
+            "components expect valid Rust identifiers for their property names",
+        )),
     })?;
 
     Ok(props)
