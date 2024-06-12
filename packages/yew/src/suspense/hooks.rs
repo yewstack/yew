@@ -15,6 +15,14 @@ pub struct UseFutureHandle<O> {
     inner: UseStateHandle<Option<O>>,
 }
 
+impl<O> Clone for UseFutureHandle<O> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
 impl<O> Deref for UseFutureHandle<O> {
     type Target = O;
 
