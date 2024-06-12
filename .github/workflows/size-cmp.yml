@@ -46,6 +46,8 @@ jobs:
 
       - name: Restore Rust cache for master
         uses: Swatinem/rust-cache@v2
+        with:
+          key: target-${{ matrix.target }}
 
       - name: Setup Trunk
         uses: jetli/trunk-action@v0.4.0
