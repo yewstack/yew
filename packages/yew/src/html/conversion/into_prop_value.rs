@@ -274,7 +274,7 @@ impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitC
     IntoPropValue<IMap<K, V>> for indexmap::IndexMap<K, V>
 {
     fn into_prop_value(self) -> IMap<K, V> {
-        IMap::from(self)
+        IMap::from_iter(self)
     }
 }
 
