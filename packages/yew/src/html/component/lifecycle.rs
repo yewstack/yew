@@ -157,7 +157,6 @@ pub(crate) trait Stateful {
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
 
     fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
 
     #[cfg(feature = "hydration")]
     fn creation_mode(&self) -> RenderMode;
@@ -214,10 +213,6 @@ where
     }
 
     fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }
