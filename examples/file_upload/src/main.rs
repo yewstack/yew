@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use gloo::file::callbacks::FileReader;
-use gloo::file::File;
-use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
+use gloo::file::FileList;
+use web_sys::{DragEvent, Event, HtmlInputElement};
 use yew::html::TargetCast;
 use yew::{html, Callback, Component, Context, Html};
 
@@ -17,7 +17,7 @@ struct FileDetails {
 
 pub enum Msg {
     Loaded(String, String, Vec<u8>),
-    Files(Vec<File>),
+    Files(FileList),
 }
 
 pub struct App {
@@ -81,7 +81,7 @@ impl Component for App {
                         ondrop={ctx.link().callback(|event: DragEvent| {
                             event.prevent_default();
                             let files = event.data_transfer().unwrap().files();
-                            Self::upload_files(files)
+                            Msg::Files(gloo::file::FileList::from(files.expect("files")))
                         })}
                         ondragover={Callback::from(|event: DragEvent| {
                             event.prevent_default();
@@ -101,7 +101,7 @@ impl Component for App {
                     multiple={true}
                     onchange={ctx.link().callback(move |e: Event| {
                         let input: HtmlInputElement = e.target_unchecked_into();
-                        Self::upload_files(input.files())
+                        Msg::Files(gloo::file::FileList::from(input.files().expect("files")))
                     })}
                 />
                 <div id="preview-area">
@@ -130,21 +130,7 @@ impl App {
         }
     }
 
-    fn upload_files(files: Option<FileList>) -> Msg {
-        let mut result = Vec::new();
-
-        if let Some(files) = files {
-            let files = js_sys::try_iter(&files)
-                .unwrap()
-                .unwrap()
-                .map(|v| web_sys::File::from(v.unwrap()))
-                .map(File::from);
-            result.extend(files);
-        }
-        Msg::Files(result)
-    }
 }
-
 fn main() {
     yew::Renderer::<App>::new().render();
 }
