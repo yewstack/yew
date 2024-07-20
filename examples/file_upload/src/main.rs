@@ -4,20 +4,19 @@ use std::collections::HashMap;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use gloo::file::callbacks::FileReader;
-use gloo::file::FileList;
 use web_sys::{DragEvent, Event, HtmlInputElement};
 use yew::html::TargetCast;
 use yew::{html, Callback, Component, Context, Html};
 
-struct FileDetails {
+pub struct FileDetails {
     name: String,
     file_type: String,
     data: Vec<u8>,
 }
 
 pub enum Msg {
-    Loaded(String, String, Vec<u8>),
-    Files(FileList),
+    Loaded(FileDetails),
+    Files(Option<web_sys::FileList>),
 }
 
 pub struct App {
@@ -38,33 +37,28 @@ impl Component for App {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Loaded(file_name, file_type, data) => {
-                self.files.push(FileDetails {
-                    data,
-                    file_type,
-                    name: file_name.clone(),
-                });
-                self.readers.remove(&file_name);
+            Msg::Loaded(file) => {
+                let name = file.name.clone();
+                self.files.push(file);
+                self.readers.remove(&name);
                 true
             }
             Msg::Files(files) => {
-                for file in files.into_iter() {
-                    let file_name = file.name();
+                for file in gloo::file::FileList::from(files.expect("files")).iter() {
+                    let link = ctx.link().clone();
+                    let name = file.name().clone();
                     let file_type = file.raw_mime_type();
 
                     let task = {
-                        let link = ctx.link().clone();
-                        let file_name = file_name.clone();
-
-                        gloo::file::callbacks::read_as_bytes(&file, move |res| {
-                            link.send_message(Msg::Loaded(
-                                file_name,
+                        gloo::file::callbacks::read_as_bytes(file, move |res| {
+                            link.send_message(Msg::Loaded(FileDetails {
+                                data: res.expect("failed to read file"),
                                 file_type,
-                                res.expect("failed to read file"),
-                            ))
+                                name,
+                            }))
                         })
                     };
-                    self.readers.insert(file_name, task);
+                    self.readers.insert(file.name(), task);
                 }
                 true
             }
@@ -80,8 +74,7 @@ impl Component for App {
                         id="drop-container"
                         ondrop={ctx.link().callback(|event: DragEvent| {
                             event.prevent_default();
-                            let files = event.data_transfer().unwrap().files();
-                            Msg::Files(gloo::file::FileList::from(files.expect("files")))
+                            Msg::Files(event.data_transfer().unwrap().files())
                         })}
                         ondragover={Callback::from(|event: DragEvent| {
                             event.prevent_default();
@@ -101,7 +94,7 @@ impl Component for App {
                     multiple={true}
                     onchange={ctx.link().callback(move |e: Event| {
                         let input: HtmlInputElement = e.target_unchecked_into();
-                        Msg::Files(gloo::file::FileList::from(input.files().expect("files")))
+                        Msg::Files(input.files())
                     })}
                 />
                 <div id="preview-area">
@@ -129,7 +122,6 @@ impl App {
             </div>
         }
     }
-
 }
 fn main() {
     yew::Renderer::<App>::new().render();
