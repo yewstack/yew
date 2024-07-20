@@ -10,6 +10,7 @@ pub struct FileDetails {
     name: String,
     file_type: String,
     data: Vec<u8>,
+    alt_text: String,
 }
 
 pub enum Msg {
@@ -46,6 +47,8 @@ impl Component for App {
                 let form: HtmlFormElement = event.target_unchecked_into();
                 let form_data = FormData::new_with_form(&form).expect("form data");
                 let image_file = File::from(RawFile::from(form_data.get("file")));
+                let alt_text = form_data.get("alt-text").as_string().unwrap();
+
                 let link = ctx.link().clone();
                 let name = image_file.name().clone();
                 let file_type = image_file.raw_mime_type();
@@ -53,6 +56,7 @@ impl Component for App {
                     gloo::file::callbacks::read_as_bytes(&image_file, move |res| {
                         link.send_message(Msg::Loaded(FileDetails{
                             name,
+                            alt_text,
                             file_type,
                             data: res.expect("failed to read file"),                        	
                         }));
@@ -69,7 +73,8 @@ impl Component for App {
         html! {
             <div id="wrapper">
                 <form onsubmit={ctx.link().callback(Msg::Submit)}>
-                	<input name="alt" />
+                	<lable for="alt-text">{"Alt Text"}</lable>
+                	<input id="alt-text" name="alt-text" />
 	                <input
 	                    id="file"
 	                    name="file"
@@ -98,7 +103,7 @@ impl App {
             <div class="preview-tile">
                 <p class="preview-name">{ format!("{}", file.name) }</p>
                 <div class="preview-media">
-                    <img src={src} />
+                    <img src={src} alt={file.alt_text.clone()}/>
                 </div>
             </div>
         }
