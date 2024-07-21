@@ -38,9 +38,8 @@ impl Component for App {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Loaded(file) => {
-                let name = file.name.clone();
+                self.readers.remove(&file.name);
                 self.files.push(file);
-                self.readers.remove(&name);
                 true
             }
             Msg::Files(files) => {
