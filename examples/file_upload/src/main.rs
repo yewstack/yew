@@ -65,6 +65,10 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let noop_drag = Callback::from( |e: DragEvent| {
+            e.prevent_default();
+        });
+
         html! {
             <div id="wrapper">
                 <p id="title">{ "Upload Your Files To The Cloud" }</p>
@@ -75,12 +79,8 @@ impl Component for App {
                             event.prevent_default();
                             Msg::Files(event.data_transfer().unwrap().files())
                         })}
-                        ondragover={Callback::from(|event: DragEvent| {
-                            event.prevent_default();
-                        })}
-                        ondragenter={Callback::from(|event: DragEvent| {
-                            event.prevent_default();
-                        })}
+                        ondragover={&noop_drag}
+                        ondragenter={&noop_drag}
                     >
                         <i class="fa fa-cloud-upload"></i>
                         <p>{"Drop your images here or click to select"}</p>
@@ -106,15 +106,17 @@ impl Component for App {
 
 impl App {
     fn view_file(file: &FileDetails) -> Html {
+        let file_type = file.file_type.to_string();
+        let src = format!("data:{};base64,{}", file_type, STANDARD.encode(&file.data));
         html! {
             <div class="preview-tile">
-                <p class="preview-name">{ format!("{}", file.name) }</p>
+                <p class="preview-name">{ &file.name }</p>
                 <div class="preview-media">
                     if file.file_type.contains("image") {
-                        <img src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} />
+                        <img src={src} />
                     } else if file.file_type.contains("video") {
                         <video controls={true}>
-                            <source src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} type={file.file_type.clone()}/>
+                            <source src={src} type={ file_type }/>
                         </video>
                     }
                 </div>
