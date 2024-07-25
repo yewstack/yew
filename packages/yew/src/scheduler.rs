@@ -55,6 +55,7 @@ impl TopologicalQueue {
 
     /// Take a single entry, preferring parents over children
     #[rustversion::since(1.66)]
+    #[allow(clippy::incompatible_msrv)]
     #[inline]
     fn pop_topmost(&mut self) -> Option<QueueEntry> {
         self.inner.pop_first().map(|(_, v)| v)
