@@ -48,13 +48,13 @@ impl ToTokens for PropsWrapper<'_> {
     }
 }
 
-impl<'a> PropsWrapper<'_> {
+impl<'a> PropsWrapper<'a> {
     pub fn new(
         name: &'a Ident,
         generics: &'a Generics,
         prop_fields: &'a [PropField],
         extra_attrs: &'a [Attribute],
-    ) -> PropsWrapper<'a> {
+    ) -> Self {
         PropsWrapper {
             wrapper_name: name,
             generics,
@@ -62,9 +62,7 @@ impl<'a> PropsWrapper<'_> {
             extra_attrs,
         }
     }
-}
 
-impl PropsWrapper<'_> {
     fn field_defs(&self) -> impl Iterator<Item = impl ToTokens + '_> {
         self.prop_fields.iter().map(|pf| pf.to_field_def())
     }

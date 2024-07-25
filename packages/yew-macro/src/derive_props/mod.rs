@@ -10,9 +10,16 @@ use field::PropField;
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
-use syn::{Attribute, DeriveInput, Generics, Visibility};
+use syn::punctuated::Pair;
+use syn::visit_mut::VisitMut;
+use syn::{
+    AngleBracketedGenericArguments, Attribute, ConstParam, DeriveInput, GenericArgument,
+    GenericParam, Generics, Path, PathArguments, PathSegment, Type, TypeParam, TypePath,
+    Visibility,
+};
 use wrapper::PropsWrapper;
 
+use self::field::PropAttr;
 use self::generics::to_arguments;
 
 pub struct DerivePropsInput {
@@ -21,6 +28,76 @@ pub struct DerivePropsInput {
     props_name: Ident,
     prop_fields: Vec<PropField>,
     preserved_attrs: Vec<Attribute>,
+}
+
+/// AST visitor that replaces all occurences of the keyword `Self` with `new_self`
+struct Normaliser<'ast> {
+    new_self: &'ast Ident,
+    generics: &'ast Generics,
+    /// `Option` for one-time initialisation
+    new_self_full: Option<PathSegment>,
+}
+
+impl<'ast> Normaliser<'ast> {
+    pub fn new(new_self: &'ast Ident, generics: &'ast Generics) -> Self {
+        Self {
+            new_self,
+            generics,
+            new_self_full: None,
+        }
+    }
+
+    fn get_new_self(&mut self) -> PathSegment {
+        self.new_self_full
+            .get_or_insert_with(|| {
+                PathSegment {
+                    ident: self.new_self.clone(),
+                    arguments: if self.generics.lt_token.is_some() {
+                        PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                            colon2_token: Some(Default::default()),
+                            lt_token: Default::default(),
+                            args: self
+                                .generics
+                                .params
+                                .pairs()
+                                .map(|pair| {
+                                    let (value, punct) = pair.cloned().into_tuple();
+                                    let value = match value {
+                                        GenericParam::Lifetime(param) => {
+                                            GenericArgument::Lifetime(param.lifetime)
+                                        }
+                                        GenericParam::Type(TypeParam { ident, .. })
+                                        | GenericParam::Const(ConstParam { ident, .. }) => {
+                                            GenericArgument::Type(Type::Path(TypePath {
+                                                qself: None,
+                                                path: ident.into(),
+                                            }))
+                                        }
+                                    };
+                                    Pair::new(value, punct)
+                                })
+                                .collect(),
+                            gt_token: Default::default(),
+                        })
+                    } else {
+                        // if no generics were defined for the struct
+                        PathArguments::None
+                    },
+                }
+            })
+            .clone()
+    }
+}
+
+impl VisitMut for Normaliser<'_> {
+    fn visit_path_mut(&mut self, path: &mut Path) {
+        if let Some(first) = path.segments.first_mut() {
+            if first.ident == "Self" {
+                *first = self.get_new_self();
+            }
+            syn::visit_mut::visit_path_mut(self, path)
+        }
+    }
 }
 
 /// Some attributes on the original struct are to be preserved and added to the builder struct,
@@ -74,22 +151,33 @@ impl Parse for DerivePropsInput {
     }
 }
 
+impl DerivePropsInput {
+    /// Replaces all occurences of `Self` in the struct with the actual name of the struct.
+    /// Must be called before tokenising the struct.
+    pub fn normalise(&mut self) {
+        let mut normaliser = Normaliser::new(&self.props_name, &self.generics);
+        for field in &mut self.prop_fields {
+            normaliser.visit_type_mut(&mut field.ty);
+            if let PropAttr::PropOr(expr) | PropAttr::PropOrElse(expr) = &mut field.attr {
+                normaliser.visit_expr_mut(expr)
+            }
+        }
+    }
+}
+
 impl ToTokens for DerivePropsInput {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
             generics,
             props_name,
+            prop_fields,
+            preserved_attrs,
             ..
         } = self;
 
         // The wrapper is a new struct which wraps required props in `Option`
         let wrapper_name = format_ident!("{}Wrapper", props_name, span = Span::mixed_site());
-        let wrapper = PropsWrapper::new(
-            &wrapper_name,
-            generics,
-            &self.prop_fields,
-            &self.preserved_attrs,
-        );
+        let wrapper = PropsWrapper::new(&wrapper_name, generics, prop_fields, preserved_attrs);
         tokens.extend(wrapper.into_token_stream());
 
         // The builder will only build if all required props have been set
@@ -101,7 +189,7 @@ impl ToTokens for DerivePropsInput {
             self,
             &wrapper_name,
             &check_all_props_name,
-            &self.preserved_attrs,
+            preserved_attrs,
         );
         let generic_args = to_arguments(generics);
         tokens.extend(builder.into_token_stream());
