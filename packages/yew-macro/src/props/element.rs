@@ -61,6 +61,7 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
         "disabled",
         "formnovalidate",
         "hidden",
+        "inert",
         "ismap",
         "itemscope",
         "loop",
