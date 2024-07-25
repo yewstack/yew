@@ -31,3 +31,7 @@ lazy_static = "1.4.0"
 rustversion = "1"
 trybuild = "1"
 yew = { path = "../yew" }
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(nightly_yew)'] }
+
