@@ -100,3 +100,7 @@ default = []
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "documenting"]
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(nightly_yew)'] }
+

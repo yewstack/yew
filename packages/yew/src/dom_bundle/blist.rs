@@ -248,6 +248,7 @@ impl BList {
         let rights_to = rev_bundles.len() - matching_len_start;
         let mut spliced_middle =
             rev_bundles.splice(matching_len_end..rights_to, std::iter::empty());
+        #[allow(clippy::mutable_key_type)]
         let mut spare_bundles: HashSet<KeyedEntry> =
             HashSet::with_capacity((matching_len_end..rights_to).len());
         for (idx, r) in (&mut spliced_middle).enumerate() {
