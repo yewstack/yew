@@ -16,6 +16,6 @@ fn Comp(props: &Props) -> ::yew::prelude::Html {
 
 fn main() {
     let _ = ::yew::prelude::html! {
-        <Comp a={0} />
+        <Comp a={0_usize} />
     };
 }
