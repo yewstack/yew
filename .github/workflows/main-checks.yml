@@ -67,7 +67,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.76.0
           - stable
 
     steps:
@@ -116,7 +116,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.76.0
           - stable
           - nightly
 
