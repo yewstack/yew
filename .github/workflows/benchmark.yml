@@ -49,6 +49,10 @@ jobs:
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
       - uses: Swatinem/rust-cache@v2
+      - name: Setup chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          install-chromedriver: true
 
       - name: setup js-framework-benchmark
         working-directory: js-framework-benchmark
@@ -120,7 +124,7 @@ jobs:
           EVENT_INFO: ${{ toJSON(github.event) }}
 
       - name: Upload result artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: results
           path: artifacts/

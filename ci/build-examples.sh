@@ -33,7 +33,7 @@ for path in examples/*; do
       export RUSTFLAGS="-Zshare-generics=n -Clto=thin $RUSTFLAGS"
     fi
 
-    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX$example"
+    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example"
 
     # check that there are no undefined symbols. Those generate an import .. from 'env',
     # which isn't available in the browser.

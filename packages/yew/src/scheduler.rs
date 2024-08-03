@@ -46,15 +46,6 @@ impl TopologicalQueue {
     }
 
     /// Take a single entry, preferring parents over children
-    #[rustversion::before(1.66)]
-    fn pop_topmost(&mut self) -> Option<QueueEntry> {
-        // BTreeMap::pop_first is available after 1.66.
-        let key = *self.inner.keys().next()?;
-        self.inner.remove(&key)
-    }
-
-    /// Take a single entry, preferring parents over children
-    #[rustversion::since(1.66)]
     #[inline]
     fn pop_topmost(&mut self) -> Option<QueueEntry> {
         self.inner.pop_first().map(|(_, v)| v)

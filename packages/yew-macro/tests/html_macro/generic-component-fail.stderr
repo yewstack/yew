@@ -20,7 +20,7 @@ error: mismatched closing tags: expected `Generic<String>`, found `Generic<Path>
   --> tests/html_macro/generic-component-fail.rs:50:14
    |
 50 |     html! { <Generic<String>></Generic<Path>> };
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: expected a valid closing tag for component
        note: found opening tag `<Generic<String>>`
