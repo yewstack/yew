@@ -868,6 +868,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
+name = "form_file"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.5",
+ "gloo 0.10.0",
+ "gloo-console 0.3.0",
+ "js-sys",
+ "web-sys",
+ "yew",
+]
+
+[[package]]
 name = "form_urlencoded"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
