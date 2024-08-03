@@ -94,8 +94,7 @@ where
     let output = use_state(|| None);
     // We only commit a result if it comes from the latest spawned future. Otherwise, this
     // might trigger pointless updates or even override newer state.
-    let latest_id = use_state(|| Cell::new(0u32));
-
+    let latest_id = use_ref(|| Cell::new(0u32));
     let suspension = {
         let output = output.clone();
 
