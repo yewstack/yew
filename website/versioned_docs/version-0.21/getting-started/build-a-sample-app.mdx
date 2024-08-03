@@ -8,10 +8,26 @@ the boilerplate needed for a basic Yew app or manually set up a small project.
 ## Using a starter template
 
 Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) by following their installation instructions
-then run the following command:
+then take the following steps:
+
+### Checkout and customize project
 
 ```shell
 cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+```
+
+### Build project
+
+This step is only needed when this guide has been run on Microsoft windows.
+
+```shell
+trunk build
+```
+
+### Run project
+
+```shell
+trunk serve
 ```
 
 ## Setting up the application manually
