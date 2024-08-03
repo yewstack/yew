@@ -44,7 +44,7 @@ error: expected an expression following this equals sign
   --> tests/html_macro/list-fail.rs:18:17
    |
 18 |     html! { <key=></> };
-   |                 ^^
+   |                 ^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::MethodCall {
            attrs: [],
