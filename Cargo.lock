@@ -2988,6 +2988,7 @@ dependencies = [
  "function_router",
  "futures 0.3.30",
  "hyper 1.4.1",
+ "hyper-util",
  "jemallocator",
  "log",
  "tokio",
