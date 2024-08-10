@@ -3,11 +3,11 @@ name: Main Checks
 on:
   pull_request:
     paths:
-      - ".github/workflows/main-checks.yml"
-      - "ci/**"
-      - "packages/**/*"
-      - "Cargo.toml"
-      - "Cargo.lock"
+      - '.github/workflows/main-checks.yml'
+      - 'ci/**'
+      - 'packages/**/*'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
   push:
     branches: [master]
 
@@ -172,7 +172,6 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
           - stable
           - nightly
 
@@ -209,7 +208,6 @@ jobs:
         package:
           - wasi_ssr_module
         toolchain:
-          - 1.64.0
           - stable
           - nightly
     steps:
