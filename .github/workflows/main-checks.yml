@@ -172,6 +172,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
+          - 1.76.0
           - stable
           - nightly
 
@@ -208,6 +209,7 @@ jobs:
         package:
           - wasi_ssr_module
         toolchain:
+          - 1.76.0
           - stable
           - nightly
     steps:
