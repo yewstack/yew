@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::fmt::Display;
 use std::iter::FromIterator;
 use std::rc::Rc;
 
@@ -174,7 +173,7 @@ impl ToString for Classes {
         iter.next()
             .map(|first| build_attr_value(first, iter))
             .unwrap_or_default()
-            .fmt(f)
+            .to_string()
     }
 }
 

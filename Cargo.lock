@@ -1116,7 +1116,7 @@ dependencies = [
  "gloo-dialogs 0.2.0",
  "gloo-events 0.2.0",
  "gloo-file 0.3.0",
- "gloo-history 0.2.0",
+ "gloo-history 0.2.1",
  "gloo-net 0.5.0",
  "gloo-render 0.2.0",
  "gloo-storage 0.3.0",
@@ -4256,3 +4256,27 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
 ]
+
+[[patch.unused]]
+name = "hikari-boot"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "hikari-components"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "tairitsu-boot"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "tairitsu-database"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "tairitsu-utils"
+version = "0.1.0"
+
+[[patch.unused]]
+name = "tairitsu-vm"
+version = "0.1.0"
