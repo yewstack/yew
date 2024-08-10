@@ -985,7 +985,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        // this should remove the the "disabled" attribute
+        // this should remove the "disabled" attribute
         elem_vtag.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut elem);
 
         assert_eq!(

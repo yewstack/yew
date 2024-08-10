@@ -166,8 +166,9 @@ impl IntoIterator for &Classes {
     }
 }
 
-impl Display for Classes {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+#[allow(clippy::to_string_trait_impl)]
+impl ToString for Classes {
+    fn to_string(&self) -> String {
         let mut iter = self.set.iter().cloned();
 
         iter.next()

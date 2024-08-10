@@ -13,6 +13,7 @@ use crate::props::{ElementProps, Prop};
 /// are only emitted on nightly.
 #[allow(dead_code)]
 pub trait Lint {
+    #[cfg_attr(not(yew_lints), allow(dead_code))]
     fn lint(element: &HtmlElement);
 }
 

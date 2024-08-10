@@ -342,7 +342,16 @@ error[E0308]: mismatched types
    |     |                      expected `bool`, found integer
    |     arguments to this enum variant are incorrect
    |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> tests/html_macro/element-fail.rs:36:5
+   |
+36 |     html! { <input checked=1 /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^-^^^^^
+   |                            |
+   |                            this argument influences the type of `{{root}}`
 note: tuple variant defined here
+  --> $RUST/core/src/option.rs
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:37:29
@@ -350,12 +359,25 @@ error[E0308]: mismatched types
 37 |     html! { <input checked={Some(false)} /> };
    |     ------------------------^^^^^^^^^^^------
    |     |                       |
-   |     |                       expected `bool`, found enum `Option`
+   |     |                       expected `bool`, found `Option<bool>`
    |     arguments to this enum variant are incorrect
    |
    = note: expected type `bool`
               found enum `Option<bool>`
+help: the type constructed contains `Option<bool>` due to the type of the argument passed
+  --> tests/html_macro/element-fail.rs:37:5
+   |
+37 |     html! { <input checked={Some(false)} /> };
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^-----------^^^^^^
+   |                             |
+   |                             this argument influences the type of `{{root}}`
 note: tuple variant defined here
+  --> $RUST/core/src/option.rs
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: use `Option::is_some` to test if the `Option` has a value
+   |
+37 |     html! { <input checked={Some(false).is_some()} /> };
+   |                                        ++++++++++
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:38:29
@@ -376,10 +398,14 @@ error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:39:30
    |
 39 |     html! { <input disabled={Some(true)} /> };
-   |                              ^^^^^^^^^^ expected `bool`, found enum `Option`
+   |                              ^^^^^^^^^^ expected `bool`, found `Option<bool>`
    |
    = note: expected type `bool`
               found enum `Option<bool>`
+help: use `Option::is_some` to test if the `Option` has a value
+   |
+39 |     html! { <input disabled={Some(true).is_some()} /> };
+   |                                        ++++++++++
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:40:30
@@ -403,6 +429,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::
    |                          ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `()`
    |
    = help: the trait `IntoPropValue<VNode>` is implemented for `()`
+   = help: for that trait implementation, expected `VNode`, found `Option<implicit_clone::unsync::string::IString>`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:44:27
@@ -411,6 +438,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::
    |                           ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `()`
    |
    = help: the trait `IntoPropValue<VNode>` is implemented for `()`
+   = help: for that trait implementation, expected `VNode`, found `Option<implicit_clone::unsync::string::IString>`
 
 error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:45:22
@@ -419,6 +447,7 @@ error[E0277]: the trait bound `(): IntoPropValue<Option<implicit_clone::unsync::
    |                      ^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `()`
    |
    = help: the trait `IntoPropValue<VNode>` is implemented for `()`
+   = help: for that trait implementation, expected `VNode`, found `Option<implicit_clone::unsync::string::IString>`
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:46:28
@@ -427,64 +456,70 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::array::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::string::IString>>
-             <&String as IntoPropValue<VNode>>
+             <bool as IntoPropValue<VNode>>
+             <char as IntoPropValue<VNode>>
+             <isize as IntoPropValue<VNode>>
+             <i8 as IntoPropValue<VNode>>
+             <i16 as IntoPropValue<VNode>>
+             <i32 as IntoPropValue<VNode>>
+             <i64 as IntoPropValue<VNode>>
+             <i128 as IntoPropValue<VNode>>
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:47:23
    |
 47 |     html! { <a media={Some(NotToString)} /> };
-   |                       ^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<NotToString>`
+   |                       ----^^^^^^^^^^^^^
+   |                       |
+   |                       the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<NotToString>`
+   |                       required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
              <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
              <Option<VNode> as IntoPropValue<VNode>>
+             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
    |
 48 |     html! { <a href={Some(5)} /> };
-   |                      ^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<{integer}>`
+   |                      ----^^^
+   |                      |
+   |                      the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<{integer}>`
+   |                      required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
              <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
              <Option<VNode> as IntoPropValue<VNode>>
+             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
 
-error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `{integer}`
+error[E0277]: expected a `Fn(MouseEvent)` closure, found `{integer}`
   --> tests/html_macro/element-fail.rs:51:28
    |
 51 |     html! { <input onclick=1 /> };
    |     -----------------------^-----
    |     |                      |
-   |     |                      expected an `Fn<(MouseEvent,)>` closure, found `{integer}`
+   |     |                      expected an `Fn(MouseEvent)` closure, found `{integer}`
    |     required by a bound introduced by this call
    |
    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
-             &yew::Callback<EVENT>
-             Option<T>
-             Option<yew::Callback<EVENT>>
              yew::Callback<EVENT>
-   = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `{integer}`
+             Option<yew::Callback<EVENT>>
+             Option<T>
+             &yew::Callback<EVENT>
+   = note: required for `{integer}` to implement `IntoEventCallback<MouseEvent>`
 note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
    |
@@ -495,23 +530,26 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
 ...  |
    | |     ontransitionstart(TransitionEvent)
    | | }
-   | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+   | | ^
+   | | |
+   | |_required by a bound in this associated function
+   |   required by this bound in `Wrapper::__macro_new`
    = note: this error originates in the macro `impl_action` which comes from the expansion of the macro `impl_short` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
+error[E0277]: expected a `Fn(MouseEvent)` closure, found `yew::Callback<String>`
   --> tests/html_macro/element-fail.rs:52:29
    |
 52 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
    |     ------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------
    |     |                       |
-   |     |                       expected an `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
+   |     |                       expected an `Fn(MouseEvent)` closure, found `yew::Callback<String>`
    |     required by a bound introduced by this call
    |
    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `yew::Callback<String>`
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
-             &yew::Callback<EVENT>
              yew::Callback<EVENT>
-   = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
+             &yew::Callback<EVENT>
+   = note: required for `yew::Callback<String>` to implement `IntoEventCallback<MouseEvent>`
 note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
    |
@@ -522,7 +560,10 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
 ...  |
    | |     ontransitionstart(TransitionEvent)
    | | }
-   | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+   | | ^
+   | | |
+   | |_required by a bound in this associated function
+   |   required by this bound in `Wrapper::__macro_new`
    = note: this error originates in the macro `impl_action` which comes from the expansion of the macro `impl_short` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>` is not satisfied
@@ -535,8 +576,8 @@ error[E0277]: the trait bound `Option<{integer}>: IntoEventCallback<FocusEvent>`
    |     required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
-             Option<T>
              Option<yew::Callback<EVENT>>
+             Option<T>
 note: required by a bound in `yew::html::onfocus::Wrapper::__macro_new`
   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
    |
@@ -547,49 +588,57 @@ note: required by a bound in `yew::html::onfocus::Wrapper::__macro_new`
 ...  |
    | |     ontransitionstart(TransitionEvent)
    | | }
-   | |_^ required by this bound in `yew::html::onfocus::Wrapper::__macro_new`
+   | | ^
+   | | |
+   | |_required by a bound in this associated function
+   |   required by this bound in `Wrapper::__macro_new`
    = note: this error originates in the macro `impl_action` which comes from the expansion of the macro `impl_short` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
   --> tests/html_macro/element-fail.rs:56:25
    |
 56 |     html! { <input ref={()} /> };
-   |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+   |                         ^^
+   |                         |
+   |                         the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+   |                         required by a bound introduced by this call
    |
    = help: the trait `IntoPropValue<VNode>` is implemented for `()`
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: for that trait implementation, expected `VNode`, found `yew::NodeRef`
 
 error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>` is not satisfied
   --> tests/html_macro/element-fail.rs:57:25
    |
 57 |     html! { <input ref={Some(NodeRef::default())} /> };
-   |                         ^^^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
+   |                         ----^^^^^^^^^^^^^^^^^^^^
+   |                         |
+   |                         the trait `IntoPropValue<yew::NodeRef>` is not implemented for `Option<yew::NodeRef>`
+   |                         required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
              <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
              <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
              <Option<VNode> as IntoPropValue<VNode>>
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
+             <Option<&'static str> as IntoPropValue<Option<String>>>
+             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
 
-error[E0277]: expected a `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
+error[E0277]: expected a `Fn(MouseEvent)` closure, found `yew::Callback<String>`
   --> tests/html_macro/element-fail.rs:58:29
    |
 58 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
    |     ------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------
    |     |                       |
-   |     |                       expected an `Fn<(MouseEvent,)>` closure, found `yew::Callback<String>`
+   |     |                       expected an `Fn(MouseEvent)` closure, found `yew::Callback<String>`
    |     required by a bound introduced by this call
    |
    = help: the trait `Fn<(MouseEvent,)>` is not implemented for `yew::Callback<String>`
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
-             &yew::Callback<EVENT>
              yew::Callback<EVENT>
-   = note: required because of the requirements on the impl of `IntoEventCallback<MouseEvent>` for `yew::Callback<String>`
+             &yew::Callback<EVENT>
+   = note: required for `yew::Callback<String>` to implement `IntoEventCallback<MouseEvent>`
 note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
   --> $WORKSPACE/packages/yew/src/html/listener/events.rs
    |
@@ -600,7 +649,10 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
 ...  |
    | |     ontransitionstart(TransitionEvent)
    | | }
-   | |_^ required by this bound in `yew::html::onclick::Wrapper::__macro_new`
+   | | ^
+   | | |
+   | |_required by a bound in this associated function
+   |   required by this bound in `Wrapper::__macro_new`
    = note: this error originates in the macro `impl_action` which comes from the expansion of the macro `impl_short` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
@@ -610,24 +662,27 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::array::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::string::IString>>
-             <&String as IntoPropValue<VNode>>
+             <bool as IntoPropValue<VNode>>
+             <char as IntoPropValue<VNode>>
+             <isize as IntoPropValue<VNode>>
+             <i8 as IntoPropValue<VNode>>
+             <i16 as IntoPropValue<VNode>>
+             <i32 as IntoPropValue<VNode>>
+             <i64 as IntoPropValue<VNode>>
+             <i128 as IntoPropValue<VNode>>
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
   --> tests/html_macro/element-fail.rs:62:25
    |
 62 |     html! { <input ref={()} /> };
-   |                         ^^ the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+   |                         ^^
+   |                         |
+   |                         the trait `IntoPropValue<yew::NodeRef>` is not implemented for `()`
+   |                         required by a bound introduced by this call
    |
    = help: the trait `IntoPropValue<VNode>` is implemented for `()`
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: for that trait implementation, expected `VNode`, found `yew::NodeRef`
 
 error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{integer}>` is not satisfied
   --> tests/html_macro/element-fail.rs:77:16
@@ -636,9 +691,10 @@ error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{in
    |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::string::IString`
    |
    = help: the following other types implement trait `From<T>`:
-             <implicit_clone::unsync::string::IString as From<&'static str>>
-             <implicit_clone::unsync::string::IString as From<&implicit_clone::unsync::string::IString>>
              <implicit_clone::unsync::string::IString as From<Cow<'static, str>>>
              <implicit_clone::unsync::string::IString as From<Rc<str>>>
              <implicit_clone::unsync::string::IString as From<String>>
-   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::string::IString>` for `{integer}`
+             <implicit_clone::unsync::string::IString as From<Arguments<'_>>>
+             <implicit_clone::unsync::string::IString as From<&implicit_clone::unsync::string::IString>>
+             <implicit_clone::unsync::string::IString as From<&'static str>>
+   = note: required for `{integer}` to implement `Into<implicit_clone::unsync::string::IString>`
