@@ -1,8 +1,5 @@
 //! Per-subtree state of apps
 
-#![allow(clippy::empty_docs)]
-// TODO: https://github.com/rustwasm/wasm-bindgen/pull/3946
-
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashSet;

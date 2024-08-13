@@ -200,7 +200,9 @@ Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_r
 Yew supports single thread mode for server-side rendering by `yew::LocalServerRenderer`. This mode would work in a single thread environment like WASI.
 
 ```rust
-// Build it by `wasm32-wasi` target
+// Build it by `wasm32-wasip1` target or `wasm32-wasip2` target (after rustc 1.78).
+// You can still use `wasm32-wasi` target to build if you are using older version of rustc (before 1.84).
+// See https://blog.rust-lang.org/2024/04/09/updates-to-rusts-wasi-targets.html for more information.
 
 use yew::prelude::*;
 use yew::LocalServerRenderer;
