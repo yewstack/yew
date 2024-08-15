@@ -12,7 +12,7 @@ use crate::functional::{use_state, Hook, HookContext};
 use crate::platform::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
     use gloo::utils::window;
     use js_sys::Uint8Array;
@@ -34,7 +34,7 @@ async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
     Ok(content_array.to_vec())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 async fn decode_base64(_s: &str) -> Result<Vec<u8>, JsValue> {
     unreachable!("this function is not callable under non-wasm targets!");
 }

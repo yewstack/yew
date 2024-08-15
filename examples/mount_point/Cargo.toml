@@ -19,5 +19,5 @@ features = [
   "Element",
   "HtmlCanvasElement",
   "Node",
-  "Window"
+  "Window",
 ]
