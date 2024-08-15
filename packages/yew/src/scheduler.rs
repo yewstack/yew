@@ -211,7 +211,11 @@ pub(crate) fn start_now() {
     });
 }
 
-#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
+#[cfg(all(
+    target_arch = "wasm32",
+    not(target_os = "wasi"),
+    not(feature = "not_browser_env")
+))]
 mod arch {
     use crate::platform::spawn_local;
 
@@ -224,7 +228,11 @@ mod arch {
     }
 }
 
-#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    target_os = "wasi",
+    feature = "not_browser_env"
+))]
 mod arch {
     // Delayed rendering is not very useful in the context of server-side rendering.
     // There are no event listeners or other high priority events that need to be
