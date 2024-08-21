@@ -73,6 +73,7 @@
 //!     yew::Renderer::<App>::new().render();
 //! }
 //! # }
+//! # fn main() {}
 //! ```
 
 #![deny(
