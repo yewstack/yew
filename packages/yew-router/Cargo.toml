@@ -29,7 +29,7 @@ version = "0.3"
 features = ["Document", "HtmlBaseElement", "Window"]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+wasm-bindgen-test = "0.3.43"
 serde = { version = "1", features = ["derive"] }
 yew = { version = "0.21.0", path = "../yew", features = ["csr"] }
 
