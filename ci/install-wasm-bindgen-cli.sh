@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 if [ ! -f "Cargo.lock" ]; then
   cargo fetch
 fi
