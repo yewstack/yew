@@ -25,6 +25,7 @@ impl TagWriter {
             table_ctx: None,
         }
     }
+
     fn finish(mut self) -> VNode {
         assert!(
             self.spine.is_empty(),
@@ -36,6 +37,7 @@ impl TagWriter {
             self.root_children.into_iter().collect()
         }
     }
+
     fn add_child(&mut self, child: VNode) {
         if let Some(host) = self.spine.last_mut() {
             host.add_child(child);
@@ -43,13 +45,16 @@ impl TagWriter {
             self.root_children.push(child);
         }
     }
+
     fn pop_spine(&mut self) {
         let top = self.spine.pop().expect("an element to close");
         self.add_child(top.into());
     }
+
     fn get_table_ctx(&mut self) -> &mut TableContext {
         self.table_ctx.as_mut().expect("a table context")
     }
+
     fn open_table_ctx(&mut self, alignment: Vec<Alignment>) {
         assert!(self.table_ctx.is_none(), "nested tables not supported");
         self.table_ctx = Some(TableContext {
@@ -59,9 +64,11 @@ impl TagWriter {
             alignment,
         });
     }
+
     fn close_table_ctx(&mut self) -> TableContext {
         self.table_ctx.take().expect("expected to be in a table")
     }
+
     fn start_tag(&mut self, tag: Tag) {
         let wrapper = match tag {
             Tag::Paragraph => VTag::new("p"),
@@ -201,6 +208,7 @@ impl TagWriter {
         };
         self.spine.push(wrapper);
     }
+
     fn end_tag(&mut self, tag: TagEnd) {
         self.pop_spine();
         match tag {
@@ -220,6 +228,7 @@ impl TagWriter {
             _ => {}
         }
     }
+
     fn write_event(&mut self, ev: Event) {
         match ev {
             Event::Start(tag) => self.start_tag(tag),
