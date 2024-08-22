@@ -43,9 +43,9 @@ pub enum FetchState<T> {
 /// Consult the following for an example of the fetch api by the team behind web_sys:
 /// https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
 async fn fetch_markdown(url: &'static str) -> Result<String, FetchError> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
