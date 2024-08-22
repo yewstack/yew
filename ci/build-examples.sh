@@ -27,7 +27,7 @@ for path in examples/*; do
     dist_dir="$output/$example"
     export RUSTFLAGS="--cfg nightly_yew"
 
-    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example"
+    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example" --no-sri
 
     # check that there are no undefined symbols. Those generate an import .. from 'env',
     # which isn't available in the browser.
