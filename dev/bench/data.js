@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724340089191,
+  "lastUpdate": 1724363360097,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -28157,6 +28157,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 459.7,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "aa211192a9a6d5edccc3db13d36756d2cbc2a0bf",
+          "message": "Bump the cargo-deps group across 1 directory with 23 updates (#3713)\n\n* Bump the cargo-deps group across 1 directory with 23 updates\r\n\r\nBumps the cargo-deps group with 20 updates in the / directory:\r\n\r\n| Package | From | To |\r\n| --- | --- | --- |\r\n| [indexmap](https://github.com/indexmap-rs/indexmap) | `2.3.0` | `2.4.0` |\r\n| [js-sys](https://github.com/rustwasm/wasm-bindgen) | `0.3.69` | `0.3.70` |\r\n| [thiserror](https://github.com/dtolnay/thiserror) | `1.0.55` | `1.0.63` |\r\n| [serde](https://github.com/serde-rs/serde) | `1.0.193` | `1.0.208` |\r\n| [web-sys](https://github.com/rustwasm/wasm-bindgen) | `0.3.69` | `0.3.70` |\r\n| [wasm-bindgen-futures](https://github.com/rustwasm/wasm-bindgen) | `0.4.42` | `0.4.43` |\r\n| [wasm-bindgen-test](https://github.com/rustwasm/wasm-bindgen) | `0.3.42` | `0.3.43` |\r\n| [trybuild](https://github.com/dtolnay/trybuild) | `1.0.86` | `1.0.99` |\r\n| [syn](https://github.com/dtolnay/syn) | `2.0.72` | `2.0.75` |\r\n| [getrandom](https://github.com/rust-random/getrandom) | `0.2.14` | `0.2.15` |\r\n| [tabled](https://github.com/zhiburt/tabled) | `0.15.0` | `0.16.0` |\r\n| [clap](https://github.com/clap-rs/clap) | `4.5.13` | `4.5.16` |\r\n| [reqwest](https://github.com/seanmonstar/reqwest) | `0.12.5` | `0.12.7` |\r\n| [derive_more](https://github.com/JelteF/derive_more) | `0.99.18` | `1.0.0` |\r\n| [gloo-net](https://github.com/rustwasm/gloo) | `0.5.0` | `0.6.0` |\r\n| [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark) | `0.9.6` | `0.12.0` |\r\n| [hyper-util](https://github.com/hyperium/hyper-util) | `0.1.6` | `0.1.7` |\r\n| [tower](https://github.com/tower-rs/tower) | `0.4.13` | `0.5.0` |\r\n| [env_logger](https://github.com/rust-cli/env_logger) | `0.10.2` | `0.11.5` |\r\n| [postcard](https://github.com/jamesmunns/postcard) | `1.0.8` | `1.0.10` |\r\n\r\n\r\n\r\nUpdates `indexmap` from 2.3.0 to 2.4.0\r\n- [Changelog](https://github.com/indexmap-rs/indexmap/blob/master/RELEASES.md)\r\n- [Commits](https://github.com/indexmap-rs/indexmap/compare/2.3.0...2.4.0)\r\n\r\nUpdates `js-sys` from 0.3.69 to 0.3.70\r\n- [Release notes](https://github.com/rustwasm/wasm-bindgen/releases)\r\n- [Changelog](https://github.com/rustwasm/wasm-bindgen/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/wasm-bindgen/commits)\r\n\r\nUpdates `wasm-bindgen` from 0.2.92 to 0.2.93\r\n- [Release notes](https://github.com/rustwasm/wasm-bindgen/releases)\r\n- [Changelog](https://github.com/rustwasm/wasm-bindgen/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/wasm-bindgen/compare/0.2.92...0.2.93)\r\n\r\nUpdates `thiserror` from 1.0.55 to 1.0.63\r\n- [Release notes](https://github.com/dtolnay/thiserror/releases)\r\n- [Commits](https://github.com/dtolnay/thiserror/compare/1.0.55...1.0.63)\r\n\r\nUpdates `serde` from 1.0.193 to 1.0.208\r\n- [Release notes](https://github.com/serde-rs/serde/releases)\r\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.193...v1.0.208)\r\n\r\nUpdates `web-sys` from 0.3.69 to 0.3.70\r\n- [Release notes](https://github.com/rustwasm/wasm-bindgen/releases)\r\n- [Changelog](https://github.com/rustwasm/wasm-bindgen/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/wasm-bindgen/commits)\r\n\r\nUpdates `wasm-bindgen-futures` from 0.4.42 to 0.4.43\r\n- [Release notes](https://github.com/rustwasm/wasm-bindgen/releases)\r\n- [Changelog](https://github.com/rustwasm/wasm-bindgen/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/wasm-bindgen/commits)\r\n\r\nUpdates `wasm-bindgen-test` from 0.3.42 to 0.3.43\r\n- [Release notes](https://github.com/rustwasm/wasm-bindgen/releases)\r\n- [Changelog](https://github.com/rustwasm/wasm-bindgen/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/wasm-bindgen/commits)\r\n\r\nUpdates `trybuild` from 1.0.86 to 1.0.99\r\n- [Release notes](https://github.com/dtolnay/trybuild/releases)\r\n- [Commits](https://github.com/dtolnay/trybuild/compare/1.0.86...1.0.99)\r\n\r\nUpdates `syn` from 2.0.72 to 2.0.75\r\n- [Release notes](https://github.com/dtolnay/syn/releases)\r\n- [Commits](https://github.com/dtolnay/syn/compare/2.0.72...2.0.75)\r\n\r\nUpdates `getrandom` from 0.2.14 to 0.2.15\r\n- [Changelog](https://github.com/rust-random/getrandom/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rust-random/getrandom/compare/v0.2.14...v0.2.15)\r\n\r\nUpdates `tabled` from 0.15.0 to 0.16.0\r\n- [Changelog](https://github.com/zhiburt/tabled/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/zhiburt/tabled/commits)\r\n\r\nUpdates `serde_json` from 1.0.109 to 1.0.125\r\n- [Release notes](https://github.com/serde-rs/json/releases)\r\n- [Commits](https://github.com/serde-rs/json/compare/v1.0.109...1.0.125)\r\n\r\nUpdates `clap` from 4.5.13 to 4.5.16\r\n- [Release notes](https://github.com/clap-rs/clap/releases)\r\n- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.5.13...clap_complete-v4.5.16)\r\n\r\nUpdates `reqwest` from 0.12.5 to 0.12.7\r\n- [Release notes](https://github.com/seanmonstar/reqwest/releases)\r\n- [Changelog](https://github.com/seanmonstar/reqwest/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/seanmonstar/reqwest/compare/v0.12.5...v0.12.7)\r\n\r\nUpdates `derive_more` from 0.99.18 to 1.0.0\r\n- [Release notes](https://github.com/JelteF/derive_more/releases)\r\n- [Changelog](https://github.com/JelteF/derive_more/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/JelteF/derive_more/compare/v0.99.18...v1.0.0)\r\n\r\nUpdates `gloo-net` from 0.5.0 to 0.6.0\r\n- [Release notes](https://github.com/rustwasm/gloo/releases)\r\n- [Changelog](https://github.com/rustwasm/gloo/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/rustwasm/gloo/compare/0.5.0...0.6.0)\r\n\r\nUpdates `pulldown-cmark` from 0.9.6 to 0.12.0\r\n- [Release notes](https://github.com/raphlinus/pulldown-cmark/releases)\r\n- [Commits](https://github.com/raphlinus/pulldown-cmark/compare/v0.9.6...v0.12.0)\r\n\r\nUpdates `hyper-util` from 0.1.6 to 0.1.7\r\n- [Release notes](https://github.com/hyperium/hyper-util/releases)\r\n- [Changelog](https://github.com/hyperium/hyper-util/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/hyperium/hyper-util/compare/v0.1.6...v0.1.7)\r\n\r\nUpdates `tower` from 0.4.13 to 0.5.0\r\n- [Release notes](https://github.com/tower-rs/tower/releases)\r\n- [Commits](https://github.com/tower-rs/tower/compare/tower-0.4.13...tower-0.5.0)\r\n\r\nUpdates `env_logger` from 0.10.2 to 0.11.5\r\n- [Release notes](https://github.com/rust-cli/env_logger/releases)\r\n- [Changelog](https://github.com/rust-cli/env_logger/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/rust-cli/env_logger/compare/v0.10.2...v0.11.5)\r\n\r\nUpdates `serde_derive` from 1.0.193 to 1.0.208\r\n- [Release notes](https://github.com/serde-rs/serde/releases)\r\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.193...v1.0.208)\r\n\r\nUpdates `postcard` from 1.0.8 to 1.0.10\r\n- [Release notes](https://github.com/jamesmunns/postcard/releases)\r\n- [Changelog](https://github.com/jamesmunns/postcard/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/jamesmunns/postcard/compare/v1.0.8...v1.0.10)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: indexmap\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: js-sys\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: wasm-bindgen\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: thiserror\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: web-sys\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: wasm-bindgen-futures\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: wasm-bindgen-test\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: trybuild\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: syn\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: getrandom\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: tabled\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde_json\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: clap\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: reqwest\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: derive_more\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-major\r\n  dependency-group: cargo-deps\r\n- dependency-name: gloo-net\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: pulldown-cmark\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: hyper-util\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: tower\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: env_logger\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde_derive\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: postcard\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\n\r\n* fix markup parsing\r\n\r\n* update web_sys bindings to non-deprecated\r\n\r\n* fix formatting\r\n\r\n* fix feature set for derive_more\r\n\r\n* update lock file to work around tower-rs/tower#784\r\n\r\n---------\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: Martin Molzer <WorldSEnder@users.noreply.github.com>",
+          "timestamp": "2024-08-22T21:31:58Z",
+          "url": "https://github.com/yewstack/yew/commit/aa211192a9a6d5edccc3db13d36756d2cbc2a0bf"
+        },
+        "date": 1724363357813,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 194.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 215,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 90.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 38.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 105,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 80.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 2223.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 234.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 87.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.08194351196289,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.311489105224609,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.596413612365723,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.168736457824707,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.82847213745117,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 168.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 464.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 199.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 221.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 71.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 17.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 89.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 65.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 2181.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 221.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 83.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.1210689544677734,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.219568252563477,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.362386703491211,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 4.960691452026367,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 41.536179542541504,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 166.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 54.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 443.7,
             "unit": ""
           }
         ]
