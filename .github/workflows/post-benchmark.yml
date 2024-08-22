@@ -45,3 +45,6 @@ jobs:
           # Only push when this is a non-pr commit that has been benchmarked, i.e. master
           auto-push: ${{ fromJSON(steps.test-pr.outputs.stdout).number == '' }}
           save-data-file: ${{ fromJSON(steps.test-pr.outputs.stdout).number == '' }}
+          # Enable job summary
+          summary-always: true
+          comment-always: true
