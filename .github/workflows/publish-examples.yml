@@ -25,7 +25,8 @@ jobs:
           components: rust-src
 
       - uses: Swatinem/rust-cache@v2
-        shared-key: publish-examples
+        with:
+          shared-key: publish-examples
 
       - uses: jetli/trunk-action@v0.4.0
         with:

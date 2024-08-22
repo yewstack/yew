@@ -51,6 +51,8 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: yew-packages
+          workspaces: |
+            yew
 
       - name: Setup chrome
         id: setup-chrome
