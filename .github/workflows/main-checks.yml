@@ -172,7 +172,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.76.0
+          - 1.78.0
           - stable
           - nightly
 
