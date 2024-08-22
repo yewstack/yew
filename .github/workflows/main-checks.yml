@@ -172,7 +172,6 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.78.0
           - stable
           - nightly
 
@@ -190,6 +189,8 @@ jobs:
           mv wasmtime-v24.0.0-x86_64-linux/wasmtime ~/wasmtime
           rm -rf wasmtime-v24.0.0-x86_64-linux.tar.xz wasmtime-v24.0.0-x86_64-linux
           chmod +x ~/wasmtime
+          mv ~/wasmtime /usr/local/bin
+          source ~/.bashrc
 
       - uses: Swatinem/rust-cache@v2
 
@@ -224,6 +225,8 @@ jobs:
           mv wasmtime-v24.0.0-x86_64-linux/wasmtime ~/wasmtime
           rm -rf wasmtime-v24.0.0-x86_64-linux.tar.xz wasmtime-v24.0.0-x86_64-linux
           chmod +x ~/wasmtime
+          mv ~/wasmtime /usr/local/bin
+          source ~/.bashrc
 
       - uses: Swatinem/rust-cache@v2
 
