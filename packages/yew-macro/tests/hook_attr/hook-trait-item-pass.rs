@@ -11,7 +11,7 @@ pub trait MyTrait {
 
 #[yew::hook]
 pub fn use_query_state<Props>(
-    selector: impl yew::html::IntoPropValue<bool>,
+    _selector: impl yew::html::IntoPropValue<bool>,
 ) -> QueryState<Props::Associated>
 where
     Props: MyTrait,
