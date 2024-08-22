@@ -232,4 +232,4 @@ jobs:
       - name: Build and run ${{ matrix.package }}
         run: |
           cargo build --target wasm32-wasip1 -p ${{ matrix.package }}
-          ~/wasmtime -W unknown-imports-trap=y target/wasm32-wasip1/debug/${{ matrix.package }}.wasm
+          wasmtime -W unknown-imports-trap=y target/wasm32-wasip1/debug/${{ matrix.package }}.wasm
