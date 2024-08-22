@@ -1,5 +1,9 @@
 [workspace]
-members = ["packages/*", "tools/*", "examples/*"]
+members = [
+    "packages/*",
+    "tools/*",
+    "examples/*"
+]
 default-members = ["packages/*"]
 resolver = "2"
 
