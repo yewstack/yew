@@ -240,7 +240,9 @@ async fn main() {
 
 Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module)
 
-> Note: If you are using `wasm32-unknown-unknown` target to build the SSR application, you may need to use feature `not_browser_env` to disable browser-specific features. This would be useful on serverless platforms like Cloudflare Worker.
+:::note
+If you are using the `wasm32-unknown-unknown` target to build a SSR application, you can use the `not_browser_env` feature flag to disable access of browser-specific APIs inside of Yew. This would be useful on serverless platforms like Cloudflare Worker.
+:::
 
 :::caution
 
