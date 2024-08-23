@@ -48,3 +48,4 @@ jobs:
           # Enable job summary
           summary-always: true
           comment-always: true
+          ref: ${{ github.event.workflow_run.head_sha }}
