@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
 
       - name: Config Git
-        uses: oleksiyrudenko/gha-git-credentials@v2.1.1
+        uses: oleksiyrudenko/gha-git-credentials@v2.1.2
         with:
           token: "${{ secrets.YEWTEMPBOT_TOKEN }}"
 
