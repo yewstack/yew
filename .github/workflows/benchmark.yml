@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   benchmark:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'performance')
     runs-on: ubuntu-latest
 
     steps:
