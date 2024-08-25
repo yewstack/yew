@@ -30,7 +30,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```rust,no_run
 //! use yew::prelude::*;
 //!
 //! enum Msg {
@@ -68,12 +68,9 @@
 //!     }
 //! }
 //!
-//! # fn dont_execute() {
 //! fn main() {
 //!     yew::Renderer::<App>::new().render();
 //! }
-//! # }
-//! # fn main() {}
 //! ```
 
 #![deny(
