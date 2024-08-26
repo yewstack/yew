@@ -4253,7 +4253,3 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
 ]
-
-[[patch.unused]]
-name = "tairitsu-database"
-version = "0.1.0"
