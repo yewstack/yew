@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724431711688,
+  "lastUpdate": 1725031211433,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -28925,6 +28925,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 423.3,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "1ba7f0b66c2595ad182fc125cf3f0ed066cafd8e",
+          "message": "Bump the cargo-deps group with 5 updates (#3717)\n\nBumps the cargo-deps group with 5 updates:\r\n\r\n| Package | From | To |\r\n| --- | --- | --- |\r\n| [serde](https://github.com/serde-rs/serde) | `1.0.208` | `1.0.209` |\r\n| [syn](https://github.com/dtolnay/syn) | `2.0.75` | `2.0.76` |\r\n| [prettyplease](https://github.com/dtolnay/prettyplease) | `0.2.20` | `0.2.22` |\r\n| [serde_json](https://github.com/serde-rs/json) | `1.0.125` | `1.0.127` |\r\n| [serde_derive](https://github.com/serde-rs/serde) | `1.0.208` | `1.0.209` |\r\n\r\n\r\nUpdates `serde` from 1.0.208 to 1.0.209\r\n- [Release notes](https://github.com/serde-rs/serde/releases)\r\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.208...v1.0.209)\r\n\r\nUpdates `syn` from 2.0.75 to 2.0.76\r\n- [Release notes](https://github.com/dtolnay/syn/releases)\r\n- [Commits](https://github.com/dtolnay/syn/compare/2.0.75...2.0.76)\r\n\r\nUpdates `prettyplease` from 0.2.20 to 0.2.22\r\n- [Release notes](https://github.com/dtolnay/prettyplease/releases)\r\n- [Commits](https://github.com/dtolnay/prettyplease/compare/0.2.20...0.2.22)\r\n\r\nUpdates `serde_json` from 1.0.125 to 1.0.127\r\n- [Release notes](https://github.com/serde-rs/json/releases)\r\n- [Commits](https://github.com/serde-rs/json/compare/1.0.125...1.0.127)\r\n\r\nUpdates `serde_derive` from 1.0.208 to 1.0.209\r\n- [Release notes](https://github.com/serde-rs/serde/releases)\r\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.208...v1.0.209)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: serde\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: syn\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: prettyplease\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde_json\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: serde_derive\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-08-30T15:03:14Z",
+          "url": "https://github.com/yewstack/yew/commit/1ba7f0b66c2595ad182fc125cf3f0ed066cafd8e"
+        },
+        "date": 1725031209846,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 195.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 216.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 89.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 38.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 103.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 74,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 2217.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 225.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 81.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.12890625,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.304313659667969,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.604645729064941,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.194225311279297,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.82180881500244,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 168.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 416.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 195.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 219,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 68.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 16,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 76.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 64,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 2214.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 217.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 79.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.144918441772461,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.191381454467773,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.353761672973633,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 4.956918716430664,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 41.550188064575195,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 166.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 54.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 402.8,
             "unit": ""
           }
         ]
