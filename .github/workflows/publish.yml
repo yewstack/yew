@@ -77,7 +77,7 @@ jobs:
           branch: ${{ steps.gettag.outputs.tag }}
 
       - name: Create a Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.YEWTEMPBOT_TOKEN }}
           tag_name: ${{ steps.gettag.outputs.tag }}
