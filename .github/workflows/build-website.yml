@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd website
-          npm install
+          npm install ci
 
       - name: Run prettier
         run: |
