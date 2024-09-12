@@ -1,9 +1,11 @@
 //! Router Component.
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
+use crate::history::query::Raw;
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
 use crate::utils::{base_url, strip_slash_suffix};
@@ -72,15 +74,36 @@ fn base_router(props: &RouterProps) -> Html {
         basename,
     } = props.clone();
 
+    let basename = basename.map(|m| strip_slash_suffix(&m).to_string());
+    let navigator = Navigator::new(history.clone(), basename.clone());
+
+    let old_basename = use_state_eq(|| Option::<String>::None);
+    if basename != *old_basename {
+        // If `old_basename` is `Some`, path is probably prefixed with `old_basename`.
+        // If `old_basename` is `None`, path may or may not be prefixed with the new `basename`,
+        // depending on whether this is the first render.
+        let old_navigator = Navigator::new(
+            history.clone(),
+            old_basename.as_ref().or(basename.as_ref()).cloned(),
+        );
+        old_basename.set(basename.clone());
+        let location = history.location();
+        let stripped = old_navigator.strip_basename(Cow::from(location.path()));
+        let prefixed = navigator.prefix_basename(&stripped);
+
+        if prefixed != location.path() {
+            history
+                .replace_with_query(prefixed, Raw(location.query_str()))
+                .unwrap_or_else(|never| match never {});
+        }
+    }
+
+    let navi_ctx = NavigatorContext { navigator };
+
     let loc_ctx = use_reducer(|| LocationContext {
         location: history.location(),
         ctr: 0,
     });
-
-    let basename = basename.map(|m| strip_slash_suffix(&m).to_string());
-    let navi_ctx = NavigatorContext {
-        navigator: Navigator::new(history.clone(), basename),
-    };
 
     {
         let loc_ctx_dispatcher = loc_ctx.dispatcher();

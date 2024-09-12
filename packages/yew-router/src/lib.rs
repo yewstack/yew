@@ -88,6 +88,10 @@ pub mod history {
         AnyHistory, BrowserHistory, HashHistory, History, HistoryError, HistoryResult, Location,
         MemoryHistory,
     };
+
+    pub(crate) mod query {
+        pub(crate) use gloo::history::query::Raw;
+    }
 }
 
 pub mod prelude {

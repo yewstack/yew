@@ -89,12 +89,11 @@ fn root_for_browser_router() -> Html {
     }
 }
 
-#[test]
 async fn link_in_browser_router() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "browser-router");
     let _ = gloo::utils::body().append_child(&div);
-    yew::Renderer::<RootForBrowserRouter>::with_root(div).render();
+    let handle = yew::Renderer::<RootForBrowserRouter>::with_root(div).render();
 
     sleep(Duration::ZERO).await;
 
@@ -113,25 +112,42 @@ async fn link_in_browser_router() {
         "/search?q=Rust&lang=en_US",
         link_href("#browser-router ul > li.search-q-lang > a")
     );
+
+    handle.destroy();
+}
+
+#[derive(PartialEq, Properties)]
+struct BasenameProps {
+    basename: Option<String>,
 }
 
 #[function_component(RootForBasename)]
-fn root_for_basename() -> Html {
+fn root_for_basename(props: &BasenameProps) -> Html {
     html! {
-        <BrowserRouter basename="/base/">
+        <BrowserRouter basename={props.basename.clone()}>
             <NavigationMenu />
         </BrowserRouter>
     }
 }
 
-#[test]
 async fn link_with_basename() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "with-basename");
     let _ = gloo::utils::body().append_child(&div);
-    yew::Renderer::<RootForBasename>::with_root(div).render();
+    let mut handle = yew::Renderer::<RootForBasename>::with_root_and_props(
+        div,
+        BasenameProps {
+            basename: Some("/base/".to_owned()),
+        },
+    )
+    .render();
 
     sleep(Duration::ZERO).await;
+
+    assert_eq!(
+        "/base/",
+        gloo::utils::window().location().pathname().unwrap()
+    );
 
     assert_eq!("/base/posts", link_href("#with-basename ul > li.posts > a"));
     assert_eq!(
@@ -151,6 +167,48 @@ async fn link_with_basename() {
         "/base/search?q=Rust&lang=en_US",
         link_href("#with-basename ul > li.search-q-lang > a")
     );
+
+    // Some(a) -> Some(b)
+    handle.update(BasenameProps {
+        basename: Some("/bayes/".to_owned()),
+    });
+
+    sleep(Duration::ZERO).await;
+
+    assert_eq!(
+        "/bayes/",
+        gloo::utils::window().location().pathname().unwrap()
+    );
+
+    assert_eq!(
+        "/bayes/posts",
+        link_href("#with-basename ul > li.posts > a")
+    );
+
+    // Some -> None
+    handle.update(BasenameProps { basename: None });
+
+    sleep(Duration::ZERO).await;
+
+    assert_eq!("/", gloo::utils::window().location().pathname().unwrap());
+
+    assert_eq!("/posts", link_href("#with-basename ul > li.posts > a"));
+
+    // None -> Some
+    handle.update(BasenameProps {
+        basename: Some("/bass/".to_string()),
+    });
+
+    sleep(Duration::ZERO).await;
+
+    assert_eq!(
+        "/bass/",
+        gloo::utils::window().location().pathname().unwrap()
+    );
+
+    assert_eq!("/bass/posts", link_href("#with-basename ul > li.posts > a"));
+
+    handle.destroy();
 }
 
 #[function_component(RootForHashRouter)]
@@ -162,12 +220,11 @@ fn root_for_hash_router() -> Html {
     }
 }
 
-#[test]
 async fn link_in_hash_router() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "hash-router");
     let _ = gloo::utils::body().append_child(&div);
-    yew::Renderer::<RootForHashRouter>::with_root(div).render();
+    let handle = yew::Renderer::<RootForHashRouter>::with_root(div).render();
 
     sleep(Duration::ZERO).await;
 
@@ -186,4 +243,14 @@ async fn link_in_hash_router() {
         "#/search?q=Rust&lang=en_US",
         link_href("#hash-router ul > li.search-q-lang > a")
     );
+
+    handle.destroy();
+}
+
+// These cannot be run in concurrently because they all read/write the URL.
+#[test]
+async fn sequential_tests() {
+    link_in_hash_router().await;
+    link_in_browser_router().await;
+    link_with_basename().await;
 }
