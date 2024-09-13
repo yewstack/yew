@@ -293,7 +293,7 @@ mod app_handle;
 #[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(all(feature = "csr", target_arch = "wasm32"))]
+#[cfg(feature = "csr")]
 #[cfg(test)]
 pub(crate) mod tests;
 
