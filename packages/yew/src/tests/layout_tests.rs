@@ -31,13 +31,13 @@ impl Component for Comp {
 }
 
 #[derive(Debug)]
-pub struct TestLayout<'a> {
+pub(crate) struct TestLayout<'a> {
     pub name: &'a str,
     pub node: VNode,
     pub expected: &'a str,
 }
 
-pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
+pub(crate) fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo::utils::document();
     let scope: AnyScope = AnyScope::test();
     let parent_element = document.create_element("div").unwrap();

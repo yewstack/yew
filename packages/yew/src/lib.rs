@@ -295,7 +295,7 @@ mod renderer;
 
 #[cfg(feature = "csr")]
 #[cfg(test)]
-pub mod tests;
+pub(crate) mod tests;
 
 /// The module that contains all events available in the framework.
 pub mod events {
