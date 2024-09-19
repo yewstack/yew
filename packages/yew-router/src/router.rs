@@ -2,10 +2,10 @@
 use std::borrow::Cow;
 use std::rc::Rc;
 
+use gloo::history::query::Raw;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
-use crate::history::query::Raw;
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
 use crate::utils::{base_url, strip_slash_suffix};
@@ -77,7 +77,8 @@ fn base_router(props: &RouterProps) -> Html {
     let basename = basename.map(|m| strip_slash_suffix(&m).to_string());
     let navigator = Navigator::new(history.clone(), basename.clone());
 
-    let old_basename = use_state_eq(|| Option::<String>::None);
+    let old_basename = use_mut_ref(|| Option::<String>::None);
+    let mut old_basename = old_basename.borrow_mut();
     if basename != *old_basename {
         // If `old_basename` is `Some`, path is probably prefixed with `old_basename`.
         // If `old_basename` is `None`, path may or may not be prefixed with the new `basename`,
@@ -86,7 +87,7 @@ fn base_router(props: &RouterProps) -> Html {
             history.clone(),
             old_basename.as_ref().or(basename.as_ref()).cloned(),
         );
-        old_basename.set(basename.clone());
+        *old_basename = basename.clone();
         let location = history.location();
         let stripped = old_navigator.strip_basename(Cow::from(location.path()));
         let prefixed = navigator.prefix_basename(&stripped);
