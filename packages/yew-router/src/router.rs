@@ -74,7 +74,7 @@ fn base_router(props: &RouterProps) -> Html {
         basename,
     } = props.clone();
 
-    let basename = basename.map(|m| strip_slash_suffix(&m).to_string());
+    let basename = basename.map(|m| strip_slash_suffix(&m).to_owned());
     let navigator = Navigator::new(history.clone(), basename.clone());
 
     let old_basename = use_mut_ref(|| Option::<String>::None);
@@ -96,6 +96,11 @@ fn base_router(props: &RouterProps) -> Html {
             history
                 .replace_with_query(prefixed, Raw(location.query_str()))
                 .unwrap_or_else(|never| match never {});
+        } else {
+            // Reaching here is possible if the page loads with the correct path, including the
+            // initial basename. In that case, the new basename would be stripped and then
+            // prefixed right back. While replacing the history would probably be harmless,
+            // we might as well avoid doing it.
         }
     }
 

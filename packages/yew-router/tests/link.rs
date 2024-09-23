@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -47,8 +48,20 @@ enum Routes {
     Search,
 }
 
+#[derive(PartialEq, Properties)]
+struct NavigationMenuProps {
+    #[prop_or(None)]
+    assertion: Option<fn(&Navigator, &Location)>,
+}
+
 #[function_component(NavigationMenu)]
-fn navigation_menu() -> Html {
+fn navigation_menu(props: &NavigationMenuProps) -> Html {
+    let navigator = use_navigator().unwrap();
+    let location = use_location().unwrap();
+    if let Some(assertion) = props.assertion {
+        assertion(&navigator, &location);
+    }
+
     html! {
         <ul>
             <li class="posts">
@@ -119,13 +132,14 @@ async fn link_in_browser_router() {
 #[derive(PartialEq, Properties)]
 struct BasenameProps {
     basename: Option<String>,
+    assertion: fn(&Navigator, &Location),
 }
 
 #[function_component(RootForBasename)]
 fn root_for_basename(props: &BasenameProps) -> Html {
     html! {
         <BrowserRouter basename={props.basename.clone()}>
-            <NavigationMenu />
+            <NavigationMenu assertion={props.assertion}/>
         </BrowserRouter>
     }
 }
@@ -134,10 +148,20 @@ async fn link_with_basename() {
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "with-basename");
     let _ = gloo::utils::body().append_child(&div);
+
     let mut handle = yew::Renderer::<RootForBasename>::with_root_and_props(
         div,
         BasenameProps {
             basename: Some("/base/".to_owned()),
+            assertion: |navigator, location| {
+                static TIMES: AtomicU8 = AtomicU8::new(0);
+                assert!(
+                    TIMES.fetch_add(1, Ordering::Relaxed) < 2,
+                    "expect 2 renders"
+                );
+                assert_eq!(navigator.basename(), Some("/base"));
+                assert_eq!(location.path(), "/base/");
+            },
         },
     )
     .render();
@@ -171,6 +195,12 @@ async fn link_with_basename() {
     // Some(a) -> Some(b)
     handle.update(BasenameProps {
         basename: Some("/bayes/".to_owned()),
+        assertion: |navigator, location| {
+            static TIMES: AtomicU8 = AtomicU8::new(0);
+            assert!(TIMES.fetch_add(1, Ordering::Relaxed) < 1, "expect 1 render");
+            assert_eq!(navigator.basename(), Some("/bayes"));
+            assert_eq!(location.path(), "/bayes/");
+        },
     });
 
     sleep(Duration::ZERO).await;
@@ -186,7 +216,15 @@ async fn link_with_basename() {
     );
 
     // Some -> None
-    handle.update(BasenameProps { basename: None });
+    handle.update(BasenameProps {
+        basename: None,
+        assertion: |navigator, location| {
+            static TIMES: AtomicU8 = AtomicU8::new(0);
+            assert!(TIMES.fetch_add(1, Ordering::Relaxed) < 1, "expect 1 render");
+            assert_eq!(navigator.basename(), None);
+            assert_eq!(location.path(), "/");
+        },
+    });
 
     sleep(Duration::ZERO).await;
 
@@ -197,6 +235,12 @@ async fn link_with_basename() {
     // None -> Some
     handle.update(BasenameProps {
         basename: Some("/bass/".to_string()),
+        assertion: |navigator, location| {
+            static TIMES: AtomicU8 = AtomicU8::new(0);
+            assert!(TIMES.fetch_add(1, Ordering::Relaxed) < 1, "expect 1 render");
+            assert_eq!(navigator.basename(), Some("/bass"));
+            assert_eq!(location.path(), "/bass/");
+        },
     });
 
     sleep(Duration::ZERO).await;
