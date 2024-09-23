@@ -1,6 +1,8 @@
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
 
+use gloo::utils::window;
+use js_sys::{JsString, Object, Reflect};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew::functional::function_component;
@@ -144,7 +146,20 @@ fn root_for_basename(props: &BasenameProps) -> Html {
     }
 }
 
-async fn link_with_basename() {
+async fn link_with_basename(correct_initial_path: bool) {
+    if correct_initial_path {
+        let cookie = Object::new();
+        Reflect::set(&cookie, &JsString::from("foo"), &JsString::from("bar")).unwrap();
+        window()
+            .history()
+            .unwrap()
+            .replace_state_with_url(&cookie, "", Some("/base/"))
+            .unwrap();
+    }
+
+    static RENDERS: AtomicU8 = AtomicU8::new(0);
+    RENDERS.store(0, Ordering::Relaxed);
+
     let div = gloo::utils::document().create_element("div").unwrap();
     let _ = div.set_attribute("id", "with-basename");
     let _ = gloo::utils::body().append_child(&div);
@@ -154,11 +169,7 @@ async fn link_with_basename() {
         BasenameProps {
             basename: Some("/base/".to_owned()),
             assertion: |navigator, location| {
-                static TIMES: AtomicU8 = AtomicU8::new(0);
-                assert!(
-                    TIMES.fetch_add(1, Ordering::Relaxed) < 2,
-                    "expect 2 renders"
-                );
+                RENDERS.fetch_add(1, Ordering::Relaxed);
                 assert_eq!(navigator.basename(), Some("/base"));
                 assert_eq!(location.path(), "/base/");
             },
@@ -167,6 +178,20 @@ async fn link_with_basename() {
     .render();
 
     sleep(Duration::ZERO).await;
+
+    if correct_initial_path {
+        // If the initial path was correct, the router shouldn't have mutated the history.
+        assert_eq!(
+            Reflect::get(
+                &window().history().unwrap().state().unwrap(),
+                &JsString::from("foo")
+            )
+            .unwrap()
+            .as_string()
+            .as_deref(),
+            Some("bar")
+        );
+    }
 
     assert_eq!(
         "/base/",
@@ -196,8 +221,7 @@ async fn link_with_basename() {
     handle.update(BasenameProps {
         basename: Some("/bayes/".to_owned()),
         assertion: |navigator, location| {
-            static TIMES: AtomicU8 = AtomicU8::new(0);
-            assert!(TIMES.fetch_add(1, Ordering::Relaxed) < 1, "expect 1 render");
+            RENDERS.fetch_add(1, Ordering::Relaxed);
             assert_eq!(navigator.basename(), Some("/bayes"));
             assert_eq!(location.path(), "/bayes/");
         },
@@ -219,8 +243,7 @@ async fn link_with_basename() {
     handle.update(BasenameProps {
         basename: None,
         assertion: |navigator, location| {
-            static TIMES: AtomicU8 = AtomicU8::new(0);
-            assert!(TIMES.fetch_add(1, Ordering::Relaxed) < 1, "expect 1 render");
+            RENDERS.fetch_add(1, Ordering::Relaxed);
             assert_eq!(navigator.basename(), None);
             assert_eq!(location.path(), "/");
         },
@@ -236,8 +259,7 @@ async fn link_with_basename() {
     handle.update(BasenameProps {
         basename: Some("/bass/".to_string()),
         assertion: |navigator, location| {
-            static TIMES: AtomicU8 = AtomicU8::new(0);
-            assert!(TIMES.fetch_add(1, Ordering::Relaxed) < 1, "expect 1 render");
+            RENDERS.fetch_add(1, Ordering::Relaxed);
             assert_eq!(navigator.basename(), Some("/bass"));
             assert_eq!(location.path(), "/bass/");
         },
@@ -253,6 +275,9 @@ async fn link_with_basename() {
     assert_eq!("/bass/posts", link_href("#with-basename ul > li.posts > a"));
 
     handle.destroy();
+
+    // 1 initial, 1 rerender after initial, 3 props changes
+    assert_eq!(RENDERS.load(Ordering::Relaxed), 5);
 }
 
 #[function_component(RootForHashRouter)]
@@ -296,5 +321,6 @@ async fn link_in_hash_router() {
 async fn sequential_tests() {
     link_in_hash_router().await;
     link_in_browser_router().await;
-    link_with_basename().await;
+    link_with_basename(false).await;
+    link_with_basename(true).await;
 }
