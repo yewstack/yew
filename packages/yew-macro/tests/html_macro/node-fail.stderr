@@ -10,25 +10,15 @@ error: unexpected token, expected `}`
 5 |     html! { <span>{ "valid" "invalid" }</span> };
   |                             ^^^^^^^^^
 
-error: unsupported type
-  --> tests/html_macro/node-fail.rs:10:14
-   |
-10 |     html! {  b'a' };
-   |              ^^^^
-
-error: unsupported type
+error: byte-strings can't be converted to HTML text
+                                note: remove the `b` prefix or convert this to a `String`
   --> tests/html_macro/node-fail.rs:11:14
    |
 11 |     html! {  b"str" };
    |              ^^^^^^
 
-error: unsupported type
-  --> tests/html_macro/node-fail.rs:12:22
-   |
-12 |     html! {  <span>{ b'a' }</span> };
-   |                      ^^^^
-
-error: unsupported type
+error: byte-strings can't be converted to HTML text
+                                note: remove the `b` prefix or convert this to a `String`
   --> tests/html_macro/node-fail.rs:13:22
    |
 13 |     html! {  <span>{ b"str" }</span> };
