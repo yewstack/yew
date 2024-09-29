@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726831172610,
+  "lastUpdate": 1727633622151,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -30269,6 +30269,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 427.3,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "2e464ed6918a54124f161d57005ae15acabeede4",
+          "message": "Bump the cargo-deps group with 6 updates (#3738)\n\nBumps the cargo-deps group with 6 updates:\r\n\r\n| Package | From | To |\r\n| --- | --- | --- |\r\n| [thiserror](https://github.com/dtolnay/thiserror) | `1.0.63` | `1.0.64` |\r\n| [clap](https://github.com/clap-rs/clap) | `4.5.17` | `4.5.18` |\r\n| [fake](https://github.com/cksac/fake-rs) | `2.9.2` | `2.10.0` |\r\n| [hyper-util](https://github.com/hyperium/hyper-util) | `0.1.8` | `0.1.9` |\r\n| [axum](https://github.com/tokio-rs/axum) | `0.7.5` | `0.7.6` |\r\n| [tower-http](https://github.com/tower-rs/tower-http) | `0.6.0` | `0.6.1` |\r\n\r\n\r\nUpdates `thiserror` from 1.0.63 to 1.0.64\r\n- [Release notes](https://github.com/dtolnay/thiserror/releases)\r\n- [Commits](https://github.com/dtolnay/thiserror/compare/1.0.63...1.0.64)\r\n\r\nUpdates `clap` from 4.5.17 to 4.5.18\r\n- [Release notes](https://github.com/clap-rs/clap/releases)\r\n- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.5.17...clap_complete-v4.5.18)\r\n\r\nUpdates `fake` from 2.9.2 to 2.10.0\r\n- [Commits](https://github.com/cksac/fake-rs/commits)\r\n\r\nUpdates `hyper-util` from 0.1.8 to 0.1.9\r\n- [Release notes](https://github.com/hyperium/hyper-util/releases)\r\n- [Changelog](https://github.com/hyperium/hyper-util/blob/master/CHANGELOG.md)\r\n- [Commits](https://github.com/hyperium/hyper-util/compare/v0.1.8...v0.1.9)\r\n\r\nUpdates `axum` from 0.7.5 to 0.7.6\r\n- [Release notes](https://github.com/tokio-rs/axum/releases)\r\n- [Changelog](https://github.com/tokio-rs/axum/blob/main/CHANGELOG.md)\r\n- [Commits](https://github.com/tokio-rs/axum/compare/axum-v0.7.5...axum-v0.7.6)\r\n\r\nUpdates `tower-http` from 0.6.0 to 0.6.1\r\n- [Release notes](https://github.com/tower-rs/tower-http/releases)\r\n- [Commits](https://github.com/tower-rs/tower-http/compare/tower-http-0.6.0...tower-http-0.6.1)\r\n\r\n---\r\nupdated-dependencies:\r\n- dependency-name: thiserror\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: clap\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: fake\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-minor\r\n  dependency-group: cargo-deps\r\n- dependency-name: hyper-util\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: axum\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n- dependency-name: tower-http\r\n  dependency-type: direct:production\r\n  update-type: version-update:semver-patch\r\n  dependency-group: cargo-deps\r\n...\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-09-29T17:56:21Z",
+          "url": "https://github.com/yewstack/yew/commit/2e464ed6918a54124f161d57005ae15acabeede4"
+        },
+        "date": 1727633619981,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 195.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 220.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 93,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 41.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 103,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 76.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 2234.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 226.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 87.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.111726760864258,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.3123273849487305,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.574958801269531,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.153598785400391,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.7967643737793,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 167.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 427.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 192.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 217.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 70.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 16.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 81.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 65.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 2230.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 214.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 85.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.114208221435547,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.249398231506348,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.373266220092773,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.01600456237793,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 41.51228141784668,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 165.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 54.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 412.4,
             "unit": ""
           }
         ]
