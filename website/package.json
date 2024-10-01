@@ -27,7 +27,7 @@
         "file-loader": "^6.2.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
-        "sass": "^1.77.8",
+        "sass": "^1.79.4",
         "url-loader": "^4.1.1"
     },
     "browserslist": {
@@ -48,13 +48,13 @@
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.0.0",
         "@docusaurus/tsconfig": "3.5.2",
-        "@types/react": "^18.3.5",
+        "@types/react": "^18.3.10",
         "@types/react-helmet": "^6.1.11",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^8.3.0",
-        "@typescript-eslint/parser": "^8.3.0",
+        "@typescript-eslint/eslint-plugin": "^8.8.0",
+        "@typescript-eslint/parser": "^8.8.0",
         "dir-compare": "^5.0.0",
         "prettier": "^3.3.3",
-        "typescript": "^5.5.4"
+        "typescript": "^5.6.2"
     }
 }
