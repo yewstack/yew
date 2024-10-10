@@ -81,8 +81,11 @@ features = [
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tokio = { version = "1.40", features = ["full"] }
 
+[target.'cfg(all(target_arch = "wasm32", target_os = "wasi"))'.dependencies]
+tokio = { version = "1.40", features = ["macros", "rt", "time"] }
+
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+wasm-bindgen-test = "0.3.43"
 gloo = { version = "0.11", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 trybuild = "1"
@@ -95,6 +98,7 @@ features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
 csr = []
 hydration = ["csr", "dep:bincode"]
+not_browser_env = []
 default = []
 
 [package.metadata.docs.rs]
@@ -103,4 +107,3 @@ rustdoc-args = ["--cfg", "documenting"]
 
 [lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(nightly_yew)'] }
-

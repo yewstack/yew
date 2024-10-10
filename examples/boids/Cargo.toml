@@ -16,6 +16,4 @@ gloo = "0.11"
 
 [dependencies.web-sys]
 version = "0.3"
-features = [
-	"HtmlInputElement",
-]
+features = ["HtmlInputElement"]

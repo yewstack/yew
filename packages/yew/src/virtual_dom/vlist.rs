@@ -274,16 +274,17 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::ServerRenderer;
+    use crate::LocalServerRenderer as ServerRenderer;
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_text_back_to_back() {
         #[function_component]
         fn Comp() -> Html {
@@ -300,7 +301,8 @@ mod ssr_tests {
         assert_eq!(s, "<div>Hello world!</div>");
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_fragment() {
         #[derive(PartialEq, Properties, Debug)]
         struct ChildProps {
