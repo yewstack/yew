@@ -31,12 +31,14 @@ impl Component for Comp {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub struct TestLayout<'a> {
     pub name: &'a str,
     pub node: VNode,
     pub expected: &'a str,
 }
 
+#[allow(missing_docs)]
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo::utils::document();
     let scope: AnyScope = AnyScope::test();
