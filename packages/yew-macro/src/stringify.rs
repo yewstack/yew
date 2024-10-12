@@ -1,3 +1,6 @@
+use std::borrow::Cow;
+use std::mem::size_of;
+
 use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
 use syn::spanned::Spanned;
@@ -75,15 +78,19 @@ impl Stringify for LitStr {
         }
     }
 }
+
 impl Stringify for Lit {
     fn try_into_lit(&self) -> Option<LitStr> {
-        let s = match self {
+        let mut buf = [0; size_of::<char>()];
+        let s: Cow<'_, str> = match self {
             Lit::Str(v) => return v.try_into_lit(),
-            Lit::Char(v) => v.value().to_string(),
-            Lit::Int(v) => v.base10_digits().to_string(),
-            Lit::Float(v) => v.base10_digits().to_string(),
-            Lit::Bool(_) | Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_) => return None,
-            _ => unreachable!("unknown Lit"),
+            Lit::Char(v) => (&*v.value().encode_utf8(&mut buf)).into(),
+            Lit::Int(v) => v.base10_digits().into(),
+            Lit::Float(v) => v.base10_digits().into(),
+            Lit::Bool(v) => if v.value() { "true" } else { "false" }.into(),
+            Lit::Byte(v) => v.value().to_string().into(),
+            Lit::Verbatim(_) | Lit::ByteStr(_) => return None,
+            _ => unreachable!("unknown Lit {:?}", self),
         };
         Some(LitStr::new(&s, self.span()))
     }
@@ -91,10 +98,10 @@ impl Stringify for Lit {
     fn stringify(&self) -> TokenStream {
         self.try_into_lit()
             .as_ref()
-            .map(Stringify::stringify)
-            .unwrap_or_else(|| stringify_at_runtime(self))
+            .map_or_else(|| stringify_at_runtime(self), Stringify::stringify)
     }
 }
+
 impl Stringify for Expr {
     fn try_into_lit(&self) -> Option<LitStr> {
         if let Expr::Lit(v) = self {
@@ -107,7 +114,6 @@ impl Stringify for Expr {
     fn stringify(&self) -> TokenStream {
         self.try_into_lit()
             .as_ref()
-            .map(Stringify::stringify)
-            .unwrap_or_else(|| stringify_at_runtime(self))
+            .map_or_else(|| stringify_at_runtime(self), Stringify::stringify)
     }
 }
