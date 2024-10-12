@@ -65,7 +65,7 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let noop_drag = Callback::from( |e: DragEvent| {
+        let noop_drag = Callback::from(|e: DragEvent| {
             e.prevent_default();
         });
 
