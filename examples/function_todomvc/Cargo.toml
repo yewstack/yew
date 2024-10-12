@@ -14,4 +14,6 @@ yew = { path = "../../packages/yew", features = ["csr"] }
 
 [dependencies.web-sys]
 version = "0.3"
-features = ["HtmlInputElement"]
+features = [
+	"HtmlInputElement",
+]
