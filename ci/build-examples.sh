@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Must be run from root of the repo:
 # yew $ ./ci/build-examples.sh
 
@@ -25,15 +26,8 @@ for path in examples/*; do
     cd "$path"
     dist_dir="$output/$example"
     export RUSTFLAGS="--cfg nightly_yew"
-    if [[ "$example" == "boids" || "$example" == "password_strength" ]]; then
-      # works around issue rust-lang/rust#96486
-      # where the compiler forgets to link some symbols connected to const_eval
-      # only an issue on nightly and with build-std enabled which we do for code size
-      # this deoptimizes only the examples that otherwise fail to build
-      export RUSTFLAGS="-Zshare-generics=n -Clto=thin $RUSTFLAGS"
-    fi
 
-    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX$example"
+    trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example" --no-sri
 
     # check that there are no undefined symbols. Those generate an import .. from 'env',
     # which isn't available in the browser.

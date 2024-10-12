@@ -11,14 +11,15 @@ on:
       - "website/**"
     types: [labeled, synchronize, opened, reopened]
 
-permissions:
-  # deployments permission to deploy GitHub pages website
-  deployments: write
-  # contents permission to update benchmark contents in gh-pages branch
-  contents: write
+# Cancel outstanding benchmarks on pull requests
+# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#example-using-a-fallback-value
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   benchmark:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'performance')
     runs-on: ubuntu-latest
 
     steps:
@@ -37,27 +38,37 @@ jobs:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - uses: jetli/wasm-pack-action@v0.4.0
-        with:
-          version: "latest"
+      - name: Setup wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ">=18"
           cache: "npm"
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Restore Rust cache for yew packages
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
+          workspaces: |
+            yew
 
-      - name: setup js-framework-benchmark
+      - name: Setup chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          install-chromedriver: true
+
+      - name: Setup js-framework-benchmark
         working-directory: js-framework-benchmark
         run: |
           npm ci
           npm run install-server
           npm run install-webdriver-ts
 
-      - name: setup benchmark-struct benchmark
+      - name: Setup benchmark-struct benchmark
         run: |
           ls -lauh
           rm *.js
@@ -65,7 +76,7 @@ jobs:
           echo "STRUCT_BUILD_DIR=$PWD" >> $GITHUB_ENV
         working-directory: js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
 
-      - name: build benchmark-struct app
+      - name: Build benchmark-struct app
         working-directory: yew/tools/benchmark-struct
         run: |
           wasm-pack build \
@@ -75,11 +86,11 @@ jobs:
             --out-name js-framework-benchmark-yew \
             --out-dir $STRUCT_BUILD_DIR
 
-      - name: show built benchmark-struct benchmark files
+      - name: Show built benchmark-struct benchmark files
         run: |
           ls -lauh js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
 
-      - name: setup yew-hooks benchmark
+      - name: Setup yew-hooks benchmark
         run: |
           ls -lauh
           rm *.js
@@ -87,7 +98,7 @@ jobs:
           echo "HOOKS_BUILD_DIR=$PWD" >> $GITHUB_ENV
         working-directory: js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
 
-      - name: build benchmark-hooks app
+      - name: Build benchmark-hooks app
         working-directory: yew/tools/benchmark-hooks
         run: |
           wasm-pack build \
@@ -97,31 +108,33 @@ jobs:
             --out-name js-framework-benchmark-yew-hooks \
             --out-dir $HOOKS_BUILD_DIR
 
-      - name: show built benchmark-hooks benchmark files
+      - name: Show built benchmark-hooks benchmark files
         run: |
           ls -lauh js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
 
-      - name: run js-framework-benchmark server
+      - name: Run js-framework-benchmark server
         working-directory: js-framework-benchmark
         run: |
           npm start &
           sleep 5
 
-      - name: js-framework-benchmark/webdriver-ts npm run bench
+      - name: Run js-framework-benchmark/webdriver-ts npm run bench
         working-directory: js-framework-benchmark/webdriver-ts
-        run: xvfb-run npm run bench -- --framework keyed/yew keyed/yew-hooks --runner playwright
+        run: xvfb-run npm run bench -- --framework keyed/yew keyed/yew-hooks --runner playwright --chromeBinary "${{ steps.setup-chrome.outputs.chrome-path }}"
 
-      - name: transform results to be fit for display benchmark-action/github-action-benchmark@v1
+      - name: Transform results to be fit for display benchmark-action/github-action-benchmark@v1
         run: |
           mkdir artifacts/
           jq -s . js-framework-benchmark/webdriver-ts/results/*.json | cargo run --manifest-path yew/Cargo.toml --release -p process-benchmark-results > artifacts/results.json
-          echo "$EVENT_INFO" > artifacts/PR_INFO
+          echo "$EVENT_INFO" > artifacts/.PR_INFO
         env:
           EVENT_INFO: ${{ toJSON(github.event) }}
 
       - name: Upload result artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: results
           path: artifacts/
           if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1

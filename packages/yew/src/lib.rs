@@ -30,7 +30,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```rust,no_run
 //! use yew::prelude::*;
 //!
 //! enum Msg {
@@ -68,11 +68,9 @@
 //!     }
 //! }
 //!
-//! # fn dont_execute() {
 //! fn main() {
 //!     yew::Renderer::<App>::new().render();
 //! }
-//! # }
 //! ```
 
 #![deny(
@@ -297,6 +295,7 @@ mod renderer;
 
 #[cfg(feature = "csr")]
 #[cfg(test)]
+#[allow(missing_docs)]
 pub mod tests;
 
 /// The module that contains all events available in the framework.

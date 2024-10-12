@@ -1,6 +1,8 @@
 //! Router Component.
+use std::borrow::Cow;
 use std::rc::Rc;
 
+use gloo::history::query::Raw;
 use yew::prelude::*;
 use yew::virtual_dom::AttrValue;
 
@@ -72,15 +74,42 @@ fn base_router(props: &RouterProps) -> Html {
         basename,
     } = props.clone();
 
+    let basename = basename.map(|m| strip_slash_suffix(&m).to_owned());
+    let navigator = Navigator::new(history.clone(), basename.clone());
+
+    let old_basename = use_mut_ref(|| Option::<String>::None);
+    let mut old_basename = old_basename.borrow_mut();
+    if basename != *old_basename {
+        // If `old_basename` is `Some`, path is probably prefixed with `old_basename`.
+        // If `old_basename` is `None`, path may or may not be prefixed with the new `basename`,
+        // depending on whether this is the first render.
+        let old_navigator = Navigator::new(
+            history.clone(),
+            old_basename.as_ref().or(basename.as_ref()).cloned(),
+        );
+        *old_basename = basename.clone();
+        let location = history.location();
+        let stripped = old_navigator.strip_basename(Cow::from(location.path()));
+        let prefixed = navigator.prefix_basename(&stripped);
+
+        if prefixed != location.path() {
+            history
+                .replace_with_query(prefixed, Raw(location.query_str()))
+                .unwrap_or_else(|never| match never {});
+        } else {
+            // Reaching here is possible if the page loads with the correct path, including the
+            // initial basename. In that case, the new basename would be stripped and then
+            // prefixed right back. While replacing the history would probably be harmless,
+            // we might as well avoid doing it.
+        }
+    }
+
+    let navi_ctx = NavigatorContext { navigator };
+
     let loc_ctx = use_reducer(|| LocationContext {
         location: history.location(),
         ctr: 0,
     });
-
-    let basename = basename.map(|m| strip_slash_suffix(&m).to_string());
-    let navi_ctx = NavigatorContext {
-        navigator: Navigator::new(history.clone(), basename),
-    };
 
     {
         let loc_ctx_dispatcher = loc_ctx.dispatcher();
