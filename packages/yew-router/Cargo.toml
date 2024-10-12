@@ -29,7 +29,7 @@ version = "0.3"
 features = [
     "Document",
     "HtmlBaseElement",
-    "Window"
+    "Window",
 ]
 
 [dev-dependencies]
@@ -40,6 +40,5 @@ yew = { version = "0.21.0", path = "../yew", features = ["csr"] }
 [dev-dependencies.web-sys]
 version = "0.3"
 features = [
-    "HtmlHeadElement"
+    "HtmlHeadElement",
 ]
-

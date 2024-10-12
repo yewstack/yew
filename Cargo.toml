@@ -2,9 +2,11 @@
 members = [
     "packages/*",
     "tools/*",
-    "examples/*"
+    "examples/*",
 ]
-default-members = ["packages/*"]
+default-members = [
+    "packages/*",
+]
 resolver = "2"
 
 [profile.release]
