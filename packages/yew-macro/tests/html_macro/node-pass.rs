@@ -37,23 +37,23 @@ pub struct u8;
 pub struct usize;
 
 fn main() {
-    ::yew::html! { "" };
-    ::yew::html! { 'a' };
-    ::yew::html! { "hello" };
-    ::yew::html! { "42" };
-    ::yew::html! { "1.234" };
-    ::yew::html! { "true" };
+    _ = ::yew::html! { b'b' };
+    _ = ::yew::html! { 'a' };
+    _ = ::yew::html! { "hello" };
+    _ = ::yew::html! { 42 };
+    _ = ::yew::html! { 1.234 };
+    _ = ::yew::html! { true };
 
-    ::yew::html! { <span>{ "" }</span> };
-    ::yew::html! { <span>{ 'a' }</span> };
-    ::yew::html! { <span>{ "hello" }</span> };
-    ::yew::html! { <span>{ "42" }</span> };
-    ::yew::html! { <span>{ "1.234" }</span> };
-    ::yew::html! { <span>{ "true" }</span> };
+    _ = ::yew::html! { <span>{ "" }</span> };
+    _ = ::yew::html! { <span>{ 'a' }</span> };
+    _ = ::yew::html! { <span>{ "hello" }</span> };
+    _ = ::yew::html! { <span>{ "42" }</span> };
+    _ = ::yew::html! { <span>{ "1.234" }</span> };
+    _ = ::yew::html! { <span>{ "true" }</span> };
 
-    ::yew::html! { ::std::format!("Hello") };
-    ::yew::html! { ::std::string::ToString::to_string("Hello") };
+    _ = ::yew::html! { ::std::format!("Hello") };
+    _ = ::yew::html! { ::std::string::ToString::to_string("Hello") };
 
     let msg = "Hello";
-    ::yew::html! { msg };
+    _ = ::yew::html! { msg };
 }

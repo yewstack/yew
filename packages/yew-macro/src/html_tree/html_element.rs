@@ -1,13 +1,13 @@
-use proc_macro2::{Delimiter, Span, TokenStream};
+use proc_macro2::{Delimiter, Group, Span, TokenStream};
 use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Block, Expr, Ident, Lit, LitStr, Token};
+use syn::{Expr, Ident, Lit, LitStr, Token};
 
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ClassesForm, ElementProps, Prop, PropDirective};
+use crate::props::{ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
 use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
 
@@ -190,39 +190,11 @@ impl ToTokens for HtmlElement {
                     ))
                 },
             );
-            let class_attr = classes.as_ref().and_then(|classes| match classes {
-                ClassesForm::Tuple(classes) => {
-                    let span = classes.span();
-                    let classes: Vec<_> = classes.elems.iter().collect();
-                    let n = classes.len();
 
-                    let deprecation_warning = quote_spanned! {span=>
-                        #[deprecated(
-                            note = "the use of `(...)` with the attribute `class` is deprecated and will be removed in version 0.19. Use the `classes!` macro instead."
-                        )]
-                        fn deprecated_use_of_class() {}
-
-                        if false {
-                            deprecated_use_of_class();
-                        };
-                    };
-
-                    Some((
-                        LitStr::new("class", span),
-                        Value::Dynamic(quote! {
-                            {
-                                #deprecation_warning
-
-                                let mut __yew_classes = ::yew::html::Classes::with_capacity(#n);
-                                #(__yew_classes.push(#classes);)*
-                                __yew_classes
-                            }
-                        }),
-                        None,
-                    ))
-                }
-                ClassesForm::Single(classes) => {
-                    match classes.try_into_lit() {
+            let class_attr =
+                classes
+                    .as_ref()
+                    .and_then(|classes| match classes.value.try_into_lit() {
                         Some(lit) => {
                             if lit.value().is_empty() {
                                 None
@@ -235,39 +207,46 @@ impl ToTokens for HtmlElement {
                             }
                         }
                         None => {
+                            let expr = &classes.value;
                             Some((
-                                LitStr::new("class", classes.span()),
+                                LitStr::new("class", classes.label.span()),
                                 Value::Dynamic(quote! {
-                                    ::std::convert::Into::<::yew::html::Classes>::into(#classes)
+                                    ::std::convert::Into::<::yew::html::Classes>::into(#expr)
                                 }),
                                 None,
                             ))
                         }
-                    }
-                }
-            });
-
-            fn apply_as(directive: Option<&PropDirective>) -> TokenStream {
-                match directive {
-                    Some(PropDirective::ApplyAsProperty(token)) => {
-                        quote_spanned!(token.span()=> ::yew::virtual_dom::ApplyAttributeAs::Property)
-                    }
-                    None => quote!(::yew::virtual_dom::ApplyAttributeAs::Attribute),
-                }
-            }
+                    });
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
             fn try_into_static(
                 src: &[(LitStr, Value, Option<PropDirective>)],
             ) -> Option<TokenStream> {
+                if src
+                    .iter()
+                    .any(|(_, _, d)| matches!(d, Some(PropDirective::ApplyAsProperty(_))))
+                {
+                    // don't try to make a static attribute list if there are any properties to
+                    // assign
+                    return None;
+                }
                 let mut kv = Vec::with_capacity(src.len());
                 for (k, v, directive) in src.iter() {
                     let v = match v {
                         Value::Static(v) => quote! { #v },
                         Value::Dynamic(_) => return None,
                     };
-                    let apply_as = apply_as(directive.as_ref());
-                    kv.push(quote! { ( #k, #v, #apply_as ) });
+                    let v = match directive {
+                        Some(PropDirective::ApplyAsProperty(token)) => {
+                            quote_spanned!(token.span()=> ::yew::virtual_dom::AttributeOrProperty::Property(
+                                ::std::convert::Into::into(#v)
+                            ))
+                        }
+                        None => quote!(::yew::virtual_dom::AttributeOrProperty::Static(
+                            #v
+                        )),
+                    };
+                    kv.push(quote! { ( #k, #v) });
                 }
 
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
@@ -280,9 +259,22 @@ impl ToTokens for HtmlElement {
             try_into_static(&attrs).unwrap_or_else(|| {
                 let keys = attrs.iter().map(|(k, ..)| quote! { #k });
                 let values = attrs.iter().map(|(_, v, directive)| {
-                    let apply_as = apply_as(directive.as_ref());
-                    let value = wrap_attr_value(v);
-                    quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
+                    let value = match directive {
+                        Some(PropDirective::ApplyAsProperty(token)) => {
+                            quote_spanned!(token.span()=> ::std::option::Option::Some(
+                                ::yew::virtual_dom::AttributeOrProperty::Property(
+                                    ::std::convert::Into::into(#v)
+                                ))
+                            )
+                        }
+                        None => {
+                            let value = wrap_attr_value(v);
+                            quote! {
+                                ::std::option::Option::map(#value, ::yew::virtual_dom::AttributeOrProperty::Attribute)
+                            }
+                        },
+                    };
+                    quote! { #value }
                 });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
@@ -359,7 +351,7 @@ impl ToTokens for HtmlElement {
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
-                                    ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
+                                    ::yew::virtual_dom::AttrValue::Static(#name),
                                     #node_ref,
                                     #key,
                                     #attributes,
@@ -383,7 +375,7 @@ impl ToTokens for HtmlElement {
             }
             TagName::Expr(name) => {
                 let vtag = Ident::new("__yew_vtag", name.span());
-                let expr = &name.expr;
+                let expr = name.expr.as_ref().map(Group::stream);
                 let vtag_name = Ident::new("__yew_vtag_name", expr.span());
 
                 let void_children = Ident::new("__yew_void_children", Span::mixed_site());
@@ -411,12 +403,8 @@ impl ToTokens for HtmlElement {
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
-                    #[allow(unused_braces)]
-                    // e.g. html!{<@{"div"}/>} will set `#expr` to `{"div"}`
-                    // (note the extra braces). Hence the need for the `allow`.
-                    // Anyways to remove the braces?
                     let mut #vtag_name = ::std::convert::Into::<
-                        ::std::borrow::Cow::<'static, ::std::primitive::str>
+                        ::yew::virtual_dom::AttrValue
                     >::into(#expr);
                     ::std::debug_assert!(
                         #vtag_name.is_ascii(),
@@ -500,7 +488,7 @@ fn wrap_attr_value<T: ToTokens>(value: T) -> TokenStream {
 
 pub struct DynamicName {
     at: Token![@],
-    expr: Option<Block>,
+    expr: Option<Group>,
 }
 
 impl Peek<'_, ()> for DynamicName {
@@ -524,12 +512,7 @@ impl Parse for DynamicName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let at = input.parse()?;
         // the expression block is optional, closing tags don't have it.
-        let expr = if input.cursor().group(Delimiter::Brace).is_some() {
-            Some(input.parse()?)
-        } else {
-            None
-        };
-
+        let expr = input.parse().ok();
         Ok(Self { at, expr })
     }
 }

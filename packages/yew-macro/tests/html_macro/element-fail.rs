@@ -76,11 +76,7 @@ fn compile_fail() {
     // type mismatch
     html! { <@{55}></@> };
 
-    // check for deprecation warning
-    html! { <div class={("deprecated", "warning")} /> };
-
     // Missing curly braces
-    html! { <div class=("deprecated", "warning") /> };
     html! { <input ref=() /> };
     html! { <input ref=() ref=() /> };
     html! { <input onfocus=Some(5) /> };

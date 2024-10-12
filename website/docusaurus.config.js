@@ -119,33 +119,47 @@ module.exports = {
         prism: {
             additionalLanguages: ['rust', 'toml'],
         },
-        gtag: {
-            trackingID: 'G-DENCL8P4YP',
-            anonymizeIP: true,
+        algolia: {
+            appId: 'F8S2ICRD2T',
+            apiKey: '2a1c25e8b0a9c95d6d71658887ad4466',
+            indexName: 'yew-rs',
+            contextualSearch: true,
+            insights: true, // Optional, automatically send insights when user interacts with search results
+            searchPagePath: 'search',
         },
     },
     i18n: {
         defaultLocale: 'en',
         locales: ['en', 'ja', 'zh-Hans', 'zh-Hant'],
     },
+    presets: [
+        [
+            '@docusaurus/preset-classic',
+            {
+                theme: {
+                    customCss: ['./src/css/custom.css'],
+                },
+                docs: {
+                    path: 'docs',
+                    sidebarPath: require.resolve('./sidebars/docs.js'),
+                    editUrl,
+                    routeBasePath: '/docs',
+                },
+                blog: {
+                    path: 'blog',
+                    blogTitle: 'Yew Blog',
+                    editUrl,
+                },
+                pages: {},
+                gtag: {
+                    trackingID: 'G-DENCL8P4YP',
+                    anonymizeIP: true,
+                },
+            },
+        ],
+    ],
     plugins: [
-        'content-pages',
         'docusaurus-plugin-sass',
-        [
-            '@docusaurus/theme-classic',
-            {
-                customCss: require.resolve('./src/css/custom.css'),
-            },
-        ],
-        [
-            '@docusaurus/plugin-content-docs',
-            {
-                path: 'docs',
-                sidebarPath: require.resolve('./sidebars/docs.js'),
-                editUrl,
-                routeBasePath: '/docs',
-            },
-        ],
         [
             '@docusaurus/plugin-content-docs',
             {
@@ -153,14 +167,6 @@ module.exports = {
                 path: 'community',
                 sidebarPath: require.resolve('./sidebars/community.js'),
                 routeBasePath: '/community',
-                editUrl,
-            },
-        ],
-        [
-            '@docusaurus/plugin-content-blog',
-            {
-                path: 'blog',
-                blogTitle: 'Yew Blog',
                 editUrl,
             },
         ],
@@ -175,13 +181,6 @@ module.exports = {
                         from: ['/docs/next'], // string | string[]
                     },
                 ],
-            },
-        ],
-        [
-            '@easyops-cn/docusaurus-search-local',
-            {
-                hashed: true,
-                indexBlog: false,
             },
         ],
     ],

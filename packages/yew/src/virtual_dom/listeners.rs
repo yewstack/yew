@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use crate::html::ImplicitClone;
+
 /// The [Listener] trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {
@@ -168,6 +170,8 @@ pub enum Listeners {
     Pending(Box<[Option<Rc<dyn Listener>>]>),
 }
 
+impl ImplicitClone for Listeners {}
+
 impl PartialEq for Listeners {
     fn eq(&self, rhs: &Self) -> bool {
         use Listeners::*;
@@ -183,9 +187,11 @@ impl PartialEq for Listeners {
                     lhs.iter()
                         .zip(rhs.iter())
                         .all(|(lhs, rhs)| match (lhs, rhs) {
-                            (Some(lhs), Some(rhs)) =>
-                            {
-                                #[allow(clippy::vtable_address_comparisons)]
+                            (Some(lhs), Some(rhs)) => {
+                                // We are okay with comparisons from different compilation units to
+                                // result in false not-equal results. This should only lead in the
+                                // worst-case to some unneeded re-renders.
+                                #[allow(ambiguous_wide_pointer_comparisons)]
                                 Rc::ptr_eq(lhs, rhs)
                             }
                             (None, None) => true,

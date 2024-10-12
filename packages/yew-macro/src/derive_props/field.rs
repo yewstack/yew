@@ -12,7 +12,7 @@ use crate::derive_props::generics::push_type_param;
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
-enum PropAttr {
+pub enum PropAttr {
     Required { wrapped_name: Ident },
     PropOr(Expr),
     PropOrElse(Expr),
@@ -21,9 +21,9 @@ enum PropAttr {
 
 #[derive(Eq)]
 pub struct PropField {
-    ty: Type,
+    pub ty: Type,
     name: Ident,
-    attr: PropAttr,
+    pub attr: PropAttr,
     extra_attrs: Vec<Attribute>,
 }
 
@@ -57,7 +57,7 @@ impl PropField {
         props_name: &'a Ident,
         vis: &'a Visibility,
         token: &'a GenericParam,
-    ) -> PropFieldCheck<'_> {
+    ) -> PropFieldCheck<'a> {
         let check_struct = self.to_check_name(props_name);
         let check_arg = self.to_check_arg_name(props_name);
         PropFieldCheck {

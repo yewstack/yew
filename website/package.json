@@ -17,21 +17,17 @@
         "fmt:write": "prettier --write ."
     },
     "dependencies": {
-        "@docusaurus/core": "^2.4.3",
-        "@docusaurus/plugin-client-redirects": "^2.4.3",
-        "@docusaurus/plugin-content-docs": "^2.4.3",
-        "@docusaurus/plugin-content-pages": "^2.4.3",
-        "@docusaurus/plugin-google-gtag": "^2.4.3",
-        "@docusaurus/theme-classic": "^2.4.3",
-        "@easyops-cn/docusaurus-search-local": "^0.32.0",
-        "@mdx-js/react": "^1.6.22",
-        "@svgr/webpack": "^8.0.1",
-        "clsx": "^1.1.1",
-        "docusaurus-plugin-sass": "^0.2.2",
+        "@docusaurus/core": "^3.5.2",
+        "@docusaurus/plugin-client-redirects": "^3.5.2",
+        "@docusaurus/preset-classic": "^3.5.2",
+        "@mdx-js/react": "^3.0.1",
+        "@svgr/webpack": "^8.1.0",
+        "clsx": "^2.1.1",
+        "docusaurus-plugin-sass": "^0.2.5",
         "file-loader": "^6.2.0",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
-        "sass": "^1.55.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "sass": "^1.79.4",
         "url-loader": "^4.1.1"
     },
     "browserslist": {
@@ -46,16 +42,19 @@
             "last 1 safari version"
         ]
     },
+    "engines": {
+        "node": ">=18.0"
+    },
     "devDependencies": {
-        "@docusaurus/module-type-aliases": "^2.4.3",
-        "@tsconfig/docusaurus": "^2.0.0",
-        "@types/react": "^17.0.43",
-        "@types/react-helmet": "^6.1.6",
+        "@docusaurus/module-type-aliases": "^3.0.0",
+        "@docusaurus/tsconfig": "3.5.2",
+        "@types/react": "^18.3.10",
+        "@types/react-helmet": "^6.1.11",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^5.57.0",
-        "@typescript-eslint/parser": "^5.54.0",
-        "dir-compare": "^4.0.0",
-        "prettier": "^2.8.8",
-        "typescript": "^4.8.3"
+        "@typescript-eslint/eslint-plugin": "^8.8.0",
+        "@typescript-eslint/parser": "^8.8.0",
+        "dir-compare": "^5.0.0",
+        "prettier": "^3.3.3",
+        "typescript": "^5.6.2"
     }
 }

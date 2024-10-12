@@ -28,6 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -67,13 +69,15 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.76.0
           - stable
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -116,14 +120,12 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.76.0
           - stable
           - nightly
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -131,6 +133,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       - name: Run native tests
         env:
@@ -159,6 +163,8 @@ jobs:
           toolchain: nightly
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       - name: Run tests
         env:

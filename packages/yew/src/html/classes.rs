@@ -6,6 +6,7 @@ use implicit_clone::ImplicitClone;
 use indexmap::IndexSet;
 
 use super::IntoPropValue;
+use crate::utils::RcExt;
 use crate::virtual_dom::AttrValue;
 
 /// A set of classes, cheap to clone.
@@ -150,10 +151,7 @@ impl IntoIterator for Classes {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        // NOTE: replace this by Rc::unwrap_or_clone() when it becomes stable
-        Rc::try_unwrap(self.set)
-            .unwrap_or_else(|rc| (*rc).clone())
-            .into_iter()
+        RcExt::unwrap_or_clone(self.set).into_iter()
     }
 }
 
@@ -167,6 +165,7 @@ impl IntoIterator for &Classes {
     }
 }
 
+#[allow(clippy::to_string_trait_impl)]
 impl ToString for Classes {
     fn to_string(&self) -> String {
         let mut iter = self.set.iter().cloned();

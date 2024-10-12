@@ -1,0 +1,92 @@
+name: Post Comment for Benchmark - core
+
+on:
+  workflow_run:
+    workflows: ["Benchmark - core"]
+    types:
+      - completed
+
+jobs:
+  post-benchmark-core:
+    name: Post Benchmark Comment on Pull Request
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Repository
+        uses: actions/checkout@v4
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          run-id: ${{ github.event.workflow_run.id }}
+          name: benchmark-core
+          path: benchmark-core/
+
+      - name: Make pull request comment
+        run: |
+          cat - >>comment.txt <<EOF
+          ### Benchmark - core
+          #### Yew Master
+          \`\`\`
+          EOF
+          cat benchmark-core/yew-master/tools/output.log >>comment.txt
+          cat - >>comment.txt <<EOF
+          \`\`\`
+          #### Pull Request
+          \`\`\`
+          EOF
+          cat benchmark-core/current-pr/tools/output.log >>comment.txt
+          cat - >>comment.txt <<EOF
+          \`\`\`
+          EOF
+
+      - name: Read Pull Request ID
+        run: echo "PR_NUMBER=$(cat benchmark-core/.PR_NUMBER)" >> $GITHUB_ENV
+
+      - name: Post Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            const commentInfo = {
+              ...context.repo,
+              issue_number: ${{ env.PR_NUMBER }},
+            };
+
+            const comment = {
+              ...commentInfo,
+              body: fs.readFileSync("comment.txt", 'utf-8'),
+            };
+
+            function isCommentByBot(comment) {
+              return comment.user.type === "Bot" && comment.body.includes("### Benchmark - core");
+            }
+
+            let commentId = null;
+            const comments = (await github.rest.issues.listComments(commentInfo)).data;
+            for (let i = comments.length; i--; ) {
+              const c = comments[i];
+              if (isCommentByBot(c)) {
+                commentId = c.id;
+                break;
+              }
+            }
+
+            if (commentId) {
+              try {
+                await github.rest.issues.updateComment({
+                  ...context.repo,
+                  comment_id: commentId,
+                  body: comment.body,
+                });
+              } catch (e) {
+                commentId = null;
+              }
+            }
+
+            if (!commentId) {
+              await github.rest.issues.createComment(comment);
+            }

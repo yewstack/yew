@@ -3,6 +3,7 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 use super::{Key, VNode};
+use crate::html::ImplicitClone;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum FullyKeyedState {
@@ -23,6 +24,8 @@ pub struct VList {
     pub key: Option<Key>,
 }
 
+impl ImplicitClone for VList {}
+
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
         self.key == other.key && self.children == other.children
@@ -42,10 +45,9 @@ impl Deref for VList {
         match self.children {
             Some(ref m) => m,
             None => {
-                // This is mutable because the Vec<VNode> is not Sync
-                static mut EMPTY: Vec<VNode> = Vec::new();
-                // SAFETY: The EMPTY value is always read-only
-                unsafe { &EMPTY }
+                // This can be replaced with `const { &Vec::new() }` in Rust 1.79.
+                const EMPTY: &Vec<VNode> = &Vec::new();
+                EMPTY
             }
         }
     }

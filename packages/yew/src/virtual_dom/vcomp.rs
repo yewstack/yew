@@ -183,6 +183,8 @@ pub struct VChild<COMP: BaseComponent> {
     key: Option<Key>,
 }
 
+impl<COMP: BaseComponent> implicit_clone::ImplicitClone for VChild<COMP> {}
+
 impl<COMP: BaseComponent> Clone for VChild<COMP> {
     fn clone(&self) -> Self {
         VChild {
