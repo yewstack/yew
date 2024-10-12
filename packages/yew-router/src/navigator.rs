@@ -159,7 +159,7 @@ impl Navigator {
     pub(crate) fn prefix_basename<'a>(&self, route_s: &'a str) -> Cow<'a, str> {
         match self.basename() {
             Some(base) => {
-                if route_s.is_empty() && route_s.is_empty() {
+                if base.is_empty() && route_s.is_empty() {
                     Cow::from("/")
                 } else {
                     Cow::from(format!("{base}{route_s}"))

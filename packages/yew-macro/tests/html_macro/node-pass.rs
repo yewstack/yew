@@ -37,12 +37,12 @@ pub struct u8;
 pub struct usize;
 
 fn main() {
-    _ = ::yew::html! { "" };
+    _ = ::yew::html! { b'b' };
     _ = ::yew::html! { 'a' };
     _ = ::yew::html! { "hello" };
-    _ = ::yew::html! { "42" };
-    _ = ::yew::html! { "1.234" };
-    _ = ::yew::html! { "true" };
+    _ = ::yew::html! { 42 };
+    _ = ::yew::html! { 1.234 };
+    _ = ::yew::html! { true };
 
     _ = ::yew::html! { <span>{ "" }</span> };
     _ = ::yew::html! { <span>{ 'a' }</span> };
