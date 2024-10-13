@@ -1,5 +1,56 @@
 # Changelog
 
+## ✨ yew **0.22.0** *(2024-10-14)*
+
+#### Changelog
+
+## 🛠 Fixes
+
+ - Fix CI. [[@Tomoaki Kawada](https://github.com/kawadakk), [#3679](https://github.com/yewstack/yew/pull/3679)]
+ - Fix: Hydratation of empty lists next to components.. [[@WorldSEnder](https://github.com/WorldSEnder), [#3630](https://github.com/yewstack/yew/pull/3630)]
+
+## ⚡️ Features
+
+ - Raise MSRV to 1.76. [[@Elina](https://github.com/ranile), [#3693](https://github.com/yewstack/yew/pull/3693)]
+ - feat(macro): add `inert` to the boolean attributes list. [[@Tomoaki Kawada](https://github.com/kawadakk), [#3678](https://github.com/yewstack/yew/pull/3678)]
+ - Namespace support for `VRaw`.. [[@Finn Bear](https://github.com/finnbear), [#3640](https://github.com/yewstack/yew/pull/3640)]
+ - Add generic type hints to boxed hooks. [[@Michael Meyer](https://github.com/Ichmed), [#3633](https://github.com/yewstack/yew/pull/3633)]
+ - add the methods and From impls. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3519](https://github.com/yewstack/yew/pull/3519)]
+ - Add IntoPropValue impl for converting to VList. [[@Muhammad Hamza](https://github.com/ranile), [#3444](https://github.com/yewstack/yew/pull/3444)]
+ - Add CallbackRef that takes ref in argument instead of value. [[@Cecile Tonglet](https://github.com/cecton), [#3419](https://github.com/yewstack/yew/pull/3419)]
+ - Remove the dependency on `boolinator`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3420](https://github.com/yewstack/yew/pull/3420)]
+
+## 🚨 Breaking changes
+
+ - Add use_ref. [[@Alex Parrill](https://github.com/ColonelThirtyTwo), [#3548](https://github.com/yewstack/yew/pull/3548)]
+ - Allow setting JsValue as properties. [[@Muhammad Hamza](https://github.com/ranile), [#3458](https://github.com/yewstack/yew/pull/3458)]
+ - Remove deprecated `class=(...)` syntax. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3497](https://github.com/yewstack/yew/pull/3497)]
+ - Remove ToHtml trait. [[@Muhammad Hamza](https://github.com/ranile), [#3453](https://github.com/yewstack/yew/pull/3453)]
+ - Make Html (VNode) cheap to clone. [[@Cecile Tonglet](https://github.com/cecton), [#3431](https://github.com/yewstack/yew/pull/3431)]
+
+## ✨ yew-router **0.19.0** *(2024-10-14)*
+
+#### Changelog
+
+## 🛠 Fixes
+
+ - Fix CI. [[@Tomoaki Kawada](https://github.com/kawadakk), [#3679](https://github.com/yewstack/yew/pull/3679)]
+
+## ⚡️ Features
+
+ - Raise MSRV to 1.76. [[@Elina](https://github.com/ranile), [#3693](https://github.com/yewstack/yew/pull/3693)]
+
+## ✨ yew-agent **0.4.0** *(2024-10-14)*
+
+#### Changelog
+
+## ⚡️ Features
+
+ - Raise MSRV to 1.76. [[@Elina](https://github.com/ranile), [#3693](https://github.com/yewstack/yew/pull/3693)]
+ - Agent: Avoiding clone of WorkerBridge and WorkerProviderState. [[@Shihpin Tseng](https://github.com/deftsp), [#3435](https://github.com/yewstack/yew/pull/3435)]
+
+----
+
 ## ✨ yew **0.21.0** *(2023-09-23)*
 
 #### Changelog
