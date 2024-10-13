@@ -19,6 +19,8 @@
  - Add IntoPropValue impl for converting to VList. [[@Muhammad Hamza](https://github.com/ranile), [#3444](https://github.com/yewstack/yew/pull/3444)]
  - Add CallbackRef that takes ref in argument instead of value. [[@Cecile Tonglet](https://github.com/cecton), [#3419](https://github.com/yewstack/yew/pull/3419)]
  - Remove the dependency on `boolinator`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3420](https://github.com/yewstack/yew/pull/3420)]
+ - Allow import of layout_test into 3rd party crates. [[@rollo-b2c2](https://github.com/rollo-b2c2), [#3463](https://github.com/yewstack/yew/pull/3463)]
+ - Add WASI support for server-side rendering. [[@langyo](https://github.com/langyo), [#3534](https://github.com/yewstack/yew/pull/3534)]
 
 ## 🚨 Breaking changes
 
