@@ -12,7 +12,7 @@
 ## ⚡️ Features
 
  - Raise MSRV to 1.76. [[@Elina](https://github.com/ranile), [#3693](https://github.com/yewstack/yew/pull/3693)]
- - feat(macro): add `inert` to the boolean attributes list. [[@Tomoaki Kawada](https://github.com/kawadakk), [#3678](https://github.com/yewstack/yew/pull/3678)]
+ - Add `inert` to the boolean attributes list. [[@Tomoaki Kawada](https://github.com/kawadakk), [#3678](https://github.com/yewstack/yew/pull/3678)]
  - Namespace support for `VRaw`.. [[@Finn Bear](https://github.com/finnbear), [#3640](https://github.com/yewstack/yew/pull/3640)]
  - Add generic type hints to boxed hooks. [[@Michael Meyer](https://github.com/Ichmed), [#3633](https://github.com/yewstack/yew/pull/3633)]
  - add the methods and From impls. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3519](https://github.com/yewstack/yew/pull/3519)]
