@@ -195,6 +195,55 @@ fn main() {
 Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
 Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
 
+## Single thread mode
+
+Yew supports single thread mode for server-side rendering by `yew::LocalServerRenderer`. This mode would work in a single thread environment like WASI.
+
+```rust
+// Build it by `wasm32-wasip1` target or `wasm32-wasip2` target (after rustc 1.78).
+// You can still use `wasm32-wasi` target to build if you are using older version of rustc (before 1.84).
+// See https://blog.rust-lang.org/2024/04/09/updates-to-rusts-wasi-targets.html for more information.
+
+use yew::prelude::*;
+use yew::LocalServerRenderer;
+
+#[function_component]
+fn App() -> Html {
+    use yew_router::prelude::*;
+
+    html! {
+        <>
+            <h1>{"Yew WASI SSR demo"}</h1>
+        </>
+    }
+}
+
+pub async fn render() -> String {
+    let renderer = LocalServerRenderer::<App>::new();
+    let html_raw = renderer.render().await;
+
+    let mut body = String::new();
+    body.push_str("<body>");
+    body.push_str("<div id='app'>");
+    body.push_str(&html_raw);
+    body.push_str("</div>");
+    body.push_str("</body>");
+
+    body
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    println!("{}", render().await);
+}
+```
+
+Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module)
+
+:::note
+If you are using the `wasm32-unknown-unknown` target to build a SSR application, you can use the `not_browser_env` feature flag to disable access of browser-specific APIs inside of Yew. This would be useful on serverless platforms like Cloudflare Worker.
+:::
+
 :::caution
 
 Server-side rendering is currently experimental. If you find a bug, please file

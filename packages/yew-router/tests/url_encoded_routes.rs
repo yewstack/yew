@@ -1,3 +1,5 @@
+#![cfg(not(target_os = "wasi"))]
+
 use std::time::Duration;
 
 use yew::platform::time::sleep;

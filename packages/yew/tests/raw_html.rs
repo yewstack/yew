@@ -1,13 +1,13 @@
 mod common;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 use wasm_bindgen::JsCast;
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 use wasm_bindgen_test::wasm_bindgen_test as test;
 use yew::prelude::*;
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 use tokio::test;
 
 macro_rules! create_test {
@@ -27,7 +27,7 @@ macro_rules! create_test {
                 }
             }
 
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
             {
                 use std::time::Duration;
 
@@ -46,9 +46,9 @@ macro_rules! create_test {
                     .unwrap();
                 assert_eq!(e.inner_html(), $expected);
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
             {
-                let actual = yew::ServerRenderer::<App>::new()
+                let actual = yew::LocalServerRenderer::<App>::new()
                     .hydratable(false)
                     .render()
                     .await;
@@ -72,9 +72,10 @@ create_test!(
     r#"<p>paragraph</p><a href="https://yew.rs">link</a>"#
 );
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 macro_rules! create_update_html_test {
     ($name:ident, $initial:expr, $updated:expr) => {
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
         #[test]
         async fn $name() {
             #[function_component]
@@ -127,30 +128,35 @@ macro_rules! create_update_html_test {
     };
 }
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     set_new_html_string,
     "<span>first</span>",
     "<span>second</span>"
 );
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     set_new_html_string_multiple_children,
     "<span>first</span><span>second</span>",
     "<span>second</span>"
 );
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     clear_html_string_multiple_children,
     "<span>first</span><span>second</span>",
     ""
 );
+
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 create_update_html_test!(
     nothing_changes,
     "<span>first</span><span>second</span>",
     "<span>first</span><span>second</span>"
 );
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[test]
 async fn change_vnode_types_from_other_to_vraw() {
     #[function_component]
@@ -202,7 +208,7 @@ async fn change_vnode_types_from_other_to_vraw() {
     assert_eq!(e.inner_html(), "<span>second</span>");
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[test]
 async fn change_vnode_types_from_vraw_to_other() {
     #[function_component]
