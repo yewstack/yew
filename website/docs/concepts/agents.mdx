@@ -55,7 +55,7 @@ A dispatcher allows uni-directional communication between a component and an age
 ## Overhead
 
 Agents use web workers \(i.e. Private and Public\). They incur a serialization overhead on the
-messages they send and receive. Agents use [bincode](https://github.com/servo/bincode) to communicate
+messages they send and receive. Agents use [bincode](https://github.com/bincode-org/bincode) to communicate
 with other threads, so the cost is substantially higher than just calling a function.
 
 ## Further reading

@@ -1,12 +1,20 @@
-# 常量和表达式
+---
+title: '字面量和表达式'
+---
 
-## 常量
+## 字面量
 
-如果一个表达式的类型本身实现了 `Display` （一个标准库中的 Trait），他们将会被转化成字符串并且作为一个 [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) 节点插入 DOM 中。
+如果表达式解析为实现了 `Display` 的类型，它们将被转换为字符串并插入到 DOM 中作为 [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) 节点。
 
-所有的需要显示的文本必须被 `{}` 块包含，因为这些文本会被当做一个 Rust 表达式来处理。这一点上，Yew 中使用 HTML 的方式和正常 HTML 语法有巨大的区别。
+:::note
+字符串字面量创建 `Text` 节点，浏览器将其视为字符串。因此，即使表达式包含 `<script>` 标签，您也不会遇到 XSS 等安全问题，除非您将表达式包装在 `<script>` 块中。
+:::
+
+所有显示文本都必须用 `{}` 块括起来，因为文本被视为表达式。这是 Yew 与普通 HTML 语法最大的偏差。
 
 ```rust
+use yew::prelude::*;
+
 let text = "lorem ipsum";
 html!{
     <>
@@ -14,14 +22,18 @@ html!{
         <div>{"dolor sit"}</div>
         <span>{42}</span>
     </>
-}
+};
 ```
 
 ## 表达式
 
-你可以在 HTML 中使用 `{}` 块来插入 Rust 表达式，只要这些表达式最终可以被解析成 `Html`
+您可以使用 `{}` 块在 HTML 中插入表达式，只要它们解析为 `Html`
 
 ```rust
+use yew::prelude::*;
+
+let show_link = true;
+
 html! {
   <div>
     {
@@ -34,12 +46,14 @@ html! {
       }
     }
   </div>
-}
+};
 ```
 
-通常我们会把这些表达式写进函数或者闭包中来增加可读性：
+通常将这些表达式提取到函数或闭包中以优化可读性是有意义的：
 
 ```rust
+use yew::prelude::*;
+
 let show_link = true;
 let maybe_display_link = move || -> Html {
   if show_link {
@@ -53,5 +67,5 @@ let maybe_display_link = move || -> Html {
 
 html! {
      <div>{maybe_display_link()}</div>
-}
+};
 ```

@@ -1,57 +1,119 @@
-# 列表
+---
+title: '列表'
+---
 
-## Fragments
-
-`html!` 宏总是要求一个单一的根节点。为了绕开这个限制，把内容包裹在一个空标签内是有效的：
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--有效-->
-
-```rust
-html! {
-    <>
-        <div></div>
-        <p></p>
-    </>
-}
-```
-
-<!--无效-->
-
-```rust
-/* 错误：只允许一个 html 根元素 */
-
-html! {
-    <div></div>
-    <p></p>
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 ## 迭代器
 
-Yew 支持两种从迭代器构建 html 的语法：
+Yew 支持两种不同的语法来从迭代器构建 HTML。
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--语法类型 1-->
+<Tabs>
+  <TabItem value="Syntax type 1" label="Syntax type 1">
 
-```rust
-html! {
-    <ul class="item-list">
-        { self.props.items.iter().map(renderItem).collect::<Html>() }
-    </ul>
-}
-```
-
-<!--语法类型 2-->
+第一种方法是在迭代器的最终转换上调用 `collect::<Html>()`，它返回一个 Yew 可以显示的列表。
 
 ```rust
+use yew::prelude::*;
+
+let items = (1..=10).collect::<Vec<_>>();
+
 html! {
     <ul class="item-list">
-        { for self.props.items.iter().map(renderItem) }
+        { items.iter().collect::<Html>() }
     </ul>
-}
+};
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+  </TabItem>
+  <TabItem value="Syntax type 2" label="Syntax type 2">
+
+另一种方法是使用 `for` 关键字，这不是原生的 Rust 语法，而是由 HTML 宏用于输出显示迭代器所需的代码。
+
+```rust
+use yew::prelude::*;
+
+let items = (1..=10).collect::<Vec<_>>();
+
+html! {
+    <ul class="item-list">
+        { for items.iter() }
+    </ul>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+## 键 (Key) 列表
+
+键 (Key) 列表是一个优化的列表，其中**所有**子元素都有键。
+`key` 是 Yew 提供的一个特殊属性，它为 HTML 元素或组件提供一个唯一标识符，用于 Yew 内部的优化。
+
+:::caution
+Key 只需要在每个列表中是唯一的，与 HTML `id` 的全局唯一性相反。它不应该依赖于列表的顺序。
+:::
+
+始终建议为列表添加键 (key)。
+
+可以通过将唯一的 `String`、`str` 或整数传递给特殊的 `key` 属性来添加键：
+
+```rust , ignore
+use yew::prelude::*;
+
+let names = vec!["Sam","Bob","Ray"]
+
+html! {
+    <div id="introductions">
+        {
+            names.into_iter().map(|name| {
+                html!{<div key={name}>{ format!("Hello, I'am {}!",name) }</div>}
+            }).collect::<Html>()
+        }
+    </div>
+};
+
+```
+
+### 性能优化
+
+我们有一个[带有键 (keys) 的列表示例](https://github.com/yewstack/yew/tree/master/examples/keyed_list)可以让你测试性能上的改进，这里是一个简单的测试流程：
+
+1. 进入[在线演示](https://examples.yew.rs/keyed_list)
+2. 添加 500 个元素
+3. 禁用键
+4. 反转列表
+5. 查看 "最后一次渲染花费了 Xms"（在撰写本文时，大约为 60ms）
+6. 启用键
+7. 再次反转列表
+8. 查看 "最后一次渲染花费了 Xms"（在撰写本文时，大约为 30ms）
+
+截至撰写本文时，对于 500 个组件，速度提高了 2 倍。
+
+### 原理解释
+
+通常，当你迭代时，只需要在每个列表项上添加一个键，数据的顺序可能会发生变化。
+在重新渲染列表时，它用于加速协调过程。
+
+如果没有键，假设你迭代 `["bob", "sam", "rob"]`，最终得到的 HTML 如下：
+
+```html
+<div id="bob">My name is Bob</div>
+<div id="sam">My name is Sam</div>
+<div id="rob">My name is rob</div>
+```
+
+然后在下一次渲染时，如果你的列表更改为 `["bob", "rob"]`，Yew 可以删除 id="rob" 的元素，并将 id="sam" 更新为 id="rob"。
+
+如果你为每个元素添加了一个键，初始 HTML 将保持不变，但在使用修改后的列表 `["bob", "rob"]` 进行渲染后，Yew 只会删除第二个 HTML 元素，而其他元素则保持不变，因为它可以使用键将它们关联起来。
+
+如果你遇到了一个从一个组件切换到另一个组件的 bug/"feature"，但两者都有一个 div 作为最高渲染元素。
+Yew 在这些情况下会重用已渲染的 HTML div 作为优化。
+如果你需要该 div 被重新创建而不是被重用，那么你可以添加不同的键，它们将不会被重用。
+
+## 进一步阅读
+
+-   [TodoMVC 示例](https://github.com/yewstack/yew/tree/master/examples/todomvc)
+-   [带有键 (keys) 的列表示例](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
+-   [路由示例](https://github.com/yewstack/yew/tree/master/examples/router)
