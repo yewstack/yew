@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem'
 Yew does not natively provide a CSS-in-Rust solution but helps with styling by providing
 programmatic ways to interact with the HTML `class` attribute.
 
-## Classes
+## `classes!` macro
 
 The `classes!` macro and associated `Classes` struct simplify the use of HTML classes:
 
@@ -87,7 +87,7 @@ We will expand upon this concept in [more CSS](../../more/css).
 
 ## Inline Styles
 
-Currently Yew does not provide any special help with inline styles specified via the `styles` attribute,
+Currently Yew does not provide any special help with inline styles specified via the `style` attribute,
 but you can use it like any other HTML attribute:
 
 ```rust
