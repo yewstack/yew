@@ -209,7 +209,7 @@ struct Video {
 接下来，我们将在 `app` 函数中创建这个结构体的实例，并使用它们来替代硬编码的数据：
 
 ```rust
-use website_test::tutorial::Video; // replace with your own path
+use website_test::tutorial::Video; // 换成你自己的路径
 
 let videos = vec![
     Video {
@@ -466,8 +466,6 @@ fn app() -> Html {
     用于反序列化 JSON 响应
 -   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
     用于将 Rust 的 Future 作为 Promise 执行
-
-Let's update the dependencies in `Cargo.toml` file:
 
 让我们更新 `Cargo.toml` 文件中的依赖项：
 

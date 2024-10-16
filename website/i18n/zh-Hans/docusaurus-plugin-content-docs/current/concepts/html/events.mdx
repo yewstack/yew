@@ -50,7 +50,7 @@ yew::set_event_bubbling(false);
 -   [`Event::current_target`] 指向 Yew 子树根节点，而不是添加监听器的元素。如果您想访问底层的 `HtmlElement`，请使用 [`NodeRef`](../function-components/node-refs.mdx)。
 -   [`Event::event_phase`] 始终是 [`Event::CAPTURING_PHASE`]。在内部，事件将表现得像是在冒泡阶段，事件传播将被重放，并且事件会[向上冒泡](#event-bubbling)，即虚拟 DOM 中较高的事件监听器将在较低的事件监听器之后触发。目前，Yew 不支持捕获监听器。
 
-    这也意味着由 Yew 注册的事件通常会在其他事件监听器之前触发。
+这也意味着由 Yew 注册的事件通常会在其他事件监听器之前触发。
 
 [`event::current_target`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
 [`event::event_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
@@ -111,7 +111,7 @@ fn MyComponent() -> Html {
         Callback::from(move |e: Event| {
             // 当事件被创建时，目标是未定义的，只有在派发时才会添加目标。
             let target: Option<EventTarget> = e.target();
-            // 事件可能会冒泡，因此此侦听器可能会捕获不是 HtmlInputElement 类型的子元素的事件
+            // 事件可能会冒泡，因此此侦听器可能会捕获不是 HtmlInputElement 类型的子元素的事件。
             //highlight-next-line
             let input = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
 
@@ -126,7 +126,7 @@ fn MyComponent() -> Html {
             .target()
             .expect("Event should have a target when dispatched");
         // 你必须了解 target 是 HtmlInputElement，否则调用 value 将是未定义行为（UB）。
-        // 在这里，我们确信这是输入元素，因此我们可以在不检查的情况下将其转换为适当的类型
+        // 在这里，我们确信这是输入元素，因此我们可以在不检查的情况下将其转换为适当的类型。
         //highlight-next-line
         input_value_handle.set(target.unchecked_into::<HtmlInputElement>().value());
     });
@@ -201,8 +201,7 @@ fn MyComponent() -> Html {
     };
 
     let on_dangerous_change = Callback::from(move |e: Event| {
-        // You must KNOW target is a HtmlInputElement, otherwise
-        // the call to value would be Undefined Behaviour (UB).
+        // 你必须清楚 target 是 HtmlInputElement，否则调用 value 将是未定义行为（UB）。
         //highlight-next-line
         input_value_handle.set(e.target_unchecked_into::<HtmlInputElement>().value());
     });
@@ -332,9 +331,6 @@ fn MyComponent() -> Html {
 
 ### 使用 `Closure`（冗长版本）
 
-Using the `web-sys` and `wasm-bindgen` API's directly for this can be a bit painful.. so brace
-yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
-
 直接使用 `web-sys` 和 `wasm-bindgen` 的接口可能有点痛苦……所以要有点心理准备（[感谢 `gloo`，有了更简洁的方法](#using-gloo-concise)）。
 
 ```rust
@@ -420,12 +416,12 @@ fn MyComponent() -> Html {
                 let mut custard_listener = None;
 
                 if let Some(element) = div_node_ref.cast::<HtmlElement>() {
-                    // Create your Callback as you normally would
+                    // 创建您通常会创建的 Callback
                     let oncustard = Callback::from(move |_: Event| {
-                        // do something about custard..
+                        // 对 custard 做点什么..
                     });
 
-                    // Create a Closure from a Box<dyn Fn> - this has to be 'static
+                    // 从 Box<dyn Fn> 创建一个 Closure - 这必须是 'static
                     let listener = EventListener::new(
                         &element,
                         "custard",

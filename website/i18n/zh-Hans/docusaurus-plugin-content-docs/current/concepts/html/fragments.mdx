@@ -5,9 +5,6 @@ title: '空标签 (Fragments)'
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-The `html!` macro always requires a single root node. To get around this restriction, you
-can use an "empty tag" (these are also called "fragments").
-
 `html!` 宏总是需要一个根节点。为了绕过这个限制，您可以使用一个“空标签”（也称为“fragments”）。
 
 <Tabs>
@@ -32,7 +29,7 @@ html! {
 ```rust, compile_fail
 use yew::prelude::*;
 
-// error: only one root html element allowed
+// 错误：只允许一个根 HTML 元素
 
 html! {
     <div></div>

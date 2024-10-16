@@ -1,12 +1,20 @@
-# Literals & Expressions
+---
+title: '字面量與表達式'
+---
 
-## Literals
+## 字面量
 
-如果表達式中的型別有實作 `Display` ，他們會被轉換成字串，並在 DOM 中作為 [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) （文字）結點。
+如果表達式解析為實現了 `Display` 的類型，它們將被轉換為字串並插入到DOM 中作為[Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) 節點。
 
-所有的文字都必須用 `{}` 括起來，因為文字是被當作表達式處理。這是 HTML 語法與 Yew 的語法中，最大的不同。
+:::note
+字串字面量會建立 `Text` 節點，瀏覽器將其視為字串。因此，即使表達式包含 `<script>` 標籤，您也不會遇到 XSS 等安全性問題，除非您將表達式包裝在 `<script>` 區塊中。
+:::
+
+所有顯示文字都必須用 `{}` 區塊括起來，因為文字被視為表達式。這是 Yew 與普通 HTML 語法最大的偏差。
 
 ```rust
+use yew::prelude::*;
+
 let text = "lorem ipsum";
 html!{
     <>
@@ -14,14 +22,18 @@ html!{
         <div>{"dolor sit"}</div>
         <span>{42}</span>
     </>
-}
+};
 ```
 
-## Expressions
+## 表達式
 
-只要可以回傳 `Html`，你都可以在你的 HTML 中用 `{}` 插入表達式。
+您可以使用 `{}` 區塊在 HTML 中插入表達式，只要它們解析為 `Html`
 
 ```rust
+use yew::prelude::*;
+
+let show_link = true;
+
 html! {
   <div>
     {
@@ -34,12 +46,14 @@ html! {
       }
     }
   </div>
-}
+};
 ```
 
-通常把這些表達式與包裝成方法或閉包會比較好，可以提升可讀性：
+通常將這些表達式提取到函數或閉包中以優化可讀性是有意義的：
 
 ```rust
+use yew::prelude::*;
+
 let show_link = true;
 let maybe_display_link = move || -> Html {
   if show_link {
@@ -53,5 +67,5 @@ let maybe_display_link = move || -> Html {
 
 html! {
      <div>{maybe_display_link()}</div>
-}
+};
 ```

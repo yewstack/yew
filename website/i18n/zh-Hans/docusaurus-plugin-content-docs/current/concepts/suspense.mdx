@@ -52,13 +52,12 @@ struct User {
 #[hook]
 fn use_user() -> SuspensionResult<User> {
     match load_user() {
-        // If a user is loaded, then we return it as Ok(user).
+        // 当用户加载完成时，我们将其作为 Ok(user) 返回。
         Some(m) => Ok(m),
         None => {
-            // When user is still loading, then we create a `Suspension`
-            // and call `SuspensionHandle::resume` when data loading
-            // completes, the component will be re-rendered
-            // automatically.
+            // 当用户仍在加载时，我们创建一个 `Suspension`
+            // 并在数据加载完成时调用 `SuspensionHandle::resume`，
+            // 组件将自动重新渲染。
             let (s, handle) = Suspension::new();
             on_load_user_complete(move || {handle.resume();});
             Err(s)
@@ -94,23 +93,22 @@ struct User {
 }
 
 fn load_user() -> Option<User> {
-    todo!()  // implementation omitted.
+    todo!()  // 略
 }
 
 fn on_load_user_complete<F: FnOnce()>(_fn: F) {
-    todo!()  // implementation omitted.
+    todo!()  // 略
 }
 
 #[hook]
 fn use_user() -> SuspensionResult<User> {
     match load_user() {
-        // If a user is loaded, then we return it as Ok(user).
+        // 如果用户已加载，则将其作为 Ok(user) 返回。
         Some(m) => Ok(m),
         None => {
-            // When user is still loading, then we create a `Suspension`
-            // and call `SuspensionHandle::resume` when data loading
-            // completes, the component will be re-rendered
-            // automatically.
+            // 当用户仍在加载时，我们创建一个 `Suspension`
+            // 并在数据加载完成时调用 `SuspensionHandle::resume`，
+            // 组件将自动重新渲染。
             let (s, handle) = Suspension::new();
             on_load_user_complete(move || {handle.resume();});
             Err(s)

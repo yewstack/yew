@@ -264,7 +264,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 fn App() -> Html {
     // highlight-start
     let pre_made_props = yew::props! {
-        Props {} // Notice we did not need to specify name prop
+        Props {} // 注意我们不需要指定 name 属性
     };
     // highlight-end
     html! { <Hello ..pre_made_props /> }

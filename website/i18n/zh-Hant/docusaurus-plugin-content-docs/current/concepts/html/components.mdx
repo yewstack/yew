@@ -1,98 +1,124 @@
 ---
-description: 建立複雜元件層級與佈局
+title: '組件'
+description: '使用元件層次結構建立複雜的佈局'
 ---
 
-# Components
+## 基礎
 
-## 基本
-
-任何實作 `Component` 的型別，都可以在 `html!` 的巨集中使用：
+元件可以在 `html!` 巨集中使用：
 
 ```rust
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    html! {
+        { "This component has no properties!" }
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+struct Props {
+    user_first_name: String,
+    user_last_name: String,
+}
+
+#[function_component]
+fn MyComponentWithProps(props: &Props) -> Html {
+    let Props { user_first_name, user_last_name } = props;
+    html! {
+        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+    }
+}
+
+let props = Props {
+    user_first_name: "Bob".to_owned(),
+    user_last_name: "Smith".to_owned(),
+};
+
 html!{
     <>
-        // 沒有屬性
+        // No properties
         <MyComponent />
 
-        // 有屬性
-        <MyComponent prop1="lorem" prop2="ipsum" />
+        // With Properties
+        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
-        // 一次提供很多屬性
-        <MyComponent ..props />
+        // With the whole set of props provided at once
+        <MyComponentWithProps ..props.clone() />
+
+        // With Properties from a variable and specific values overridden
+        <MyComponentWithProps user_last_name="Elm" ..props />
     </>
-}
+};
 ```
 
-## 巢狀
+## 嵌套
 
-只要元件的 `Properties` 中有 `children`，就可以傳遞子結點給元件。
+如果組件在其 `Properties` 中有一個 `children` 字段，它可以接受子組件/元素
 
 ```rust title="parent.rs"
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
+}
+
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
+    }
+}
+
 html! {
-    <Container>
+    <Container id="container">
         <h4>{ "Hi" }</h4>
         <div>{ "Hello" }</div>
     </Container>
-}
+};
 ```
 
-```rust title="container.rs"
-pub struct Container(Props);
+`html!` 巨集允許您使用`..props` 語法傳遞一個基本表達式，而不是單獨指定每個屬性，類似於Rust 的[函數式更新語法](https://doc.rust-lang.org /stable/reference/expressions/struct-expr.html#functional-update-syntax)。
+這個基本表達式必須出現在傳遞任何單獨的 props 之後。
+當傳遞一個帶有 `children` 欄位的基本 props 表達式時，`html!` 巨集中傳遞的子元素將覆蓋已經存在於 props 中的子元素。
 
-#[derive(Properties)]
-pub struct Props {
-    pub children: Children,
+```rust
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
 }
 
-impl Component for Container {
-    type Properties = Props;
-
-    // ...
-
-    fn view(&self) -> Html {
-       html! {
-           <div id="container">
-               { self.0.children.clone() }
-           </div>
-       }
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
     }
 }
-```
 
-## 指定子結點的型別
+let props = yew::props!(Props {
+    id: "container-2",
+    children: Html::default(),
+});
 
-如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， `List` 元件包裹 `ListItem` 元件。另一個真實的範例是 `yew-router` 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 `nested-list` 範例。
-
-```rust title="parent.rs"
 html! {
-    <List>
-        <ListItem value="a" />
-        <ListItem value="b" />
-        <ListItem value="c" />
-    </List>
-}
+    <Container ..props>
+        // props.children will be overwritten with this
+        <span>{ "I am a child, as you can see" }</span>
+    </Container>
+};
 ```
 
-```rust title="list.rs"
-pub struct List(Props);
+## 相關範例
 
-#[derive(Properties)]
-pub struct Props {
-    pub children: ChildrenWithProps<ListItem>,
-}
-
-impl Component for List {
-    type Properties = Props;
-
-    // ...
-
-    fn view(&self) -> Html {
-        html!{{
-            for self.0.children.iter().map(|mut item| {
-                item.props.value = format!("item-{}", item.props.value);
-                item
-            })
-        }}
-    }
-}
-```
+-   [函數化 Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
+-   [函數化路由](https://github.com/yewstack/yew/tree/master/examples/function_router)

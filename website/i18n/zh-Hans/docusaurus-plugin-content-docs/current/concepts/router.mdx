@@ -1,6 +1,5 @@
 ---
 title: '路由 (Router)'
-description: "Yew's official router"
 description: "Yew 的官方路由库"
 ---
 
@@ -18,11 +17,7 @@ yew-router = { git = "https://github.com/yewstack/yew.git" }
 
 ## 用法
 
-You start by defining a `Route`.
-
 最开始，你需要定义一个 `Route`。
-
-Routes are defined as an `enum` which derives `Routable`. This enum must be `Clone + PartialEq`.
 
 路由由一个 `enum` 定义，它派生自 `Routable`。这个枚举必须实现 `Clone + PartialEq`。
 
@@ -180,7 +175,7 @@ enum Route {
 
 导航器 API 为函数组件和结构组件提供。它们使回调能够更改路由。可以在任一情况下获取 `Navigator` 实例以操作路由。
 
-##### Function Components
+##### 函数式组件
 
 对于函数组件，当底层导航器提供程序更改时，`use_navigator` 钩子会重新渲染组件。
 以下是实现一个按钮的示例，该按钮在点击时导航到 `Home` 路由。
@@ -269,15 +264,15 @@ fn view(&self, ctx: &Context<Self>) -> Html {
 ```rust ,ignore
 #[function_component(SomePage)]
 fn some_page() -> Html {
-    // made-up hook `use_user`
+    // 建立对 `use_user` 的钩子
     let user = match use_user() {
         Some(user) => user,
-        // Redirects to the login page when user is `None`.
+        // 当用户为 `None` 时重定向到登录页面
         None => return html! {
             <Redirect<Route> to={Route::Login}/>
         },
     };
-    // ... actual page content.
+    // ... 实际页面内容
 }
 ```
 

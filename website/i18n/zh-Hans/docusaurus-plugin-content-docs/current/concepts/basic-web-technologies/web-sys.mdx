@@ -29,7 +29,7 @@ use web_sys::{
 };
 
 fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
-    // HtmlTextAreaElement is <textarea> in html.
+    // HtmlTextAreaElement 是 HTML 中的 <textarea>。
     let html_element: &HtmlElement = text_area.deref();
 
     let element: &Element = html_element.deref();
@@ -38,30 +38,24 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 
     let event_target: &EventTarget = node.deref();
 
-    // Notice we have moved from web-sys types now into built-in
-    // JavaScript types which are in the js-sys crate.
+    // 注意我们现在已经从 web-sys 类型转移到内置的 JavaScript 类型，
+    // 这些类型在 js-sys crate 中。
     let object: &js_sys::Object = event_target.deref();
 
-    // Notice we have moved from js-sys type to the root JsValue from
-    // the wasm-bindgen crate.
+    // 注意我们现在已经从 js-sys 类型转移到 wasm-bindgen crate 中的根 JsValue。
     let js_value: &wasm_bindgen::JsValue = object.deref();
 
-    // Using deref like this means we have to manually traverse
-    // the inheritance tree, however, you can call JsValue methods
-    // on the HtmlTextAreaElement type.
-    // The `is_string` method comes from JsValue.
+    // 这样使用 deref 意味着我们必须手动遍历继承树。
+    // 但是，您可以在 HtmlTextAreaElement 类型上调用 JsValue 方法。
     assert!(!text_area.is_string());
 
-    // empty function just to prove we can pass HtmlTextAreaElement as a
-    // &EventTarget.
+    // 这个空函数只是为了证明我们可以将 HtmlTextAreaElement 作为 &EventTarget 传递。
     fn this_function_only_takes_event_targets(targets: &EventTarget) {};
 
-    // The compiler will walk down the deref chain in order to match the types here.
+    // 编译器将沿着 deref 链向下走，以匹配这里的类型。
     this_function_only_takes_event_targets(&text_area);
 
-    // The AsRef implementations allow you to treat the HtmlTextAreaElement
-    // as an &EventTarget.
-
+    // AsRef 实现允许您将 HtmlTextAreaElement 视为 &EventTarget。
     let event_target: &EventTarget = text_area.as_ref();
 
 }
@@ -84,7 +78,7 @@ use yew::NodeRef;
 
 fn with_node_ref_cast(node_ref: NodeRef) {
     if let Some(input) = node_ref.cast::<HtmlInputElement>() {
-        // do something with HtmlInputElement
+        // 在这里处理 HtmlInputElement
     }
 }
 ```
@@ -101,7 +95,7 @@ fn with_jscast(node_ref: NodeRef) {
     if let Some(input) = node_ref
         .get()
         .and_then(|node| node.dyn_into::<HtmlInputElement>().ok()) {
-        // do something with HtmlInputElement
+        // 在这里处理 HtmlInputElement
     }
 }
 ```
@@ -117,10 +111,10 @@ fn with_jscast(node_ref: NodeRef) {
 
 ```js
 document.getElementById('mousemoveme').onmousemove = (e) => {
-    // e = Mouse event.
+    // e 为鼠标事件对象
     var rect = e.target.getBoundingClientRect()
-    var x = e.clientX - rect.left //x position within the element.
-    var y = e.clientY - rect.top //y position within the element.
+    var x = e.clientX - rect.left // 元素内的 x 位置。
+    var y = e.clientY - rect.top  // 元素内的 y 位置。
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }
 ```
@@ -135,7 +129,7 @@ wasm-bindgen = "0.2"
 
 [dependencies.web-sys]
 version = "0.3"
-# We need to enable all the web-sys features we want to use!
+# 需要启用所有我们想要使用的 web-sys 特性！
 features = [
     "console",
     "Document",
@@ -168,8 +162,7 @@ Document::new()
     .unchecked_into::<HtmlElement>()
     .set_onmousemove(mousemove.as_ref().dyn_ref());
 
-// we now need to save the `mousemove` Closure so that when
-// this event fires the closure is still in memory.
+// 我们现在需要保存 `mousemove` 闭包，以便在事件触发时闭包仍然在内存中。
 ```
 
 这个版本更加冗长，但你可能会注意到其中的一部分是由于失败类型提醒我们，一些函数调用有必须保持的不变量，否则将在 Rust 中引发 panic。另一个冗长的部分是调用 `JsCast` 来将不同类型转换为特定类型，以便调用其特定方法。
@@ -181,8 +174,7 @@ Document::new()
 ```toml title=Cargo.toml
 [dependencies.web-sys]
 version = "0.3"
-# We need to enable the `DomRect` feature to use the
-# `get_bounding_client_rect` method.
+# 我们需要启用 `DomRect` 特性以使用 `get_bounding_client_rect` 方法。
 features = [
     "console",
     "HtmlElement",

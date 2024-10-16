@@ -13,8 +13,8 @@ let cb: Callback<String, String> = Callback::from(move |name: String| {
     format!("Bye {}", name)
 });
 
-let result = cb.emit(String::from("Bob")); // call the callback
-// web_sys::console::log_1(&result.into()); // if uncommented will print "Bye Bob"
+let result = cb.emit(String::from("Bob"));  // 调用回调函数
+// web_sys::console::log_1(&result.into()); // 如果取消注释，将打印 "Bye Bob"
 ```
 
 ## 将回调函数作为属性传递
@@ -37,12 +37,12 @@ fn HelloWorld(props: &Props) -> Html {
     html! { "Hello" }
 }
 
-// Then supply the prop
+// 然后提供属性 (Props)
 #[function_component]
 fn App() -> Html {
     let on_name_entry: Callback<String> = Callback::from(move |name: String| {
         let greeting = format!("Hey, {}!", name);
-        // web_sys::console::log_1(&greeting.into()); // if uncommented will print
+        // web_sys::console::log_1(&greeting.into()); // 如果取消注释，这里会打印文本
     });
 
     html! { <HelloWorld {on_name_entry} /> }
@@ -63,7 +63,7 @@ use yew::{function_component, html, Html, Properties, Callback};
 fn App() -> Html {
     let onclick = Callback::from(move |_| {
         let greeting = String::from("Hi there");
-        // web_sys::console::log_1(&greeting.into()); // if uncommented will print
+        // web_sys::console::log_1(&greeting.into()); // 如果取消注释，这里会打印文本
     });
 
     html! {

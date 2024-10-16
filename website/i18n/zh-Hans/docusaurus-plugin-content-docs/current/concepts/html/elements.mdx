@@ -19,22 +19,22 @@ use gloo::utils::document;
 
 #[function_component]
 fn MyComponent() -> Html {
-    // memoize as this only needs to be executed once
+    // 带记忆能力的函数，只会执行一次
     let node = use_memo(
         (),
         |_| {
-            // Create a div element from the document
+            // 从文档中创建一个 div 元素
             let div: Element = document().create_element("div").unwrap();
-            // Add content, classes etc.
+            // 添加内容、类等
             div.set_inner_html("Hello, World!");
-            // Convert Element into a Node
+            // 将 Element 转换为 Node
             let node: Node = div.into();
-            // Return that Node as a Html value
+            // 将该 Node 作为 Html 值返回
             Html::VRef(node)
         },
     );
 
-    // use_memo return Rc so we need to deref and clone
+    // use_memo 返回的是 Rc 指针，所以我们需要解引用和克隆
     (*node).clone()
 }
 

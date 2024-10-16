@@ -1,264 +1,138 @@
 ---
-description: HTML 與 SVG 元件都支援
+title: '元素'
+description: '支援 HTML 和 SVG 元素'
 ---
 
-# Elements
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
-## 標籤結構
+## DOM 節點
 
-元件標籤都必須要是自封閉的標籤 `<... />` 或是跟開啟標籤對應的關閉標籤。
+在 Yew 中手動建立或管理 DOM 節點的原因有很多，例如與可能與受管理元件衝突的 JS 庫整合。
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Open - Close-->
+使用 `web-sys`，您可以建立 DOM 元素並將其轉換為 `Node` - 然後可以使用 `VRef` 將其用作 `Html` 值：
 
 ```rust
-html! {
-  <div id="my_div"></div>
+use web_sys::{Element, Node};
+use yew::prelude::*;
+use gloo::utils::document;
+
+#[function_component]
+fn MyComponent() -> Html {
+    // 帶記憶能力的函數，只會執行一次
+    let node = use_memo(
+        (),
+        |_| {
+            // 從文件中建立一個 div 元素
+            let div: Element = document().create_element("div").unwrap();
+            // 新增內容、類別等
+            div.set_inner_html("Hello, World!");
+            // 將 Element 轉換為 Node
+            let node: Node = div.into();
+            // 將該 Node 作為 Html 值傳回
+            Html::VRef(node)
+        },
+    );
+
+    // use_memo 回傳的是 Rc 指針，所以我們需要解引用和克隆
+    (*node).clone()
 }
+
 ```
 
-<!--INVALID-->
+## 動態標籤名
+
+在建立高階元件時，您可能會發現自己處於一個標籤名不是靜態的情況。例如，您可能有一個 `Title` 元件，根據等級屬性可以渲染從 `h1` 到 `h6` 的任何內容。而不是使用一個大的匹配表達式，Yew 允許您動態設定標籤名，使用 `@{name}`，其中 `name` 可以是傳回字串的任何表達式。
 
 ```rust
+use yew::prelude::*;
+
+let level = 5;
+let text = "Hello World!".to_owned();
+
 html! {
-  <div id="my_div"> // <- 缺少關閉標籤
-}
+    <@{format!("h{}", level)} class="title">{ text }</@>
+};
 ```
 
-<!--Self-Closing-->
+## 邏輯值屬性
+
+一些內容屬性（例如 checked、hidden、required）被稱為邏輯值屬性。在 Yew 中，邏輯值屬性需要設定為布林值：
 
 ```rust
+use yew::prelude::*;
+
 html! {
-  <input id="my_input" />
-}
+    <div hidden=true>
+        { "This div is hidden." }
+    </div>
+};
 ```
 
-<!--INVALID-->
+這與以下的 **HTML** 功能上是等價的：
 
-```rust
-html! {
-  <input id="my_input"> // <- 缺少自封閉標籤語法
-}
+```html
+<div hidden>This div is hidden.</div>
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-:::note
-為了方便起見，通常需要關閉標籤的元件，也都可以用自封閉標籤表示。例如，寫 `html! { <div class="placeholder" /> }` 是合法的。
-:::
-
-## 子結點
-
-輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--HTML-->
+將邏輯值屬性設為 false 等效於不使用該屬性；可以使用邏輯表達式的值：
 
 ```rust
+use yew::prelude::*;
+
+let no = 1 + 1 != 2;
+
+html! {
+    <div hidden={no}>
+        { "This div is NOT hidden." }
+    </div>
+};
+```
+
+這與以下 **HTML** 結果等價：
+
+```html
+<div>This div is NOT hidden.</div>
+```
+
+## 類似字串的屬性
+
+除了一些邏輯值屬性，您可能會處理許多類似字串的 HTML 屬性，Yew 有幾種選項可以將類似字串的值傳遞給元件。
+
+```rust
+use yew::{html, virtual_dom::AttrValue};
+
+let str_placeholder = "I'm a str!";
+let string_placeholder = String::from("I'm a String!");
+let attrvalue_placeholder = AttrValue::from("I'm an AttrValue!");
+
 html! {
     <div>
-        <div data-key="abc"></div>
-        <div class="parent">
-            <span class="child" value="anything"></span>
-            <label for="first-name">{ "First Name" }</label>
-            <input type="text" id="first-name" value="placeholder" />
-            <input type="checkbox" checked=true />
-            <textarea value="write a story" />
-            <select name="status">
-                <option selected=true disabled=false value="">{ "Selected" }</option>
-                <option selected=false disabled=true value="">{ "Unselected" }</option>
-            </select>
-        </div>
+        <input placeholder={str_placeholder} />
+        <input placeholder={string_placeholder} />
+        <input placeholder={attrvalue_placeholder} />
     </div>
-}
+};
 ```
 
-<!--SVG-->
+它們都是有效的，**但**我們鼓勵您更傾向於使用 Yew 的自訂 `AttrValue`，特別是如果您需要複製或將它們作為屬性傳遞給另一個元件。
+
+## HTML 元素的可選屬性
+
+大多數 HTML 屬性可以使用可選值（Some(x) 或 None）。這使我們可以在屬性被標記為可選時省略該屬性。
 
 ```rust
+use yew::prelude::*;
+
+let maybe_id = Some("foobar");
+
 html! {
-    <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
-        <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <g filter="url(#filter0_d)">
-            <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
-            <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
-        </g>
-        <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
-        <defs>
-            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                <feGaussianBlur stdDeviation="2"/>
-                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
-            </filter>
-        </defs>
-    </svg>
-}
+    <div id={maybe_id}></div>
+};
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+如果屬性設為 `None`，則該屬性將不會在 DOM 中設定。
 
-## Classes
+## 相關範例
 
-你很多方便的選項可以寫元件裡的 class：
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Literal-->
-
-```rust
-html! {
-  <div class="container"></div>
-}
-```
-
-<!--Multiple-->
-
-```rust
-html! {
-  <div class="container center-align"></div>
-}
-```
-
-<!--Interpolated-->
-
-```rust
-html! {
-  <div class={format!("{}-container", size)}></div>
-}
-```
-
-<!--Expression-->
-
-```rust
-html! {
-  <div class={self.classes()}></div>
-}
-```
-
-<!--Tuple-->
-
-```rust
-html! {
-  <div class={("class-1", "class-2")}></div>
-}
-```
-
-<!--Vector-->
-
-```rust
-html! {
-  <div class={vec!["class-1", "class-2"]}></div>
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-## 監聽
-
-監聽器的屬性必須要傳入一個 `Callback` ，他封裝了閉包。callback 的內容取決於，當觸發監聽事件時，你希望應用程式有什麼反應：
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Component Handler-->
-
-```rust
-struct MyComponent {
-    link: ComponentLink<Self>,
-}
-
-enum Msg {
-    Click,
-}
-
-impl Component for MyComponent {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        MyComponent { link }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Click => {
-                // 處理點擊事件
-            }
-        }
-    }
-
-    fn view(&self) -> Html {
-        // 從一個元件連結中，建立一個 callback 並在元件中處理他
-        let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-<!--Agent Handler-->
-
-```rust
-struct MyComponent {
-    worker: Dispatcher<MyWorker>,
-}
-
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MyComponent {
-            worker: MyWorker::dispatcher()
-        }
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        // 從一個 worker 中建立一個 callback，並在其他的 context 中處理他
-        let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-<!--Other Cases-->
-
-```rust
-struct MyComponent;
-
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MyComponent
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        // 建立一個臨時的 callback
-        let click_callback = Callback::from(|| {
-            ConsoleService::log("clicked!");
-        });
-
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
+-   [內嵌 HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)

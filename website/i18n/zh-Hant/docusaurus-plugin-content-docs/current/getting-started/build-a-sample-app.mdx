@@ -1,115 +1,149 @@
-# 第一個簡單的 App
+---
+title: '建立一個範例應用'
+---
 
-首先，先建立一個新的 binary 專案：
+當您的環境準備好後，您可以選擇使用一個包含基本 Yew 應用所需樣板的起始模板，或手動設定一個小項目。
 
-```bash
-cargo new --bin yew-app && cd yew-app
+## 使用模板快速起步
+
+請依照 [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) 的安裝說明安裝工具，然後執行下列指令：
+
+```shell
+cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
 ```
 
-在依賴庫裡加入 `yew` 與 `wasm-bindgen`（最新的版號，請參考[這裡](https://docs.rs/yew)）
+## 手動設定應用
 
-```text title="Cargo.toml"
+### 建立項目
+
+首先，請建立一個新的 cargo 專案。
+
+```bash
+cargo new yew-app
+```
+
+開啟新建立的目錄。
+
+```bash
+cd yew-app
+```
+
+### 運行一個 hello world 範例
+
+為了驗證 Rust 環境是否設定正確，使用 `cargo run` 執行初始專案。您應該會看到一個 "Hello World!" 訊息。
+
+```bash
+cargo run
+# output: Hello World!
+```
+
+### 將項目設定為 Yew web 應用
+
+為了將這個簡單的命令列應用程式轉換為一個基本的 Yew web 應用程序，需要進行一些更改。
+
+#### 更新 Cargo.toml
+
+將 `yew` 加入到依賴清單中。
+
+```toml title=Cargo.toml
 [package]
 name = "yew-app"
 version = "0.1.0"
-authors = ["Yew App Developer <name@example.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-yew = "0.16"
-wasm-bindgen = "0.2"
+# 開發版本的 Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
 
-將下面的模板複製進你的 `src/lib.rs` 檔案：
+:::info
 
-```rust title="src/lib.rs"
-use wasm_bindgen::prelude::*;
+如果你只是正在建立一個應用程序，你只需要 `csr` 特性。它將啟用 `Renderer` 和所有與客戶端渲染相關的程式碼。
+
+如果你正在製作一個函式庫，請不要啟用此特性，因為它會將客戶端渲染邏輯拉入伺服器端渲染包中。
+
+如果你需要 Renderer 進行測試或範例，你應該在 `dev-dependencies` 中啟用它。
+
+:::
+
+#### 更新 main.rs
+
+我們需要產生一個模板，設定一個名為 `App` 的根元件，該元件渲染一個按鈕，當點擊時更新其值。用以下程式碼取代 `src/main.rs` 的內容。
+
+:::note
+`main` 函數中的 `yew::Renderer::<App>::new().render()` 呼叫啟動您的應用程式並將其掛載到頁面的 `<body>` 標籤上。如果您想要使用任何動態屬性啟動您的應用程序，您可以使用 `yew::Renderer::<App>::with_props(..).render()`。
+:::
+
+```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
-struct Model {
-    link: ComponentLink<Self>,
-    value: i64,
-}
-
-enum Msg {
-    AddOne,
-}
-
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            value: 0,
+#[function_component]
+fn App() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
         }
-    }
+    };
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::AddOne => self.value += 1
-        }
-        true
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        // 如果有新的不同屬性，應該只能回傳 true
-        // 若是這個元件沒有任何屬性，那就可以只回傳 false
-        false
-    }
-
-    fn view(&self) -> Html {
-        html! {
-            <div>
-                <button onclick={self.link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
-                <p>{ self.value }</p>
-            </div>
-        }
+    html! {
+        <div>
+            <button {onclick}>{ "+1" }</button>
+            <p>{ *counter }</p>
+        </div>
     }
 }
 
-#[wasm_bindgen(start)]
-pub fn run_app() {
-    App::<Model>::new().mount_to_body();
+fn main() {
+    yew::Renderer::<App>::new().render();
 }
 ```
 
-模板會建置名叫 `Model` 的根元件 `Component`，Model 會顯示一個按鈕，當你按下按鈕時， `Model` 會更新自己的狀態。需要特別注意的是，在 `main()` 裡的 `App::<Model>::new().mount_to_body()`，他會啟動你的 app 並且掛載 `Model` 裡的 HTML 到 `<body>` 標籤中。如果你想要在啟動應用程式時，帶入動態的屬性，你可以改用 `App::<Model>::new().mount_to_body_with_props(..)`。
+#### 建立 index.html
 
-最後，在你的專案，新增 `static` 資料夾，並新增 `index.html` 檔案到 static 裡。
+最後，在應用程式的根目錄中新增一個 `index.html` 檔案。
 
-```bash
-mkdir static
-```
-
-```bash title="index.html"
+```html , title=index.html
 <!doctype html>
-<html lang="en">
+<html>
     <head>
-        <meta charset="utf-8">
-        <title>Yew Sample App</title>
-        <script type="module">
-            import init from "./wasm.js"
-            init()
-        </script>
+        <meta charset="utf-8" />
+        <title>Yew App</title>
     </head>
     <body></body>
 </html>
 ```
 
-## 執行你的 App！
+## 查看您的 Web 應用
 
-使用 [`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/) 來執行專案是比較好的選擇。如果你還沒有做任何準備，先用`cargo install wasm-pack`安裝 `wasm-pack` ，然後用下面的指令，建置與開啟開發用伺服器：
-
-```bash
-wasm-pack build --target web --out-name wasm --out-dir ./static
-```
-
-`wasm-pack` 會在 `./static` 裡產生一個 bundle，裡面包含專案編成的 WebAssembly，以及 JavaScript 的包裹器，這些東西都會在你的專案執行時被載入。
-
-最後，用你最喜歡的網頁伺服器，去啟動在`./static` 底下的檔案。範例：
+運行以下命令在本地建置和提供應用程式。
 
 ```bash
-cargo +nightly install miniserve
-miniserve ./static --index index.html
+trunk serve
 ```
+
+:::info
+新增選項 '--open' 來開啟您的預設瀏覽器 `trunk serve --open`。
+:::
+
+Trunk 將在您修改任何原始程式碼檔案時即時重新建立您的應用程式。
+預設情況下，伺服器將在位址 '127.0.0.1' 的連接埠 '8080' 上監聽 => [http://localhost:8080](http://127.0.0.1:8080)。
+若要變更這部分配置，請建立以下檔案並根據需要進行編輯：
+
+```toml title="Trunk.toml"
+[serve]
+# The address to serve on LAN.
+address = "127.0.0.1"
+# The address to serve on WAN.
+# address = "0.0.0.0"
+# The port to serve on.
+port = 8000
+```
+
+## 恭喜
+
+現在您已經成功設定了您的 Yew 開發環境，並建立了您的第一個 Web 應用程式。
+
+嘗試這個應用程序，並查看[範例](./examples.mdx)以進一步學習。

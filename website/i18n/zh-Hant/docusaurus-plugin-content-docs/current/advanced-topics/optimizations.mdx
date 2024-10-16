@@ -1,90 +1,60 @@
 ---
-description: 加速你的專案
+title: '優化 & 最佳實踐'
+sidebar_label: Optimizations
+description: '讓您的應用程式獲得最佳效能'
 ---
 
-# 優化與最佳實例
+## 使用智慧指針
 
-## neq_assign
+**注意：如果您對本節中使用的某些術語感到困惑，Rust 手冊中有一個有用的[關於智慧型指針的章節](https://doc.rust-lang.org/book/ch15-00- smart-pointers.html)。 **
 
-當元件從父元件接收到屬性時， `change` 的方法就會被呼叫。除了讓你更新元件的狀態，也讓你回傳，決定元件是否要在屬性改變時，重新渲染自己的布林值 `ShouldRender` 。
+為了避免在重新渲染時克隆大量資料以創建 props，我們可以使用智慧指針，只克隆對資料的引用而不是資料本身。如果您在props 和子組件中傳遞與相關數據的引用而不是實際數據，您可以避免在需要修改數據的子組件中克隆任何數據，您可以使用`Rc::make_mut` 來克隆並獲得要更改的數據的可變引用。
 
-重新渲染是很浪費效能的，儘可能避免這麼做。一般來說，只有在屬性真的改變時，才重新渲染。下面的程式碼是體現這個原則的例子，當屬性改變時，才回傳 `true`：
+這在 `Component::changed` 中帶來了更多好處，可以確定 prop 變更是否需要元件重新渲染。這是因為可以比較指標位址（即資料儲存在機器記憶體中的位置）而不是資料的值；如果兩個指標指向相同的數據，則它們指向的資料的值必須相同。請注意，反之可能不成立！即使兩個指標位址不同，底層資料仍可能相同 - 在這種情況下，您應該比較底層資料。
 
-```rust
-use yew::ShouldRender;
+要進行此比較，您需要使用 `Rc::ptr_eq` 而不僅使用 `PartialEq`（在使用相等運算子 `==` 比較資料時自動使用）。 Rust 文件有關於 `Rc::ptr_eq` 的[更多細節](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq)。
 
-#[derive(PartialEq)]
-struct ExampleProps;
+這種最佳化對於不實作 `Copy` 的資料類型最有用。如果您可以廉價地複製數據，則沒有必要將其放在智慧指標後面。對於可能是資料密集的結構，如 `Vec`、`HashMap` 和 `String`，使用智慧指標可能會帶來效能改進。
 
-struct Example {
-    props: ExampleProps,
-};
+如果數值從不被子元件更新，則此最佳化效果最佳，如果父元件很少更新，則效果更佳。這使得 `Rc<_>` 是在純元件中包裝屬性值的一個不錯的選擇。
 
-impl Example {
-    fn change(&mut self, props: ExampleProps) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-}
-```
+但是，必須注意，除非您需要在子元件中自己克隆數據，否則這種最佳化不僅是無用的，而且還增加了不必要的引用計數成本。 Yew 中的 props 已經是引用計數的，內部不會發生資料克隆。
 
-但我們可以走的更遠！這六行的模板，使用一個 trait 和一個 實作了 `PartialEq` 的 blanket implementation ，可以被縮短至一行。請參考[這裡](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html)， `yewtil` 的 crate 裡的 `NeqAssign` trait。
+## 渲染函數
 
-## RC
+出於程式碼可讀性的原因，將 `html!` 的部分重複程式碼遷移到專門分割出來的函數中通常是有意義的。這不僅使您的程式碼更易讀，減少了程式碼縮進，而且還鼓勵良好的設計模式——特別是圍繞構建可組合應用程序，這些函數可以在多個地方調用，從而減少程式碼量。
 
-為了避免重新渲染時，複製大量的資料來建立屬性，我們可以使用智慧指針來讓程式只複製指針。如果你使用 `Rc<_>` 來封裝你的屬性，而不是未封裝的值，你可以使用 `Rc::make_mut`，去複製與存取你想要改變的資料的可變參考，這做到了延遲複製，直到你需要更動子元件的資料。透過避免複製直到有值改變，子元件可以在 `Component::change` 拒絕與他狀態中的屬性相同值的屬性，而且這樣不會有任何效能成本。另外，這個方式，資料必須在與子元件比較與被拒絕之前，被複製進父元件的屬性中。
+## 純組件
 
-這個優化最那些無法 `Copy` 的資料型別最有用。如果你可以輕易複製你的資料，那把資料放進智慧指針裡面似乎就沒有這麼值得。對於那些包含很多像是 `Vec` 、 `HashMap` 與 `String` 的結構，這個優化對他們會更值得。
+純組件是不會改變其狀態的元件，只顯示內容並將訊息傳播到普通的可變組件。它們與視圖函數的不同之處在於，它們可以在`html!` 巨集中使用元件語法（`<SomePureComponent />`）而不是表達式語法（`{some_view_function()}`），並且根據其實現，它們可以被記憶化（這意味著一旦調用函數，其值就會被“保存”，因此如果多次使用相同的參數調用它，則不必重新計算其值，只需從第一個函數調用返回保存的值）- 防止相同的props 重新渲染。 Yew 在內部比較 props，因此僅在 props 更改時重新渲染 UI。
 
-如果子元件幾乎不會更新值，那這個優化效果會很好，甚至如果父元件也很少更新，那效果會更好。上面的情況，使在純元件中使用 `Rc<_>s` 是一個封裝屬性值很好的選擇。
+## 使用工作區減少編譯時間
 
-## View 方法
+Yew 的最大缺點是編譯所需的時間很長。編譯專案所需的時間似乎與傳遞給 `html!` 巨集的程式碼數量有關。對於較小的項目，這似乎不是什麼問題，但對於較大的應用程序，將程式碼拆分到多個 crate 中以最小化編譯器為應用程式所做的工作量是有意義的。
 
-出於程式碼的可讀性，通常會寫方法包裝複雜的 `html!`，這樣你可以避免巢狀的 HTML 造成過多的向右縮排。
+一種可能的方法是使您的主 crate 處理路由/頁面選擇，然後為每個頁面建立一個不同的 crate，其中每個頁面可以是不同的元件或只是產生 `Html` 的大函數。儲存在包含應用程式不同部分的 crate 之間的程式碼可以儲存在專案依賴的單獨 crate 中。在最理想的情況下，您從每次編譯時重新建置所有程式碼到僅重新建置主 crate 和一個頁面 crate。在最壞的情況下，如果您在「common」 crate 中編輯了某些內容，您將回到起點：編譯依賴於該常用共享 crate 的所有程式碼，這可能是其他所有內容。
 
-## 純元件/函數式元件
+如果您的主crate 太重，或者您想快速迭代一個深度巢狀的頁面（例如。在另一個頁面上渲染的頁面），您可以使用範例crate 建立主頁面的簡化實現，並額外渲染您正在處理的組件。
 
-純元件 是一種不會改變自己狀態的元件，他們只單純顯示內容或是向普通可變的元件傳送訊息。他們和 view 方法不同的地方在於們可以在 `html!` 巨集中使用，語法會像（`<SomePureComponent />`），而不是表達式語法（`{some_view_function()}`），而且根據他們的實作方式，他們可以被 memoized，這樣可以套用前面所述的 `neq_assign` 的邏輯避免重新渲染。
+## 減少二進位檔案大小
 
-Yew 本身不支援純元件或是函數式元件，但是你可以透過 external crates 使用。
+-   優化 Rust 程式碼
+-   `cargo.toml`（定義發布設定檔）
+-   使用 `wasm-opt` 最佳化 wasm 程式碼
 
-函數式元件還不存在，但是理論上純元件可以透過巨集與宣告方法產生。
+**注意：有關減小二進位檔案大小的更多信息，請參閱[Rust Wasm 手冊](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code -size)。 **
 
-## Keyed DOM nodes when they arrive
+### Cargo.toml
 
-## 使用 Cargo Workspaces 加速編譯
+可以使用 `Cargo.toml` 中 `[profile.release]` 部分中的可用設定來配置發佈建置為更小。
 
-Yew 最大的缺點就是花太多時間在編譯上了。編譯時間似乎和 `html!` 巨集中的程式碼質量相同。 對於小專案來說，這應該不是什麼大問題，但是對於有很多頁面的大型網頁應用程式來說，就必須要將程式碼封裝成很多 crates 以減少編譯所花的時間。
-
-你應該將路由與頁面區塊封裝成一個 main crate，然後將共用的程式碼與元件封裝成另一個 crate，將每個頁面會用到的不同的元件，各自封裝到不同的 crate 中，或是只產生 `Html` 的大方法中。最好的狀況，你只需要重新編譯你 main crate 與修改的頁面的 crate 的程式碼；而最壞的情況，你編輯了共用的 crate，你就必須重新編譯所有依賴這個共用 crate 的程式碼。
-
-如果你的 main crate 太過龐大，或是你希望快速迭代深層巢狀的頁面（一個頁面渲染另一個頁面的頂層），你可以使用範例的 crate ，在一個簡單的主頁面上編輯你未完成的元件。
-
-## 編譯大小的優化 <a id="build-size-optimization"></a>
-
--   優化 Rust 的程式碼
--   `cargo.toml` （定義釋出的設定檔）
--   使用 `wasm-opt` 優化 wasm 程式碼
-
-更多關於程式碼大小的資訊，請參考： [rustwasm book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
-
-### Cargo.toml <a id="cargo-toml"></a>
-
-你可以設定你的發行版本更小的檔案大小，透過設定 `Cargo.toml` 的 `[profile.release]` 。
-
-[Rust profiles documentation](https://doc.rust-lang.org/cargo/reference/profiles.html)
-
-```rust
+```toml, title=Cargo.toml
 [profile.release]
 # less code to include into binary
 panic = 'abort'
 # optimization over all codebase ( better optimization, slower build )
 codegen-units = 1
-# optimization for size ( more aggresive )
+# optimization for size ( more aggressive )
 opt-level = 'z'
 # optimization for size
 # opt-level = 's'
@@ -92,27 +62,51 @@ opt-level = 'z'
 lto = true
 ```
 
-### wasm-opt <a id="wasm-opt"></a>
+### 開發版 Cargo 配置
 
-更多優化 `wasm` 程式碼大小的方法。
+您還可以從 Rust 和 cargo 的實驗性開發版功能中獲得額外的好處。若要使用 `trunk` 的開發版工具鏈，請設定 `RUSTUP_TOOLCHAIN="nightly"` 環境變數。然後，您可以在 `.cargo/config.toml` 中配置不穩定的 rustc 功能。請參考[不穩定功能]的文檔，特別是關於[`build-std`]和[`build-std-features`]的部分，以了解配置。
 
-wasm-opt 資訊： [binaryen project](https://github.com/WebAssembly/binaryen)
+```toml, title=".cargo/config.toml"
+[unstable]
+# Requires the rust-src component. `rustup +nightly component add rust-src`
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
+```
 
-Rust Wasm 中有一個關於減少 Wasm 二進位檔大小的章節：[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
+[unstable features]: https://doc.rust-lang.org/cargo/reference/unstable.html
+[`build-std`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std
+[`build-std-features`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std-features
 
--   使用`wasm-pack` 預設在發行版本編譯時優化 `wasm` 程式碼
--   直接在 wasm 檔案上使用 `wasm-opt` 。
+:::caution
+開發版 Rust 編譯器可能包含錯誤，例如[這個例子](https://github.com/yewstack/yew/issues/2696)，需要偶爾注意和調整。請謹慎使用這些實驗性選項。
+:::
 
-```rust
+### wasm-opt
+
+此外，可以最佳化 `wasm` 程式碼的大小。
+
+Rust Wasm 手冊中有關於減少 Wasm 二進位檔案大小的部分：[縮小 .wasm 大小](https://rustwasm.github.io/book/game-of-life/code-size.html)
+
+-   使用 `wasm-pack`，預設會最佳化發佈建置中的 `wasm` 程式碼
+-   直接在 `wasm` 檔案上使用 `wasm-opt`
+
+```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 ```
 
-#### 編譯 yew/examples/ 中 最小的例子 <a id="build-size-of-minimal-example-in-yew-examples"></a>
+#### 在 yew/examples/ 中 'minimal' 範例的建置大小
 
-注意： `wasm-pack` 包含對 Rust 與 wasm 程式碼的優化。而`wasm-bindgen` 只是一個單純的例子，沒有對 `Rust` 做任何優化。
+注意：`wasm-pack` 結合了 Rust 和 Wasm 程式碼的最佳化。在此範例中，`wasm-bindgen` 未經任何 Rust 大小最佳化。
 
 | used tool                   | size  |
 | :-------------------------- | :---- |
 | wasm-bindgen                | 158KB |
-| wasm-binggen + wasm-opt -Os | 116KB |
-| wasm-pack                   | 99KB  |
+| wasm-bindgen + wasm-opt -Os | 116KB |
+| wasm-pack                   | 99 KB |
+
+## 進一步閱讀：
+
+-   [Rust 手冊中關於智慧型指標的章節](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+-   [Rust Wasm 手冊中關於減小二進位檔案大小的資訊](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+-   [Rust 設定檔的文件](https://doc.rust-lang.org/cargo/reference/profiles.html)
+-   [binaryen 專案](https://github.com/WebAssembly/binaryen)

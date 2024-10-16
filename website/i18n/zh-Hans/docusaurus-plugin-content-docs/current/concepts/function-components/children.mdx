@@ -22,7 +22,7 @@ fn App() -> Html {
 #[derive(Properties, PartialEq)]
 pub struct Props {
     // highlight-next-line
-    pub children: Html, // the field name `children` is important!
+    pub children: Html, // `children` 键很重要！
 }
 
 #[function_component]
@@ -30,7 +30,7 @@ fn HelloWorld(props: &Props) -> Html {
     html! {
         <div class="very-stylized-container">
     // highlight-next-line
-            { props.children.clone() } // you can forward children like this
+            { props.children.clone() } // 可以靠这种方式转发子元素
         </div>
     }
 }

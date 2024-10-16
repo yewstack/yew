@@ -66,7 +66,7 @@ fn NavButton(_props: &ThemeProps) -> Html {
     }
 }
 
-/// App root
+/// App 根节点
 #[function_component]
 fn App() -> Html {
     let theme = Theme {
@@ -96,14 +96,14 @@ fn App() -> Html {
 use yew::prelude::*;
 
 
-/// App theme
+/// App 主题
 #[derive(Clone, Debug, PartialEq)]
 struct Theme {
     foreground: String,
     background: String,
 }
 
-/// Main component
+/// 主组件
 #[function_component]
 pub fn App() -> Html {
     let ctx = use_state(|| Theme {
@@ -112,18 +112,17 @@ pub fn App() -> Html {
     });
 
     html! {
-        // `ctx` is type `Rc<UseStateHandle<Theme>>` while we need `Theme`
-        // so we deref it.
-        // It derefs to `&Theme`, hence the clone
+        // `ctx` 是 `Rc<UseStateHandle<Theme>>` 类型，而我们需要 `Theme`
+        // 所以我们对它进行解引用。
         <ContextProvider<Theme> context={(*ctx).clone()}>
-            // Every child here and their children will have access to this context.
+            // 这里的每个子组件及其子组件都将访问此上下文。
             <Toolbar />
         </ContextProvider<Theme>>
     }
 }
 
-/// The toolbar.
-/// This component has access to the context
+/// 工具栏
+/// 此组件可以访问上下文。
 #[function_component]
 pub fn Toolbar() -> Html {
     html! {
@@ -133,9 +132,8 @@ pub fn Toolbar() -> Html {
     }
 }
 
-/// Button placed in `Toolbar`.
-/// As this component is a child of `ThemeContextProvider` in the component tree, it also has access
-/// to the context.
+/// 放置在 `Toolbar` 中的按钮
+/// 由于此组件是组件树中 `ThemeContextProvider` 的子组件，它也可以访问上下文。
 #[function_component]
 pub fn ThemedButton() -> Html {
     let theme = use_context::<Theme>().expect("no ctx found");

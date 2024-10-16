@@ -1,38 +1,52 @@
 ---
-description: 父元件與子元件的溝通橋樑
+title: '屬性 (Props)'
+description: '父子元件通訊'
 ---
 
-# Properties
+屬性 (Properties) 使子組件和父組件之間能夠進行通訊。每個元件都有一個關聯的屬性類型，用來描述從父元件傳遞下來的內容。理論上，這可以是任何實現了 `Properties` 特性的類型，但實際上，它應該是一個結構體，其中每個字段代表一個屬性。
 
-屬性讓子元件與父元件可以互相溝通。
+## 派生宏
 
-## Derive macro
+無需自己實作 `Properties` 特性，我們可以用 `#[derive(Properties)]` 來自動生成實作。派生 `Properties` 的型別也必須實作 `PartialEq`。
 
-不要嘗試自己實作 `Properties`，而是用`#[derive(Properties)]`derive 他。
+### 欄位屬性
 
-### 必填的欄位
+在派生 `Properties` 時，預設情況下所有欄位都是必要的。以下屬性可讓您為屬性提供初始值，除非它們被設定為另一個值。
 
-預設所有在 `Properties` struct 裡的欄位都是必填的。當必填的欄位沒有值，而元件在 `html!` 巨集中又被建立，編譯器就會報錯。如果希望欄位是可選的，可以使用 `#[prop_or_default]` 來讓該欄位有預設值。如果希望欄位預設特定值，可以使用 `#[prop_or_else(value)]` ，裡面的 value 就會是這個欄位的預設值。舉例來說，希望預設值是 `true`可以在欄位宣告上面這樣寫 `#[prop_or_else(true)]`. 通常可選的屬性，會用 `Option` ，且預設值為`None`。
+:::tip
+屬性不會在 Rustdoc 產生的文件中顯示。您的屬性的文檔字串應該說明一個屬性是否是可選的，以及它是否有一個特殊的預設值。
+:::
 
-### PartialEq
+#### `#[prop_or_default]`
 
-如果可以，最好在你的屬性上面 derive `PartialEq` 。他可以避免畫面多餘的渲染，更細節的內容請參考，**優化與最佳實例**的區塊。
+使用欄位類型的預設值使用 `Default` 特性來初始化屬性值。
 
-## 屬性的記憶體與速度的開銷
+#### `#[prop_or(value)]`
 
-在 `Component::view`,裡，你可以拿到元件狀態的參考，且用他來建立 `Html` 。但是屬性是有所有權的。這代表著為了建立屬性，並且將他們傳遞給子元件，我們必須取得被 `view` 方法拿走的所有權。 當將參考傳給元件時，可以透過隱式的複製來做到得到所有權。
+使用 `value` 來初始化屬性值。 `value` 可以是傳回欄位類型的任何表達式。例如，要將布林屬性預設為 `true`，請使用屬性 `#[prop_or(true)]`。
 
-這意味著，每個元件，都有從父元件傳遞下來的獨有的狀態複本，且每當你重新渲染一次元件，被重新渲染的元件的所有的子元件的屬性就會被重新複製一次。
+#### `#[prop_or_else(function)]`
 
-代表如果你要在屬性中傳遞*大量*的資料（大於 10 KB 的字串之類的），你可能需要考慮將你的子元件變成一個回傳 `Html` 的方法，讓父元件呼叫，以避免資料被複製。
+呼叫 `function` 來初始化屬性值。 `function` 應該有簽章 `FnMut() -> T`，其中 `T` 是欄位類型。
 
-如果你不需要改變傳下去的資料，你可以用 `Rc` 將資料包裝起來，這樣就會只複製參考的指針，而不是資料本身。
+## `PartialEq`
+
+`Properties` 需要實作 `PartialEq`。這樣，Yew 才能比較它們，以便在它們發生變化時呼叫 `changed` 方法。
+
+## 使用 Properties 的效能開銷
+
+內部屬性是基於引用計數的指標儲存的。這意味著只有一個指標被傳遞到元件樹中的屬性，以避免複製整個屬性所帶來的昂貴效能開銷。
+
+:::tip
+使用 `AttrValue`，這是我們提供的自訂屬性值類型，這樣就可以不用 String 或其他類似的需要克隆的類型。
+:::
 
 ## 範例
 
 ```rust
-use std::rc::Rc;
 use yew::Properties;
+/// Importing the AttrValue from virtual_dom
+use yew::virtual_dom::AttrValue;
 
 #[derive(Clone, PartialEq)]
 pub enum LinkColor {
@@ -43,28 +57,78 @@ pub enum LinkColor {
     Purple,
 }
 
-impl Default for LinkColor {
-    fn default() -> Self {
-        // 除非有指定，否則預設是藍色
-        LinkColor::Blue
-    }
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
 }
 
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct LinkProps {
-    /// 連結必須要有一個目標
-    href: String,
-    /// 如果連結文字很大，複製字串的參考可以減少記憶體的開銷
-    /// 但除非效能已經成為嚴重的問題，否則通常不建議這麼做
-    text: Rc<String>,
-    /// 連結的顏色
-    #[prop_or_default]
+    /// The link must have a target.
+    href: AttrValue,
+    /// Also notice that we are using AttrValue instead of String
+    text: AttrValue,
+    /// Color of the link. Defaults to `Blue`.
+    #[prop_or_else(create_default_link_color)]
     color: LinkColor,
-    /// 如果為 None，那 view 方法將不會指定 size
+    /// The view function will not specify a size if this is None.
     #[prop_or_default]
     size: Option<u32>,
-    /// 當沒有指定 active，預設為 true
+    /// When the view function does not specify active, it defaults to true.
     #[prop_or(true)]
     active: bool,
+}
+```
+
+## Props 巨集
+
+`yew::props!` 巨集允許您以與 `html!` 巨集相同的方式建立屬性。
+
+這個巨集使用與結構體表達式相同的語法，只是您不能使用屬性或基本表達式 (`Foo { ..base }`)。類型路徑可以直接指向屬性 (`path::to::Props`)，也可以指向元件的關聯屬性 (`MyComp::Properties`)。
+
+```rust
+use yew::{props, Properties, virtual_dom::AttrValue};
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// The link must have a target.
+    href: AttrValue,
+    /// Also notice that we're using AttrValue instead of String
+    text: AttrValue,
+    /// Color of the link. Defaults to `Blue`.
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// The view function will not specify a size if this is None.
+    #[prop_or_default]
+    size: Option<u32>,
+    /// When the view function doesn't specify active, it defaults to true.
+    #[prop_or(true)]
+    active: bool,
+}
+
+impl LinkProps {
+    /// Notice that this function receives href and text as String
+    /// We can use `AttrValue::from` to convert it to a `AttrValue`
+    pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
+        // highlight-start
+        props! {LinkProps {
+            href: AttrValue::from(href),
+            text: AttrValue::from(text),
+            size,
+        }}
+        // highlight-end
+    }
 }
 ```
