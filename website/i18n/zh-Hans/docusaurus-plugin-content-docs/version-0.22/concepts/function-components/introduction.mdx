@@ -1,27 +1,110 @@
 ---
-title: 函数式组件
-sidebar_label: 简介
-description: 介绍函数式组件
+title: '函数组件'
 slug: /concepts/function-components
 ---
 
-函数式组件是普通组件的简化版本。它们由一个接收 props 的函数组成，并通过返回`Html`来确定应该呈现什么。基本上，它是一个简化为`view`方法的组件。就其本身而言，这将是相当有限的，因为您只能创建纯组件，而这就是 Hook 大展身手的地方。Hook 允许函数组件无需实现`Component` trait，就可以使用状态（state）和其他 Yew 功能。
+Let's revisit this previous statement:
 
-## 创建函数式组件
+让我们重新回顾一下之前的标语：
 
-创建函数式组件的最简单方法是在函数前添加`#[function_component]`属性。
+> Yew centrally operates on the idea of keeping everything that a reusable piece of
+> UI may need in one place - rust files.
+
+> Yew 的核心思想是将可重用的 UI 部分所需的所有内容集中在一个地方 - Rust 文件中。
+
+We will refine this statement, by introducing the concept that will define the logic and
+presentation behavior of an application: "components".
+
+我们将通过引入将定义应用程序的逻辑和呈现行为的概念来完善这个陈述："组件"。
+
+## What are Components?
+
+## 什么是组件？
+
+Components are the building blocks of Yew.
+
+组件是 Yew 的构建块。
+
+They:
+
+它们应当：
+
+-   Take arguments in form of [Props](./properties.mdx)
+-   Can have their own state
+-   Compute pieces of HTML visible to the user (DOM)
+
+-   以 [Props](./properties.mdx) 的形式接受参数
+-   可以拥有自己的状态
+-   计算用户可见的 HTML 片段（DOM）
+
+## Two flavors of Yew Components
+
+## Yew 组件的两种风味
+
+You are currently reading about function components - the recommended way to write components
+when starting with Yew and when writing simple presentation logic.
+
+您当前正在阅读有关函数组件的内容 - 这是在开始使用 Yew 时以及在编写简单的呈现逻辑时编写组件的推荐方式。
+
+There is a more advanced, but less accessible, way to write components - [Struct components](advanced-topics/struct-components/introduction.mdx).
+They allow very detailed control, though you will not need that level of detail most of the time.
+
+还有一种更高级但不太容易访问的编写组件的方式 - [结构组件](advanced-topics/struct-components/introduction.mdx)。它们允许非常详细的控制，尽管大多数情况下您不需要那么详细的控制。
+
+## Creating function components
+
+## 创建函数组件
+
+To create a function component add the `#[function_component]` attribute to a function.
+By convention, the function is named in PascalCase, like all components, to contrast its
+use to normal html elements inside the `html!` macro.
+
+要创建一个函数组件，请将 `#[function_component]` 属性添加到一个函数中。按照惯例，函数的名称采用 PascalCase，与 `html!` 宏中的普通 html 元素形成对比。
 
 ```rust
-#[function_component(HelloWorld)]
-fn hello_world() -> Html {
+use yew::{function_component, html, Html};
+
+#[function_component]
+fn HelloWorld() -> Html {
     html! { "Hello world" }
+}
+
+// Then somewhere else you can use the component inside `html!`
+#[function_component]
+fn App() -> Html {
+    html! { <HelloWorld /> }
 }
 ```
 
-### 更多细节
+## What happens to components
 
-函数式组件由两部分组成。首先， `FunctionProvider` trait 与`Component` trait 差不多，但它只有一个名为`run`方法。之后是`FunctionComponent`结构体，它封装了`FunctionProvider`类型并将其转换为实际的`Component` 。 `#[function_component]`属性本质上只是`FunctionProvider`并将其暴露在`FunctionComponent` 。
+## 组件内部发生了什么
 
-### 钩子（Hooks）
+When rendering, Yew will build a virtual tree of these components.
+It will call the view function of each (function) component to compute a virtual version (VDOM) of the DOM
+that you as the library user see as the `Html` type.
+For the previous example, this would look like this:
 
-钩子（Hooks）就是让您“钩住”组件的状态（state）和/或生命周期并执行操作的函数。 除了 Yew 自带的一些预定义的 Hook。您也可以创建自己的。
+在渲染时，Yew 将构建这些组件的虚拟树。它将调用每个（函数）组件的 view 函数来计算 DOM 的虚拟版本（VDOM），您作为库用户将其视为 `Html` 类型。对于上面的示例，这将如下所示：
+
+```xhtml
+<App>
+  <HelloWorld>
+    <p>"Hello world"</p>
+  </HelloWord>
+</App>
+```
+
+When an update is necessary, Yew will again call the view function and reconcile the new virtual DOM with its
+previous version and only propagate the new/changed/necessary parts to the actual DOM.
+This is what we call **rendering**.
+
+当需要更新时，Yew 将再次调用 view 函数，并将新的虚拟 DOM 与其之前的版本进行协调，并仅将新的/更改的/必要的部分传 播到实际的 DOM。这就是我们所说的 **渲染**。
+
+:::note
+
+Behind the scenes, `Html` is just an alias for `VNode` - a virtual node.
+
+实际上，`Html` 只是 `VNode` 的别名 - 一个虚拟节点。
+
+:::

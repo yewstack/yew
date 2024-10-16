@@ -1,26 +1,22 @@
 ---
-title: 'Events'
+title: '事件'
 ---
 
-## Introduction
+## 介绍
 
-Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate and
-uses the events from that crate. The [table below](#event-types) lists all of the `web-sys`
-events that are accepted in the `html!` macro.
+Yew 与 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate 集成，并使用该 crate 中的事件。下面的[表格](#event-types)列出了在 `html!` 宏中接受的所有 `web-sys` 事件。
 
-You can still add a [`Callback`](../function-components/callbacks.mdx) for an event that is not listed in the table
-below, see [Manual event listener](#manual-event-listener).
+您仍然可以为下表中未列出的事件添加 [`Callback`](../function-components/callbacks.mdx)，请参见[手动事件监听器](#manual-event-listener)。
 
-## Event Types
+## 事件类型
 
 :::tip
-All the event types mentioned in the following table are re-exported under `yew::events`.
-Using the types from `yew::events` makes it easier to ensure version compatibility than
-if you were to manually include `web-sys` as a dependency in your crate because you will not
-end up using a version which conflicts with the version that Yew specifies.
+所有的事件类型都在 `yew::events` 下重新导出。
+使用 `yew::events` 中的类型比手动将 `web-sys` 作为依赖项包含在您的 crate 中更容易确保版本兼容性，
+因为您不会使用与 Yew 指定的版本冲突的版本。
 :::
 
-The event listener name is the expected name when adding an event `Callback` in the `html` macro:
+事件监听器的名称是在 `html` 宏中添加事件 `Callback` 时预期的名称：
 
 ```rust
 use yew::prelude::*;
@@ -33,70 +29,52 @@ html! {
 };
 ```
 
-The event name is the listener without the "on" prefix, therefore, the `onclick` event listener
-listens for `click` events. See the end of this page for a [full list of available event](#available-events) with their types.
+事件名称是监听器名称去掉 "on" 前缀，因此 `onclick` 事件监听器监听 `click` 事件。查看本页末尾的[完整事件列表](#available-events)及其类型。
 
-## Event bubbling {#event-bubbling}
+## 事件捕获 {#event-bubbling}
 
-Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase
-is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual
-DOM hierarchy. The distinction is important when working with [portals](../../advanced-topics/portals.mdx) and other
-more advanced techniques. The intuition for well-implemented components should be that events bubble from children
-to parents. In this way the hierarchy in your coded `html!` is the one observed by event handlers.
+Yew 调度的事件遵循虚拟 DOM 层次结构，向上冒泡到监听器。目前，仅支持监听器的冒泡阶段。请注意，虚拟 DOM 层次结构通常（但并非总是）与实际 DOM 层次结构相同。在处理[传送门](../../advanced-topics/portals.mdx)和其他更高级技术时，这一区别很重要。对于良好实现的组件，直觉应该是事件从子组件冒泡到父组件。这样，您在 `html!` 中编写的层次结构就是事件处理程序观察到的层次结构。
 
-If you are not interested in event bubbling, you can turn it off by calling
+如果您不想要事件冒泡，可以通过调用
 
 ```rust
 yew::set_event_bubbling(false);
 ```
 
-_before_ starting your app. This speeds up event handling, but some components may break from not receiving the events they expect.
-Use this with care!
+在启动应用程序_之前_。这会加快事件处理速度，但某些组件可能会因未收到预期的事件而中断。请谨慎使用！
 
-## Event delegation
+## 事件委托
 
-It can be surprising that event listeners are _not_ directly registered on the element where they are rendered. Instead, events
-are delegated from the subtree root of the Yew app. Still, events are delivered in their native form, and no synthetic
-form is created. This can lead to mismatches between the event you would expect in HTML listeners and those showing up in Yew.
+可能会让人惊讶的是，事件监听器并不是直接注册在它们被渲染的元素上。相反，事件是从 Yew 应用的子树根节点委托的。不过，事件仍然以其原生形式传递，并且不会创建任何合成形式。这可能会导致 HTML 监听器中预期的事件与 Yew 中出现的事件之间的不匹配。
 
--   [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
-    [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
--   [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
-    phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
-    the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners is not supported by Yew.
+-   [`Event::current_target`] 指向 Yew 子树根节点，而不是添加监听器的元素。如果您想访问底层的 `HtmlElement`，请使用 [`NodeRef`](../function-components/node-refs.mdx)。
+-   [`Event::event_phase`] 始终是 [`Event::CAPTURING_PHASE`]。在内部，事件将表现得像是在冒泡阶段，事件传播将被重放，并且事件会[向上冒泡](#event-bubbling)，即虚拟 DOM 中较高的事件监听器将在较低的事件监听器之后触发。目前，Yew 不支持捕获监听器。
 
-    This also means that events registered by Yew will usually fire before other event listeners.
+    这也意味着由 Yew 注册的事件通常会在其他事件监听器之前触发。
 
 [`event::current_target`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target
 [`event::event_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.event_phase
 [`event::capturing_phase`]: https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#associatedconstant.CAPTURING_PHASE
 
-## Typed event target
+## 具备类型的事件目标
 
 :::caution
-In this section **target ([`Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target))**
-is always referring to the element at which the event was dispatched from.
+在本节中，**target ([`Event.target`](https://developer.mozilla.org/en-US/docs/Web/API/Event/target))** 始终指的是事件从其派发的元素。
 
-This will **not** always be the element at which the `Callback` is placed.
+这**不一定**总是指代 `Callback` 所放置的元素。
 :::
 
-In event `Callback`s you may want to get the target of that event. For example, the
-`change` event gives no information but is used to notify that something has changed.
+在事件 `Callback` 中，您可能希望获取该事件的目标。例如，`change` 事件没有提供任何信息，但用于通知某些内容已更改。
 
-In Yew getting the target element in the correct type can be done in a few ways and we will go through
-them here. Calling [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
-on an event returns an optional [`web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html)
-type, which might not seem very useful when you want to know the value of your input element.
+在 Yew 中，以正确的类型获取目标元素可以通过几种方式完成，我们将在这里逐一介绍。调用事件上的 [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target) 返回一个可选的 [`web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html) 类型，当您想知道输入元素的值时，这可能看起来不是很有用。
 
-In all the approaches below we are going to tackle the same problem, so it is clear where the approach
-differs as opposed to the problem at hand.
+在下面的所有方法中，我们将解决相同的问题，以便清楚地了解方法的不同之处，而不是手头的问题。
 
-**The Problem:**
+**问题：**
 
-We have an `onchange` `Callback` on my `<input>` element and each time it is invoked we want to send
-an [update](components#update) `Msg` to our component.
+我们在 `<input>` 元素上有一个 `onchange` `Callback`，每次调用时，我们希望向组件发送一个[更新](components#update) `Msg`。
 
-Our `Msg` enum looks like this:
+我们的 `Msg` 枚举如下所示：
 
 ```rust
 pub enum Msg {
@@ -104,19 +82,15 @@ pub enum Msg {
 }
 ```
 
-### Using `JsCast`
+### 使用 `JsCast`
 
-The [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate has
-a useful trait: [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html),
-which allows us to hop and skip our way to the type we want, as long as it implements `JsCast`. We can
-do this cautiously, which involves some runtime checks and failure types like `Option` and `Result`,
-or we can do it dangerously.
+[`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate 有一个有用的 trait：[`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)，它允许我们在类型之间直接转换，只要它实现了 `JsCast` 就行。我们可以谨慎地转换，这涉及运行时检查和处理 `Option` 和 `Result` 的逻辑，或者我们也可以冒险直接强行转换。
 
-Enough talk, more code:
+多说无益，看代码：
 
 ```toml title="Cargo.toml"
 [dependencies]
-# need wasm-bindgen for JsCast
+# 需要 wasm-bindgen 用于调用 JsCast
 wasm-bindgen = "0.2"
 ```
 
@@ -135,11 +109,9 @@ fn MyComponent() -> Html {
         let input_value_handle = input_value_handle.clone();
 
         Callback::from(move |e: Event| {
-            // When events are created the target is undefined, it's only
-            // when dispatched does the target get added.
+            // 当事件被创建时，目标是未定义的，只有在派发时才会添加目标。
             let target: Option<EventTarget> = e.target();
-            // Events can bubble so this listener might catch events from child
-            // elements which are not of type HtmlInputElement
+            // 事件可能会冒泡，因此此侦听器可能会捕获不是 HtmlInputElement 类型的子元素的事件
             //highlight-next-line
             let input = target.and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
 
@@ -153,9 +125,8 @@ fn MyComponent() -> Html {
         let target: EventTarget = e
             .target()
             .expect("Event should have a target when dispatched");
-        // You must KNOW target is a HtmlInputElement, otherwise
-        // the call to value would be Undefined Behaviour (UB).
-        // Here we are sure that this is input element so we can convert it to the appropriate type without checking
+        // 你必须了解 target 是 HtmlInputElement，否则调用 value 将是未定义行为（UB）。
+        // 在这里，我们确信这是输入元素，因此我们可以在不检查的情况下将其转换为适当的类型
         //highlight-next-line
         input_value_handle.set(target.unchecked_into::<HtmlInputElement>().value());
     });
@@ -183,38 +154,30 @@ fn MyComponent() -> Html {
 }
 ```
 
-The methods from `JsCast` are [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
-and [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)
-and you can probably see, they allowed
-us to go from `EventTarget` to [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html).
-The `dyn_into` method is cautious because at
-runtime it will check whether the type is actually a `HtmlInputElement` and if not return an
-`Err(JsValue)`, the [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
-is a catch-all type and is essentially giving you back the object to try again.
+`JsCast` 提供的方法是 [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+和 [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)。
+如你所见，它们允许我们从 `EventTarget` 转换为 [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html)。
+`dyn_into` 方法是谨慎的，因为它会在运行时检查类型是否实际为 `HtmlInputElement`，如果不是则返回
+`Err(JsValue)`。[`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+是一个通用类型，将原来的对象返回给你，以便再次尝试转换为别的类型。
 
-At this point you might be thinking... when is the dangerous version ok to use? In the case above it
-is safe<sup>1</sup> as we've set the `Callback` on to an element with no children so the target can
-only be that same element.
+这会儿你可能会想，什么时候可以使用危险版本？在上面的情况下，它是安全的<sup>1</sup>，因为我们将 `Callback` 设置在一个没有子元素的元素上，所以目标只能是同一个元素。
 
-_<sup>1</sup> As safe as anything can be when JS land is involved._
+_<sup>1</sup> 只要涉及到 JS 领域，就是安全的。_
 
-### Using `TargetCast`
+### 使用 `TargetCast`
 
-**It is highly recommended to read [Using JsCast](#using-jscast) first!**
+**强烈建议先阅读 [使用 JsCast](#using-jscast)！**
 
 :::note
-`TargetCast` was designed to feel very similar to `JsCast` - this is to allow new users to get a feel
-for the behaviour of `JsCast` but with the smaller scope of events and their targets.
+`TargetCast` 的设计目的是让新用户了解 `JsCast` 的行为，但范围更小，仅涉及事件及其目标。
 
-`TargetCast` vs `JsCast` is purely preference, you will find that `TargetCast` implements something
-similar to what you would using `JsCast`.
+选用 `TargetCast` 或 `JsCast` 纯粹是个人偏好，实际您会发现 `TargetCast` 的实现和 `JsCast` 的功能很相似。
 :::
 
-The `TargetCast` trait is built on top of `JsCast` and is specialized towards getting typed event
-targets from events.
+`TargetCast` trait 是在 `JsCast` 基础之上构建的，专门用于从事件中获取类型化的事件目标。
 
-`TargetCast` comes with Yew so no need to add a dependency in order to use the trait methods on events
-but it works in a very similar way to `JsCast`.
+`TargetCast` 是 Yew 的一部分，因此无需添加依赖项即可在事件上使用 trait 方法，但它的工作方式与 `JsCast` 非常相似。
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -267,14 +230,11 @@ fn MyComponent() -> Html {
 }
 ```
 
-If you followed the advice above and read about `JsCast`, or know the trait, you can probably
-see that `TargetCast::target_dyn_into` feels similar to `JsCast::dyn_into` but specifically
-does the cast on the target of the event. `TargetCast::target_unchecked_into` is similar to
-`JsCast::unchecked_into`, and as such all the same warnings above `JsCast` apply to `TargetCast`.
+如果您已经了解了 `JsCast`，或者了解了这个 trait，您可能会发现 `TargetCast::target_dyn_into` 与 `JsCast::dyn_into` 相似，但专门用于事件的目标。`TargetCast::target_unchecked_into` 与 `JsCast::unchecked_into` 类似，因此上面关于 `JsCast` 的所有警告都适用于 `TargetCast`。
 
-### Using `NodeRef`
+### 使用 `NodeRef`
 
-[`NodeRef`](../function-components/node-refs.mdx) can be used instead of querying the event given to a `Callback`.
+[`NodeRef`](../function-components/node-refs.mdx) 可以代替查询给定给 `Callback` 的事件。
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -318,11 +278,9 @@ fn MyComponent() -> Html {
 }
 ```
 
-Using `NodeRef`, you can ignore the event and use the `NodeRef::cast` method to get an
-`Option<HtmlInputElement>` - this is optional as calling `cast` before the `NodeRef` has been
-set, or when the type doesn't match will return `None`.
+通过 `NodeRef`，你可以忽略事件并使用 `NodeRef::cast` 方法获取一个 `Option<HtmlInputElement>` - 这是可选的，因为在设置 `NodeRef` 之前调用 `cast`，或者类型不匹配时将返回 `None`。
 
-You might also see by using `NodeRef` we don't have to send the `String` back into state as we always access to `input_node_ref` - so we could do the following:
+你可能会看到，通过使用 `NodeRef`，我们不必将 `String` 发送回状态，因为我们总是访问 `input_node_ref` - 因此我们可以这样做：
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -339,7 +297,7 @@ fn MyComponent() -> Html {
         Callback::from(move |_| {
             if let Some(input) = input_node_ref.cast::<HtmlInputElement>() {
                 let value = input.value();
-                // do something with value
+                // 对 value 做点什么
             }
         })
     };
@@ -360,30 +318,24 @@ fn MyComponent() -> Html {
 }
 ```
 
-Which approach you take depends on your component and your preferences, there is no _blessed_ way
-per se.
+您选择哪种方法取决于您的组件和您的偏好，没有所谓的_推荐_方法。
 
-## Manual event listener
+## 手动事件监听器
 
-You may want to listen to an event that is not supported by Yew's `html` macro, see the
-[supported events listed here](#event-types).
+您可能希望监听 Yew 的 `html` 宏不支持的事件，查看[这里列出的支持的事件](#event-types)。
 
-In order to add an event listener to one of elements manually we need the help of
-[`NodeRef`](../function-components/node-refs.mdx) so that in `use_effect_with` we can add a listener using the
-[`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
-[wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
+为了手动向某个元素添加事件监听器，我们需要借助 [`NodeRef`](../function-components/node-refs.mdx)，以便在 `use_effect_with` 中使用 [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) 和 [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API 添加监听器。
 
-The examples below are going to show adding listeners for the made-up `custard` event. All events
-either unsupported by yew or custom can be represented as a
-[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html). If you
-need to access a specific method or field on a custom / unsupported event then you can use the
-methods of [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
-in order to convert to the type required.
+以下示例将展示如何为虚构的 `custard` 事件添加监听器。所有不受 yew 支持的事件或自定义事件都可以表示为
+[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html)。如果您需要访问自定义/不受支持事件的特定方法或字段，可以使用
+[`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) 的方法将其转换为所需的类型。
 
-### Using `Closure` (verbose)
+### 使用 `Closure`（冗长版本）
 
 Using the `web-sys` and `wasm-bindgen` API's directly for this can be a bit painful.. so brace
 yourself ([there is a more concise way thanks to `gloo`](#using-gloo-concise)).
+
+直接使用 `web-sys` 和 `wasm-bindgen` 的接口可能有点痛苦……所以要有点心理准备（[感谢 `gloo`，有了更简洁的方法](#using-gloo-concise)）。
 
 ```rust
 use wasm_bindgen::{prelude::Closure, JsCast};
@@ -403,12 +355,12 @@ fn MyComponent() -> Html {
                 let mut custard_listener = None;
 
                 if let Some(element) = div_node_ref.cast::<HtmlElement>() {
-                    // Create your Callback as you normally would
+                    // 创建您通常会创建的 Callback
                     let oncustard = Callback::from(move |_: Event| {
-                        // do something about custard..
+                        // 对 custard 做点什么..
                     });
 
-                    // Create a Closure from a Box<dyn Fn> - this has to be 'static
+                    // 从 Box<dyn Fn> 创建一个 Closure - 这必须是 'static
                     let listener =
                         Closure::<dyn Fn(Event)>::wrap(
                             Box::new(move |e: Event| oncustard.emit(e))
@@ -435,16 +387,14 @@ fn MyComponent() -> Html {
 }
 ```
 
-For more information on `Closures`, see
-[The `wasm-bindgen` Guide](https://rustwasm.github.io/wasm-bindgen/examples/closures.html).
+有关 `Closure` 的更多信息，请参见 [wasm-bindgen 指南](https://rustwasm.github.io/wasm-bindgen/examples/closures.html)。
 
-### Using `gloo` (concise)
+### 使用 `gloo`（简洁版本）
 
-The easier way is with `gloo`, more specifically [`gloo_events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html)
-which is an abstraction for `web-sys`, `wasm-bindgen`.
+更方便的方法是使用 `gloo`，更具体地说是 [`gloo_events`](https://docs.rs/gloo-events/0.1.1/gloo_events/index.html)，
+它是 `web-sys`、`wasm-bindgen` 的高层抽象实现。
 
-`gloo_events` has the `EventListener` type which can be used to create and store the
-event listener.
+`gloo_events` 提供了 `EventListener` 类型，可以用于创建和存储事件监听器。
 
 ```toml title="Cargo.toml"
 [dependencies]
@@ -496,12 +446,11 @@ fn MyComponent() -> Html {
 }
 ```
 
-For more information on `EventListener`, see the
-[gloo_events docs.rs](https://docs.rs/gloo-events/0.1.1/gloo_events/struct.EventListener.html).
+有关 `EventListener` 的更多信息，请参见 [gloo_events docs.rs](https://docs.rs/gloo-events/0.1.1/gloo_events/struct.EventListener.html)。
 
-## Full list of available events {#available-events}
+## 可用事件的完整列表 {#available-events}
 
-| Event listener name         | `web_sys` Event Type                                                                  |
+| 侦听器名称         | `web_sys` 事件类型                                                                  |
 | --------------------------- | ------------------------------------------------------------------------------------- |
 | `onabort`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
 | `onauxclick`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |

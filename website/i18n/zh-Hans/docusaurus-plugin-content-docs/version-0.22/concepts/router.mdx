@@ -1,45 +1,466 @@
 ---
-description: Yew 的官方 Router
+title: '路由 (Router)'
+description: "Yew's official router"
+description: "Yew 的官方路由库"
 ---
 
-# Router
+单页应用程序 (SPA) 中的路由器处理根据 URL 显示不同的页面。与点击链接时请求不同的远程资源的默认行为不同，路由器会在本地设置 URL 以指向应用程序中的有效路由。然后，路由器检测到此更改并决定要渲染的内容。
 
-[https://crates.io/crates/yew-router](https://crates.io/crates/yew-router)
+Yew 在 `yew-router` crate 中提供了路由器支持。要开始使用它，请将依赖项添加到您的 `Cargo.toml` 文件中。
 
-Routers 在单页应用（SPA）中根据 URL 的不同显示不同的页面。当点击一个链接时，Router 在本地设置 URL 以指向应用程序中有效的路由，而不是默认请求一个不同的远程资源。然后 Router 检测到此更改后决定要渲染的内容。
+<!-- Reminder: fix this when we release a new version of yew -->
 
-## 核心元素
+```toml
+yew-router = { git = "https://github.com/yewstack/yew.git" }
+```
 
-### Route
+所需的工具均在 `yew_router::prelude` 模块中提供，
 
-包含一个字符串，该字符串表示网址中域名之后的所有内容，还可以选择表示存储在 history api 中的状态。
+## 用法
 
-### RouteService
+You start by defining a `Route`.
 
-与浏览器通信以获取和设置路由。
+最开始，你需要定义一个 `Route`。
 
-### RouteAgent
+Routes are defined as an `enum` which derives `Routable`. This enum must be `Clone + PartialEq`.
 
-拥有一个 RouteService，并用于当路由改变时协调更新，无论更新是来自应用程序自身逻辑还是来自浏览器触发的事件。
+路由由一个 `enum` 定义，它派生自 `Routable`。这个枚举必须实现 `Clone + PartialEq`。
 
-### Switch
+```rust
+use yew_router::prelude::*;
 
-`Switch` trait 用于在该 trait 的实现者之间转换 `Route`。
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+```
 
-### Router
+`Route` 与 `<Switch />` 组件配对，后者会找到与浏览器当前 URL 匹配的路径变体，并将其传递给 `render` 回调。然后回调决定要渲染的内容。如果没有路径匹配，路由器会导航到带有 `not_found` 属性的路径。如果没有指定路由，则不会渲染任何内容，并且会在控制台中记录一条消息，说明没有匹配的路由。
 
-Router 组件同 `RouterAgent` 进行通信，并将自动把它从 Agent 那里获得的 Routes 解析为 Switches，并通过 `render` 属性暴露该 Switch，该属性允许指定将生成的 Switch 转换为 `HTML` 的方式。
+yew-router 的大多数组件，特别是 `<Link />` 和 `<Switch />`，必须是某个 Router 组件（例如 `<BrowserRouter />`）的（深层）子元素。通常在应用程序中只需要一个 Router，通常由最顶层的 `<App />` 组件立即渲染。Router 注册了一个上下文，这是 Links 和 Switches 功能所需的。下面提供了一个示例。
 
-## 如何使用 Router
+:::caution
+在浏览器环境中使用 `yew-router` 时，强烈推荐使用 `<BrowserRouter />`。您可以在 [API 参考](https://docs.rs/yew-router/) 中找到其他路由器类型。
+:::
 
-首先，你要创建一个表征你的应用程序所有状态的类型。请注意，虽然这通常是一个枚举，但也支持结构体，并且你可以在内部嵌套实现了 `Switch` trait 的其他项。
+```rust
+use yew_router::prelude::*;
+use yew::prelude::*;
 
-然后你应该为了你创建的类型派生 `Switch`。对于枚举，每一个成员都必须用 `#[to = "/some/route"]` 进行标注，如果你使用结构体，则标注必须出现在结构体声明之外。
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
 
-请注意，由派生宏为 `Switch` 生成的实现，将尝试从头到尾依次创建每个成员，因此，如果任何路由可能与你指定的两个 `to` 标注相匹配，那么第一个会被匹配，第二个将永远不会被尝试。
+#[function_component(Secure)]
+fn secure() -> Html {
+    let navigator = use_navigator().unwrap();
 
-你还可以在 `#[to = ""]` 标注中使用 `{}` 的变体来捕获片段。`{}` 表示捕获文本直到下一个分隔符（根据上下文可能是"/"，"?"，"&" 或 "\#"）。`{*}` 表示捕获文本直到后续字符匹配为止，如果不存在任何字符，则它将匹配任何内容。`{<number>}` 表示捕获文本直到遇到指定数目的分隔符为止（例如：`{2}` 将一直捕获文本直到遇到两个分隔符为止）。
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
+    html! {
+        <div>
+            <h1>{ "Secure" }</h1>
+            <button {onclick}>{ "Go Home" }</button>
+        </div>
+    }
+}
 
-对于具有命名字段的结构体和枚举，你必须在捕获组中指定字段的名称，例如：`{user_name}` 或 `{*:age}`。
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Secure => html! {
+            <Secure />
+        },
+        Route::NotFound => html! { <h1>{ "404" }</h1> },
+    }
+}
 
-Switch trait 适用于比字符串更结构化的捕获组。你可以指定实现了 `Switch` trait 的任何类型。因此，你可以指定捕获组为 `usize`，并且如果 URL 的捕获部分无法转换为它，则该成员不会被匹配。
+#[function_component(Main)]
+fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Switch<Route> render={switch} /> // <- must be child of <BrowserRouter>
+        </BrowserRouter>
+    }
+}
+```
+
+### 路径段
+
+路由还可以使用动态和命名通配符段从路由中提取信息。然后，您可以在 `<Switch />` 内访问帖子的 id，并通过属性将其转发到相应的组件。
+
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
+
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/post/:id")]
+    Post { id: String },
+    #[at("/*path")]
+    Misc { path: String },
+}
+
+fn switch(route: Route) -> Html {
+    match route {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Post { id } => html! {<p>{format!("You are looking at Post {}", id)}</p>},
+        Route::Misc { path } => html! {<p>{format!("Matched some other path: {}", path)}</p>},
+    }
+}
+```
+
+:::note
+您也可以使用普通的 `Post` 变体，而不是 `Post {id: String}`。例如，当 `Post` 与另一个路由器一起渲染时，该字段可能是多余的，因为另一个路由器可以匹配并处理路径。有关详细信息，请参阅下面的[嵌套路由器](#nested-router)部分。
+:::
+
+请注意，字段必须实现 `Clone + PartialEq` 作为 `Route` 枚举的一部分。它们还必须实现 `std::fmt::Display` 和 `std::str::FromStr` 以进行序列化和反序列化。整数、浮点数和字符串等原始类型已经满足这些要求。
+
+当路径的形式匹配，但反序列化失败（根据 `FromStr`）时。路由器将认为路由不匹配，并尝试渲染未找到的路由（或者如果未指定未找到的路由，则渲染空白页面）。
+
+参考以下示例：
+
+```rust ,ignore
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/news/:id")]
+    News { id: u8 },
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+// 切换函数会渲染 News 和 id。这里省略了。
+```
+
+当段超过 255 时，`u8::from_str()` 将失败并返回 `ParseIntError`，路由器将认为路由不匹配。
+
+![router deserialization failure behavior](/img/router-deserialization-failure-behavior.gif)
+
+有关路由语法和如何绑定参数的更多信息，请查看 [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params)。
+
+### 位置 (Location)
+
+路由器通过上下文提供了一个通用的 `Location` 结构，可以用于访问路由信息。它们可以通过钩子或 `ctx.link()` 上的便捷函数来检索。
+
+### 导航
+
+`yew_router` 提供了一些工具来处理导航。
+
+#### 链接
+
+`<Link />` 渲染为 `<a>` 元素，`onclick` 事件处理程序将调用 [preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault)，并将目标页面推送到历史记录中并渲染所需的页面，这正是单页应用程序所期望的行为。普通锚元素的默认 `onclick` 会重新加载页面。
+
+`<Link />` 组件还会将其子元素传递给 `<a>` 元素。可以将其视为应用内路由的 `<a/>` 替代品。不同之处在于你需要提供 `to` 属性而不是 `href`。示例用法如下：
+
+```rust ,ignore
+<Link<Route> to={Route::Home}>{ "click here to go home" }</Link<Route>>
+```
+
+结构体变量也可以正常工作：
+
+```rust ,ignore
+<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew!" }</Link<Route>>
+```
+
+#### 导航接口
+
+导航器 API 为函数组件和结构组件提供。它们使回调能够更改路由。可以在任一情况下获取 `Navigator` 实例以操作路由。
+
+##### Function Components
+
+对于函数组件，当底层导航器提供程序更改时，`use_navigator` 钩子会重新渲染组件。
+以下是实现一个按钮的示例，该按钮在点击时导航到 `Home` 路由。
+
+```rust ,ignore
+#[function_component(MyComponent)]
+pub fn my_component() -> Html {
+    let navigator = use_navigator().unwrap();
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
+
+    html! {
+        <>
+            <button {onclick}>{"Click to go home"}</button>
+        </>
+    }
+}
+```
+
+:::caution
+这里的示例使用了 `Callback::from`。如果目标路由可以与组件所在的路由相同，或者只是为了安全起见，请使用普通的回调。例如，考虑在每个页面上都有一个徽标按钮，点击该按钮会返回主页。在主页上点击该按钮两次会导致代码崩溃，因为第二次点击会推送一个相同的 Home 路由，并且 `use_navigator` 钩子不会触发重新渲染。
+:::
+
+如果您想替换当前的位置而不是将新位置推到堆栈上，请使用 `navigator.replace()` 而不是 `navigator.push()`。
+
+您可能会注意到 `navigator` 必须移动到回调中，因此不能再次用于其他回调。幸运的是，`navigator` 实现了 `Clone`，例如，以下是如何为不同的路由设置多个按钮：
+
+```rust ,ignore
+use yew::prelude::*;
+use yew_router::prelude::*;
+
+#[function_component(NavItems)]
+pub fn nav_items() -> Html {
+    let navigator = use_navigator().unwrap();
+
+    let go_home_button = {
+        let navigator = navigator.clone();
+        let onclick = Callback::from(move |_| navigator.push(&Route::Home));
+        html! {
+            <button {onclick}>{"click to go home"}</button>
+        }
+    };
+
+    let go_to_first_post_button = {
+        let navigator = navigator.clone();
+        let onclick = Callback::from(move |_| navigator.push(&Route::Post { id: "first-post".to_string() }));
+        html! {
+            <button {onclick}>{"click to go the first post"}</button>
+        }
+    };
+
+    let go_to_secure_button = {
+        let onclick = Callback::from(move |_| navigator.push(&Route::Secure));
+        html! {
+            <button {onclick}>{"click to go to secure"}</button>
+        }
+    };
+
+    html! {
+        <>
+            {go_home_button}
+            {go_to_first_post_button}
+            {go_to_secure_button}
+        </>
+    }
+}
+```
+
+##### 结构体组件
+
+对于结构体组件，可以通过 `ctx.link().navigator()` API 获取 `Navigator` 实例。其余部分与函数组件的情况相同。以下是一个渲染单个按钮的视图函数示例。
+
+```rust ,ignore
+fn view(&self, ctx: &Context<Self>) -> Html {
+    let navigator = ctx.link().navigator().unwrap();
+    let onclick = Callback::from(move |_| navigator.push(&MainRoute::Home));
+    html!{
+        <button {onclick}>{"Go Home"}</button>
+    }
+}
+```
+
+#### 重定向
+
+`yew-router` 还在 prelude 中提供了一个 `<Redirect />` 组件。它可以用于实现与导航器 API 类似的效果。该组件接受一个 `to` 属性作为目标路由。当渲染 `<Redirect/>` 时，用户将被重定向到属性中指定的路由。以下是一个示例：
+
+```rust ,ignore
+#[function_component(SomePage)]
+fn some_page() -> Html {
+    // made-up hook `use_user`
+    let user = match use_user() {
+        Some(user) => user,
+        // Redirects to the login page when user is `None`.
+        None => return html! {
+            <Redirect<Route> to={Route::Login}/>
+        },
+    };
+    // ... actual page content.
+}
+```
+
+:::tip 如何选择 `Redirect` 或 `Navigator`
+Navigator API 是在回调中操作路由的唯一方法。
+而 `<Redirect />` 可以作为组件中的返回值使用。您可能还希望在其他非组件上下文中使用 `<Redirect />`，例如在[嵌套路由器](#nested-router)的 switch 函数中。
+:::
+
+### 监听变化
+
+#### 函数式组件
+
+您可以使用 `use_location` 和 `use_route` 钩子。当提供的值发生变化时，您的组件将重新渲染。
+
+#### 结构体组件
+
+为了响应路由变化，您可以将回调闭包传递给 `ctx.link()` 的 `add_location_listener()` 方法。
+
+:::note
+一旦位置监听器被删除，它将被取消注册。请确保将句柄存储在组件状态中。
+:::
+
+```rust ,ignore
+fn create(ctx: &Context<Self>) -> Self {
+    let listener = ctx.link()
+        .add_location_listener(ctx.link().callback(
+            // handle event
+        ))
+        .unwrap();
+    MyComponent {
+        _listener: listener
+    }
+}
+```
+
+`ctx.link().location()` 和 `ctx.link().route::<R>()` 也可以用于一次性检索位置和路由。
+
+### 查询参数
+
+#### 在导航时指定查询参数
+
+为了在导航到新路由时指定查询参数，可以使用 `navigator.push_with_query` 或 `navigator.replace_with_query` 函数。它使用 `serde` 将参数序列化为 URL 的查询字符串，因此任何实现了 `Serialize` 的类型都可以传递。最简单的形式是包含字符串对的 `HashMap`。
+
+#### 获取当前路由的查询参数
+
+`location.query` 用于获取查询参数。它使用 `serde` 从 URL 的查询字符串中反序列化参数。
+
+## 嵌套路由器
+
+当应用程序变得更大时，嵌套路由器可能会很有用。考虑以下路由器结构：
+
+<!--
+The graph is produced with the following code, with graphviz.
+To reproduce. Save the code in a file, say `input.dot`,
+And run `$ dot -Tsvg input.dot  -o nested-router.svg`
+
+digraph {
+    bgcolor=transparent
+    node [shape=box style="filled, rounded" fillcolor=white]
+    Home; News; Contact; "Not Found"; Profile; Friends; Theme; SettingsNotFound [label="Not Found"];
+
+    node [fillcolor=lightblue style="filled, rounded"]
+    "Main Router"; "Settings Router";
+
+    "Main Router" -> {Home News Contact "Not Found" "Settings Router"} [arrowhead=none]
+    "Settings Router" -> {SettingsNotFound Profile Friends Theme } [arrowhead=none]
+    SettingsNotFound -> "Not Found" [constraint=false]
+}
+-->
+
+<!--
+Also the dark-themed version:
+digraph {
+    bgcolor=transparent
+    node [shape=box style="filled, rounded" fillcolor=grey color=white fontcolor=white]
+    Home; News; Contact; "Not Found"; Profile; Friends; Theme; SettingsNotFound [label="Not Found"];
+
+    node [fillcolor=lightblue style="filled, rounded" color=white fontcolor=black]
+    "Main Router"; "Settings Router";
+
+    "Main Router" -> {Home News Contact "Not Found" "Settings Router"} [arrowhead=none color=white]
+    "Settings Router" -> {SettingsNotFound Profile Friends Theme } [arrowhead=none color=white]
+    SettingsNotFound -> "Not Found" [constraint=false color=white]
+}
+-->
+
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
+
+<ThemedImage
+    alt="nested router structure"
+    sources={{
+        light: useBaseUrl('/img/nested-router-light.svg'),
+        dark: useBaseUrl('/img/nested-router-dark.svg'),
+    }}
+/>
+
+嵌套的 `SettingsRouter` 处理所有以 `/settings` 开头的 URL。此外，它会将未匹配的 URL 重定向到主 `NotFound` 路由。因此，`/settings/gibberish` 将重定向到 `/404`。
+
+:::caution
+
+请注意，该接口仍在开发中，这样写的方式尚未最终确定
+
+:::
+
+可以使用以下代码实现：
+
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
+use gloo::utils::window;
+use wasm_bindgen::UnwrapThrowExt;
+
+#[derive(Clone, Routable, PartialEq)]
+enum MainRoute {
+    #[at("/")]
+    Home,
+    #[at("/news")]
+    News,
+    #[at("/contact")]
+    Contact,
+    #[at("/settings")]
+    SettingsRoot,
+    #[at("/settings/*")]
+    Settings,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
+#[derive(Clone, Routable, PartialEq)]
+enum SettingsRoute {
+    #[at("/settings")]
+    Profile,
+    #[at("/settings/friends")]
+    Friends,
+    #[at("/settings/theme")]
+    Theme,
+    #[not_found]
+    #[at("/settings/404")]
+    NotFound,
+}
+
+fn switch_main(route: MainRoute) -> Html {
+    match route {
+        MainRoute::Home => html! {<h1>{"Home"}</h1>},
+        MainRoute::News => html! {<h1>{"News"}</h1>},
+        MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
+        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
+    }
+}
+
+fn switch_settings(route: SettingsRoute) -> Html {
+    match route {
+        SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
+        SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
+        SettingsRoute::Theme => html! {<h1>{"Theme"}</h1>},
+        SettingsRoute::NotFound => html! {<Redirect<MainRoute> to={MainRoute::NotFound}/>}
+    }
+}
+
+#[function_component(App)]
+pub fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Switch<MainRoute> render={switch_main} />
+        </BrowserRouter>
+    }
+}
+```
+
+### 基底路径 (Basename)
+
+可以使用 `yew-router` 定义基底路径 (Basename)。
+基底路径是所有路由的公共前缀。导航器 API 和 `<Switch />` 组件都支持基底路径设置。所有推送的路由都会加上基底路径前缀，所有的 switch 都会在尝试将路径解析为 `Routable` 之前去掉基底路径。
+
+如果没有为 Router 组件提供基底路径属性，它将使用 HTML 文件中 `<base />` 元素的 href 属性，并在 HTML 文件中没有 `<base />` 元素时回退到 `/`。
+
+## 相关示例
+
+-   [路由](https://github.com/yewstack/yew/tree/master/examples/router)
+
+## 接口参考
+
+-   [yew-router](https://docs.rs/yew-router/)

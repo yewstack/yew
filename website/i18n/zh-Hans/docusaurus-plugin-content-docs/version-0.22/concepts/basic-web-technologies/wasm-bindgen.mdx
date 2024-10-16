@@ -1,0 +1,318 @@
+---
+title: 'wasm-bindgen'
+sidebar_label: wasm-bindgen
+---
+
+[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) is a library and tool to facilitate
+high-level interactions between Wasm modules and JavaScript; it is built with Rust by
+[The Rust and WebAssembly Working Group](https://rustwasm.github.io/).
+
+[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) 是一个在 JavaScript 和 Rust 函数之间建立调用桥梁的库和工具。它是由 [Rust 和 WebAssembly 工作组](https://rustwasm.github.io/) 使用 Rust 构建的。
+
+Yew uses `wasm-bindgen` to interact with the browser through a number of crates:
+
+Yew 使用 `wasm-bindgen` 通过一些 crate 与浏览器进行交互：
+
+-   [`js-sys`](https://crates.io/crates/js-sys)
+-   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+-   [`web-sys`](https://crates.io/crates/web-sys)
+
+This section will explore some of these crates at a high level, to make it easier to understand
+and use `wasm-bindgen` APIs with Yew. For a more in-depth guide to `wasm-bindgen` and its associated
+crates then check out [The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/).
+
+本节将从更抽象的层次上探讨这些 crate，以便更容易地理解和使用 Yew 中的 `wasm-bindgen` API。要了解有关 `wasm-bindgen` 及其相关 crate 的更深入指南，请查看 [`wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/)。
+
+For documentation on the above crates check out [`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html).
+
+有关上述 crate 的文档，请查看 [`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html)。
+
+:::tip
+Use the `wasm-bindgen` doc.rs search to find browser APIs and JavaScript types that have been imported
+over using `wasm-bindgen`.
+
+使用 `wasm-bindgen` doc.rs 搜索来查找已使用 `wasm-bindgen` 导入的浏览器 API 和 JavaScript 类型。
+:::
+
+## [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+
+This crate provides many of the building blocks for the rest of the crates above. In this section we
+are only going to cover two main areas of the `wasm-bindgen` crate and that is the macro and some
+types/traits you will see pop up again and again.
+
+这个 crate 为上面的其他 crate 提供了许多构建块。在本节中，我们只会涵盖 `wasm-bindgen` crate 的两个主要领域，即宏和一些您会一遍又一遍看到的类型/特性。
+
+### `#[wasm_bindgen]` macro
+
+The `#[wasm_bindgen]` macro provides an interface between Rust and JavaScript, providing a system
+for translating between the two. Using this macro is more advanced, and you should not need to reach
+for it unless you are trying to use an external JavaScript library. The `js-sys` and `web-sys`
+crates expose `wasm-bindgen` definitions for built-in JavaScript types and browser APIs.
+
+`#[wasm_bindgen]` 宏提供了 Rust 和 JavaScript 之间的接口，提供了一个在两者之间进行转换的系统。使用这个宏更为高级，除非您要使用外部 JavaScript 库，否则不应该使用它。`js-sys` 和 `web-sys` crate 为内置 JavaScript 类型和浏览器 API 提供了 `wasm-bindgen` 定义。
+
+Let's go over a simple example of using the `#[wasm-bindgen]` macro to import some specific flavours
+of the [`console.log`](https://developer.mozilla.org/en-US/docs/Web/API/Console/log) function.
+
+让我们通过一个简单的示例来使用 `#[wasm-bindgen]` 宏来导入一些特定版本的 [`console.log`](https://developer.mozilla.org/en-US/docs/Web/API/Console/log) 函数。
+
+```rust ,no_run
+use wasm_bindgen::prelude::*;
+
+// First up let's take a look of binding `console.log` manually, without the
+// help of `web_sys`. Here we're writing the `#[wasm_bindgen]` annotations
+// manually ourselves, and the correctness of our program relies on the
+// correctness of these annotations!
+#[wasm_bindgen]
+extern "C" {
+
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    // The `console.log` is quite polymorphic, so we can bind it with multiple
+    // signatures. Note that we need to use `js_name` to ensure we always call
+    // `log` in JS.
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    // Multiple arguments too!
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
+
+// using the imported functions!
+log("Hello from Rust!");
+log_u32(42);
+log_many("Logging", "many values!");
+```
+
+_This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html)_.
+
+_这个示例是基于 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html) 改编的。_
+
+### Simulating inheritance
+
+### 模拟继承
+
+Inheritance between JavaScript classes is a core feature of the Javascript language and the DOM
+(Document Object Model) is designed around it. When types are imported using `wasm-bindgen` you can
+also add attributes that describe their inheritance.
+
+在 JavaScript 类之间的继承是 JavaScript 语言的核心特性，DOM（文档对象模型）是围绕它设计的。当使用 `wasm-bindgen` 导入类型时，您还可以添加描述它们继承关系的属性。
+
+In Rust, this inheritance is represented using the [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html)
+and [`AsRef`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) traits. An example of this
+might help; so say you have three types `A`, `B`, and `C` where `C` extends `B` which in turn
+extends `A`.
+
+在 Rust 中，这种继承关系使用 [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html) 和 [`AsRef`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) 特性来表示。这里举个例子可能会有所帮助；假设您有三种类型 `A`、`B` 和 `C`，其中 `C` 扩展了 `B`，而 `B` 又扩展了 `A`。
+
+When importing these types the `#[wasm-bindgen]` macro will implement the `Deref` and `AsRef`
+traits in the following way:
+
+在导入这些类型时，`#[wasm-bindgen]` 宏将按照以下方式实现 `Deref` 和 `AsRef` 特性：
+
+-   `C` can `Deref` to `B`
+-   `B` can `Deref` to `A`
+-   `C` can be `AsRef` to `B`
+-   Both `C` & `B` can be `AsRef` to `A`
+
+-   `C` 可以 `Deref` 到 `B`
+-   `B` 可以 `Deref` 到 `A`
+-   `C` 可以被 `AsRef` 到 `B`
+-   `C` 和 `B` 都可以被 `AsRef` 到 `A`
+
+These implementations allow you to call a method from `A` on an instance of `C` and to use `C` as if
+it was `&B` or `&A`.
+
+这些实现允许您在 `C` 的实例上调用 `A` 的方法，并将 `C` 用作 `&B` 或 `&A`。
+
+It is important to note that every single type imported using `#[wasm-bindgen]` has the same root type,
+you can think of it as the `A` in the example above, this type is [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) which has
+its section below.
+
+需要注意的是，使用 `#[wasm-bindgen]` 导入的每种类型都有相同的根类型，您可以将其视为上面示例中的 `A`，这种类型是 [`JsValue`](#jsvalue)，下面有它的部分。
+
+_[extends section in The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
+
+_[`wasm-bindgen` 指引中的 extends 部分](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
+
+### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+
+This is a representation of an object owned by JavaScript, this is a root catch-all type for `wasm-bindgen`.
+Any type that comes from `wasm-bindgen` is a `JsValue` and this is because JavaScript does not have
+a strong type system so any function that accepts a variable `x` does not define its type so `x` can be
+a valid JavaScript value; hence `JsValue`. If you are working with imported functions or types that
+accept a `JsValue`, then any imported value is _technically_ valid.
+
+这是 JavaScript 拥有的对象的表示，这是 `wasm-bindgen` 的根捕获类型。任何来自 `wasm-bindgen` 的类型都是 `JsValue`，这是因为 JavaScript 没有强类型系统，因此接受变量 `x` 的任何函数都不定义其类型，因此 `x` 可以是有效的 JavaScript 值；因此 `JsValue`。如果您正在使用接受 `JsValue` 的导入函数或类型，那么任何导入的值在技术上都是有效的。
+
+`JsValue` can be accepted by a function but that function may still only accept certain types and this
+can lead to panics - so when using raw `wasm-bindgen` APIs check the documentation of the JavaScript
+being imported as to whether an exception (panic) will be raised if that value is not a certain type.
+
+`JsValue` 可以被函数接受，但该函数可能仍然只接受某些类型，这可能会导致 panic - 因此在使用原始 `wasm-bindgen` API 时，请检查导入的 JavaScript 的文档，以确定是否会在该值不是某种类型时引发异常（panic）。
+
+_[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)._
+
+_[`JsValue` 文档](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)。_
+
+### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+
+Rust has a strong type system and JavaScript...doesn't 😞. For Rust to maintain these
+strong types but still be convenient, the WebAssembly group came up with a pretty neat trait `JsCast`.
+Its job is to help you move from one JavaScript "type" to another, which sounds vague, but it means
+that if you have one type which you know is another, then you can use the functions of `JsCast`
+to jump from one type to the other. It is a nice trait to get to know when working with `web-sys`,
+`wasm_bindgen`, `js-sys` - you will notice lots of types will implement `JsCast` from those crates.
+
+Rust 有一个强类型系统，而 JavaScript……没有😞。为了让 Rust 保持这些强类型但仍然方便，WebAssembly 工作组提出了一个非常巧妙的特性 `JsCast`。它的工作是帮助您从一个 JavaScript "类型" 转换到另一个 "类型"，这听起来很模糊，但它意味着如果您有一个类型，您知道它是另一个类型，那么您可以使用 `JsCast` 的函数从一个类型跳到另一个类型。当使用 `web-sys`、`wasm_bindgen`、`js-sys` 时，了解这个很好的特性 - 您会注意到许多类型将从这些 crate 中实现 `JsCast`。
+
+`JsCast` provides both checked and unchecked methods of casting - so that at runtime if you are
+unsure what type a certain object is you can try to cast it which returns possible failure types like
+[`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) and
+[`Result`](https://doc.rust-lang.org/std/result/enum.Result.html).
+
+`JsCast` 提供了转换的检查和不检查方法 - 因此在运行时，如果您不确定某个对象是什么类型，您可以尝试将其转换，这将返回可能的失败类型，如 [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) 和 [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)。
+
+一个常见的例子是在 [`web-sys`](./web-sys.mdx) 中，当您尝试获取事件的目标时。您可能知道目标元素是什么，但 [`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API 总是会返回一个 [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)。
+您需要将其转换为元素类型，以便调用其方法。
+
+```rust
+// need to import the trait.
+use wasm_bindgen::JsCast;
+use web_sys::{Event, EventTarget, HtmlInputElement, HtmlSelectElement};
+
+fn handle_event(event: Event) {
+    let target: EventTarget = event
+        .target()
+        .expect("I'm sure this event has a target!");
+
+    // maybe the target is a select element?
+    if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
+        // do something amazing here
+        return;
+    }
+
+    // if it wasn't a select element then I KNOW it's a input element!
+    let input_element: HtmlInputElement = target.unchecked_into();
+}
+```
+
+The [`dyn_ref`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref)
+method is a checked cast that returns an `Option<&T>` which means the original type
+can be used again if the cast failed and thus returned `None`. The
+[`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+method will consume `self`, as per convention for `into` methods in Rust, and the type returned is
+`Result<T, Self>`. If the casting fails, the original `Self` value is returned in `Err`. You can try again
+or do something else with the original type.
+
+[`dyn_ref`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref) 方法是一个检查的转换，返回一个 `Option<&T>`，这意味着如果转换失败，则可以再次使用原始类型，因此返回 `None`。[`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) 方法将消耗 `self`，这是 Rust 中 `into` 方法的约定，返回的类型是 `Result<T, Self>`。如果转换失败，则原始的 `Self` 值将在 `Err` 中返回。您可以再试一次或对原始类型进行其他操作。
+
+_[`JsCast` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)._
+
+### [`Closure`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)
+
+The `Closure` type provides a way to transfer Rust closures to JavaScript, the closures passed to
+JavaScript must have a `'static` lifetime for soundness reasons.
+
+`Closure` 类型提供了一种将 Rust 闭包传递到 JavaScript 的方法，出于健全性原因，传递给 JavaScript 的闭包必须具有 `'static` 生命周期。
+
+This type is a "handle" in the sense that whenever it is dropped it will invalidate the JS
+closure that it refers to. Any usage of the closure in JS after the Closure has been dropped will
+raise an exception.
+
+这种类型是一个“句柄”，意味着每当它被丢弃时，它将使其引用的 JS 闭包无效。在 `Closure` 被丢弃后，对 JS 中闭包的任何使用都将引发异常。
+
+`Closure` is often used when you are working with a `js-sys` or `web-sys` API that accepts a type
+[`&js_sys::Function`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Function.html).
+An example of using a `Closure` in Yew can be found in the [Using `Closure` section](../html/events.mdx#using-closure-verbose)
+on the [Events](../html/events.mdx) page.
+
+当您使用接受类型 [`&js_sys::Function`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Function.html) 的 `js-sys` 或 `web-sys` API 时，通常会使用 `Closure`。在 [Events](../html/events.mdx) 页面的 [Using `Closure` 部分](../html/events.mdx#using-closure-verbose) 中可以找到在 Yew 中使用 `Closure` 的示例。
+
+_[`Closure` 文档](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)._
+
+## [`js-sys`](https://crates.io/crates/js-sys)
+
+The `js-sys` crate provides bindings/imports of JavaScript's standard, built-in objects, including
+their methods and properties.
+
+`js-sys` crate 提供了 JavaScript 标准内置对象的绑定/导入，包括它们的方法和属性。
+
+This does not include any web APIs as this is what [`web-sys`](./web-sys.mdx) is for!
+
+这不包括任何 Web API，因为这是 [`web-sys`](./web-sys.mdx) 的作用！
+
+_[`js-sys` 文档](https://rustwasm.github.io/wasm-bindgen/api/js_sys/index.html)._
+
+## [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+
+The `wasm-bindgen-futures` crate provides a bridge for working with JavaScript Promise types as a
+Rust [`Future`](https://doc.rust-lang.org/stable/std/future/trait.Future.html), and contains
+utilities to turn a rust Future into a JavaScript Promise. This can be useful when working with
+asynchronous or otherwise blocking work in Rust (wasm), and provides the ability to interoperate
+with JavaScript events and JavaScript I/O primitives.
+
+`wasm-bindgen-futures` crate 提供了一个桥梁，用于将 JavaScript Promise 类型作为 Rust [`Future`](https://doc.rust-lang.org/stable/std/future/trait.Future.html) 进行处理，并包含将 Rust Future 转换为 JavaScript Promise 的实用程序。当在 Rust（wasm）中处理异步或其他阻塞工作时，这可能很有用，并提供了与 JavaScript 事件和 JavaScript I/O 原语进行交互的能力。
+
+There are three main interfaces in this crate currently:
+
+目前这个 crate 中有三个主要接口：
+
+1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
+   A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
+   and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This `Future` will resolve to `Ok` if
+   the `Promise` is resolved and `Err` if the `Promise` is rejected, containing the resolved or rejected
+   value from the `Promise` respectively.
+
+1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
+   一个使用 [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html) 构造的类型，然后可以用作 `Future<Output=Result<JsValue, JsValue>>`。如果 `Promise` 被解析，这个 `Future` 将解析为 `Ok`，如果 `Promise` 被拒绝，则解析为 `Err`，分别包含 `Promise` 的解析或拒绝值。
+
+2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
+   Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a
+   JavaScript `Promise`. The future’s result will translate to either a resolved or rejected
+   `Promise` in JavaScript.
+
+2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
+   将 Rust `Future<Output=Result<JsValue, JsValue>>` 转换为 JavaScript `Promise`。未来的结果将转换为 JavaScript 中的已解析或已拒绝 `Promise`。
+
+3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
+   Spawns a `Future<Output = ()>` on the current thread. This is the best way
+   to run a Future in Rust without sending it to JavaScript.
+
+3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
+   在当前线程上生成一个 `Future<Output = ()>`。这是在 Rust 中运行 Future 的最佳方法，而不是将其发送到 JavaScript。
+
+_[`wasm-bindgen-futures` 文档](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
+
+### [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)
+
+`spawn_local` is going to be the most commonly used part of the `wasm-bindgen-futures` crate in Yew
+as this helps when using libraries that have async APIs.
+
+`spawn_local` 将是 Yew 中 `wasm-bindgen-futures` crate 中最常用的部分，因为这有助于使用具有异步 API 的库。
+
+```rust ,no_run
+use web_sys::console;
+use wasm_bindgen_futures::spawn_local;
+
+async fn my_async_fn() -> String { String::from("Hello") }
+
+spawn_local(async {
+    let mut string = my_async_fn().await;
+    string.push_str(", world!");
+    // console log "Hello, world!"
+    console::log_1(&string.into());
+});
+```
+
+Yew has also added support for futures in certain APIs, most notably you can create a
+`callback_future` which accepts an `async` block - this uses `spawn_local` internally.
+
+Yew 还在某些 API 中添加了对 futures 的支持，最值得注意的是您可以创建一个接受 `async` 块的 `callback_future` - 这在内部使用了 `spawn_local`。
+
+_[`spawn_local` 文档](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)._

@@ -1,40 +1,56 @@
 ---
-title: Agents
-description: Yew 的 Actor 系统
+title: '代理 (Agents)'
+description: "Yew's 的代理系统"
 ---
 
-Agents 和 Angular 的 [Services](https://angular.io/guide/architecture-services) 相似（但没有依赖注入），给 Yew 提供了 [Actor 模型](https://en.wikipedia.org/wiki/Actor_model)。Agents 可以用于在组件之间路由消息，而与它们在组件层次结构中的位置无关，或者可以用于协调全局状态，或者可以用于从主 UI 线程上卸载计算密集型任务，或者在不同的标签页间通信（在未来）。
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
 
-Agents 使用 [web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) 同时运行来实现并发。
+代理 (Agents) 是一种将任务卸载到 Web Workers 的方式。
+
+为了使代理能够并发运行，Yew 使用了 [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)。
 
 ## 生命周期
 
-![Agent lifecycle](https://user-images.githubusercontent.com/42674621/79125224-b6481d80-7d95-11ea-8e6a-ab9b52d1d8ac.png)
+<!--
+The diagram is produced with nomnoml (nomnoml.com),
+The code can be found in the <desc> tag of the svgs.
+-->
 
-## Agents 的类型
+<ThemedImage
+    alt="agent lifecycle diagram"
+    sources={{
+        light: useBaseUrl('/img/agent-lifecycle-light.svg'),
+        dark: useBaseUrl('/img/agent-lifecycle-dark.svg'),
+    }}
+/>
 
-#### Reaches
+## 代理的类型
 
--   Job - 在 UI 线程上为每个新的 Bridge 生成一个新的 Agent。这对于将与浏览器通信的共享但独立的行为移出组件是很有用的。（待验证）任务完成后，Agent 将消失。
--   Context - Bridges 将生成或连接到 UI 线程上的 agent。这可用于在组件和其它 Agents 之间协调状态。当没有 Bridge 连接到该 Agent 时，Agent 将消失。
--   Private - 与 Job 相同，但运行在自己的 web worker 中。
--   Public - 与 Context 相同，但运行在自己的 web worker 中。
--   Global \(WIP\)
+### 范围
 
-## Agent 通信
+-   公开 - 在任何给定时间，公共代理的实例最多只有一个。桥梁将在 Web Worker 中生成或连接到已经生成的代理。当没有桥梁连接到此代理时，代理将消失。
 
-### Bridges
+-   私有 - 为每个新的桥梁在 Web Worker 中生成一个新的代理。这对于将与浏览器通信的共享但独立的行为从组件中移出是很好的。当连接的桥梁被丢弃时，代理将消失。
 
-Bridges 将连接到一个 Agent 并且允许双向通信。
+-   全局 \(WIP\)
 
-### Dispatchers
+## 代理与组件之间的通信
 
-Dispatchers 和 Bridges 类似，但是他们只能发送消息给 Agents。
+### 通信桥 (Bridges)
+
+通信桥 (bridge) 是一个组件和代理之间的通信通道。它允许组件向代理发送消息，并接收来自代理的消息。
+
+`use_bridge` 钩子也提供了在函数组件中创建桥梁的功能。
+
+### 派发器 (Dispatchers)
+
+派发器 (Dispatchers) 允许组件和代理之间进行单向通信，组件以此方式向代理发送消息。
 
 ## 开销
 
-Agents 通过使用二进制码 bincode 序列化其消息来进行通信。因此，存在比仅调用函数相比更高的性能消耗。除非计算成本或者在任意组件间协调的需求超过消息传递的成本，否则你应该尽可能地在函数中包含你的应用逻辑。
+代理使用 Web Workers（即私有和公开）。它们在发送和接收消息时会产生序列化开销。代理使用 [bincode](https://github.com/bincode-org/bincode) 与其他线程通信，因此成本比仅调用函数要高得多。
 
-## Further reading
+## 进一步阅读
 
--   The [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) example shows how components can use agents to communicate with each other.
+-   [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) 示例展示了组件如何向代理发送消息并接收来自代理的消息。
