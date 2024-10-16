@@ -1,0 +1,85 @@
+---
+title: '回呼函數 (Callbacks)'
+---
+
+## 回呼函數 (Callbacks)
+
+回調函數是用於在 Yew 中與服務、代理和父元件進行通訊的。在內部，它們的類型只是 `Fn` 包裝在 `Rc` 中，以允許它們被克隆。
+
+它們有一個 `emit` 函數，該函數以其 `<IN>` 類型作為參數，並將其轉換為其目標期望的訊息。如果父元件中的回呼函數作為 props 提供給子元件，子元件可以在其 `update` 生命週期鉤子中呼叫回呼函數的 `emit` 函數，以將訊息傳回其父元件。在 `html!` 巨集中作為 props 提供的閉包或函數會自動轉換為回呼函數。
+
+一個簡單的回呼函數的使用可能如下所示：
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Clicked,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            // highlight-next-line
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
+}
+```
+
+這個函數傳遞給 `callback` 必須永遠帶有一個參數。例如，`onclick` 處理程序需要一個接受 `MouseEvent` 類型參數的函數。然後處理程序可以決定應該發送什麼類型的消息給組件。這個訊息無條件地被安排在下一個更新循環中。
+
+如果你需要一個回呼函數，它可能不需要引起更新，請使用 `batch_callback`。
+
+```rust
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
+
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+
+        html! {
+            <input type="text" {onkeypress} />
+        }
+        // highlight-end
+    }
+}
+```
+
+## 相關範例
+
+-   [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+-   [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

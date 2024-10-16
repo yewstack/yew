@@ -1,0 +1,149 @@
+---
+title: '建立一個範例應用'
+---
+
+當您的環境準備好後，您可以選擇使用一個包含基本 Yew 應用所需樣板的起始模板，或手動設定一個小項目。
+
+## 使用模板快速起步
+
+請依照 [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) 的安裝說明安裝工具，然後執行下列指令：
+
+```shell
+cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+```
+
+## 手動設定應用
+
+### 建立項目
+
+首先，請建立一個新的 cargo 專案。
+
+```bash
+cargo new yew-app
+```
+
+開啟新建立的目錄。
+
+```bash
+cd yew-app
+```
+
+### 運行一個 hello world 範例
+
+為了驗證 Rust 環境是否設定正確，使用 `cargo run` 執行初始專案。您應該會看到一個 "Hello World!" 訊息。
+
+```bash
+cargo run
+# output: Hello World!
+```
+
+### 將項目設定為 Yew web 應用
+
+為了將這個簡單的命令列應用程式轉換為一個基本的 Yew web 應用程序，需要進行一些更改。
+
+#### 更新 Cargo.toml
+
+將 `yew` 加入到依賴清單中。
+
+```toml title=Cargo.toml
+[package]
+name = "yew-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# 開發版本的 Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+```
+
+:::info
+
+如果你只是正在建立一個應用程序，你只需要 `csr` 特性。它將啟用 `Renderer` 和所有與客戶端渲染相關的程式碼。
+
+如果你正在製作一個函式庫，請不要啟用此特性，因為它會將客戶端渲染邏輯拉入伺服器端渲染包中。
+
+如果你需要 Renderer 進行測試或範例，你應該在 `dev-dependencies` 中啟用它。
+
+:::
+
+#### 更新 main.rs
+
+我們需要產生一個模板，設定一個名為 `App` 的根元件，該元件渲染一個按鈕，當點擊時更新其值。用以下程式碼取代 `src/main.rs` 的內容。
+
+:::note
+`main` 函數中的 `yew::Renderer::<App>::new().render()` 呼叫啟動您的應用程式並將其掛載到頁面的 `<body>` 標籤上。如果您想要使用任何動態屬性啟動您的應用程序，您可以使用 `yew::Renderer::<App>::with_props(..).render()`。
+:::
+
+```rust ,no_run, title=main.rs
+use yew::prelude::*;
+
+#[function_component]
+fn App() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
+        }
+    };
+
+    html! {
+        <div>
+            <button {onclick}>{ "+1" }</button>
+            <p>{ *counter }</p>
+        </div>
+    }
+}
+
+fn main() {
+    yew::Renderer::<App>::new().render();
+}
+```
+
+#### 建立 index.html
+
+最後，在應用程式的根目錄中新增一個 `index.html` 檔案。
+
+```html , title=index.html
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Yew App</title>
+    </head>
+    <body></body>
+</html>
+```
+
+## 查看您的 Web 應用
+
+運行以下命令在本地建置和提供應用程式。
+
+```bash
+trunk serve
+```
+
+:::info
+新增選項 '--open' 來開啟您的預設瀏覽器 `trunk serve --open`。
+:::
+
+Trunk 將在您修改任何原始程式碼檔案時即時重新建立您的應用程式。
+預設情況下，伺服器將在位址 '127.0.0.1' 的連接埠 '8080' 上監聽 => [http://localhost:8080](http://127.0.0.1:8080)。
+若要變更這部分配置，請建立以下檔案並根據需要進行編輯：
+
+```toml title="Trunk.toml"
+[serve]
+# The address to serve on LAN.
+address = "127.0.0.1"
+# The address to serve on WAN.
+# address = "0.0.0.0"
+# The port to serve on.
+port = 8000
+```
+
+## 恭喜
+
+現在您已經成功設定了您的 Yew 開發環境，並建立了您的第一個 Web 應用程式。
+
+嘗試這個應用程序，並查看[範例](./examples.mdx)以進一步學習。

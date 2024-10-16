@@ -1,0 +1,138 @@
+---
+title: '元素'
+description: '支援 HTML 和 SVG 元素'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## DOM 節點
+
+在 Yew 中手動建立或管理 DOM 節點的原因有很多，例如與可能與受管理元件衝突的 JS 庫整合。
+
+使用 `web-sys`，您可以建立 DOM 元素並將其轉換為 `Node` - 然後可以使用 `VRef` 將其用作 `Html` 值：
+
+```rust
+use web_sys::{Element, Node};
+use yew::prelude::*;
+use gloo::utils::document;
+
+#[function_component]
+fn MyComponent() -> Html {
+    // 帶記憶能力的函數，只會執行一次
+    let node = use_memo(
+        (),
+        |_| {
+            // 從文件中建立一個 div 元素
+            let div: Element = document().create_element("div").unwrap();
+            // 新增內容、類別等
+            div.set_inner_html("Hello, World!");
+            // 將 Element 轉換為 Node
+            let node: Node = div.into();
+            // 將該 Node 作為 Html 值傳回
+            Html::VRef(node)
+        },
+    );
+
+    // use_memo 回傳的是 Rc 指針，所以我們需要解引用和克隆
+    (*node).clone()
+}
+
+```
+
+## 動態標籤名
+
+在建立高階元件時，您可能會發現自己處於一個標籤名不是靜態的情況。例如，您可能有一個 `Title` 元件，根據等級屬性可以渲染從 `h1` 到 `h6` 的任何內容。而不是使用一個大的匹配表達式，Yew 允許您動態設定標籤名，使用 `@{name}`，其中 `name` 可以是傳回字串的任何表達式。
+
+```rust
+use yew::prelude::*;
+
+let level = 5;
+let text = "Hello World!".to_owned();
+
+html! {
+    <@{format!("h{}", level)} class="title">{ text }</@>
+};
+```
+
+## 邏輯值屬性
+
+一些內容屬性（例如 checked、hidden、required）被稱為邏輯值屬性。在 Yew 中，邏輯值屬性需要設定為布林值：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div hidden=true>
+        { "This div is hidden." }
+    </div>
+};
+```
+
+這與以下的 **HTML** 功能上是等價的：
+
+```html
+<div hidden>This div is hidden.</div>
+```
+
+將邏輯值屬性設為 false 等效於不使用該屬性；可以使用邏輯表達式的值：
+
+```rust
+use yew::prelude::*;
+
+let no = 1 + 1 != 2;
+
+html! {
+    <div hidden={no}>
+        { "This div is NOT hidden." }
+    </div>
+};
+```
+
+這與以下 **HTML** 結果等價：
+
+```html
+<div>This div is NOT hidden.</div>
+```
+
+## 類似字串的屬性
+
+除了一些邏輯值屬性，您可能會處理許多類似字串的 HTML 屬性，Yew 有幾種選項可以將類似字串的值傳遞給元件。
+
+```rust
+use yew::{html, virtual_dom::AttrValue};
+
+let str_placeholder = "I'm a str!";
+let string_placeholder = String::from("I'm a String!");
+let attrvalue_placeholder = AttrValue::from("I'm an AttrValue!");
+
+html! {
+    <div>
+        <input placeholder={str_placeholder} />
+        <input placeholder={string_placeholder} />
+        <input placeholder={attrvalue_placeholder} />
+    </div>
+};
+```
+
+它們都是有效的，**但**我們鼓勵您更傾向於使用 Yew 的自訂 `AttrValue`，特別是如果您需要複製或將它們作為屬性傳遞給另一個元件。
+
+## HTML 元素的可選屬性
+
+大多數 HTML 屬性可以使用可選值（Some(x) 或 None）。這使我們可以在屬性被標記為可選時省略該屬性。
+
+```rust
+use yew::prelude::*;
+
+let maybe_id = Some("foobar");
+
+html! {
+    <div id={maybe_id}></div>
+};
+```
+
+如果屬性設為 `None`，則該屬性將不會在 DOM 中設定。
+
+## 相關範例
+
+-   [內嵌 HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)

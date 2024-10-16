@@ -1,0 +1,124 @@
+---
+title: '組件'
+description: '使用元件層次結構建立複雜的佈局'
+---
+
+## 基礎
+
+元件可以在 `html!` 巨集中使用：
+
+```rust
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    html! {
+        { "This component has no properties!" }
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+struct Props {
+    user_first_name: String,
+    user_last_name: String,
+}
+
+#[function_component]
+fn MyComponentWithProps(props: &Props) -> Html {
+    let Props { user_first_name, user_last_name } = props;
+    html! {
+        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+    }
+}
+
+let props = Props {
+    user_first_name: "Bob".to_owned(),
+    user_last_name: "Smith".to_owned(),
+};
+
+html!{
+    <>
+        // No properties
+        <MyComponent />
+
+        // With Properties
+        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
+
+        // With the whole set of props provided at once
+        <MyComponentWithProps ..props.clone() />
+
+        // With Properties from a variable and specific values overridden
+        <MyComponentWithProps user_last_name="Elm" ..props />
+    </>
+};
+```
+
+## 嵌套
+
+如果組件在其 `Properties` 中有一個 `children` 字段，它可以接受子組件/元素
+
+```rust title="parent.rs"
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
+}
+
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
+    }
+}
+
+html! {
+    <Container id="container">
+        <h4>{ "Hi" }</h4>
+        <div>{ "Hello" }</div>
+    </Container>
+};
+```
+
+`html!` 巨集允許您使用`..props` 語法傳遞一個基本表達式，而不是單獨指定每個屬性，類似於Rust 的[函數式更新語法](https://doc.rust-lang.org /stable/reference/expressions/struct-expr.html#functional-update-syntax)。
+這個基本表達式必須出現在傳遞任何單獨的 props 之後。
+當傳遞一個帶有 `children` 欄位的基本 props 表達式時，`html!` 巨集中傳遞的子元素將覆蓋已經存在於 props 中的子元素。
+
+```rust
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
+}
+
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
+    }
+}
+
+let props = yew::props!(Props {
+    id: "container-2",
+    children: Html::default(),
+});
+
+html! {
+    <Container ..props>
+        // props.children will be overwritten with this
+        <span>{ "I am a child, as you can see" }</span>
+    </Container>
+};
+```
+
+## 相關範例
+
+-   [函數化 Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
+-   [函數化路由](https://github.com/yewstack/yew/tree/master/examples/function_router)
