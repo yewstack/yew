@@ -1,0 +1,148 @@
+---
+title: 'サンプルアプリケーションの構築'
+---
+
+環境が整ったら、基本的な Yew アプリケーションに必要なテンプレートを使用するか、小さなプロジェクトを手動で設定することができます。
+
+## テンプレートを使用して迅速に開始
+
+[`cargo-generate`](https://github.com/cargo-generate/cargo-generate) のインストール手順に従ってツールをインストールし、次のコマンドを実行します：
+
+```shell
+cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+```
+
+## 手動でアプリケーションを設定する
+
+### プロジェクトの作成
+
+まず、新しい cargo プロジェクトを作成してください。
+
+```bash
+cargo new yew-app
+```
+
+新しく作成したディレクトリを開きます。
+
+```bash
+cd yew-app
+```
+### Hello World サンプルを実行する
+
+Rust 環境が正しく設定されているかを確認するために、`cargo run` を使用して初期プロジェクトを実行します。"Hello World!" メッセージが表示されるはずです。
+
+```bash
+cargo run
+# output: Hello World!
+```
+
+### プロジェクトを Yew Web アプリケーションに設定する
+
+このシンプルなコマンドラインアプリケーションを基本的な Yew Web アプリケーションに変換するために、いくつかの変更が必要です。
+
+#### Cargo.toml の更新
+
+依存関係リストに `yew` を追加します。
+
+```toml title=Cargo.toml
+[package]
+name = "yew-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# 開発バージョンの Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+```
+
+:::info
+
+アプリケーションを構築するだけの場合は、`csr` 特性のみが必要です。これにより、`Renderer` とクライアントサイドレンダリングに関連するすべてのコードが有効になります。
+
+ライブラリを作成している場合は、この特性を有効にしないでください。クライアントサイドレンダリングロジックがサーバーサイドレンダリングパッケージに含まれることになります。
+
+テストやサンプルのために Renderer が必要な場合は、`dev-dependencies` で有効にするべきです。
+
+:::
+
+#### main.rs の更新
+
+テンプレートを生成し、クリック時に値を更新するボタンをレンダリングする `App` という名前のルートコンポーネントを設定する必要があります。以下のコードで `src/main.rs` の内容を置き換えます。
+
+:::note
+`main` 関数内の `yew::Renderer::<App>::new().render()` 呼び出しは、アプリケーションを起動し、ページの `<body>` タグにマウントします。動的なプロパティを使用してアプリケーションを起動したい場合は、`yew::Renderer::<App>::with_props(..).render()` を使用できます。
+:::
+
+```rust ,no_run, title=main.rs
+use yew::prelude::*;
+
+#[function_component]
+fn App() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
+        }
+    };
+
+    html! {
+        <div>
+            <button {onclick}>{ "+1" }</button>
+            <p>{ *counter }</p>
+        </div>
+    }
+}
+
+fn main() {
+    yew::Renderer::<App>::new().render();
+}
+```
+
+#### index.html の作成
+
+最後に、アプリケーションのルートディレクトリに `index.html` ファイルを追加します。
+
+```html , title=index.html
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Yew App</title>
+    </head>
+    <body></body>
+</html>
+```
+
+## アプリケーションの表示
+
+以下のコマンドを実行して、ローカルでアプリケーションをビルドおよび提供します。
+
+```bash
+trunk serve
+```
+
+:::info
+`--open` オプションを追加して、デフォルトのブラウザを開くことができます：`trunk serve --open`。
+:::
+
+Trunk は、ソースコードファイルを変更するたびにアプリケーションをリアルタイムで再構築します。
+デフォルトでは、サーバーはアドレス '127.0.0.1' のポート '8080' でリッスンします => [http://localhost:8080](http://127.0.0.1:8080)。
+この設定を変更するには、次のファイルを作成して必要に応じて編集してください：
+
+```toml title="Trunk.toml"
+[serve]
+# ローカルネットワーク上のリッスンアドレス
+address = "127.0.0.1"
+# 広域ネットワーク上のリッスンアドレス
+# address = "0.0.0.0"
+# リッスンするポート
+port = 8000
+```
+
+## おめでとうございます
+
+これで、Yew 開発環境の設定が完了し、最初の Web アプリケーションを構築できました。
+
+このアプリケーションを試してみて、さらに学習するために[サンプル](./examples.mdx)を参照してください。

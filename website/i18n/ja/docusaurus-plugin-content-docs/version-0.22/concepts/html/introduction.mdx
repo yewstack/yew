@@ -1,0 +1,208 @@
+---
+title: 'HTML'
+sidebar_label: Introduction
+description: 'HTML および SVG を生成するためのプロシージャルマクロ'
+slug: /concepts/html
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`html!` マクロを使用すると、宣言的に HTML および SVG コードを記述できます。これは、JavaScript で HTML に似たコードを記述できる拡張機能である JSX に似ています。
+
+**重要な注意点**
+
+1. `html! {}` マクロは 1 つのルート HTML ノードしか受け入れません（これを回避するには、[fragments](./fragments.mdx) または [iterators](./../html/lists.mdx) を使用できます）
+2. 空の `html! {}` 呼び出しは有効で、何もレンダリングしません
+3. リテラルは常に引用符で囲み、中括弧で囲む必要があります：`html! { <p>{ "Hello, World" }</p> }`
+4. `html!` マクロはすべてのタグ名を小文字に変換します。大文字の文字（特定の SVG 要素に必要な文字）を使用するには、[動的タグ名](concepts/html/elements.mdx#dynamic-tag-names) を使用してください：`html! { <@{"myTag"}></@> }`
+
+:::note
+`html!` マクロはコンパイラのデフォルトの再帰制限に達する可能性があります。コンパイル エラーが発生した場合は、クレートのルートに `#![recursion_limit="1024"]` のような属性を追加して問題を解決してください。
+:::
+
+## タグ (Tags) 構造
+
+タグ (Tags) は HTML タグに基づいています。コンポーネント、要素、およびリストはすべてこのタグ構文に基づいています。
+
+タグは自己閉鎖 `<... />` であるか、開始タグごとに対応する終了タグが必要です。
+
+<Tabs>
+  <TabItem value="Open - Close" label="Open - Close" default>
+
+```rust
+use yew::prelude::*;
+
+html! {
+  <div id="my_div"></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+html! {
+  <div id="my_div"> // <- 閉じタグがありません
+};
+```
+
+  </TabItem>
+</Tabs>
+
+<Tabs>
+  <TabItem value="Self-closing" label="Self-closing">
+
+```rust
+use yew::prelude::*;
+
+html! {
+  <input id="my_input" />
+};
+```
+
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+html! {
+  <input id="my_input"> // <- 閉じタグがありません
+};
+```
+
+  </TabItem>
+</Tabs>
+
+:::tip
+便利のために、通常は閉じタグが必要な要素も**自己閉じ**が許可されています。例えば、`html! { <div class="placeholder" /> }` と記述することができます。
+:::
+
+複雑なネストされた HTML および SVG レイアウトを作成するのは依然として簡単です：
+
+<Tabs>
+  <TabItem value="HTML" label="HTML">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div>
+        <div data-key="abc"></div>
+        <div class="parent">
+            <span class="child" value="anything"></span>
+            <label for="first-name">{ "First Name" }</label>
+            <input type="text" id="first-name" value="placeholder" />
+            <input type="checkbox" checked=true />
+            <textarea value="write a story" />
+            <select name="status">
+                <option selected=true disabled=false value="">{ "Selected" }</option>
+                <option selected=false disabled=true value="">{ "Unselected" }</option>
+            </select>
+        </div>
+    </div>
+};
+```
+
+  </TabItem>
+  <TabItem value="SVG" label="SVG">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
+        <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g filter="url(#filter0_d)">
+            <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
+            <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
+        </g>
+        <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
+        <defs>
+            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <@{"feGaussianBlur"} stdDeviation="2"/>
+                <@{"feColorMatrix"} in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+            </filter>
+        </defs>
+    </svg>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+## Lints
+
+もし、Rust コンパイラの開発者バージョンを使用して Yew をコンパイルする場合、マクロは一般的な落とし穴について警告します。もちろん、安定版コンパイラを使用してリリースビルドを行う必要があるかもしれません（例えば、組織のポリシーでそうする必要がある場合など）。しかし、安定版ツールチェーンを使用している場合でも、`cargo +nightly check` を実行すると、HTML コードを改善する方法がいくつか示されるかもしれません。
+
+現在、これらのリントは主にアクセシビリティに関連しています。リントに関するアイデアがあれば、[この問題](https://github.com/yewstack/yew/issues/1334)に自由にコメントしてください。
+
+## 属性とプロパティの指定
+
+属性は通常の HTML と同じ方法で要素に設定されます：
+
+```rust
+use yew::prelude::*;
+
+let value = "something";
+html! { <div attribute={value} /> };
+```
+
+属性は要素名の前に `~` を使用して指定されます：
+
+```rust
+use yew::prelude::*;
+
+html! { <my-element ~property="abc" /> };
+```
+
+:::tip
+
+値がリテラルの場合、値を囲む中括弧は省略できます。
+
+:::
+
+:::note リテラルとは
+
+リテラルは、Rust のすべての有効な[リテラル式](https://doc.rust-lang.org/reference/expressions/literal-expr.html)です。注意してください、[負の数は**リテラルではありません**](https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333)、したがって中括弧で囲む必要があります `{-6}`。
+
+:::
+
+:::note コンポーネント属性
+コンポーネント属性は Rust オブジェクトとして渡され、ここで説明されている要素のパラメータ (Attributes) / 属性 (Properties) とは異なります。
+[コンポーネント属性](../function-components/properties.mdx)で詳細を確認してください。
+:::
+
+### 特殊属性
+
+いくつかの特殊な属性があり、これらは直接 DOM に影響を与えるのではなく、Yew 仮想 DOM の指示として機能します。現在、2 つの特殊な属性があります：`ref` と `key`。
+
+`ref` は、基礎となる DOM ノードに直接アクセスして操作することを可能にします。詳細については、[Refs](../function-components/node-refs.mdx)を参照してください。
+
+一方、`key` は要素に一意の識別子を提供し、Yew が最適化のために使用できます。
+
+:::info
+[詳細はこちら](./html/lists)
+:::
+
+## 条件付きレンダリング
+
+Rust の条件構造を使用して、条件付きでマークアップをレンダリングできます。現在、`if` と `if let` のみがサポートされています。
+
+```rust
+use yew::prelude::*;
+
+html! {
+  if true {
+      <p>{ "True case" }</p>
+  }
+};
+```
+
+:::info
+条件付きレンダリングの詳細については、[条件付きレンダリング](./conditional-rendering.mdx)のセクションを参照してください。
+:::

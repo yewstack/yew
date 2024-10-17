@@ -1,0 +1,51 @@
+---
+title: '参照 (Refs)'
+description: 'DOM への越境アクセスを実現する'
+---
+
+`ref` キーワードは、任意の HTML 要素やコンポーネントに使用して、その要素に付随する DOM `Element` を取得できます。これにより、`view` ライフサイクルメソッドの外で DOM を変更することができます。
+
+これは、canvas 要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。例えば、コンポーネントの `rendered` メソッドで `NodeRef` を使用すると、`view` からレンダリングされた後に canvas 要素に描画呼び出しを行うことができます。
+
+構文は次のとおりです：
+
+```rust
+use web_sys::Element;
+use yew::{html, Component, Context, Html, NodeRef};
+
+struct Comp {
+    node_ref: NodeRef,
+}
+
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            // highlight-next-line
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // highlight-next-line
+            <div ref={self.node_ref.clone()}></div>
+        }
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        // highlight-start
+        let has_attributes = self.node_ref
+            .cast::<Element>()
+            .unwrap()
+            .has_attributes();
+        // highlight-end
+    }
+}
+```
+
+## 関連例
+
+-   [ノード参照](https://github.com/yewstack/yew/tree/master/examples/node_refs)

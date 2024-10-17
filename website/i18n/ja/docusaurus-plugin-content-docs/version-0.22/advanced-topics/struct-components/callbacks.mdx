@@ -1,0 +1,85 @@
+---
+title: 'コールバック関数 (Callbacks)'
+---
+
+## コールバック関数 (Callbacks)
+
+コールバック関数は、Yew でサービス、エージェント、および親コンポーネントと通信するために使用されます。内部的には、それらの型は `Rc` に包まれた `Fn` に過ぎず、クローンを許可します。
+
+それらには `emit` 関数があり、その `<IN>` 型を引数として取り、それをターゲットが期待するメッセージに変換します。親コンポーネントのコールバック関数が子コンポーネントに props として提供される場合、子コンポーネントはその `update` ライフサイクルフックでコールバック関数の `emit` 関数を呼び出して、メッセージを親コンポーネントに送信できます。`html!` マクロで props として提供されるクロージャまたは関数は、自動的にコールバック関数に変換されます。
+
+シンプルなコールバック関数の使用例は次のようになります：
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Clicked,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            // highlight-next-line
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
+}
+```
+
+この関数を `callback` に渡す場合、常に1つの引数を持つ必要があります。例えば、`onclick` ハンドラは `MouseEvent` 型の引数を受け取る関数である必要があります。その後、ハンドラはコンポーネントにどのタイプのメッセージを送信するかを決定できます。このメッセージは無条件に次の更新サイクルにスケジュールされます。
+
+更新を引き起こす必要がないコールバック関数が必要な場合は、`batch_callback` を使用してください。
+
+```rust
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
+
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+
+        html! {
+            <input type="text" {onkeypress} />
+        }
+        // highlight-end
+    }
+}
+```
+
+## 関連例
+
+-   [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+-   [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

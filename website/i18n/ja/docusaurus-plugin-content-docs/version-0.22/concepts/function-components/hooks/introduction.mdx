@@ -1,0 +1,50 @@
+---
+title: 'Hooks'
+slug: /concepts/function-components/hooks
+---
+
+## Hooks
+
+Hooks は、状態を保存し、副作用を実行することができる関数の一種です。
+
+Yew はいくつかの事前定義された hooks を提供しています。また、自分で hooks を作成することもできますし、多くの[コミュニティ製の hooks](/community/awesome#hooks) を見つけることもできます。
+
+## Hooks のルール
+
+1. 各 Hook 関数の名前は `use_` で始める必要があります
+2. Hooks は次の場所でのみ使用できます：
+    - 関数/ Hook のトップレベル
+    - 関数/ Hook 内のブロック、ただし分岐していない場合
+    - 関数/ Hook 内トップレベルの `if` 式の条件
+    - 関数/ Hook 内トップレベルの `match` 式のセレクター
+3. 各レンダリング時に、Hooks は同じ順序で呼び出される必要があります。[Suspense](../../suspense.mdx) を使用する場合のみ、早期リターンが許可されます
+
+これらのルールは、コンパイル時または実行時のエラーによって強制されます。
+
+### 事前定義された Hooks
+
+Yew は次の事前定義された Hooks を提供しています：
+
+-   `use_state`
+-   `use_state_eq`
+-   `use_memo`
+-   `use_callback`
+-   `use_ref`
+-   `use_mut_ref`
+-   `use_node_ref`
+-   `use_reducer`
+-   `use_reducer_eq`
+-   `use_effect`
+-   `use_effect_with`
+-   `use_context`
+-   `use_force_update`
+
+これらの hooks のドキュメントは [Yew API ドキュメント](https://yew-rs-api.web.app/next/yew/functional/)で見つけることができます。
+
+### カスタム Hooks
+
+場合によっては、独自の Hooks を定義して、コンポーネント内の状態を持つ可能性のあるロジックを再利用可能な関数にカプセル化することが望ましいことがあります。
+
+## さらなる読み物
+
+-   React ドキュメントには [React hooks](https://reactjs.org/docs/hooks-intro.html) に関するセクションがあります。

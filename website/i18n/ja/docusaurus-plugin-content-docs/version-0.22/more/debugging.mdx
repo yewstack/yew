@@ -1,0 +1,98 @@
+---
+title: 'デバッグ'
+---
+
+## パニック (Panics)
+
+Yew はブラウザのコンソールにパニックログを自動的に出力します。
+
+## コンソールログ
+
+JavaScript では、`console.log()` を使用してブラウザのコンソールに出力します。以下は Yew のいくつかのオプションです。
+
+### [`wasm-logger`](https://crates.io/crates/wasm-logger)
+
+`wasm-logger` クレートは [`log`](https://crates.io/crates/log) クレートと統合されており、ログレベル、ソース行、ファイル名をブラウザのコンソールに送信します。
+
+```rust ,ignore
+use log::info;
+use wasm_bindgen::JsValue;
+
+fn main() {
+    wasm_logger::init(wasm_logger::Config::default());
+
+    let object = JsValue::from("world");
+    info!("Hello {}", object.as_string().unwrap());
+}
+```
+
+### [`gloo-console`](https://crates.io/crates/gloo-console)
+
+このクレートは Gloo の一部で、ブラウザ API の Rust ラッパーを提供します。`log!` マクロは `JsValue` を直接受け入れることができ、`wasm_logger` よりも使いやすいです。
+
+```rust ,ignore
+use gloo_console::log;
+use wasm_bindgen::JsValue;
+
+fn main() {
+    let object = JsValue::from("world");
+    log!("Hello", object)
+}
+```
+
+### [`tracing-web`](https://crates.io/crates/tracing-web)
+
+`tracing-web` は [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber) と一緒に使用でき、メッセージをブラウザのコンソールに出力します。
+
+```rust ,ignore
+use tracing_subscriber::{
+    fmt::{
+        format::{FmtSpan, Pretty},
+        time::UtcTime,
+    },
+    prelude::*,
+};
+use wasm_bindgen::JsValue;
+
+fn main() {
+    let fmt_layer = tracing_subscriber::fmt::layer()
+        .with_ansi(false)
+        .with_timer(UtcTime::rfc_3339())
+        .with_writer(tracing_web::MakeConsoleWriter)
+        .with_span_events(FmtSpan::ACTIVE);
+    let perf_layer = tracing_web::performance_layer().with_details_from_fields(Pretty::default());
+
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .with(perf_layer)
+        .init();
+    let object = JsValue::from("world");
+    tracing::info!("Hello {}", object.as_string().unwrap());
+}
+```
+
+## コンポーネントライフサイクルのデバッグ
+
+[`tracing`](https://crates.io/crates/tracing) は、コンポーネントのライフサイクルに関連するイベント情報を収集するために使用できます。`tracing` には `log` サポートの機能フラグもあり、`wasm-logger` とうまく統合できます。
+
+[コンパイル時フィルタ](https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters) は、詳細度を調整したりログ記録を無効にしたりするために使用できます。これにより、より小さな Wasm ファイルが生成されるはずです。
+
+## ソースマップ (Source Maps)
+
+[ソースマップ](https://developer.chrome.com/blog/wasm-debugging-2019/#enter-dwarf) をサポートするいくつかの方法がありますが、いくつかの設定が必要です。
+
+## 過去の記事
+
+以下は、Rust における WebAssembly デバッグの現状に関する過去の記事です。興味深い読み物かもしれません。
+
+\[2019 年 12 月\] [Chrome DevTools 更新](https://developers.google.com/web/updates/2019/12/webassembly#the_future)
+
+> これらの作業にはまだ多くのことが残されています。例えば、ツールの面では、Emscripten（Binaryen）と wasm-pack（wasm-bindgen）は、それらが実行する変換に対して DWARF 情報を更新することをまだサポートしていません。
+
+\[2020 年\] [Rust Wasm デバッグガイド](https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger)
+
+> 残念ながら、WebAssembly のデバッグ機能はまだ未成熟です。ほとんどの Unix システムでは、[DWARF](http://dwarfstd.org/) が実行中のプログラムのソースレベルの検査に必要な情報をエンコードするために使用されますが、Windows では同様の情報をエンコードする代替フォーマットがあります。しかし、現在のところ、WebAssembly には対応するフォーマットがありません。
+
+\[2019 年\] [Rust Wasm ロードマップ](https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging)
+
+> デバッグは難しいです。なぜなら、多くの状況がこの作業グループの管理下にないからです。これは、WebAssembly の標準化機関やブラウザ開発者ツールを実装する人々に依存しています。
