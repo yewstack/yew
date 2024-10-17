@@ -114,7 +114,7 @@ document.getElementById('mousemoveme').onmousemove = (e) => {
     // e 为鼠标事件对象
     var rect = e.target.getBoundingClientRect()
     var x = e.clientX - rect.left // 元素内的 x 位置。
-    var y = e.clientY - rect.top  // 元素内的 y 位置。
+    var y = e.clientY - rect.top // 元素内的 y 位置。
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }
 ```

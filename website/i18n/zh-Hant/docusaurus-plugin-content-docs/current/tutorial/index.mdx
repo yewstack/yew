@@ -2,6 +2,7 @@
 title: '教學'
 slug: /tutorial
 ---
+
 ## 介紹
 
 在這個實作教程中，我們將學習如何使用 Yew 建立 Web 應用程式。
@@ -445,7 +446,7 @@ fn app() -> Html {
 ```
 
 現在不用擔心 `use_state`，我們稍後會回到這個問題。注意我們用 `{ for details }` 提取列表資料的技巧。
-`Option<_>` 實作了`Iterator`，所以我們可以使用特殊的`{ for ... }` 語法來逐個顯示`Iterator` 返回的唯一元素，而這[由`html!` 巨集支援]( concepts/html/lists)。
+`Option<_>` 實作了`Iterator`，所以我們可以使用特殊的`{ for ... }` 語法來逐個顯示`Iterator` 返回的唯一元素，而這[由`html!` 巨集支援](concepts/html/lists)。
 
 ### 處理狀態
 
@@ -563,7 +564,6 @@ trunk serve --proxy-backend=https://yew.rs/tutorial
 刷新網頁，一切都應該按預期工作。
 
 ## 總結
-
 
 恭喜！您已經建立了一個從外部 API 取得資料並顯示影片清單的 Web 應用程式。
 

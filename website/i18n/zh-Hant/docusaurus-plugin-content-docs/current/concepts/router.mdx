@@ -1,6 +1,6 @@
 ---
 title: '路由 (Router)'
-description: "Yew 的官方路由庫"
+description: 'Yew 的官方路由庫'
 ---
 
 單頁應用程式 (SPA) 中的路由器處理根據 URL 顯示不同的頁面。與點擊連結時請求不同的遠端資源的預設行為不同，路由器會在本機設定 URL 以指向應用程式中的有效路由。然後，路由器偵測到此變更並決定要渲染的內容。
@@ -157,7 +157,7 @@ enum Route {
 
 #### 連結
 
-`<Link />` 渲染為`<a>` 元素，`onclick` 事件處理程序將呼叫 [preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault )，並將目標頁面推送到歷史記錄中並渲染所需的頁面，這正是單頁應用程式所期望的行為。普通錨元素的預設 `onclick` 會重新載入頁面。
+`<Link />` 渲染為`<a>` 元素，`onclick` 事件處理程序將呼叫 [preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault)，並將目標頁面推送到歷史記錄中並渲染所需的頁面，這正是單頁應用程式所期望的行為。普通錨元素的預設 `onclick` 會重新載入頁面。
 
 `<Link />` 元件也會將其子元素傳遞給 `<a>` 元素。可以將其視為應用程式內路由的 `<a/>` 替代品。不同之處在於你需要提供 `to` 屬性而不是 `href`。範例用法如下：
 

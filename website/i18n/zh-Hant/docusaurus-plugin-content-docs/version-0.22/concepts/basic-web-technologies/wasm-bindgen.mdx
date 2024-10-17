@@ -7,10 +7,10 @@ sidebar_label: wasm-bindgen
 
 Yew 使用 `wasm-bindgen` 透過一些 crate 與瀏覽器進行互動：
 
-- [`js-sys`](https://crates.io/crates/js-sys)
-- [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
-- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-- [`web-sys`](https://crates.io/crates/web-sys)
+-   [`js-sys`](https://crates.io/crates/js-sys)
+-   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+-   [`web-sys`](https://crates.io/crates/web-sys)
 
 本節將從更抽象的層次探討這些 crate，以便更容易理解和使用 Yew 中的 `wasm-bindgen` API。要了解有關 `wasm-bindgen` 及其相關 crate 的更深入指南，請查看 [`wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/)。
 
@@ -55,6 +55,7 @@ log("Hello from Rust!");
 log_u32(42);
 log_many("Logging", "many values!");
 ```
+
 _這個範例是基於 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html) 改編的。 _
 
 ### 模擬繼承
@@ -65,14 +66,14 @@ _這個範例是基於 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https:
 
 在匯入這些類型時，`#[wasm-bindgen]` 巨集將按照下列方式實作 `Deref` 和 `AsRef` 特性：
 
-- `C` 可以 `Deref` 到 `B`
-- `B` 可以 `Deref` 到 `A`
-- `C` 可以被 `AsRef` 到 `B`
-- `C` 和 `B` 都可以被 `AsRef` 到 `A`
+-   `C` 可以 `Deref` 到 `B`
+-   `B` 可以 `Deref` 到 `A`
+-   `C` 可以被 `AsRef` 到 `B`
+-   `C` 和 `B` 都可以被 `AsRef` 到 `A`
 
 這些實作允許您在 `C` 的實例上呼叫 `A` 的方法，並將 `C` 用作 `&B` 或 `&A`。
 
-需要注意的是，使用`#[wasm-bindgen]` 導入的每種類型都有相同的根類型，您可以將其視為上面範例中的`A`，這種類型是[`JsValue`]( #jsvalue)，下面有它的部分。
+需要注意的是，使用`#[wasm-bindgen]` 導入的每種類型都有相同的根類型，您可以將其視為上面範例中的`A`，這種類型是[`JsValue`](#jsvalue)，下面有它的部分。
 
 _[`wasm-bindgen` 指引中的 extends 部分](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
 
@@ -138,18 +139,18 @@ _[`js-sys` 文件](https://rustwasm.github.io/wasm-bindgen/api/js_sys/index.html
 
 ## [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
 
-`wasm-bindgen-futures` crate 提供了一個橋樑，用於將JavaScript Promise 類型作為Rust [`Future`](https://doc.rust-lang.org/stable/std/future/trait.Future.html ) 進行處理，並包含將Rust Future 轉換為JavaScript Promise 的實用程式。當在 Rust（wasm）中處理非同步或其他阻塞工作時，這可能很有用，並提供了與 JavaScript 事件和 JavaScript I/O 原語互動的能力。
+`wasm-bindgen-futures` crate 提供了一個橋樑，用於將JavaScript Promise 類型作為Rust [`Future`](https://doc.rust-lang.org/stable/std/future/trait.Future.html) 進行處理，並包含將Rust Future 轉換為JavaScript Promise 的實用程式。當在 Rust（wasm）中處理非同步或其他阻塞工作時，這可能很有用，並提供了與 JavaScript 事件和 JavaScript I/O 原語互動的能力。
 
 目前這個 crate 中有三個主要介面：
 
 1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
- 一個使用[`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html) 建構的類型，然後可以用作`Future<Output=Result<JsValue, JsValue >>`。如果 `Promise` 被解析，這個 `Future` 將解析為 `Ok`，如果 `Promise` 被拒絕，則解析為 `Err`，分別包含 `Promise` 的解析或拒絕值。
+   一個使用[`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html) 建構的類型，然後可以用作`Future<Output=Result<JsValue, JsValue >>`。如果 `Promise` 被解析，這個 `Future` 將解析為 `Ok`，如果 `Promise` 被拒絕，則解析為 `Err`，分別包含 `Promise` 的解析或拒絕值。
 
 2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
- 將 Rust `Future<Output=Result<JsValue, JsValue>>` 轉換為 JavaScript `Promise`。未來的結果將轉換為 JavaScript 中的已解析或已拒絕 `Promise`。
+   將 Rust `Future<Output=Result<JsValue, JsValue>>` 轉換為 JavaScript `Promise`。未來的結果將轉換為 JavaScript 中的已解析或已拒絕 `Promise`。
 
 3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
- 在目前執行緒上產生一個 `Future<Output = ()>`。這是在 Rust 中運行 Future 的最佳方法，而不是將其發送到 JavaScript。
+   在目前執行緒上產生一個 `Future<Output = ()>`。這是在 Rust 中運行 Future 的最佳方法，而不是將其發送到 JavaScript。
 
 _[`wasm-bindgen-futures` 文件](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
 

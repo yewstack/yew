@@ -14,7 +14,7 @@ Yew は、子コンポーネントのプロパティの型として `Html` を�
 
 _ほとんどの場合、_ コンポーネントに子コンポーネントを持たせる場合、子コンポーネントの型を気にする必要はありません。この場合、以下の例で十分です。
 
-```rust
+````rust
 use yew::{html, Component, Context, Html, Properties};
 
 #[derive(Properties, PartialEq)]
@@ -92,7 +92,7 @@ impl Component for List {
         }
     }
 }
-```
+````
 
 ## プロパティを持つネストされた子コンポーネント
 
@@ -304,4 +304,4 @@ pub fn render_page(with_sidebar: bool) -> Html {
 
 ## さらに読む
 
-- このパターンの実際の例については、yew-router のソースコードを参照してください。より高度な例については、yew リポジトリの[関連する例のリスト](https://github.com/yewstack/yew/tree/master/examples/nested_list)を参照してください。
+-   このパターンの実際の例については、yew-router のソースコードを参照してください。より高度な例については、yew リポジトリの[関連する例のリスト](https://github.com/yewstack/yew/tree/master/examples/nested_list)を参照してください。

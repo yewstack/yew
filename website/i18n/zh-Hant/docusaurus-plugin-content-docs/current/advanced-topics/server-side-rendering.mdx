@@ -97,7 +97,7 @@ Yew 採用了不同的方法，透過 `<Suspense />` 來解決這個問題。
 
 :::warning
 
-只有在瀏覽器初始渲染 SSR 輸出（靜態 HTML）後，真實 DOM 與預期 DOM 相符時，注水才能成功。如果您的 HTML 不符合規範，注水可能會失敗。瀏覽器可能會更改不正確的 HTML 的 DOM 結構，導致實際 DOM 與預期 DOM 不同。例如，[如果您有一個沒有`<tbody>` 的`<table>`，瀏覽器可能會向DOM 添加一個`<tbody>`](https://github.com/yewstack/yew/issues/2684 )
+只有在瀏覽器初始渲染 SSR 輸出（靜態 HTML）後，真實 DOM 與預期 DOM 相符時，注水才能成功。如果您的 HTML 不符合規範，注水可能會失敗。瀏覽器可能會更改不正確的 HTML 的 DOM 結構，導致實際 DOM 與預期 DOM 不同。例如，[如果您有一個沒有`<tbody>` 的`<table>`，瀏覽器可能會向DOM 添加一個`<tbody>`](https://github.com/yewstack/yew/issues/2684)
 :::
 
 ## 注水期間的組件生命週期

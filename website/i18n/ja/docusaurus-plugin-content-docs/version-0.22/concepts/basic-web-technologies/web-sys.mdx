@@ -112,7 +112,7 @@ document.getElementById('mousemoveme').onmousemove = (e) => {
     // e はマウスイベントオブジェクトです
     var rect = e.target.getBoundingClientRect()
     var x = e.clientX - rect.left // 要素内の x 位置。
-    var y = e.clientY - rect.top  // 要素内の y 位置。
+    var y = e.clientY - rect.top // 要素内の y 位置。
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }
 ```

@@ -7,10 +7,10 @@ sidebar_label: wasm-bindgen
 
 Yew は `wasm-bindgen` を使用して、いくつかのクレートを介してブラウザと対話します：
 
-- [`js-sys`](https://crates.io/crates/js-sys)
-- [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
-- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-- [`web-sys`](https://crates.io/crates/web-sys)
+-   [`js-sys`](https://crates.io/crates/js-sys)
+-   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+-   [`web-sys`](https://crates.io/crates/web-sys)
 
 このセクションでは、これらのクレートをより抽象的なレベルから探求し、Yew での `wasm-bindgen` API の理解と使用を容易にします。`wasm-bindgen` および関連するクレートに関する詳細なガイドについては、[`wasm-bindgen` ガイド](https://rustwasm.github.io/docs/wasm-bindgen/) を参照してください。
 
@@ -66,10 +66,10 @@ Rust では、この継承関係は [`Deref`](https://doc.rust-lang.org/std/ops/
 
 これらの型をインポートする際、`#[wasm-bindgen]` マクロは次のように `Deref` と `AsRef` トレイトを実装します：
 
-- `C` は `B` に `Deref` できます
-- `B` は `A` に `Deref` できます
-- `C` は `B` に `AsRef` できます
-- `C` と `B` はどちらも `A` に `AsRef` できます
+-   `C` は `B` に `Deref` できます
+-   `B` は `A` に `Deref` できます
+-   `C` は `B` に `AsRef` できます
+-   `C` と `B` はどちらも `A` に `AsRef` できます
 
 これらの実装により、`C` のインスタンスで `A` のメソッドを呼び出したり、`C` を `&B` または `&A` として使用したりできます。
 
@@ -144,13 +144,13 @@ _[`js-sys` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/js_sy
 現在、このクレートには3つの主要なインターフェースがあります：
 
 1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
- [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html) を使用して構築された型で、`Future<Output=Result<JsValue, JsValue>>` として使用できます。`Promise` が解決されると、この `Future` は `Ok` に解決され、`Promise` が拒否されると `Err` に解決され、それぞれ `Promise` の解決または拒否の値を含みます。
+   [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html) を使用して構築された型で、`Future<Output=Result<JsValue, JsValue>>` として使用できます。`Promise` が解決されると、この `Future` は `Ok` に解決され、`Promise` が拒否されると `Err` に解決され、それぞれ `Promise` の解決または拒否の値を含みます。
 
 2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
- Rust の `Future<Output=Result<JsValue, JsValue>>` を JavaScript の `Promise` に変換します。Future の結果は、JavaScript 内の解決または拒否された `Promise` に変換されます。
+   Rust の `Future<Output=Result<JsValue, JsValue>>` を JavaScript の `Promise` に変換します。Future の結果は、JavaScript 内の解決または拒否された `Promise` に変換されます。
 
 3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
- 現在のスレッドで `Future<Output = ()>` を生成します。これは、Rust 内で Future を実行する最良の方法であり、JavaScript に送信するのではなく、Rust 内で実行します。
+   現在のスレッドで `Future<Output = ()>` を生成します。これは、Rust 内で Future を実行する最良の方法であり、JavaScript に送信するのではなく、Rust 内で実行します。
 
 _[`wasm-bindgen-futures` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
 
