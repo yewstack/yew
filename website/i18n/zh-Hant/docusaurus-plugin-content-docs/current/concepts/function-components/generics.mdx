@@ -1,0 +1,44 @@
+---
+title: '泛型元件'
+description: '函數元件的 #[function_component] 屬性'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`#[function_component]` 屬性也適用於用於建立泛型元件的泛型函數。
+
+```rust
+use std::fmt::Display;
+use yew::{function_component, html, Properties, Html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props<T>
+where
+    T: PartialEq,
+{
+    data: T,
+}
+
+#[function_component]
+pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
+where
+    T: PartialEq + Clone + Into<Html>,
+{
+    html! {
+        <p>
+            { props.data.clone().into() }
+        </p>
+    }
+}
+
+// 之後可以這樣使用
+html! {
+    <MyGenericComponent<i32> data=123 />
+};
+
+// 或者
+html! {
+    <MyGenericComponent<String> data={"foo".to_string()} />
+};
+```

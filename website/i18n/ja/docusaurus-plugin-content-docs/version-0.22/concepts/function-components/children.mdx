@@ -1,0 +1,37 @@
+---
+title: '子要素 (Children)'
+---
+
+`Children` は特別なプロパティタイプで、HTMLの子要素のようにネストされた `Html` を受け取ることができます。
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[function_component]
+fn App() -> Html {
+    html! {
+        // highlight-start
+        <HelloWorld>
+            <span>{"Hey what is up ;)"}</span>
+            <h1>{"THE SKY"}</h1>
+        </HelloWorld>
+        // highlight-end
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    // highlight-next-line
+    pub children: Html, // `children` キーは重要です！
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    html! {
+        <div class="very-stylized-container">
+            // highlight-next-line
+            { props.children.clone() } // この方法で子要素を転送できます
+        </div>
+    }
+}
+```

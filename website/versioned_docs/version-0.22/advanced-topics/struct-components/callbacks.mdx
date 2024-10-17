@@ -1,0 +1,86 @@
+---
+title: 'Callbacks'
+---
+
+## Callbacks
+
+Callbacks are used to communicate with services, agents, and parent components within Yew.
+Internally their type is just `Fn` wrapped in `Rc` to allow them to be cloned.
+
+They have an `emit` function that takes their `<IN>` type as an argument and converts that to a message expected by its destination. If a callback from a parent is provided in props to a child component, the child can call `emit` on the callback in its `update` lifecycle hook to send a message back to its parent. Closures or Functions provided as props inside the `html!` macro are automatically converted to Callbacks.
+
+A simple use of a callback might look something like this:
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Clicked,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            // highlight-next-line
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
+}
+```
+
+The function passed to `callback` must always take a parameter. For example, the `onclick` handler requires a function that takes a parameter of type `MouseEvent`. The handler can then decide what kind of message should be sent to the component. This message is scheduled for the next update loop unconditionally.
+
+If you need a callback that might not need to cause an update, use `batch_callback`.
+
+```rust
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
+
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+
+        html! {
+            <input type="text" {onkeypress} />
+        }
+        // highlight-end
+    }
+}
+```
+
+## Relevant examples
+
+-   [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+-   [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

@@ -1,0 +1,50 @@
+---
+title: 'Javascript 與 Rust'
+description: '在 Rust 中使用 JavaScript'
+comment: '盡量保持文件簡短和簡單。它的目的是讓讀者更容易了解 Yew 中的元件，而不是提供正確的 API 文件'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+> Yew 在一個地方集中了一個可重用的 UI 部分可能需要的所有內容 - rust 文件，同時也在必要時保持底層技術的可訪問性。
+
+截至今天，WebAssembly 對於 DOM 互動還不完全支援。這意味著即使在 Yew 中，我們有時也依賴呼叫 JavaScript。接下來是涉及的庫的概述。
+
+## wasm-bindgen
+
+[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) 是一個在 JavaScript 和 Rust 函數之間建立呼叫橋樑的函式庫和工具。
+
+我們強烈建議您查看他們的[文件](https://rustwasm.github.io/docs/wasm-bindgen/)和我們的[快速指南](./wasm-bindgen.mdx)。
+
+## web-sys
+
+[`web-sys` crate](https://crates.io/crates/web-sys) 為 Web API 提供了綁定，並允許我們以一種經過 Rust 處理和安全的方式編寫 JavaScript 程式碼。
+
+範例：
+
+<Tabs>
+<TabItem value="JS" label="JS">
+
+```js
+let document = window.document
+```
+
+</TabItem>
+
+<TabItem value="RS" label="RS">
+
+```rust ,no_run
+use wasm_bindgen::UnwrapThrowExt;
+use web_sys::window;
+
+let document = window()
+    .expect_throw("window is undefined")
+    .document()
+    .expect_throw("document is undefined");
+```
+
+</TabItem>
+</Tabs>
+
+再次強調，我們強烈建議您查看他們的[文件](https://rustwasm.github.io/docs/wasm-bindgen/)和我們的[快速指南](./web-sys.mdx)。

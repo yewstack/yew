@@ -1,0 +1,125 @@
+---
+title: 'Components'
+description: 'Create complex layouts with component hierarchies'
+---
+
+## Basic
+
+Components can be used in the `html!` macro:
+
+```rust
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    html! {
+        { "This component has no properties!" }
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+struct Props {
+    user_first_name: String,
+    user_last_name: String,
+}
+
+#[function_component]
+fn MyComponentWithProps(props: &Props) -> Html {
+    let Props { user_first_name, user_last_name } = props;
+    html! {
+        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+    }
+}
+
+let props = Props {
+    user_first_name: "Bob".to_owned(),
+    user_last_name: "Smith".to_owned(),
+};
+
+html!{
+    <>
+        // No properties
+        <MyComponent />
+
+        // With Properties
+        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
+
+        // With the whole set of props provided at once
+        <MyComponentWithProps ..props.clone() />
+
+        // With Properties from a variable and specific values overridden
+        <MyComponentWithProps user_last_name="Elm" ..props />
+    </>
+};
+```
+
+## Nested
+
+Components can accept child components/elements if they have a `children` field in their `Properties`
+
+```rust title="parent.rs"
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
+}
+
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
+    }
+}
+
+html! {
+    <Container id="container">
+        <h4>{ "Hi" }</h4>
+        <div>{ "Hello" }</div>
+    </Container>
+};
+```
+
+The `html!` macro allows you to pass a base expression with the `..props` syntax instead of specifying each property individually,
+similar to Rust's [Functional Update Syntax](https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax).
+This base expression must occur after any individual props are passed.
+When passing a base props expression with a `children` field, the children passed in the `html!` macro overwrite the ones already present in the props.
+
+```rust
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
+}
+
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
+    }
+}
+
+let props = yew::props!(Props {
+    id: "container-2",
+    children: Html::default(),
+});
+
+html! {
+    <Container ..props>
+        // props.children will be overwritten with this
+        <span>{ "I am a child, as you can see" }</span>
+    </Container>
+};
+```
+
+## Relevant examples
+
+-   [Function Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
+-   [Function Router](https://github.com/yewstack/yew/tree/master/examples/function_router)
