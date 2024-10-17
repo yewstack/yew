@@ -45,7 +45,7 @@ description: '父子元件通訊'
 
 ```rust
 use yew::Properties;
-/// Importing the AttrValue from virtual_dom
+/// 從 virtual_dom 中導入 AttrValue
 use yew::virtual_dom::AttrValue;
 
 #[derive(Clone, PartialEq)]
@@ -63,17 +63,17 @@ fn create_default_link_color() -> LinkColor {
 
 #[derive(Properties, PartialEq)]
 pub struct LinkProps {
-    /// The link must have a target.
+    /// 鏈接必須有一個目標
     href: AttrValue,
-    /// Also notice that we are using AttrValue instead of String
+    /// 還要注意我們使用的是 AttrValue 而不是 String
     text: AttrValue,
-    /// Color of the link. Defaults to `Blue`.
+    /// 鏈接的顏色，默認為 `Blue`
     #[prop_or_else(create_default_link_color)]
     color: LinkColor,
-    /// The view function will not specify a size if this is None.
+    /// 如果值為 None，則視圖函數不會指定大小
     #[prop_or_default]
     size: Option<u32>,
-    /// When the view function does not specify active, it defaults to true.
+    /// 當視圖函數沒有指定活動時，默認為 true
     #[prop_or(true)]
     active: bool,
 }
@@ -103,24 +103,24 @@ fn create_default_link_color() -> LinkColor {
 
 #[derive(Properties, PartialEq)]
 pub struct LinkProps {
-    /// The link must have a target.
+    /// 鏈接必須有一個目標
     href: AttrValue,
-    /// Also notice that we're using AttrValue instead of String
+    /// 還要注意我們使用的是 AttrValue 而不是 String
     text: AttrValue,
-    /// Color of the link. Defaults to `Blue`.
+    /// 鏈接的顏色，默認為 `Blue`
     #[prop_or_else(create_default_link_color)]
     color: LinkColor,
-    /// The view function will not specify a size if this is None.
+    /// 如果值為 None，則視圖函數不會指定大小
     #[prop_or_default]
     size: Option<u32>,
-    /// When the view function doesn't specify active, it defaults to true.
+    /// 當視圖函數沒有指定活動時，默認為 true
     #[prop_or(true)]
     active: bool,
 }
 
 impl LinkProps {
-    /// Notice that this function receives href and text as String
-    /// We can use `AttrValue::from` to convert it to a `AttrValue`
+    /// 注意此函數接收 href 和 text 作為 String
+    /// 我們可以使用 `AttrValue::from` 將其轉換為 `AttrValue`
     pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
         // highlight-start
         props! {LinkProps {

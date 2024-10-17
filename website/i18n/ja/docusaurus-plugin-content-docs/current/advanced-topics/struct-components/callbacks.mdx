@@ -1,35 +1,85 @@
 ---
-title: Callbacks
-description: ComponentLink and Callbacks
+title: 'コールバック関数 (Callbacks)'
 ---
 
-”リンク”コンポーネントはコンポーネントがコールバックを登録できて自身を更新することができるメカニズムです。
+## コールバック関数 (Callbacks)
 
-## ComponentLink API
+コールバック関数は、Yew でサービス、エージェント、および親コンポーネントと通信するために使用されます。内部的には、それらの型は `Rc` に包まれた `Fn` に過ぎず、クローンを許可します。
 
-### callback
+それらには `emit` 関数があり、その `<IN>` 型を引数として取り、それをターゲットが期待するメッセージに変換します。親コンポーネントのコールバック関数が子コンポーネントに props として提供される場合、子コンポーネントはその `update` ライフサイクルフックでコールバック関数の `emit` 関数を呼び出して、メッセージを親コンポーネントに送信できます。`html!` マクロで props として提供されるクロージャまたは関数は、自動的にコールバック関数に変換されます。
 
-実行時にコンポーネントの更新メカニズムにメッセージを送信するコールバックを登録します。
-これは、渡されたクロージャから返されるメッセージで `send_self` を呼び出します。
-`Fn(IN) -> Vec<COMP::Message>`が渡され、`Callback<IN>`が返されます。
+シンプルなコールバック関数の使用例は次のようになります：
 
-### send_message
+```rust
+use yew::{html, Component, Context, Html};
 
-現在のループが終了した直後にコンポーネントにメッセージを送信し、別の更新ループを開始します。
+enum Msg {
+    Clicked,
+}
 
-### send_message_batch
+struct Comp;
 
-実行時に一度に多数のメッセージを一括して送信するコールバックを登録します。
-メッセージによってコンポーネントが再レンダリングされる場合、バッチ内のすべてのメッセージが処理された後、コンポーネントは再レンダリングされます。
-`Fn(IN) -> COMP::Message`が渡され、`Callback<IN>`が返されます。
+impl Component for Comp {
 
-## コールバック
+    type Message = Msg;
+    type Properties = ();
 
-_\(This might need its own short page.\)_
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
-コールバックは、Yew 内のサービス、エージェント、親コンポーネントとの通信に使われます。
-これらは単に `Fn` を `Rc` でラップしただけであり、クローンを作成できるようにするためのものです。
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            // highlight-next-line
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
+}
+```
 
-これらの関数には `emit` 関数があり、`<IN>` 型を引数に取り、それをアドレスが欲しいメッセージに変換します。
-親からのコールバックが子コンポーネントに props で提供されている場合、子は `update` ライフサイクルフックで `emit` をコールバックに呼び出して親にメッセージを返すことができます。
-マクロ内で props として提供されたクロージャや関数は自動的にコールバックに変換されます。
+この関数を `callback` に渡す場合、常に1つの引数を持つ必要があります。例えば、`onclick` ハンドラは `MouseEvent` 型の引数を受け取る関数である必要があります。その後、ハンドラはコンポーネントにどのタイプのメッセージを送信するかを決定できます。このメッセージは無条件に次の更新サイクルにスケジュールされます。
+
+更新を引き起こす必要がないコールバック関数が必要な場合は、`batch_callback` を使用してください。
+
+```rust
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
+
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+
+        html! {
+            <input type="text" {onkeypress} />
+        }
+        // highlight-end
+    }
+}
+```
+
+## 関連例
+
+-   [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+-   [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

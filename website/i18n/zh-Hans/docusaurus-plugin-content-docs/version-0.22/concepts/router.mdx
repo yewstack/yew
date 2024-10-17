@@ -299,7 +299,7 @@ Navigator API 是在回调中操作路由的唯一方法。
 fn create(ctx: &Context<Self>) -> Self {
     let listener = ctx.link()
         .add_location_listener(ctx.link().callback(
-            // handle event
+            // 处理事件
         ))
         .unwrap();
     MyComponent {

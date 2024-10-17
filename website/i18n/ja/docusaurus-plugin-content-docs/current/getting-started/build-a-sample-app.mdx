@@ -1,126 +1,148 @@
 ---
-title: Build a sample app
+title: 'サンプルアプリケーションの構築'
 ---
 
-はじめに、Rust の新規ライブラリを作りましょう(**重要:** `--lib`フラグを渡すことで*バイナリ*ではなく*ライブラリ*を作ってください)
+環境が整ったら、基本的な Yew アプリケーションに必要なテンプレートを使用するか、小さなプロジェクトを手動で設定することができます。
 
-```bash
-cargo new --lib yew-app && cd yew-app
+## テンプレートを使用して迅速に開始
+
+[`cargo-generate`](https://github.com/cargo-generate/cargo-generate) のインストール手順に従ってツールをインストールし、次のコマンドを実行します：
+
+```shell
+cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
 ```
 
-依存ライブラリに`yew`と`wasm-bindgen`を追加してください \(最新バージョンについては[こちら](https://docs.rs/yew)を参照してください\)
+## 手動でアプリケーションを設定する
 
-```toml title="Cargo.toml"
+### プロジェクトの作成
+
+まず、新しい cargo プロジェクトを作成してください。
+
+```bash
+cargo new yew-app
+```
+
+新しく作成したディレクトリを開きます。
+
+```bash
+cd yew-app
+```
+### Hello World サンプルを実行する
+
+Rust 環境が正しく設定されているかを確認するために、`cargo run` を使用して初期プロジェクトを実行します。"Hello World!" メッセージが表示されるはずです。
+
+```bash
+cargo run
+# output: Hello World!
+```
+
+### プロジェクトを Yew Web アプリケーションに設定する
+
+このシンプルなコマンドラインアプリケーションを基本的な Yew Web アプリケーションに変換するために、いくつかの変更が必要です。
+
+#### Cargo.toml の更新
+
+依存関係リストに `yew` を追加します。
+
+```toml title=Cargo.toml
 [package]
 name = "yew-app"
 version = "0.1.0"
-authors = ["Yew App Developer <name@example.com>"]
-edition = "2018"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
+edition = "2021"
 
 [dependencies]
-yew = "0.17"
-wasm-bindgen = "0.2"
+# 開発バージョンの Yew
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```
 
-以下のテンプレートを `src/lib.rs`ファイルにコピーしてください:
+:::info
 
-```rust title="src/lib.rs"
-use wasm_bindgen::prelude::*;
+アプリケーションを構築するだけの場合は、`csr` 特性のみが必要です。これにより、`Renderer` とクライアントサイドレンダリングに関連するすべてのコードが有効になります。
+
+ライブラリを作成している場合は、この特性を有効にしないでください。クライアントサイドレンダリングロジックがサーバーサイドレンダリングパッケージに含まれることになります。
+
+テストやサンプルのために Renderer が必要な場合は、`dev-dependencies` で有効にするべきです。
+
+:::
+
+#### main.rs の更新
+
+テンプレートを生成し、クリック時に値を更新するボタンをレンダリングする `App` という名前のルートコンポーネントを設定する必要があります。以下のコードで `src/main.rs` の内容を置き換えます。
+
+:::note
+`main` 関数内の `yew::Renderer::<App>::new().render()` 呼び出しは、アプリケーションを起動し、ページの `<body>` タグにマウントします。動的なプロパティを使用してアプリケーションを起動したい場合は、`yew::Renderer::<App>::with_props(..).render()` を使用できます。
+:::
+
+```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
-struct Model {
-    link: ComponentLink<Self>,
-    value: i64,
-}
-
-enum Msg {
-    AddOne,
-}
-
-impl Component for Model {
-    type Message = Msg;
-    type Properties = ();
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            value: 0,
+#[function_component]
+fn App() -> Html {
+    let counter = use_state(|| 0);
+    let onclick = {
+        let counter = counter.clone();
+        move |_| {
+            let value = *counter + 1;
+            counter.set(value);
         }
-    }
+    };
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::AddOne => self.value += 1
-        }
-        true
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        // Should only return "true" if new properties are different to
-        // previously received properties.
-        // This component has no properties so we will always return "false".
-        false
-    }
-
-    fn view(&self) -> Html {
-        html! {
-            <div>
-                <button onclick={self.link.callback(|_| Msg::AddOne)}>{ "+1" }</button>
-                <p>{ self.value }</p>
-            </div>
-        }
+    html! {
+        <div>
+            <button {onclick}>{ "+1" }</button>
+            <p>{ *counter }</p>
+        </div>
     }
 }
 
-#[wasm_bindgen(start)]
-pub fn run_app() {
-    App::<Model>::new().mount_to_body();
+fn main() {
+    yew::Renderer::<App>::new().render();
 }
 ```
 
-このテンプレートはルートに`Component`をセットアップし、`Model`と呼ばれるクリックしたら更新するボタンを作ります。
-`main()`の中にある`App::<Model>::new().mount_to_body()`がアプリをスタートしてページの`<body>`タグをマウントすることに特に注意してください。
-動的なプロパティでアプリをスタートしたい場合は代わりに`App::<Model>::new().mount_to_body_with_props(..)`を使うことで実現できます。
+#### index.html の作成
 
-最後に、アプリの中の`static`という名前のフォルダに`index.html`ファイルを追加してください。
+最後に、アプリケーションのルートディレクトリに `index.html` ファイルを追加します。
 
-```bash
-mkdir static
-```
-
-```markup title="index.html"
+```html , title=index.html
 <!doctype html>
-<html lang="en">
+<html>
     <head>
-        <meta charset="utf-8">
-        <title>Yew Sample App</title>
-        <script type="module">
-            import init from "./wasm.js"
-            init()
-        </script>
+        <meta charset="utf-8" />
+        <title>Yew App</title>
     </head>
     <body></body>
 </html>
 ```
 
-## アプリを動かす!
+## アプリケーションの表示
 
-[`wasm-pack`](https://rustwasm.github.io/docs/wasm-pack/)を使うのがアプリを動かすのに推奨される方法です。
-まだ`wasm-pack`をインストールしていない場合、`cargo install wasm-pack`でインストールして開発サーバーを動かしてみましょう:
-
-```bash
-wasm-pack build --target web --out-name wasm --out-dir ./static
-```
-
-`wasm-pack`はコンパイルされた WebAssembly と JavaScript ラッパーをまとめたものを`./static`ディレクトリに作り、
-アプリの WebAssembly バイナリを読み込んで動かします。
-
-そして、`./static`以下で好きなサーバーをファイルをサーブしてみましょう。
-例えば:
+以下のコマンドを実行して、ローカルでアプリケーションをビルドおよび提供します。
 
 ```bash
-cargo +nightly install miniserve
-miniserve ./static --index index.html
+trunk serve
 ```
+
+:::info
+`--open` オプションを追加して、デフォルトのブラウザを開くことができます：`trunk serve --open`。
+:::
+
+Trunk は、ソースコードファイルを変更するたびにアプリケーションをリアルタイムで再構築します。
+デフォルトでは、サーバーはアドレス '127.0.0.1' のポート '8080' でリッスンします => [http://localhost:8080](http://127.0.0.1:8080)。
+この設定を変更するには、次のファイルを作成して必要に応じて編集してください：
+
+```toml title="Trunk.toml"
+[serve]
+# ローカルネットワーク上のリッスンアドレス
+address = "127.0.0.1"
+# 広域ネットワーク上のリッスンアドレス
+# address = "0.0.0.0"
+# リッスンするポート
+port = 8000
+```
+
+## おめでとうございます
+
+これで、Yew 開発環境の設定が完了し、最初の Web アプリケーションを構築できました。
+
+このアプリケーションを試してみて、さらに学習するために[サンプル](./examples.mdx)を参照してください。

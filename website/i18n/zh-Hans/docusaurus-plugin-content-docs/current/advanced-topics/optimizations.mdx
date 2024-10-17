@@ -50,15 +50,15 @@ Yew 的最大缺点是编译所需的时间很长。编译项目所需的时间�
 
 ```toml, title=Cargo.toml
 [profile.release]
-# less code to include into binary
+# 让二进制文件尺寸更小些
 panic = 'abort'
-# optimization over all codebase ( better optimization, slower build )
+# 优化整个代码库（优化更好，但构建速度也会更慢）
 codegen-units = 1
-# optimization for size ( more aggressive )
+# 优化尺寸（更激进的做法）
 opt-level = 'z'
-# optimization for size
+# 优化尺寸
 # opt-level = 's'
-# link time optimization using using whole-program analysis
+# 使用程序整体分析时进行链接时优化
 lto = true
 ```
 
@@ -68,12 +68,12 @@ lto = true
 
 ```toml, title=".cargo/config.toml"
 [unstable]
-# Requires the rust-src component. `rustup +nightly component add rust-src`
+# 需要 rust-src 组件。`rustup +nightly component add rust-src`
 build-std = ["std", "panic_abort"]
 build-std-features = ["panic_immediate_abort"]
 ```
 
-[unstable features]: https://doc.rust-lang.org/cargo/reference/unstable.html
+[不稳定特性列表]: https://doc.rust-lang.org/cargo/reference/unstable.html
 [`build-std`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std
 [`build-std-features`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std-features
 
@@ -98,13 +98,13 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 注意：`wasm-pack` 结合了 Rust 和 Wasm 代码的优化。在此示例中，`wasm-bindgen` 未经任何 Rust 大小优化。
 
-| used tool                   | size  |
+| 工具链                       | 大小  |
 | :-------------------------- | :---- |
 | wasm-bindgen                | 158KB |
 | wasm-bindgen + wasm-opt -Os | 116KB |
 | wasm-pack                   | 99 KB |
 
-## 进一步阅读：
+## 进一步阅读
 
 -   [Rust 手册中关于智能指针的章节](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
 -   [Rust Wasm 手册中关于减小二进制文件大小的信息](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)

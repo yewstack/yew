@@ -29,17 +29,15 @@ fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
 
-// we use `flavor = "current_thread"` so this snippet can be tested in CI,
-// where tests are run in a WASM environment. You likely want to use
-// the (default) `multi_thread` favor as:
-// #[tokio::main]
+// 我们在使用 `flavor = "current_thread"` 以保证这个示例可以在 CI 中的 WASM 环境运行,
+// 如果你希望使用多线程的话，可以使用默认的 `#[tokio::main]` 宏
 #[tokio::main(flavor = "current_thread")]
 async fn no_main() {
     let renderer = ServerRenderer::<App>::new();
 
     let rendered = renderer.render().await;
 
-    // Prints: <div>Hello, World!</div>
+    // 打印: <div>Hello, World!</div>
     println!("{}", rendered);
 }
 ```
@@ -122,8 +120,7 @@ fn App() -> Html {
 fn main() {
     let renderer = Renderer::<App>::new();
 
-    // hydrates everything under body element, removes trailing
-    // elements (if any).
+    // 对 body 元素下的所有内容进行注水，移除尾部元素（如果有）。
     renderer.hydrate();
 }
 ```

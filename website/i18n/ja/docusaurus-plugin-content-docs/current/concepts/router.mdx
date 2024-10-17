@@ -1,95 +1,461 @@
 ---
-title: Router
-description: Yew's official router
+title: 'ルーター (Router)'
+description: "Yew の公式ルーターライブラリ"
 ---
 
-[crates.io にあるルータ](https://crates.io/crates/yew-router)
+シングルページアプリケーション (SPA) のルーターは、URL に基づいて異なるページを表示する処理を行います。リンクをクリックしたときに異なるリモートリソースを要求するデフォルトの動作とは異なり、ルーターはアプリケーション内の有効なルートを指すようにローカルで URL を設定します。その後、ルーターはこの変更を検出し、レンダリングする内容を決定します。
 
-シングルページアプリケーション\(SPA\)におけるルータは URL よってページを出し分けます。
-リンクがクリックされたときに異なるリソースを要求するというデフォルトの動作の代わりに、ルータはアプリケーション内の有効なルートを指すように URL をローカルに設定します。
-ルータはこの変更を検出してから、何をレンダリングするかを決定します。
+Yew は `yew-router` クレートでルーターサポートを提供します。使用を開始するには、依存関係を `Cargo.toml` ファイルに追加してください。
 
-## コアとなる要素
+<!-- Reminder: fix this when we release a new version of yew -->
 
-### `Route`
+```toml
+yew-router = { git = "https://github.com/yewstack/yew.git" }
+```
 
-URL 内のドメインの後のすべてを表す文字列と、オプションで history API に保存されている状態を含みます。
+必要なツールはすべて `yew_router::prelude` モジュールで提供されています。
 
-### `RouteService`
+## 使用方法
 
-ブラウザとやりとりしてルーティングを決めます。
+まず、`Route` を定義する必要があります。
 
-### `RouteAgent`
-
-RouteService を所有し、ルートが変更された際の更新を調整するために使用します。
-
-### `Switch`
-
-`Switch`トレイトは`Route`をトレイトの実装する側の間で変換するために用いられます。
-
-### `Router`
-
-Router コンポーネントは RouteAgent とやり取りし、エージェントがどうスイッチするか Routes を自動的に解決します。
-これは、結果として得られるスイッチがどのように Html に変換されるかを指定できるようにするため、props を介して公開されます。
-
-## ルータをどのように使うか
-
-まず、アプリケーションのすべての状態を表す型を作成します。
-これは通常は列挙型ですが、構造体もサポートされており、`Switch` を実装した他のアイテムを内部に入れ子にすることができることに注意してください。
-
-次に、`Switch`を型に継承させなければいけません。
-列挙型の場合は全ての variant は`#[to = "/some/route"]`とアノテーションされている必要があり、代わり構造体を用いている場合は構造体宣言が外部から見えるようにしてなければいけません。
+ルートは `Routable` を派生する `enum` で定義されます。この列挙型は `Clone + PartialEq` を実装する必要があります。
 
 ```rust
-#[derive(Switch)]
-enum AppRoute {
-  #[to="/login"]
-  Login,
-  #[to="/register"]
-  Register,
-  #[to="/delete_account"]
-  Delete,
-  #[to="/posts/{id}"]
-  ViewPost(i32),
-  #[to="/posts/view"]
-  ViewPosts,
-  #[to="/"]
-  Home
+use yew_router::prelude::*;
+
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+```
+
+`Route` と `<Switch />` コンポーネントはペアで使用され、後者はブラウザの現在の URL に一致するパスのバリアントを見つけ、それを `render` コールバックに渡します。その後、コールバックがレンダリングする内容を決定します。パスが一致しない場合、ルーターは `not_found` 属性を持つパスにナビゲートします。指定されたルートがない場合、何もレンダリングされず、一致するルートがないことを示すメッセージがコンソールに記録されます。
+
+yew-router のほとんどのコンポーネント、特に `<Link />` と `<Switch />` は、ある Router コンポーネント（例： `<BrowserRouter />`）の（深い）子要素である必要があります。通常、アプリケーションには 1 つの Router しか必要なく、通常は最上位の `<App />` コンポーネントによって直ちにレンダリングされます。Router はコンテキストを登録し、これは Links と Switches の機能に必要です。以下に例を示します。
+
+:::caution
+ブラウザ環境で `yew-router` を使用する場合、`<BrowserRouter />` を強く推奨します。他のルータータイプについては [API リファレンス](https://docs.rs/yew-router/) を参照してください。
+:::
+
+```rust
+use yew_router::prelude::*;
+use yew::prelude::*;
+
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
+#[function_component(Secure)]
+fn secure() -> Html {
+    let navigator = use_navigator().unwrap();
+
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
+    html! {
+        <div>
+            <h1>{ "Secure" }</h1>
+            <button {onclick}>{ "Go Home" }</button>
+        </div>
+    }
+}
+
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Secure => html! {
+            <Secure />
+        },
+        Route::NotFound => html! { <h1>{ "404" }</h1> },
+    }
+}
+
+#[function_component(Main)]
+fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Switch<Route> render={switch} /> // <- must be child of <BrowserRouter>
+        </BrowserRouter>
+    }
+}
+```
+
+### パスセグメント
+
+ルーターは、動的および名前付きワイルドカードセグメントを使用してルートから情報を抽出することもできます。次に、`<Switch />` 内で投稿の ID にアクセスし、それを適切なコンポーネントにプロパティとして渡すことができます。
+
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
+
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/post/:id")]
+    Post { id: String },
+    #[at("/*path")]
+    Misc { path: String },
+}
+
+fn switch(route: Route) -> Html {
+    match route {
+        Route::Home => html! { <h1>{ "Home" }</h1> },
+        Route::Post { id } => html! {<p>{format!("You are looking at Post {}", id)}</p>},
+        Route::Misc { path } => html! {<p>{format!("Matched some other path: {}", path)}</p>},
+    }
+}
+```
+
+:::note
+`Post {id: String}` の代わりに通常の `Post` バリアントを使用することもできます。例えば、`Post` が別のルーターと一緒にレンダリングされる場合、そのフィールドは冗長になる可能性があります。詳細については、以下の[ネストされたルーター](#nested-router)セクションを参照してください。
+:::
+
+フィールドは `Route` 列挙型の一部として `Clone + PartialEq` を実装する必要があることに注意してください。また、シリアル化と逆シリアル化のために `std::fmt::Display` と `std::str::FromStr` を実装する必要があります。整数、浮動小数点数、および文字列などのプリミティブ型はこれらの要件を既に満たしています。
+
+パスの形式が一致しても、逆シリアル化が失敗した場合（`FromStr` に基づく）、ルーターはルートが一致しないと見なし、見つからないルートをレンダリングしようとします（または、見つからないルートが指定されていない場合は空白ページをレンダリングします）。
+
+以下の例を参照してください：
+
+```rust ,ignore
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/news/:id")]
+    News { id: u8 },
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+// switch 関数は News と id をレンダリングします。ここでは省略されています。
+```
+
+セグメントが 255 を超えると、`u8::from_str()` は失敗し、`ParseIntError` を返します。この場合、ルーターはルートが一致しないと見なします。
+
+![ルーターの逆シリアル化失敗の動作](/img/router-deserialization-failure-behavior.gif)
+
+ルーティング構文やパラメータのバインディング方法の詳細については、[route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params) を参照してください。
+
+### 位置 (Location)
+
+ルーターはコンテキストを介して一般的な `Location` 構造体を提供し、ルート情報にアクセスするために使用できます。これらはフックまたは `ctx.link()` 上の便利な関数を介して取得できます。
+
+### ナビゲーション
+
+`yew_router` はナビゲーションを処理するためのいくつかのツールを提供します。
+
+#### リンク
+
+`<Link />` は `<a>` 要素としてレンダリングされ、`onclick` イベントハンドラは [preventDefault](https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault) を呼び出し、ターゲットページを履歴にプッシュして必要なページをレンダリングします。これはシングルページアプリケーションに期待される動作です。通常のアンカー要素のデフォルトの `onclick` はページをリロードします。
+
+`<Link />` コンポーネントはその子要素を `<a>` 要素に渡します。これはアプリ内ルーティングのための `<a/>` の代替として考えることができます。違いは、`href` の代わりに `to` 属性を提供する必要があることです。使用例は以下の通りです：
+
+```rust ,ignore
+<Link<Route> to={Route::Home}>{ "click here to go home" }</Link<Route>>
+```
+
+構造体変数も正常に動作します：
+
+```rust ,ignore
+<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew!" }</Link<Route>>
+```
+
+#### ナビゲーションインターフェース
+
+ナビゲーター API は、関数コンポーネントと構造体コンポーネントの両方で提供されます。これにより、コールバックがルートを変更できるようになります。どちらの場合でも、`Navigator` インスタンスを取得してルートを操作できます。
+
+##### 関数コンポーネント
+
+関数コンポーネントの場合、基礎となるナビゲータープロバイダーが変更されると、`use_navigator` フックはコンポーネントを再レンダリングします。
+以下は、クリック時に `Home` ルートにナビゲートするボタンを実装する例です。
+
+```rust ,ignore
+#[function_component(MyComponent)]
+pub fn my_component() -> Html {
+    let navigator = use_navigator().unwrap();
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
+
+    html! {
+        <>
+            <button {onclick}>{"Click to go home"}</button>
+        </>
+    }
 }
 ```
 
 :::caution
-`Switch`用の派生マクロによって生成された実装は、各 variant を最初から最後までの順にマッチさせようとするので、指定した`to`アノテーションのうち 2 つのルートにマッチする可能性がある場合は、最初のルートがマッチし、2 つ目のルートは試行されないことに注意してください。例えば、以下の`Switch`を定義した場合、マッチするルートは`AppRoute::Home`だけになります。
+ここでの例では `Callback::from` を使用しています。ターゲットルートがコンポーネントのルートと同じになる可能性がある場合、または安全のために、通常のコールバックを使用してください。例えば、各ページにロゴボタンがあり、そのボタンをクリックするとホームに戻るとします。ホームページでそのボタンを2回クリックすると、同じHomeルートがプッシュされ、`use_navigator` フックが再レンダリングをトリガーしないため、コードがクラッシュします。
+:::
 
-```rust
-#[derive(Switch)]
-enum AppRoute {
-  #[to="/"]
-  Home,
-  #[to="/login"]
-  Login,
-  #[to="/register"]
-  Register,
-  #[to="/delete_account"]
-  Delete,
-  #[to="/posts/{id}"]
-  ViewPost(i32),
-  #[to="/posts/view"]
-  ViewPosts,
+現在の位置をスタックに新しい位置としてプッシュするのではなく置き換えたい場合は、`navigator.push()` の代わりに `navigator.replace()` を使用してください。
+
+`navigator` はコールバックに移動する必要があるため、他のコールバックで再利用できないことに気付くかもしれません。幸いなことに、`navigator` は `Clone` を実装しているため、異なるルートに対して複数のボタンを設定する方法は次のとおりです：
+
+```rust ,ignore
+use yew::prelude::*;
+use yew_router::prelude::*;
+
+#[function_component(NavItems)]
+pub fn nav_items() -> Html {
+    let navigator = use_navigator().unwrap();
+
+    let go_home_button = {
+        let navigator = navigator.clone();
+        let onclick = Callback::from(move |_| navigator.push(&Route::Home));
+        html! {
+            <button {onclick}>{"click to go home"}</button>
+        }
+    };
+
+    let go_to_first_post_button = {
+        let navigator = navigator.clone();
+        let onclick = Callback::from(move |_| navigator.push(&Route::Post { id: "first-post".to_string() }));
+        html! {
+            <button {onclick}>{"click to go the first post"}</button>
+        }
+    };
+
+    let go_to_secure_button = {
+        let onclick = Callback::from(move |_| navigator.push(&Route::Secure));
+        html! {
+            <button {onclick}>{"click to go to secure"}</button>
+        }
+    };
+
+    html! {
+        <>
+            {go_home_button}
+            {go_to_first_post_button}
+            {go_to_secure_button}
+        </>
+    }
 }
 ```
 
+##### 構造体コンポーネント
+
+構造体コンポーネントの場合、`ctx.link().navigator()` API を使用して `Navigator` インスタンスを取得できます。残りの部分は関数コンポーネントの場合と同じです。以下は、単一のボタンをレンダリングするビュー関数の例です。
+
+```rust ,ignore
+fn view(&self, ctx: &Context<Self>) -> Html {
+    let navigator = ctx.link().navigator().unwrap();
+    let onclick = Callback::from(move |_| navigator.push(&MainRoute::Home));
+    html!{
+        <button {onclick}>{"Go Home"}</button>
+    }
+}
+```
+
+#### リダイレクト
+
+`yew-router` は prelude に `<Redirect />` コンポーネントも提供しています。これはナビゲーター API と同様の効果を実現するために使用できます。このコンポーネントは、ターゲットルートとして `to` 属性を受け取ります。`<Redirect/>` がレンダリングされると、ユーザーは指定されたルートにリダイレクトされます。以下はその例です：
+
+```rust ,ignore
+#[function_component(SomePage)]
+fn some_page() -> Html {
+    // `use_user` フックを使用してユーザーを取得
+    let user = match use_user() {
+        Some(user) => user,
+        // ユーザーが `None` の場合、ログインページにリダイレクト
+        None => return html! {
+            <Redirect<Route> to={Route::Login}/>
+        },
+    };
+    // ... 実際のページ内容
+}
+```
+
+:::tip `Redirect` と `Navigator` の選択方法
+Navigator API はコールバック内でルートを操作する唯一の方法です。
+一方、`<Redirect />` はコンポーネント内の戻り値として使用できます。また、[ネストされたルーター](#nested-router)の switch 関数など、他の非コンポーネントコンテキストでも `<Redirect />` を使用することができます。
 :::
 
-また、`#[to = ""]`アノテーションの中で`{}`のバリエーションを使ってセクションをキャプチャすることもできます。
-`{}`は、次の区切り文字\(コンテキストに応じて "/", "?", "&", "#" のいずれか\) までのテキストをキャプチャします。
-`{*}`は、次の文字が一致するまでテキストをキャプチャすることを意味します。
-`{<number>}`は、指定した数の区切り文字が見つかるまでテキストをキャプチャすることを意味します
-\(例: `{2}`は区切り文字が 2 つ見つかるまでキャプチャします\)。
+### 変更のリスニング
 
-名前付きフィールドを持つ構造体や列挙型の場合は、キャプチャグループ内で以下のようにフィールドの名前を指定する必要があります。
-`{user_name}` または `{*:age}` のように、キャプチャグループ内でフィールドの名前を指定しなければなりません。
+#### 関数コンポーネント
 
-Switch トレイトは文字列よりも構造化されたキャプチャグループで動作します。
-`Switch`を実装した任意の型を指定することができます。
-そのため、キャプチャグループが `usize` であることを指定することができ、URL のキャプチャ部分がそれに変換できない場合、variant はマッチしません。
+`use_location` と `use_route` フックを使用できます。提供された値が変更されると、コンポーネントが再レンダリングされます。
+
+#### 構造体コンポーネント
+
+ルートの変更に応答するために、`ctx.link()` の `add_location_listener()` メソッドにコールバッククロージャを渡すことができます。
+
+:::note
+位置リスナーが削除されると、それは登録解除されます。ハンドルをコンポーネントの状態に保存することを確認してください。
+:::
+
+```rust ,ignore
+fn create(ctx: &Context<Self>) -> Self {
+    let listener = ctx.link()
+        .add_location_listener(ctx.link().callback(
+            // イベントを処理する
+        ))
+        .unwrap();
+    MyComponent {
+        _listener: listener
+    }
+}
+```
+
+`ctx.link().location()` と `ctx.link().route::<R>()` も、一度だけ位置とルートを取得するために使用できます。
+
+### クエリパラメータ
+
+#### ナビゲーション時にクエリパラメータを指定する
+
+新しいルートにナビゲートする際にクエリパラメータを指定するには、`navigator.push_with_query` または `navigator.replace_with_query` 関数を使用します。これは `serde` を使用してパラメータを URL のクエリ文字列にシリアル化するため、`Serialize` を実装している任意の型を渡すことができます。最も簡単な形式は文字列ペアを含む `HashMap` です。
+
+#### 現在のルートのクエリパラメータを取得する
+
+クエリパラメータを取得するには、`location.query` を使用します。これは `serde` を使用して URL のクエリ文字列からパラメータを逆シリアル化します。
+
+## ネストされたルーター
+
+アプリケーションが大きくなると、ネストされたルーターが役立つ場合があります。次のルーター構造を考えてみましょう：
+
+<!--
+The graph is produced with the following code, with graphviz.
+To reproduce. Save the code in a file, say `input.dot`,
+And run `$ dot -Tsvg input.dot  -o nested-router.svg`
+
+digraph {
+    bgcolor=transparent
+    node [shape=box style="filled, rounded" fillcolor=white]
+    Home; News; Contact; "Not Found"; Profile; Friends; Theme; SettingsNotFound [label="Not Found"];
+
+    node [fillcolor=lightblue style="filled, rounded"]
+    "Main Router"; "Settings Router";
+
+    "Main Router" -> {Home News Contact "Not Found" "Settings Router"} [arrowhead=none]
+    "Settings Router" -> {SettingsNotFound Profile Friends Theme } [arrowhead=none]
+    SettingsNotFound -> "Not Found" [constraint=false]
+}
+-->
+
+<!--
+Also the dark-themed version:
+digraph {
+    bgcolor=transparent
+    node [shape=box style="filled, rounded" fillcolor=grey color=white fontcolor=white]
+    Home; News; Contact; "Not Found"; Profile; Friends; Theme; SettingsNotFound [label="Not Found"];
+
+    node [fillcolor=lightblue style="filled, rounded" color=white fontcolor=black]
+    "Main Router"; "Settings Router";
+
+    "Main Router" -> {Home News Contact "Not Found" "Settings Router"} [arrowhead=none color=white]
+    "Settings Router" -> {SettingsNotFound Profile Friends Theme } [arrowhead=none color=white]
+    SettingsNotFound -> "Not Found" [constraint=false color=white]
+}
+-->
+
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
+
+<ThemedImage
+    alt="nested router structure"
+    sources={{
+        light: useBaseUrl('/img/nested-router-light.svg'),
+        dark: useBaseUrl('/img/nested-router-dark.svg'),
+    }}
+/>
+
+ネストされた `SettingsRouter` は、すべての `/settings` で始まる URL を処理します。また、一致しない URL をメインの `NotFound` ルートにリダイレクトします。したがって、`/settings/gibberish` は `/404` にリダイレクトされます。
+
+:::caution
+
+このインターフェースはまだ開発中であり、このように記述する方法は最終決定されていません。
+
+:::
+
+以下のコードで実装できます：
+
+```rust
+use yew::prelude::*;
+use yew_router::prelude::*;
+use gloo::utils::window;
+use wasm_bindgen::UnwrapThrowExt;
+
+#[derive(Clone, Routable, PartialEq)]
+enum MainRoute {
+    #[at("/")]
+    Home,
+    #[at("/news")]
+    News,
+    #[at("/contact")]
+    Contact,
+    #[at("/settings")]
+    SettingsRoot,
+    #[at("/settings/*")]
+    Settings,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
+#[derive(Clone, Routable, PartialEq)]
+enum SettingsRoute {
+    #[at("/settings")]
+    Profile,
+    #[at("/settings/friends")]
+    Friends,
+    #[at("/settings/theme")]
+    Theme,
+    #[not_found]
+    #[at("/settings/404")]
+    NotFound,
+}
+
+fn switch_main(route: MainRoute) -> Html {
+    match route {
+        MainRoute::Home => html! {<h1>{"Home"}</h1>},
+        MainRoute::News => html! {<h1>{"News"}</h1>},
+        MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
+        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
+    }
+}
+
+fn switch_settings(route: SettingsRoute) -> Html {
+    match route {
+        SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
+        SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
+        SettingsRoute::Theme => html! {<h1>{"Theme"}</h1>},
+        SettingsRoute::NotFound => html! {<Redirect<MainRoute> to={MainRoute::NotFound}/>}
+    }
+}
+
+#[function_component(App)]
+pub fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Switch<MainRoute> render={switch_main} />
+        </BrowserRouter>
+    }
+}
+```
+
+### ベースパス (Basename)
+
+`yew-router` を使用してベースパス (Basename) を定義できます。
+ベースパスはすべてのルートの共通プレフィックスです。ナビゲーター API と `<Switch />` コンポーネントはどちらもベースパスの設定をサポートしています。プッシュされるすべてのルートにはベースパスのプレフィックスが追加され、すべてのスイッチはパスを `Routable` に解析する前にベースパスを削除します。
+
+Router コンポーネントにベースパス属性が提供されていない場合、HTML ファイルの `<base />` 要素の href 属性を使用し、HTML ファイルに `<base />` 要素がない場合は `/` にフォールバックします。
+
+## 関連例
+
+-   [ルーター](https://github.com/yewstack/yew/tree/master/examples/router)
+
+## インターフェースリファレンス
+
+-   [yew-router](https://docs.rs/yew-router/)

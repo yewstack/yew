@@ -45,7 +45,7 @@ let combined_html: Html = html! {
 ```rust , compile_fail
 use yew::html;
 
-// error: only one root HTML element allowed
+// 錯誤：只允許一個根 HTML 元素
 html! {
 
     <div></div>
@@ -60,7 +60,7 @@ html! {
 ```rust
 use yew::html;
 
-// fixed: using HTML fragments
+// 修正：使用 HTML 空標籤包裹
 html! {
     <>
         <div></div>

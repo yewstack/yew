@@ -1,52 +1,52 @@
 ---
-title: Properties
-description: Parent to child communication
+title: 'プロパティ (Props)'
+description: '親子コンポーネント間の通信'
 ---
 
-プロパティは、子コンポーネントと親コンポーネントが互いに通信できるようにします。
+プロパティ (Properties) は、子コンポーネントと親コンポーネントの間で通信を可能にします。各コンポーネントには、親コンポーネントから渡される内容を記述するための関連プロパティ型があります。理論的には、これは `Properties` トレイトを実装した任意の型である可能性がありますが、実際には、各フィールドがプロパティを表す構造体であるべきです。
 
-## マクロの継承
+## 派生マクロ
 
-`Properties`を自分で実装しようとせず、代わりに`#[derive(Properties)]`を使ってください。
+`Properties` トレイトを自分で実装する必要はありません。`#[derive(Properties)]` を使用して実装を自動生成できます。`Properties` を派生する型は `PartialEq` も実装する必要があります。
 
-:::note
-`Properties`を継承した型は`Clone`を実装していなければいけません。
-これは`#[derive(Properties, Clone)`か`Clone`を手で実装することで可能です。
+### フィールド属性
+
+`Properties` を派生する際、デフォルトではすべてのフィールドが必須です。以下の属性を使用すると、他の値が設定されていない限り、プロパティに初期値を提供できます。
+
+:::tip
+プロパティは Rustdoc によって生成されたドキュメントには表示されません。プロパティのドキュメント文字列には、そのプロパティがオプションであるかどうか、または特別なデフォルト値があるかどうかを記載する必要があります。
 :::
 
-### 必要な属性
+#### `#[prop_or_default]`
 
-デフォルトでは、`Properties` を導出する構造体内のフィールドは必須です。
-フィールドが欠落していて `html!` マクロでコンポーネントが作成された場合、コンパイラエラーが返されます。
-オプションのプロパティを持つフィールドについては、`#[prop_or_default]` 属性を使用して、prop が指定されていない場合はその型のデフォルト値を使用します。
-値を指定するには `#[prop_or(value)]` 属性を用います。
-ここで value はプロパティのデフォルト値、あるいは代わりに `#[prop_or_else(function)]` を使用して、`function` はデフォルト値を返します。
-例えば、ブール値のデフォルトを `true` とするには、属性 `#[prop_or(true)]` を使用します。オプションのプロパティでは、デフォルト値 `None` を持つ `Option` 列挙型を使うのが一般的です。
+フィールド型のデフォルト値を使用してプロパティ値を初期化します。これは `Default` トレイトを使用します。
 
-### PartialEq
+#### `#[prop_or(value)]`
 
-もし可能なら props で `PartialEq` を継承するのが良いかもしれません。
-`PartialEq`を使うことで、不必要な再レンダリングを避けることができます
-(これについては、**最適化とベストプラクティス**のセクションで説明しています)。
+`value` を使用してプロパティ値を初期化します。`value` はフィールド型を返す任意の式である可能性があります。例えば、ブールプロパティをデフォルトで `true` にするには、属性 `#[prop_or(true)]` を使用します。
 
-## プロパティを使用する際のメモリと速度のオーバーヘッド
+#### `#[prop_or_else(function)]`
 
-`Compoenent::view`ではコンポーネントの状態への参照を取り、それを使って `Html` を作成します。
-しかし、プロパティは自身の値です。
-つまり、それらを作成して子コンポーネントに渡すためには、`view` 関数で提供される参照を所有する必要があるのです。
-これは所有する値を取得するためにコンポーネントに渡される参照を暗黙のうちにクローンすることで行われます。
+`function` を呼び出してプロパティ値を初期化します。`function` は `FnMut() -> T` のシグネチャを持つ必要があります。ここで、`T` はフィールド型です。
 
-これは、各コンポーネントが親から受け継いだ状態の独自のコピーを持っていることを意味し、コンポーネントを再レンダリングするときはいつでも、再レンダリングしたコンポーネントのすべての子コンポーネントの props がクローンされなければならないことを意味します。
+## `PartialEq`
 
-このことの意味するところは、もしそうでなければ*大量の*データ \(10KB もあるような文字列\) を props として渡してしまうのであれば、子コンポーネントを親が呼び出す `Html` を返す関数にすることを考えた方がいいかもしれないということです。
+`Properties` は `PartialEq` を実装する必要があります。これにより、Yew はそれらを比較し、変更があった場合に `changed` メソッドを呼び出すことができます。
 
-props を介して渡されたデータを変更する必要がない場合は、実際のデータそのものではなく、データへの参照カウントされたポインタのみが複製されるように `Rc` でラップすることができます。
+## Properties のパフォーマンスオーバーヘッド
+
+内部プロパティは参照カウントされたポインタに基づいて格納されます。これにより、コンポーネントツリーに渡されるプロパティにはポインタのみが渡され、プロパティ全体をクローンすることによる高価なパフォーマンスオーバーヘッドを回避できます。
+
+:::tip
+`AttrValue` を使用してください。これは、クローンが必要な String やその他の類似の型を使用せずに済むようにするために提供されているカスタムプロパティ値型です。
+:::
 
 ## 例
 
 ```rust
-use std::rc::Rc;
 use yew::Properties;
+/// virtual_dom から AttrValue をインポート
+use yew::virtual_dom::AttrValue;
 
 #[derive(Clone, PartialEq)]
 pub enum LinkColor {
@@ -57,28 +57,78 @@ pub enum LinkColor {
     Purple,
 }
 
-impl Default for LinkColor {
-    fn default() -> Self {
-        // The link color will be blue unless otherwise specified.
-        LinkColor::Blue
-    }
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
 }
 
-#[derive(Properties, Clone, PartialEq)]
+#[derive(Properties, PartialEq)]
 pub struct LinkProps {
-    /// The link must have a target.
-    href: String,
-    /// If the link text is huge, this will make copying the string much cheaper.
-    /// This isn't usually recommended unless performance is known to be a problem.
-    text: Rc<String>,
-    /// Color of the link.
-    #[prop_or_default]
+    /// リンクにはターゲットが必要です
+    href: AttrValue,
+    /// また、String ではなく AttrValue を使用していることに注意してください
+    text: AttrValue,
+    /// リンクの色、デフォルトは `Blue`
+    #[prop_or_else(create_default_link_color)]
     color: LinkColor,
-    /// The view function will not specify a size if this is None.
+    /// 値が None の場合、ビュー関数はサイズを指定しません
     #[prop_or_default]
     size: Option<u32>,
-    /// When the view function doesn't specify active, it defaults to true.
+    /// ビュー関数がアクティブを指定しない場合、デフォルトは true
     #[prop_or(true)]
     active: bool,
+}
+```
+
+## Props マクロ
+
+`yew::props!` マクロを使用すると、`html!` マクロと同じ方法でプロパティを構築できます。
+
+このマクロは構造体の式と同じ構文を使用しますが、属性や基本式 (`Foo { ..base }`) を使用することはできません。型パスはプロパティ (`path::to::Props`) に直接指すことも、コンポーネントの関連プロパティ (`MyComp::Properties`) に指すこともできます。
+
+```rust
+use yew::{props, Properties, virtual_dom::AttrValue};
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// リンクにはターゲットが必要です
+    href: AttrValue,
+    /// また、String ではなく AttrValue を使用していることに注意してください
+    text: AttrValue,
+    /// リンクの色、デフォルトは `Blue`
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// 値が None の場合、ビュー関数はサイズを指定しません
+    #[prop_or_default]
+    size: Option<u32>,
+    /// ビュー関数がアクティブを指定しない場合、デフォルトは true
+    #[prop_or(true)]
+    active: bool,
+}
+
+impl LinkProps {
+    /// この関数は href と text を String として受け取ります
+    /// `AttrValue::from` を使用してそれらを `AttrValue` に変換できます
+    pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
+        // highlight-start
+        props! {LinkProps {
+            href: AttrValue::from(href),
+            text: AttrValue::from(text),
+            size,
+        }}
+        // highlight-end
+    }
 }
 ```

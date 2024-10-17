@@ -33,30 +33,24 @@ Yew 使用 `wasm-bindgen` 透過一些 crate 與瀏覽器進行互動：
 ```rust ,no_run
 use wasm_bindgen::prelude::*;
 
-// First up let's take a look of binding `console.log` manually, without the
-// help of `web_sys`. Here we're writing the `#[wasm_bindgen]` annotations
-// manually ourselves, and the correctness of our program relies on the
-// correctness of these annotations!
+// 首先讓我們手動綁定 `console.log`，而不使用 `web_sys` 的幫助。
+// 在這裡，我們手動寫 `#[wasm_bindgen]` 註解，我們程式的正確性取決於這些註解的正確性！
 #[wasm_bindgen]
 extern "C" {
-
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
+    // 在這裡使用 `js_namespace` 來綁定 `console.log(..)` 而不是只有 `log(..)`
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
 
-    // The `console.log` is quite polymorphic, so we can bind it with multiple
-    // signatures. Note that we need to use `js_name` to ensure we always call
-    // `log` in JS.
+    // `console.log` 是多態的，所以我們可以使用多個簽章綁定它。
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_u32(a: u32);
 
-    // Multiple arguments too!
+    // 多個參數也是可以的！
     #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_many(a: &str, b: &str);
 }
 
-// using the imported functions!
+// 使用導入的函數！
 log("Hello from Rust!");
 log_u32(42);
 log_many("Logging", "many values!");
@@ -100,7 +94,7 @@ Rust 有一個強型別系統，而 JavaScript…沒有😞。為了讓 Rust 保
 您需要將其轉換為元素類型，以便呼叫其方法。
 
 ```rust
-// need to import the trait.
+// 需要先導入這個 Trait
 use wasm_bindgen::JsCast;
 use web_sys::{Event, EventTarget, HtmlInputElement, HtmlSelectElement};
 
@@ -109,13 +103,13 @@ fn handle_event(event: Event) {
         .target()
         .expect("I'm sure this event has a target!");
 
-    // maybe the target is a select element?
+    // 也許目標是一個選擇元素？
     if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
-        // do something amazing here
+        // 做點別的
         return;
     }
 
-    // if it wasn't a select element then I KNOW it's a input element!
+    // 如果它能確定不是一個選擇元素，那麼我可以肯定它是一個輸入元素！
     let input_element: HtmlInputElement = target.unchecked_into();
 }
 ```
@@ -172,7 +166,7 @@ async fn my_async_fn() -> String { String::from("Hello") }
 spawn_local(async {
     let mut string = my_async_fn().await;
     string.push_str(", world!");
-    // console log "Hello, world!"
+    // 列印 "Hello, world!"
     console::log_1(&string.into());
 });
 ```

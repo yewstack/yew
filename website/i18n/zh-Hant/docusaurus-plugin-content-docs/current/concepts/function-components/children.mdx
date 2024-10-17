@@ -29,7 +29,7 @@ pub struct Props {
 fn HelloWorld(props: &Props) -> Html {
     html! {
         <div class="very-stylized-container">
-    // highlight-next-line
+            // highlight-next-line
             { props.children.clone() } // 可以靠這種方式轉送子元素
         </div>
     }

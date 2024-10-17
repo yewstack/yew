@@ -37,7 +37,7 @@ async fn no_main() {
 
     let rendered = renderer.render().await;
 
-    // Prints: <div>Hello, World!</div>
+    // 打印: <div>Hello, World!</div>
     println!("{}", rendered);
 }
 ```
@@ -120,8 +120,7 @@ fn App() -> Html {
 fn main() {
     let renderer = Renderer::<App>::new();
 
-    // hydrates everything under body element, removes trailing
-    // elements (if any).
+    // 对 body 元素下的所有内容进行注水，移除尾部元素（如果有）。
     renderer.hydrate();
 }
 ```

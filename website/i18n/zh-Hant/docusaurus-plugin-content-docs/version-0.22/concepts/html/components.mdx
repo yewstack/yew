@@ -38,16 +38,16 @@ let props = Props {
 
 html!{
     <>
-        // No properties
+        // 沒有屬性
         <MyComponent />
 
-        // With Properties
+        // 使用屬性
         <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
-        // With the whole set of props provided at once
+        // 一次提供所有屬性
         <MyComponentWithProps ..props.clone() />
 
-        // With Properties from a variable and specific values overridden
+        // 使用變數中的屬性，並覆寫特定值
         <MyComponentWithProps user_last_name="Elm" ..props />
     </>
 };
@@ -112,7 +112,7 @@ let props = yew::props!(Props {
 
 html! {
     <Container ..props>
-        // props.children will be overwritten with this
+        // 子元素將覆蓋 props.children
         <span>{ "I am a child, as you can see" }</span>
     </Container>
 };

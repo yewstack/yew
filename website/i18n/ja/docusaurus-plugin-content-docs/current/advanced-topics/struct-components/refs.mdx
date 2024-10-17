@@ -1,24 +1,51 @@
 ---
-title: Refs
-description: Out-of-band DOM access
+title: '参照 (Refs)'
+description: 'DOM への越境アクセスを実現する'
 ---
 
-`ref`は、任意の HTML 要素やコンポーネントの内部で、割り当てられている DOM`Element`を取得するために使用することができます。
-これは、`view` ライフサイクルメソッドの外で DOM に変更を加えるために使用できます。
+`ref` キーワードは、任意の HTML 要素やコンポーネントに使用して、その要素に付随する DOM `Element` を取得できます。これにより、`view` ライフサイクルメソッドの外で DOM を変更することができます。
 
-これは、キャンバスの要素を取得したり、ページの異なるセクションにスクロールしたりするのに便利です。
+これは、canvas 要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。例えば、コンポーネントの `rendered` メソッドで `NodeRef` を使用すると、`view` からレンダリングされた後に canvas 要素に描画呼び出しを行うことができます。
 
-構文は以下の通りです:
+構文は次のとおりです：
 
 ```rust
-// In create
-self.node_ref = NodeRef::default();
+use web_sys::Element;
+use yew::{html, Component, Context, Html, NodeRef};
 
-// In view
-html! {
-    <div ref={self.node_ref.clone()}></div>
+struct Comp {
+    node_ref: NodeRef,
 }
 
-// In update
-let has_attributes = self.node_ref.try_into::<Element>().has_attributes();
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            // highlight-next-line
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // highlight-next-line
+            <div ref={self.node_ref.clone()}></div>
+        }
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        // highlight-start
+        let has_attributes = self.node_ref
+            .cast::<Element>()
+            .unwrap()
+            .has_attributes();
+        // highlight-end
+    }
+}
 ```
+
+## 関連例
+
+-   [ノード参照](https://github.com/yewstack/yew/tree/master/examples/node_refs)

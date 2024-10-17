@@ -1,0 +1,17 @@
+---
+title: 'ノード参照'
+description: 'DOM 外部アクセス'
+---
+
+`ref` 属性を使用して、`NodeRef` を HTML 要素にアタッチできます。コールバック内で、`ref` がアタッチされた DOM `Element` を取得できます。これを使用して、`view` ライフサイクルメソッドの外部で DOM を変更したり、`<input>` の値を取得したり、JavaScript API を介して直接 DOM と対話したりできます。
+
+これは、canvas 要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。
+
+:::caution
+Yew がレンダリングした DOM ツリーを手動で変更しないでください。確信が持てない場合は、`NodeRef` を読み取り専用アクセスとして扱ってください。
+:::
+
+## さらに読む
+
+-   [use_node_ref フック](https://yew-rs-api.web.app/next/yew/functional/fn.use_node_ref.html)
+-   [`node_refs` の例](https://github.com/yewstack/yew/tree/master/examples/node_refs)

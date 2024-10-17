@@ -1,15 +1,20 @@
 ---
-title: Literals and Expressions
+title: 'リテラルと式'
 ---
 
 ## リテラル
 
-式が`Display`を実装した型を解決する場合、文字列に変換されて DOM に[Text](https://developer.mozilla.org/en-US/docs/Web/API/Text)ノードとして挿入されます。
+式が `Display` を実装する型に解決される場合、それらは文字列に変換され、[Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) ノードとしてDOMに挿入されます。
 
-テキストは式として処理されるため、全ての表示される内容は`{}`ブロックによって囲まれる必要があります。
-これは Yew のアプリと通常の HTML の構文で最も異なる点です。
+:::note
+文字列リテラルは `Text` ノードを作成し、ブラウザはそれを文字列として扱います。そのため、式に `<script>` タグが含まれていても、式を `<script>` ブロックでラップしない限り、XSS などのセキュリティ問題に遭遇することはありません。
+:::
+
+すべての表示テキストは式と見なされるため、`{}` ブロックで囲む必要があります。これは、Yew と通常の HTML 構文の最大の違いです。
 
 ```rust
+use yew::prelude::*;
+
 let text = "lorem ipsum";
 html!{
     <>
@@ -17,14 +22,18 @@ html!{
         <div>{"dolor sit"}</div>
         <span>{42}</span>
     </>
-}
+};
 ```
 
 ## 式
 
-HTML に`{}`ブロックを使って式を挿入することができます。
+`{}` ブロックを使用して、HTML 内に式を挿入できます。それらが `Html` に解決される限り。
 
 ```rust
+use yew::prelude::*;
+
+let show_link = true;
+
 html! {
   <div>
     {
@@ -37,12 +46,14 @@ html! {
       }
     }
   </div>
-}
+};
 ```
 
-式を関数やクロージャに分離するのはコードの可読性の観点から有効なことがあります。
+通常、これらの式を関数やクロージャに抽出して、可読性を最適化することが意味があります：
 
 ```rust
+use yew::prelude::*;
+
 let show_link = true;
 let maybe_display_link = move || -> Html {
   if show_link {
@@ -56,5 +67,5 @@ let maybe_display_link = move || -> Html {
 
 html! {
      <div>{maybe_display_link()}</div>
-}
+};
 ```

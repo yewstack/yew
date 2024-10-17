@@ -1,373 +1,138 @@
 ---
-title: Elements
-description: Both HTML and SVG elements are supported
+title: '要素'
+description: 'HTML および SVG 要素のサポート'
 ---
 
-## タグ構造
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
-要素のタグは`<... />`のような自己完結タグか、開始タグに対応した終了タグを持っている必要があります。
+## DOM ノード
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Open - Close-->
+Yew で DOM ノードを手動で作成または管理する理由はたくさんあります。たとえば、管理されたコンポーネントと競合する可能性のある JS ライブラリとの統合などです。
+
+`web-sys` を使用すると、DOM 要素を作成して `Node` に変換できます。次に、`VRef` を使用して `Html` 値として使用できます：
 
 ```rust
-html! {
-  <div id="my_div"></div>
+use web_sys::{Element, Node};
+use yew::prelude::*;
+use gloo::utils::document;
+
+#[function_component]
+fn MyComponent() -> Html {
+    // メモ化された関数、一度だけ実行されます
+    let node = use_memo(
+        (),
+        |_| {
+            // ドキュメントから div 要素を作成
+            let div: Element = document().create_element("div").unwrap();
+            // コンテンツ、クラスなどを追加
+            div.set_inner_html("Hello, World!");
+            // Element を Node に変換
+            let node: Node = div.into();
+            // その Node を Html 値として返す
+            Html::VRef(node)
+        },
+    );
+
+    // use_memo は Rc ポインタを返すので、参照解除とクローンが必要です
+    (*node).clone()
 }
+
 ```
 
-<!--Invalid-->
+## 動的なタグ名
+
+高階コンポーネントを構築する際、タグ名が静的ではない状況に遭遇することがあります。例えば、`Title` コンポーネントがあり、レベル属性に応じて `h1` から `h6` までの任意の内容をレンダリングする場合です。大きなマッチ式を使用する代わりに、Yew は `@{name}` を使用してタグ名を動的に設定することを許可します。ここで、`name` は文字列を返す任意の式です。
 
 ```rust
+use yew::prelude::*;
+
+let level = 5;
+let text = "Hello World!".to_owned();
+
 html! {
-  <div id="my_div"> // <- MISSING CLOSE TAG
-}
+    <@{format!("h{}", level)} class="title">{ text }</@>
+};
 ```
 
-<!--Self-closing-->
+## 論理値属性
+
+いくつかのコンテンツ属性（例えば、checked、hidden、required）は論理値属性と呼ばれます。Yew では、論理値属性はブール値に設定する必要があります：
 
 ```rust
+use yew::prelude::*;
+
 html! {
-  <input id="my_input" />
-}
+    <div hidden=true>
+        { "This div is hidden." }
+    </div>
+};
 ```
 
-<!--Invalid-->
+これは次の **HTML** と機能的に同等です：
 
-```rust
-html! {
-  <input id="my_input"> // <- MISSING SELF-CLOSE
-}
+```html
+<div hidden>This div is hidden.</div>
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-:::note
-便利さのために、*普通は*終了タグを必要とする要素は自己完結タグとすることが**できます**。
-例えば`html! { <div class="placeholder" /> }`と書くのは有効です。
-:::
-
-## 子
-
-複雑にネストした HTML や SVG のレイアウトを書くのには以下のようにするのが楽です:
-\*\*
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--HTML-->
+論理値属性を false に設定することは、その属性を使用しないことと同等です。論理式の値を使用することもできます：
 
 ```rust
+use yew::prelude::*;
+
+let no = 1 + 1 != 2;
+
+html! {
+    <div hidden={no}>
+        { "This div is NOT hidden." }
+    </div>
+};
+```
+
+これは次の **HTML** と機能的に同等です：
+
+```html
+<div>This div is NOT hidden.</div>
+```
+
+## 文字列に似た属性
+
+いくつかの論理値属性に加えて、多くの文字列に似た HTML 属性を扱うことがあります。Yew には、文字列に似た値をコンポーネントに渡すためのいくつかのオプションがあります。
+
+```rust
+use yew::{html, virtual_dom::AttrValue};
+
+let str_placeholder = "I'm a str!";
+let string_placeholder = String::from("I'm a String!");
+let attrvalue_placeholder = AttrValue::from("I'm an AttrValue!");
+
 html! {
     <div>
-        <div data-key="abc"></div>
-        <div class="parent">
-            <span class="child" value="anything"></span>
-            <label for="first-name">{ "First Name" }</label>
-            <input type="text" id="first-name" value="placeholder" />
-            <input type="checkbox" checked=true />
-            <textarea value="write a story" />
-            <select name="status">
-                <option selected=true disabled=false value="">{ "Selected" }</option>
-                <option selected=false disabled=true value="">{ "Unselected" }</option>
-            </select>
-        </div>
+        <input placeholder={str_placeholder} />
+        <input placeholder={string_placeholder} />
+        <input placeholder={attrvalue_placeholder} />
     </div>
-}
+};
 ```
 
-<!--SVG-->
+それらはすべて有効ですが、特にクローンを作成する必要がある場合や、別のコンポーネントに属性として渡す必要がある場合は、Yew のカスタム `AttrValue` を使用することをお勧めします。
+
+## HTML 要素のオプション属性
+
+ほとんどの HTML 属性はオプションの値（Some(x) または None）を使用できます。これにより、属性がオプションとしてマークされている場合にその属性を省略できます。
 
 ```rust
+use yew::prelude::*;
+
+let maybe_id = Some("foobar");
+
 html! {
-    <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
-        <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <g filter="url(#filter0_d)">
-            <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
-            <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
-        </g>
-        <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
-        <defs>
-            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                <feGaussianBlur stdDeviation="2"/>
-                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
-            </filter>
-        </defs>
-    </svg>
-}
+    <div id={maybe_id}></div>
+};
 ```
 
-<!--END_DOCUSAURUS_CODE_TABS-->
+属性が `None` に設定されている場合、その属性は DOM に設定されません。
 
-## クラス
+## 関連例
 
-要素へのクラスを特定する便利なやり方はたくさんあります:
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Literal-->
-
-```rust
-html! {
-  <div class="container"></div>
-}
-```
-
-<!--Multiple-->
-
-```rust
-html! {
-  <div class="container center-align"></div>
-}
-```
-
-<!--Interpolated-->
-
-```rust
-html! {
-  <div class={format!("{}-container", size)}></div>
-}
-```
-
-<!--Expression-->
-
-```rust
-html! {
-  <div class={self.classes()}></div>
-}
-```
-
-<!--Tuple-->
-
-```rust
-html! {
-  <div class={("class-1", "class-2")}></div>
-}
-```
-
-<!--Vector-->
-
-```rust
-html! {
-  <div class={vec!["class-1", "class-2"]}></div>
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-## リスナー
-
-リスナー属性はクロージャのラッパーである`Callback`に渡される必要があります。
-コールバックをどのように作るかはアプリをリスナーイベントにどう反応させたいかによります。
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Component handler-->
-
-```rust
-struct MyComponent {
-    link: ComponentLink<Self>,
-}
-
-enum Msg {
-    Click,
-}
-
-impl Component for MyComponent {
-    type Message = Msg;
-    type Properties = ();
-
-    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        MyComponent { link }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::Click => {
-                // Handle Click
-            }
-        }
-    }
-
-    fn view(&self) -> Html {
-        // Create a callback from a component link to handle it in a component
-        let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-<!--Agent Handler-->
-
-```rust
-struct MyComponent {
-    worker: Dispatcher<MyWorker>,
-}
-
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MyComponent {
-            worker: MyWorker::dispatcher()
-        }
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        // Create a callback from a worker to handle it in another context
-        let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-<!--Other Cases-->
-
-```rust
-struct MyComponent;
-
-impl Component for MyComponent {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        MyComponent
-    }
-
-    fn update(&mut self, _: Self::Message) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        // Create an ephemeral callback
-        let click_callback = Callback::from(|| {
-            ConsoleService::log("clicked!");
-        });
-
-        html! {
-            <button onclick={click_callback}>
-                { "Click me!" }
-            </button>
-        }
-    }
-}
-```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-## イベントの型
-
-:::note
-以下のテーブルにある全てのイベントの型は`yew::events`で再エクスポートされています。
-All the event types mentioned in the following table are re-exported under `yew::events`. Using the types from
-`yew::events` makes it easier to ensure version compatibility than if you were to manually include `web-sys`
-or `stdweb` as dependencies in your crate because you won't end up using a version which conflicts with
-the version Yew specifies.
-:::
-
-| イベント名                  | `web_sys` イベント型                                                                  |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| `onabort`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onauxclick`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onblur`                    | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
-| `oncancel`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `oncanplay`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `oncanplaythrough`          | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onchange`                  | [ChangeData](https://docs.rs/yew/latest/yew/events/enum.ChangeData.html)              |
-| `onclick`                   | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onclose`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `oncontextmenu`             | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `oncuechange`               | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `ondblclick`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `ondrag`                    | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondragend`                 | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondragenter`               | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondragexit`                | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondragleave`               | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.htmk)             |
-| `ondragover`                | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondragstart`               | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondrop`                    | [DragEvent](https://docs.rs/web-sys/latest/web_sys/struct.DragEvent.html)             |
-| `ondurationchange`          | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onemptied`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onended`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onerror`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onfocus`                   | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
-| `onformdata`                | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `oninput`                   | [InputData](https://docs.rs/yew/latest/yew/events/struct.InputData.html)              |
-| `oninvalid`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onkeydown`                 | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html)     |
-| `onkeypress`                | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html)     |
-| `onkeyup`                   | [KeyboardEvent](https://docs.rs/web-sys/latest/web_sys/struct.KeyboardEvent.html)     |
-| `onload`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onloadeddata`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onloadedmetadata`          | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onloadstart`               | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html)     |
-| `onmousedown`               | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onmouseenter`              | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onmouseleave`              | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onmousemove`               | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onmouseout`                | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onmouseover`               | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onmouseup`                 | [MouseEvent](https://docs.rs/web-sys/latest/web_sys/struct.MouseEvent.html)           |
-| `onpause`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onplay`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onplaying`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onprogress`                | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html)     |
-| `onratechange`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onreset`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onresize`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onscroll`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onsecuritypolicyviolation` | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onseeked`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onseeking`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onselect`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onslotchange`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onstalled`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onsubmit`                  | [FocusEvent](https://docs.rs/web-sys/latest/web_sys/struct.FocusEvent.html)           |
-| `onsuspend`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `ontimeupdate`              | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `ontoggle`                  | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onvolumechange`            | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onwaiting`                 | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onwheel`                   | [WheelEvent](https://docs.rs/web-sys/latest/web_sys/struct.WheelEvent.html)           |
-| `oncopy`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `oncut`                     | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onpaste`                   | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onanimationcancel`         | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
-| `onanimationend`            | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
-| `onanimationiteration`      | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
-| `onanimationstart`          | [AnimationEvent](https://docs.rs/web-sys/latest/web_sys/struct.AnimationEvent.html)   |
-| `ongotpointercapture`       | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onloadend`                 | [ProgressEvent](https://docs.rs/web-sys/latest/web_sys/struct.ProgressEvent.html)     |
-| `onlostpointercapture`      | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointercancel`           | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerdown`             | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerenter`            | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerleave`            | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerlockchange`       | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onpointerlockerror`        | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onpointermove`             | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerout`              | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerover`             | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onpointerup`               | [PointerEvent](https://docs.rs/web-sys/latest/web_sys/struct.PointerEvent.html)       |
-| `onselectionchange`         | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onselectstart`             | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `onshow`                    | [Event](https://docs.rs/web-sys/latest/web_sys/struct.Event.html)                     |
-| `ontouchcancel`             | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
-| `ontouchend`                | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
-| `ontouchmove`               | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
-| `ontouchstart`              | [TouchEvent](https://docs.rs/web-sys/latest/web_sys/struct.TouchEvent.html)           |
-| `ontransitioncancel`        | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
-| `ontransitionend`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
-| `ontransitionrun`           | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
-| `ontransitionstart`         | [TransitionEvent](https://docs.rs/web-sys/latest/web_sys/struct.TransitionEvent.html) |
+-   [インライン HTML](https://github.com/yewstack/yew/tree/master/examples/inner_html)

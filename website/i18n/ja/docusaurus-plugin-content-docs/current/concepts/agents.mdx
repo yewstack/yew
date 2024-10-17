@@ -1,56 +1,56 @@
 ---
-title: Agents
-description: Yew's Actor System
+title: 'エージェント (Agents)'
+description: "Yew のエージェントシステム"
 ---
 
-エージェントは Angular の[サービス](https://angular.io/guide/architecture-services)に似ており\(ただし依存性インジェクションはありません\)、
-[アクターモデル](https://en.wikipedia.org/wiki/Actor_model)を提供します。
-エージェントはコンポーネント階層のどこに位置するかに関わらず、コンポーネント間でメッセージをルーティングしたり、共有状態を作成したり、UI をレンダリングするメインスレッドから計算量の多いタスクをオフロードするために使用することができます。
-また、Yew アプリケーションがタブをまたいで通信できるようにするためのエージェントのサポートも\(将来的には\)計画されています。
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
 
-エージェントが並行に動くように Yew は[web-workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)を使用しています。
+エージェント (Agents) は、タスクを Web Workers にオフロードする方法です。
+
+エージェントが並行して動作できるようにするために、Yew は [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) を使用します。
 
 ## ライフサイクル
 
-![エージェントのライフサイクル](https://user-images.githubusercontent.com/42674621/79125224-b6481d80-7d95-11ea-8e6a-ab9b52d1d8ac.png)
+<!--
+The diagram is produced with nomnoml (nomnoml.com),
+The code can be found in the <desc> tag of the svgs.
+-->
+
+<ThemedImage
+    alt="agent lifecycle diagram"
+    sources={{
+        light: useBaseUrl('/img/agent-lifecycle-light.svg'),
+        dark: useBaseUrl('/img/agent-lifecycle-dark.svg'),
+    }}
+/>
 
 ## エージェントの種類
 
-### Reaches
+### 範囲
 
--   Context - Context エージェントのインスタンスは、常に最大 1 つ存在します。
-    Bridges は、UI スレッド上で既にスポーンされたエージェントをスポーンするか、接続します。
-    これは、コンポーネントまたは他のエージェント間の状態を調整するために使用することができます。
-    このエージェントに Bridges が接続されていない場合、このエージェントは消滅します。
+-   公開 - 任意の時点で、公開エージェントのインスタンスは最大で1つだけです。ブリッジはWeb Worker内でエージェントを生成するか、既に生成されたエージェントに接続します。ブリッジがこのエージェントに接続されていない場合、エージェントは消滅します。
 
--   Job - 新しいブリッジごとに UI スレッド上で新しいエージェントをスポーンします。
-    これは、ブラウザと通信する共有されているが独立した動作をコンポーネントの外に移動させるのに適しています。
-    (TODO 確認) タスクが完了すると、エージェントは消えます。
+-   私有 - 新しいブリッジごとにWeb Worker内で新しいエージェントを生成します。これは、ブラウザと通信する共有だが独立した動作をコンポーネントから移動するのに適しています。接続されたブリッジが破棄されると、エージェントは消滅します。
 
--   Public - Context と同じですが、独自の web worker で動作します。
+-   グローバル \(WIP\)
 
--   Private - Job と同じですが、独自の web worker で動作します。
+## エージェントとコンポーネント間の通信
 
--   Global \(WIP\)
+### 通信ブリッジ (Bridges)
 
-## エージェントとコンポーネントのやり取り
+通信ブリッジ（ブリッジ）は、コンポーネントとエージェント間の通信チャネルです。これにより、コンポーネントはエージェントにメッセージを送信し、エージェントからのメッセージを受信できます。
 
-### Bridges
+`use_bridge` フックは、関数コンポーネント内でブリッジを作成する機能も提供します。
 
-Bridge は、エージェントとコンポーネント間の双方向通信を可能にします。
-また、Bridge はエージェント同士の通信を可能にします。
+### ディスパッチャー (Dispatchers)
 
-### Dispatchers
-
-Dispatcher は、コンポーネントとエージェント間の一方向通信を可能にします。
-Dispatcher は、コンポーネントがエージェントにメッセージを送信することを可能にします。
+ディスパッチャー（ディスパッチャー）は、コンポーネントとエージェント間の一方向通信を可能にし、コンポーネントがこの方法でエージェントにメッセージを送信します。
 
 ## オーバーヘッド
 
-独自の独立した web worker(プライベートとパブリック)にあるエージェントは、送受信するメッセージにシリアライズするオーバーヘッドが発生します。
-他のスレッドとの通信には[bincode](https://github.com/servo/bincode)を使用するので、関数を呼び出すよりもコストはかなり高くなります。
-計算コストがメッセージの受け渡しコストを上回る場合を除き、ロジックを UI スレッドエージェント\(Job または Context\)に格納する必要があります。
+エージェントはWeb Workers（つまり、私有および公開）を使用します。メッセージの送受信時にシリアル化オーバーヘッドが発生します。エージェントは [bincode](https://github.com/bincode-org/bincode) を使用して他のスレッドと通信するため、コストは関数を呼び出すだけの場合よりもはるかに高くなります。
 
-## 参考資料
+## さらなる読み物
 
--   [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib)の例でコンポーネントがどのようにエージェントと通信させているかがわかります。
+-   [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) の例は、コンポーネントがエージェントにメッセージを送信し、エージェントからのメッセージを受信する方法を示しています。

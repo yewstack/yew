@@ -1,12 +1,24 @@
 ---
-title: Testing apps
-description: Testing your app
+title: 'アプリケーションのテスト'
+description: 'アプリケーションをテストする'
 ---
 
-# Testing
+:::info
+コンポーネントのテストをより簡単にするために努力していますが、現在進行中です。
 
-&lt;TODO&gt;
+[浅いレンダリング](https://github.com/yewstack/yew/issues/1413) のサポートは GitHub リポジトリで見つけることができます。
+:::
+
+## スナップショットテスト
+
+Yew はコンポーネントのスナップショットテストを容易にするために `yew::tests::layout_tests` モジュールを提供しています。
+
+:::important ドキュメントの改善
+スナップショットテストのドキュメントを改善するための助けが必要です。
+:::
 
 ## wasm_bindgen_test
 
-Rust Wasm ワーキンググループは wasm_bindgen_test というフレームワークをメンテナンスしており、組み込みの #[test] プロシージャルマクロの動作と同様の方法でブラウザでテストを実行することができます。詳細は、[Rust Wasm 活動グループのドキュメント](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html)に記載されています。
+Rust/WASM ワーキンググループは [`wasm_bindgen_test`](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html) というクレートを維持しています。
+これにより、組み込みの `#[test]` プロシージャマクロに似た方法でブラウザ内でテストを実行できます。
+このモジュールの詳細については、[Rust Wasm ワーキンググループのドキュメント](https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html) を参照してください。

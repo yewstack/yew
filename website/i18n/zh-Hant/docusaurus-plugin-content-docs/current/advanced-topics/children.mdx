@@ -194,7 +194,7 @@ pub enum Item {
     Secondary(VChild<Secondary>),
 }
 
-// Now, we implement `Into<Html>` so that yew knows how to render `Item`.
+// 現在，我們實現 `Into<Html>`，以便 yew 知道如何渲染 `Item`。
 #[allow(clippy::from_over_into)]
 impl Into<Html> for Item {
     fn into(self) -> Html {
@@ -278,24 +278,24 @@ impl Component for Page {
         html! {
             <div class="page">
                 { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
-                // ... page content
+                // ... 页面内容
             </div>
         }
     }
 }
 
-// The page component can be called either with the sidebar or without:
+// 页面组件可以选择是否附带侧边栏：
 
 pub fn render_page(with_sidebar: bool) -> Html {
     if with_sidebar {
-        // Page with sidebar
+        // 附带侧边栏的页面
         html! {
             <Page sidebar={html_nested! {
                 <PageSideBar />
             }} />
         }
     } else {
-        // Page without sidebar
+        // 不附带侧边栏的页面
         html! {
             <Page />
         }

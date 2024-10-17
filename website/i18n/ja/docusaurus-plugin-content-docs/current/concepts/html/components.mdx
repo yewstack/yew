@@ -1,108 +1,124 @@
 ---
-title: Components
-description: Create complex layouts with component hierarchies
+title: 'コンポーネント'
+description: 'コンポーネント階層を使用して複雑なレイアウトを作成する'
 ---
 
 ## 基本
 
-`Component`を実装しているあらゆる型は`html!`マクロの中で使えます:
+コンポーネントは `html!` マクロで使用できます：
 
 ```rust
+use yew::prelude::*;
+
+#[function_component]
+fn MyComponent() -> Html {
+    html! {
+        { "This component has no properties!" }
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+struct Props {
+    user_first_name: String,
+    user_last_name: String,
+}
+
+#[function_component]
+fn MyComponentWithProps(props: &Props) -> Html {
+    let Props { user_first_name, user_last_name } = props;
+    html! {
+        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+    }
+}
+
+let props = Props {
+    user_first_name: "Bob".to_owned(),
+    user_last_name: "Smith".to_owned(),
+};
+
 html!{
     <>
-        // No properties
+        // プロパティなし
         <MyComponent />
 
-        // With Properties
-        <MyComponent prop1="lorem" prop2="ipsum" />
+        // プロパティを使用
+        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
-        // With the whole set of props provided at once
-        <MyComponent ..props />
+        // すべてのプロパティを一度に提供
+        <MyComponentWithProps ..props.clone() />
 
-        // With Properties from a variable and specific values overridden
-        <MyComponent prop2="lorem" ..props />
+        // 変数のプロパティを使用し、特定の値を上書き
+        <MyComponentWithProps user_last_name="Elm" ..props />
     </>
-}
+};
 ```
 
 ## ネスト
 
-`children`フィールドが`Properties`の中にある場合はコンポーネントは子に渡されます。
+コンポーネントの `Properties` に `children` フィールドがある場合、子コンポーネント/要素を受け入れることができます。
 
 ```rust title="parent.rs"
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
+}
+
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
+    }
+}
+
 html! {
-    <Container>
+    <Container id="container">
         <h4>{ "Hi" }</h4>
         <div>{ "Hello" }</div>
     </Container>
-}
+};
 ```
 
-```rust title="container.rs"
-pub struct Container(Props);
+`html!` マクロは、各プロパティを個別に指定するのではなく、基本式を `..props` 構文で渡すことを可能にします。これは Rust の[関数的更新構文](https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax)に似ています。
+この基本式は、個別のプロパティを渡した後に現れる必要があります。
+`children` フィールドを持つ基本 props 式を渡す場合、`html!` マクロ内で渡された子要素は、props 内に既に存在する子要素を上書きします。
 
-#[derive(Properties, Clone)]
-pub struct Props {
-    pub children: Children,
+```rust
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    id: String,
+    children: Html,
 }
 
-impl Component for Container {
-    type Properties = Props;
-
-    // ...
-
-    fn view(&self) -> Html {
-       html! {
-           <div id="container">
-               { self.0.children.clone() }
-           </div>
-       }
+#[function_component]
+fn Container(props: &Props) -> Html {
+    html! {
+        <div id={props.id.clone()}>
+            { props.children.clone() }
+        </div>
     }
 }
-```
 
-:::note
-`Properties`を継承した型は`Clone`を実装していなければいけません。
-これは`#[derive(Properties, Clone)]`を使うか手で`Clone`を実装すれば良いです。
-:::
+let props = yew::props!(Props {
+    id: "container-2",
+    children: Html::default(),
+});
 
-## Props とネストした子コンポーネント
-
-ネストしたコンポーネントのプロパティは格納しているコンポーネントの型が子である場合はアクセス可能、または変更可能です。
-以下の例では`List`コンポーネントは`ListItem`コンポーネントをラップできています。
-実際の使用においてこのパターンの例については`yew-router`のソースコードを確認してみてください。
-より進んだ例としては Yew のメインのリポジトリにある`nested-list`を確認してみてください。
-
-```rust title="parent.rs"
 html! {
-    <List>
-        <ListItem value="a" />
-        <ListItem value="b" />
-        <ListItem value="c" />
-    </List>
-}
+    <Container ..props>
+        // 子要素は props.children を上書きします
+        <span>{ "I am a child, as you can see" }</span>
+    </Container>
+};
 ```
 
-```rust title="list.rs"
-pub struct List(Props);
+## 参考例
 
-#[derive(Properties, Clone)]
-pub struct Props {
-    pub children: ChildrenWithProps<ListItem>,
-}
-
-impl Component for List {
-    type Properties = Props;
-
-    // ...
-
-    fn view(&self) -> Html {
-        html!{{
-            for self.0.children.iter().map(|mut item| {
-                item.props.value = format!("item-{}", item.props.value);
-                item
-            })
-        }}
-    }
-}
-```
+-   [関数型 Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
+-   [関数型ルーティング](https://github.com/yewstack/yew/tree/master/examples/function_router)
