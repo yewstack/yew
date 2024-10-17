@@ -123,10 +123,6 @@
     "message": "Collapse sidebar",
     "description": "The title attribute for collapse button of doc sidebar"
   },
-  "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "Toggle the collapsible sidebar category '{label}'",
-    "description": "The ARIA label to toggle the collapsible sidebar category"
-  },
   "theme.docs.tagDocListPageTitle.nDocsTagged": {
     "message": "One doc tagged|{count} docs tagged",
     "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
@@ -207,10 +203,6 @@
     "message": "light mode",
     "description": "The name for the light color mode"
   },
-  "theme.docs.DocCard.categoryDescription": {
-    "message": "{count} items",
-    "description": "The default description for a category card in the generated index about how many items this category includes"
-  },
   "theme.docs.versionBadge.label": {
     "message": "Version: {versionLabel}"
   },
@@ -229,9 +221,6 @@
   "theme.CodeBlock.wordWrapToggle": {
     "message": "切换自动换行",
     "description": "The title attribute for toggle word wrapping button of code block lines"
-  },
-  "theme.SearchBar.noResultsText": {
-    "message": "没有找到任何文档"
   },
   "theme.SearchBar.seeAll": {
     "message": "查看全部结果"
@@ -307,14 +296,6 @@
   "theme.DocSidebarItem.collapseCategoryAriaLabel": {
     "message": "折叠侧边栏分类 '{label}'",
     "description": "The ARIA label to collapse the sidebar category"
-  },
-  "theme.unlistedContent.title": {
-    "message": "未列出页",
-    "description": "The unlisted content banner title"
-  },
-  "theme.unlistedContent.message": {
-    "message": "此页面未列出。搜索引擎不会对其索引，只有拥有直接链接的用户才能访问。",
-    "description": "The unlisted content banner message"
   },
   "theme.SearchPage.inputPlaceholder": {
     "message": "在此输入搜索字词",
