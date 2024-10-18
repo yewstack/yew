@@ -43,7 +43,7 @@ wasm-bindgen-futures = "0.4"
 tokio = { version = "1.40", features = ["rt"] }
 
 [dependencies.web-sys]
-version = "^0.3.70"
+version = "^0.3.72"
 features = [
   "AnimationEvent",
   "Document",
