@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728737746639,
+  "lastUpdate": 1729525045912,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -31997,6 +31997,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 446.8,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "伊欧",
+            "username": "langyo",
+            "email": "m13776491897@163.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "84b7548bf7b7640c92d2f73282a4df16cde6ca36",
+          "message": "Add WASI support for server-side rendering. (#3534)\n\n* Try to add wasi feature to avoid browser's ABI.\r\n\r\n* Add async render for single-threaded env.\r\n\r\n* Temporarily enable my own patch branch.\r\nIt would be modified later\r\nafter the corresponding library branches are merged.\r\n\r\n* add example for WASI SSR.\r\n\r\n* Ready to run WASI on wasmtime.\r\n\r\n* complete the example\r\n\r\n* fix fmt\r\n\r\n* fix fmt\r\n\r\n* I made a mistake..sry\r\n\r\n* add yew-router suites for demo\r\n\r\n* fix typo\r\n\r\n* Make the async render stream function public\r\n\r\n* Use target_os instead of feature.\r\n\r\n* Renew gloo-history's patch.\r\n\r\n* Exclude WASI example to avoid web-sys.\r\n\r\n* Try to add CI for WASI example.\r\n\r\n* Fix CI.\r\n\r\n* Fix CI that requires compiler 1.67 or newer.\r\n\r\n* Use CLI's flag instead of exclude example.\r\nhttps://github.com/bytecodealliance/wasmtime/pull/4312\r\n\r\n* Remove patchs.\r\n\r\n* Use LocalServerRenderer instead of ServerRenderer.\r\nhttps://github.com/yewstack/prokio/pull/11#issuecomment-1847979933\r\n\r\n* Remove unused exports.\r\n\r\n* Add description about `LocalServerRenderer`.\r\n\r\n* fix fmt\r\n\r\n* fix fmt\r\n\r\n* Update Cargo.lock\r\n\r\n* Bump rust compiler's version to 1.67...\r\n\r\n* Exclude WASI on yew-router browser interfaces.\r\n\r\n* fix fmt\r\n\r\n* Wait for gloo's PR dealed.\r\n\r\n* Rollback to rust compiler 1.64.\r\ncc https://github.com/rustwasm/gloo/pull/423#issuecomment-1848353295\r\n\r\n* Fix lock file.\r\n\r\n* Downgrade `toml_datetime` version.\r\n\r\n* Fix enum for `gloo-history`.\r\n\r\n* Well, it seems there is no way to avoid the MSRV upgrade....\r\n\r\n* fix: Replace feature = \"wasi\" to target_os = \"wasi\".\r\n\r\n* Remove tips for rust version.\r\n\r\n* Bump `gloo` to 0.11.\r\n\r\n* Try to test yew-macro on compiler 1.67.\r\n\r\n* Try to use compiler 1.68 instead.\r\n\r\n* Try to use compiler 1.69 instead......\r\n\r\n* Revert MSRV back\r\n\r\n* Pin the oldest Cargo.lock.\r\n\r\n* Downgrade deps for MSRV.\r\n\r\n* Bump benchmark tool's tokio to 1.35\r\n\r\n* Try to write WASI CI.\r\n\r\n* Rollback the quotes\r\n\r\n* Combine CI files...\r\n\r\n* Rollback the use that gloo-history has fixed it.\r\n\r\n* fix\r\n\r\n* Bump gloo-history version.\r\n\r\n* Block raw html update tests on WASI.\r\n\r\n* Rollback indexmap's version.\r\n\r\n* fix CI\r\n\r\n* fix CI\r\n\r\n* Update some SSR test suites that replace ServerRender instead of LocalServerRender.\r\n\r\n* Remove yew-router's cfg macro\r\n\r\n* Fix fmt\r\n\r\n* Try to fix CI\r\n\r\n* Update examples/wasi_ssr_module/README.md\r\n\r\nCo-authored-by: Elina <imelina@elina.website>\r\n\r\n* Revert back some unnecessary changes.\r\n\r\n* Clippy\r\n\r\n* fmt\r\n\r\n* Fix CI.\r\n\r\n* Fix CI.\r\n\r\n* Try to fix clippy.\r\n\r\n* Fix `ToString` trait.\r\n\r\n* Remove pin version of WASI CI test.\r\n\r\n* Pin the newer version.\r\n\r\n* Fix typo.\r\n\r\n* Bump `wasm-bindgen`.\r\n\r\n* Fix SSR example.\r\n\r\n* Fix typo.\r\n\r\n* Try to support non-browser environments.\r\n\r\n* Update wasm-bindgen-test to 0.3.43\r\n\r\nrefer to rustwasm/wasm-bindgen#4083\r\n\r\n* fix doc test running on nightly\r\n\r\n* Update website/docs/advanced-topics/server-side-rendering.md\r\n\r\nCo-authored-by: WorldSEnder <WorldSEnder@users.noreply.github.com>\r\n\r\n* Update WASI CI.\r\n\r\n* Remove WASI test for rustc 1.76.\r\n\r\n* Try to let `wasmtime` CLI can be executed.\r\n\r\n* Limit the function `decode_base64` that it shouldn't runnable in non-browser environment.\r\n\r\n* Remove WASI example test for rustc 1.76.\r\n\r\n* Revert changes.\r\n\r\n* Fix CI\r\n\r\n* Fix Cargo.lock\r\n\r\n* Remove unused deps\r\n\r\n* Undo the formatting changes.\r\n\r\n* Undo the formatting changes.\r\n\r\n---------\r\n\r\nCo-authored-by: Elina <imelina@elina.website>\r\nCo-authored-by: Martin Molzer <WorldSEnder@users.noreply.github.com>",
+          "timestamp": "2024-10-21T15:20:30Z",
+          "url": "https://github.com/yewstack/yew/commit/84b7548bf7b7640c92d2f73282a4df16cde6ca36"
+        },
+        "date": 1729525044478,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 187,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 212.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 97.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 45.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 109.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 78.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 2158.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 211.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 86,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.1491613388061523,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.310652732849121,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.6225128173828125,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.134346008300781,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.794864654541016,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 166.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 442.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 194.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 211.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 73.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 24.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 86.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 67,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 2173.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 208.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 89.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 1.8421964645385744,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.215226173400879,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.2975311279296875,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 4.978641510009766,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 41.54443550109863,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 164.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 54,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 454.6,
             "unit": ""
           }
         ]
