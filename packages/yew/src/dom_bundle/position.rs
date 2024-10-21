@@ -124,7 +124,7 @@ impl DomSlot {
         });
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn get(&self) -> Option<Node> {
         self.with_next_sibling(|n| n.cloned())
@@ -180,7 +180,7 @@ impl DynamicDomSlot {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     use gloo::utils::document;
