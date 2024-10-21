@@ -16,7 +16,7 @@ rust-version = "1.76.0"
 proc-macro = true
 
 [dependencies]
-proc-macro-error2 = "2"
+proc-macro-error2 = { version = "2", features = ["nightly"] }
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "2", features = ["full", "extra-traits", "visit-mut"] }
