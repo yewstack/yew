@@ -1,0 +1,34 @@
+---
+title: '纯组件'
+---
+
+每个函数组件都是一个[纯](https://zh.wikipedia.org/wiki/%E7%BA%AF%E5%87%BD%E6%95%B0)函数，它接受一个属性对象并返回一个 `Html` 对象。纯函数是指在给定相同输入时，总是返回相同输出的函数。
+
+这个例子是一个纯组件。对于给定的属性 `is_loading`，它总是返回相同的 `Html`，没有任何副作用。
+
+```rust
+use yew::{Properties, function_component, Html, html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    if props.is_loading {
+        html! { "Loading" }
+    } else {
+        html! { "Hello world" }
+    }
+}
+```
+
+:::note
+如果您有一个内部纯组件，它不使用 hooks 和其他组件机制，您通常可以将其编写为返回 `Html` 的普通函数，从而避免 Yew 运行组件生命周期相关的一些开销。使用 [表达式语法](concepts/html/literals-and-expressions.mdx#expressions) 在 `html!` 中渲染它们。
+:::
+
+## 非纯组件
+
+您可能想知道，如果组件不使用任何全局变量，那么它是否可以是不“纯”的，因为它只是在每次渲染时调用的固定函数。
+这就是下一个主题 - [hooks](./hooks) 的用武之地。

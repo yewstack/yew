@@ -1,0 +1,32 @@
+---
+title: 'Introduction'
+description: 'Components in Yew'
+---
+
+## What are Components?
+
+Components are the building blocks of Yew. They manage an internal state and can render elements to the DOM.
+Components are created by implementing the `Component` trait for a type.
+
+## Writing Component's markup
+
+Yew uses Virtual DOM to render elements to the DOM. The Virtual DOM tree can be constructed by using the
+`html!` macro. `html!` uses a syntax which is similar to HTML but is not the same. The rules are also
+much stricter. It also provides superpowers like conditional rendering and rendering of lists using iterators.
+
+:::info
+[Learn more about the `html!` macro, how it is used and its syntax](concepts/html/introduction.mdx)
+:::
+
+## Passing data to a component
+
+Yew components use _props_ to communicate between parents and children. A parent component may pass any data as props to
+its children. Props are similar to HTML attributes but any Rust type can be passed as props.
+
+:::info
+[Learn more about the props](advanced-topics/struct-components/properties.mdx)
+:::
+
+:::info
+For other than parent/child communication, use [contexts](../../concepts/contexts.mdx)
+:::

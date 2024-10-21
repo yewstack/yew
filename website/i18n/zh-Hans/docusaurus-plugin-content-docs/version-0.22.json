@@ -1,0 +1,86 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.Getting Started": {
+    "message": "从零开始",
+    "description": "The label for category Getting Started in sidebar docs"
+  },
+  "sidebar.docs.category.Concepts": {
+    "message": "核心概念",
+    "description": "The label for category Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Concepts.link.generated-index.title": {
+    "message": "Yew 核心概念",
+    "description": "The generated-index page title for category Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.Concepts.link.generated-index.description": {
+    "message": "了解 Yew 的重要概念！",
+    "description": "The generated-index page description for category Concepts in sidebar docs"
+  },
+  "sidebar.docs.category.HTML": {
+    "message": "HTML",
+    "description": "The label for category HTML in sidebar docs"
+  },
+  "sidebar.docs.category.Components": {
+    "message": "函数式组件",
+    "description": "The label for category Components in sidebar docs"
+  },
+  "sidebar.docs.category.Advanced topics": {
+    "message": "高级主题",
+    "description": "The label for category Advanced topics in sidebar docs"
+  },
+  "sidebar.docs.category.Advanced topics.link.generated-index.title": {
+    "message": "高级主题",
+    "description": "The generated-index page title for category Advanced topics in sidebar docs"
+  },
+  "sidebar.docs.category.Advanced topics.link.generated-index.description": {
+    "message": "了解 Yew 的更多内部细节！",
+    "description": "The generated-index page description for category Advanced topics in sidebar docs"
+  },
+  "sidebar.docs.category.More": {
+    "message": "更多",
+    "description": "The label for category More in sidebar docs"
+  },
+  "sidebar.docs.category.More.link.generated-index.title": {
+    "message": "杂项",
+    "description": "The generated-index page title for category More in sidebar docs"
+  },
+  "sidebar.docs.category.Migration guides": {
+    "message": "迁移指南",
+    "description": "The label for category Migration guides in sidebar docs"
+  },
+  "sidebar.docs.category.yew": {
+    "message": "yew",
+    "description": "The label for category yew in sidebar docs"
+  },
+  "sidebar.docs.category.yew-agent": {
+    "message": "yew-agent",
+    "description": "The label for category yew-agent in sidebar docs"
+  },
+  "sidebar.docs.category.yew-router": {
+    "message": "yew-router",
+    "description": "The label for category yew-router in sidebar docs"
+  },
+  "sidebar.docs.category.Using Basic Web Technologies In Yew": {
+    "message": "Yew 中的基本 Web 技术",
+    "description": "The label for category Using Basic Web Technologies In Yew in sidebar docs"
+  },
+  "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.title": {
+    "message": "Yew 对基本 Web 技术的看法",
+    "description": "The generated-index page title for category Using Basic Web Technologies In Yew in sidebar docs"
+  },
+  "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.description": {
+    "message": "Yew 主要基于将可重用的 UI 部件所需的所有内容放在一个地方 - rust 文件的想法。但也力求保持与技术的原始外观接近。进一步探索，以充分理解我们对这些陈述的含义：",
+    "description": "The generated-index page description for category Using Basic Web Technologies In Yew in sidebar docs"
+  },
+  "sidebar.docs.category.Hooks": {
+    "message": "钩子",
+    "description": "The label for category Hooks in sidebar docs"
+  },
+  "sidebar.docs.category.Struct Components": {
+    "message": "结构化组件",
+    "description": "The label for category Struct Components in sidebar docs"
+  }
+}

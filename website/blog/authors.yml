@@ -1,5 +1,11 @@
 hamza:
     name: Muhammad Hamza
     title: Maintainer of Yew
-    url: https://github.com/hamza1311
-    image_url: https://github.com/hamza1311.png
+    url: https://github.com/ranile
+    image_url: https://github.com/ranile.png
+
+langyo:
+    name: langyo
+    title: Contributor of Yew
+    url: https://github.com/langyo
+    image_url: https://github.com/langyo.png

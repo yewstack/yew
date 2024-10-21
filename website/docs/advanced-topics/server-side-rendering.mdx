@@ -186,8 +186,7 @@ fn App() -> Html {
 fn main() {
     let renderer = Renderer::<App>::new();
 
-    // hydrates everything under body element, removes trailing
-    // elements (if any).
+    // 直接在 body 元素下注水，并移除可能有的任何尾随元素。
     renderer.hydrate();
 }
 ```

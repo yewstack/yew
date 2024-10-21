@@ -1,0 +1,76 @@
+---
+title: 'Function Components'
+slug: /concepts/function-components
+---
+
+Let's revisit this previous statement:
+
+> Yew centrally operates on the idea of keeping everything that a reusable piece of
+> UI may need in one place - rust files.
+
+We will refine this statement, by introducing the concept that will define the logic and
+presentation behavior of an application: "components".
+
+## What are Components?
+
+Components are the building blocks of Yew.
+
+They:
+
+-   Take arguments in form of [Props](./properties.mdx)
+-   Can have their own state
+-   Compute pieces of HTML visible to the user (DOM)
+
+## Two flavors of Yew Components
+
+You are currently reading about function components - the recommended way to write components
+when starting with Yew and when writing simple presentation logic.
+
+There is a more advanced, but less accessible, way to write components - [Struct components](advanced-topics/struct-components/introduction.mdx).
+They allow very detailed control, though you will not need that level of detail most of the time.
+
+## Creating function components
+
+To create a function component add the `#[function_component]` attribute to a function.
+By convention, the function is named in PascalCase, like all components, to contrast its
+use to normal html elements inside the `html!` macro.
+
+```rust
+use yew::{function_component, html, Html};
+
+#[function_component]
+fn HelloWorld() -> Html {
+    html! { "Hello world" }
+}
+
+// Then somewhere else you can use the component inside `html!`
+#[function_component]
+fn App() -> Html {
+    html! { <HelloWorld /> }
+}
+```
+
+## What happens to components
+
+When rendering, Yew will build a virtual tree of these components.
+It will call the view function of each (function) component to compute a virtual version (VDOM) of the DOM
+that you as the library user see as the `Html` type.
+For the previous example, this would look like this:
+
+```xhtml
+<App>
+  <HelloWorld>
+    <p>"Hello world"</p>
+  </HelloWord>
+</App>
+```
+
+When an update is necessary, Yew will again call the view function and reconcile the new virtual DOM with its
+previous version and only propagate the new/changed/necessary parts to the actual DOM.
+This is what we call **rendering**.
+
+:::note
+
+Behind the scenes, `Html` is just an alias for `VNode` - a virtual node.
+
+:::

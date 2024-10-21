@@ -1,0 +1,70 @@
+---
+title: '作用域'
+description: '元件的作用域'
+---
+
+## 元件的 `Scope<_>` 接口
+
+`Scope` 是透過訊息建立回呼並更新自己的機制。我們透過在傳遞給元件的上下文物件上呼叫 `link()` 來獲得對它的參考。
+
+### `send_message`
+
+這個函數可以向元件發送訊息。訊息由 `update` 方法處理，該方法決定元件是否應重新渲染。
+
+### `send_message_batch`
+
+這個函數可以同時向元件發送多個訊息。這類似於 `send_message`，但是如果任何訊息導致 `update` 方法傳回 `true`，則元件將在處理批次中的所有訊息後重新渲染。
+
+如果給定的參數向量為空，則此函數不執行任何操作。
+
+### `callback`
+
+建立一個回調，當執行時將向元件發送訊息。在內部，它將使用提供的閉包返回的訊息呼叫 `send_message`。
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Text(String),
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // 建立一個接受一些文本並將其作為 `Msg::Text` 訊息變體發送到元件的回調。
+        // highlight-next-line
+        let cb = ctx.link().callback(|text: String| Msg::Text(text));
+
+        // 上一行是多餘的冗長，為了更清晰，可以簡化為這樣：
+        // highlight-next-line
+        let cb = ctx.link().callback(Msg::Text);
+
+        // 將 `Msg::Text("Hello World!")` 發送到元件。
+        // highlight-next-line
+        cb.emit("Hello World!".to_owned());
+
+        html! {
+            // 在這裡放置 HTML
+        }
+    }
+}
+```
+
+### `batch_callback`
+
+建立一個回調，執行時將向元件發送一批訊息。與 `callback` 的區別在於，傳遞給此方法的閉包不必傳回訊息。相反，閉包可以傳回 `Vec<Msg>` 或 `Option<Msg>`，其中 `Msg` 是元件的訊息類型。
+
+`Vec<Msg>` 被視為一批訊息，並在內部使用 `send_message_batch`。
+
+`Option<Msg>` 在值為 `Some` 時呼叫 `send_message`。如果值為 `None`，則不執行任何操作。這可以用於根據情況，不需要更新的情況。
+
+這是透過使用僅為這些類型實現的 `SendAsMessage` trait 來實現的。您可以為自己的類型實作 `SendAsMessage`，這樣可以在 `batch_callback` 中使用它們。

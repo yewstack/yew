@@ -1,0 +1,146 @@
+---
+title: 'サスペンス (Suspense)'
+description: 'データ取得のためのサスペンス'
+---
+
+サスペンス (Suspense) は、タスクが完了するまでコンポーネントのレンダリングを一時停止し、その間にフォールバック（プレースホルダー）UI を表示する方法です。
+
+これは、サーバーからデータを取得したり、プロキシがタスクを完了するのを待ったり、他のバックグラウンド非同期タスクを実行したりするために使用できます。
+
+サスペンスが表示される前に、データ取得は通常、コンポーネントのレンダリング後（レンダリング時取得）またはレンダリング前（取得後レンダリング）に発生します。
+
+### レンダリングしながらダウンロード
+
+サスペンス (Suspense) は、新しい方法を提供し、コンポーネントがレンダリング中にデータリクエストを発行できるようにします。コンポーネントがデータリクエストを発行すると、レンダリングプロセスが一時停止され、リクエストが完了するまでフォールバック UI が表示されます。
+
+サスペンスを使用するには、フック (Hook) を使用することをお勧めします。
+
+```rust ,ignore
+use yew::prelude::*;
+
+#[function_component(Content)]
+fn content() -> HtmlResult {
+    let user = use_user()?;
+
+    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    let fallback = html! {<div>{"Loading..."}</div>};
+
+    html! {
+        <Suspense {fallback}>
+            <Content />
+        </Suspense>
+    }
+}
+```
+
+上記の例では、`use_user` フックはユーザー情報の読み込み中にコンポーネントのレンダリングを一時停止し、`user` が読み込まれる前に `Loading...` プレースホルダーを表示します。
+
+コンポーネントのレンダリングを一時停止するフックを定義するには、`SuspensionResult<T>` を返す必要があります。コンポーネントが一時停止する必要がある場合、フックは `Err(Suspension)` を返すべきであり、ユーザーはそれを `?` でアンパックする必要があります。これにより、それが `Html` に変換されます。
+
+```rust ,ignore
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
+
+struct User {
+    name: String,
+}
+
+#[hook]
+fn use_user() -> SuspensionResult<User> {
+    match load_user() {
+        // ユーザーが読み込まれたら、それを Ok(user) として返します。
+        Some(user) => Ok(user),
+        None => {
+            // ユーザーがまだ読み込まれていない場合、`Suspension` を作成し、
+            // データの読み込みが完了したときに `SuspensionHandle::resume` を呼び出します。
+            // これにより、コンポーネントは自動的に再レンダリングされます。
+            let (s, handle) = Suspension::new();
+            on_load_user_complete(move || {handle.resume();});
+            Err(s)
+        },
+    }
+}
+```
+
+#### サスペンスフック (Hook) の実装に関する注意事項
+
+[`Suspension::new`](https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new) は 2 つの値を返します：サスペンスコンテキスト自体とサスペンスハンドル。後者はサスペンスされたコンポーネントを再レンダリングするタイミングを管理し、2 つの方法で操作できます：
+
+1. その [`resume`](https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume) メソッドを呼び出す。
+2. ハンドルを破棄する。
+
+:::danger
+
+サスペンスハンドルは、新しいデータを受け取ってコンポーネントを更新するまで保存する必要があります。そうしないと、サスペンスされたコンポーネントが無限再レンダリングループに入り、パフォーマンスに影響を与えます。
+上記の例では、サスペンスハンドルはクロージャに移動し、`on_load_user_complete` に渡されることで保存されます。
+仮想ユーザーが読み込まれると、クロージャが呼び出され、`handle.resume()` が呼び出され、サスペンスコンテキストに関連するコンポーネントが再レンダリングされます。
+
+:::
+
+# 完全な例
+
+```rust
+use yew::prelude::*;
+use yew::suspense::{Suspension, SuspensionResult};
+
+#[derive(Debug)]
+struct User {
+    name: String,
+}
+
+fn load_user() -> Option<User> {
+    todo!()  // 省略
+}
+
+fn on_load_user_complete<F: FnOnce()>(_fn: F) {
+    todo!()  // 省略
+}
+
+#[hook]
+fn use_user() -> SuspensionResult<User> {
+    match load_user() {
+        // ユーザーが読み込まれたら、それを Ok(user) として返します。
+        Some(user) => Ok(user),
+        None => {
+            // ユーザーがまだ読み込まれていない場合、`Suspension` を作成し、
+            // データの読み込みが完了したときに `SuspensionHandle::resume` を呼び出します。
+            // これにより、コンポーネントは自動的に再レンダリングされます。
+            let (s, handle) = Suspension::new();
+            on_load_user_complete(move || {handle.resume();});
+            Err(s)
+        },
+    }
+}
+
+#[function_component(Content)]
+fn content() -> HtmlResult {
+    let user = use_user()?;
+
+    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    let fallback = html! {<div>{"Loading..."}</div>};
+
+    html! {
+        <Suspense {fallback}>
+            <Content />
+        </Suspense>
+    }
+}
+```
+
+### 構造体コンポーネントでプレースホルダーを使用する
+
+構造体コンポーネントを直接サスペンドすることはできません。しかし、関数コンポーネントを[高階コンポーネント](../advanced-topics/struct-components/hoc)として使用し、プレースホルダーに基づいたデータ取得を実現することができます。
+
+Yew リポジトリの[プレースホルダーの例](https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs)は、このコンポーネントの使用方法を示しています。
+
+## 関連例
+
+-   [プレースホルダー](https://github.com/yewstack/yew/tree/master/examples/suspense)

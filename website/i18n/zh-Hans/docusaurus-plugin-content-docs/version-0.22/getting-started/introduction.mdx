@@ -1,0 +1,44 @@
+---
+title: '开始使用'
+---
+
+你需要一些工具来编译、构建、打包和调试你的 Yew 应用程序。在最开始，我们建议使用 [Trunk](https://trunkrs.dev/)。Trunk 是一个用于 Rust 的 WASM Web 应用程序打包工具。
+
+## 安装 Rust
+
+要安装 Rust，请按照[官方说明](https://www.rust-lang.org/tools/install)。
+
+:::important
+Yew 支持的最低 Rust 版本（MSRV）是 `1.76.0`。旧版本将无法编译。您可以使用 `rustup show`（在“active toolchain”下）或 `rustc --version` 检查您的工具链版本。要更新您的工具链，请运行 `rustup update`。
+:::
+
+## 安装 WebAssembly 目标
+
+Rust 可以为不同的“目标”（例如不同的处理器）编译源代码。用于基于浏览器的 WebAssembly 的编译目标称为 `wasm32-unknown-unknown`。以下命令将向您的开发环境添加 WebAssembly 目标。
+
+```shell
+rustup target add wasm32-unknown-unknown
+```
+
+## 安装 Trunk
+
+Trunk 是推荐的用于管理部署和打包的工具，并在整个文档和示例中使用。
+
+```shell
+# 需要注意的是，这可能需要一段时间来安装，因为它会从头开始编译所有内容
+# Trunk 还为许多主要的包管理器提供了预构建的二进制文件
+# 有关更多详细信息，请参见 https://trunkrs.dev/#install
+cargo install --locked trunk
+```
+
+### 其他选项
+
+除了 Trunk 之外，还有其他选项可用于打包 Yew 应用程序。您可能想尝试以下选项之一：
+
+-   [`wasm-pack`](https://rustwasm.github.io/wasm-pack/)
+-   [`wasm-run`](https://github.com/IMI-eRnD-Be/wasm-run)
+-   [`xtask-wasm`](https://github.com/rustminded/xtask-wasm/) (仍在早期开发阶段)
+
+## 下一步
+
+设置好开发环境后，您现在可以继续阅读文档。如果您喜欢通过动手实践来学习，我们建议您查看我们的[教程](../tutorial)。
