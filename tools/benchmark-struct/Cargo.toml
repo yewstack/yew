@@ -10,8 +10,8 @@ crate-type = ["cdylib"]
 [dependencies]
 rand = { version = "0.8.5", features = ["small_rng"] }
 getrandom = { version = "0.2.15", features = ["js"] }
-wasm-bindgen = "0.2.92"
-web-sys = { version = "0.3.70", features = ["Window"]}
+wasm-bindgen = "0.2.95"
+web-sys = { version = "0.3.72", features = ["Window"]}
 yew = { version = "0.21.0", features = ["csr"], path = "../../packages/yew" }
 
 [package.metadata.wasm-pack.profile.release]
