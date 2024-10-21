@@ -1,3 +1,5 @@
+#![cfg(not(target_os = "wasi"))]
+
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;
 

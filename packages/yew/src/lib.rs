@@ -293,8 +293,7 @@ mod app_handle;
 #[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(feature = "csr")]
-#[cfg(test)]
+#[cfg(all(feature = "csr", any(test, feature = "test")))]
 #[allow(missing_docs)]
 pub mod tests;
 

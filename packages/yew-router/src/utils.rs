@@ -42,7 +42,7 @@ pub fn fetch_base_url() -> Option<String> {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     gloo::utils::window()
         .location()
@@ -55,7 +55,7 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
         })
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     let query = query.trim();
 
