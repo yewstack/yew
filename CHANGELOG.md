@@ -6,7 +6,6 @@
 
 ## 🛠 Fixes
 
- - Fix CI. [[@Tomoaki Kawada](https://github.com/kawadakk), [#3679](https://github.com/yewstack/yew/pull/3679)]
  - Fix: Hydratation of empty lists next to components.. [[@WorldSEnder](https://github.com/WorldSEnder), [#3630](https://github.com/yewstack/yew/pull/3630)]
 
 ## ⚡️ Features
@@ -25,9 +24,9 @@
 ## 🚨 Breaking changes
 
  - Add use_ref. [[@Alex Parrill](https://github.com/ColonelThirtyTwo), [#3548](https://github.com/yewstack/yew/pull/3548)]
- - Allow setting JsValue as properties. [[@Muhammad Hamza](https://github.com/ranile), [#3458](https://github.com/yewstack/yew/pull/3458)]
+ - Allow setting JsValue as properties. [[@Elina](https://github.com/ranile), [#3458](https://github.com/yewstack/yew/pull/3458)]
  - Remove deprecated `class=(...)` syntax. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3497](https://github.com/yewstack/yew/pull/3497)]
- - Remove ToHtml trait. [[@Muhammad Hamza](https://github.com/ranile), [#3453](https://github.com/yewstack/yew/pull/3453)]
+ - Remove ToHtml trait. [[@Elina](https://github.com/ranile), [#3453](https://github.com/yewstack/yew/pull/3453)]
  - Make Html (VNode) cheap to clone. [[@Cecile Tonglet](https://github.com/cecton), [#3431](https://github.com/yewstack/yew/pull/3431)]
 
 ## ✨ yew-router **0.19.0** *(2024-10-14)*
