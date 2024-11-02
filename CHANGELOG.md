@@ -4,6 +4,11 @@
 
 #### Changelog
 
+## Migration
+
+Our users can follow the migration guide to migrate from
+[0.20.0 to 0.21.0](https://yew.rs/docs/migration-guides/yew/from-0_20_0-to-0_21_0)
+
 ## 🛠 Fixes
 
  - Fix rust-analyzer non_camel_case_types warning. [[@Sean Bruton](https://github.com/Sean Bruton), [#3388](https://github.com/yewstack/yew/pull/3388)]
