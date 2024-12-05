@@ -1,0 +1,34 @@
+---
+title: '純粋コンポーネント'
+---
+
+すべての関数コンポーネントは、プロパティオブジェクトを受け取り、`Html` オブジェクトを返す[純粋](https://ja.wikipedia.org/wiki/%E7%B4%94%E9%96%A2%E6%95%B0)関数です。純粋関数とは、同じ入力に対して常に同じ出力を返す関数のことです。
+
+この例は純粋コンポーネントです。与えられたプロパティ `is_loading` に対して、常に同じ `Html` を返し、副作用はありません。
+
+```rust
+use yew::{Properties, function_component, Html, html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    if props.is_loading {
+        html! { "Loading" }
+    } else {
+        html! { "Hello world" }
+    }
+}
+```
+
+:::note
+内部の純粋コンポーネントがフックや他のコンポーネントメカニズムを使用しない場合、それを `Html` を返す通常の関数として記述することができ、Yew がコンポーネントのライフサイクルに関連するオーバーヘッドを回避することができます。[式構文](concepts/html/literals-and-expressions.mdx#expressions) を使用して `html!` 内でそれらをレンダリングします。
+:::
+
+## 非純粋コンポーネント
+
+コンポーネントがグローバル変数を使用しない場合、それが「純粋」でない可能性があるかどうか疑問に思うかもしれません。なぜなら、それは毎回レンダリングされる固定関数として呼び出されるだけだからです。
+これが次のトピック - [フック](./hooks) の出番です。

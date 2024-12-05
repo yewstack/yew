@@ -1,0 +1,45 @@
+---
+title: '部署'
+description: '部署 Yew 应用程序'
+---
+
+当您准备将 Yew 应用程序部署到服务器时，您有多种部署方案可以选择。
+
+`trunk build --release` 会以发布模式构建您的应用程序。设置您的 HTTP 服务器，以便在访问您的站点时提供 `index.html`，并且对于静态路径（例如 `index_<hash>.js` 和 `index_bg_<hash>.wasm`）的请求，应该从 trunk 生成的 dist 目录中提供相应的内容。
+
+:::important 有关 `trunk serve --release`
+不要在生产环境中使用 `trunk serve --release` 来提供您的应用程序。
+它只应该用于在开发过程中测试发布版本构建。
+:::
+
+## 服务器配置
+
+### 将 `index.html` 作为回退提供
+
+如果应用程序使用了 [Yew 路由](concepts/router.mdx)，您必须配置服务器在请求不存在的文件时返回 `index.html`。
+
+具有 Yew 路由的应用程序被构建为 [单页应用程序 (SPA)](https://developer.mozilla.org/en-US/docs/Glossary/SPA)。当用户从正在运行的客户端导航到 URL 时，路由器会解释 URL 并路由到该页面。
+
+但是在刷新页面或在地址栏中输入 URL 时，这些操作都是由浏览器本身处理的，而不是由正在运行的应用程序处理。浏览器直接向服务器请求该 URL，绕过了路由器。错误配置的服务器会返回 404 - 未找到 状态。
+
+通过返回 `index.html`，应用程序会像通常一样加载，就好像请求是 `/`，直到路由器注意到路由是 `/show/42` 并显示相应的内容。
+
+### 为 Web Assembly 资源配置正确的 MIME 类型。
+
+WASM 文件必须使用 `application/wasm` MIME 类型设置 [Content-Type 头](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type)。
+
+大多数服务器和托管服务默认已经这样做。如果您的服务器没有这样做，请查阅其文档。在大多数 Web 浏览器中，错误的 MIME 类型会导致类似以下的错误：
+
+```ignore
+`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:
+ TypeError: WebAssembly: Response has unsupported MIME type 'text/plain' expected 'application/wasm'
+```
+
+## 为相对路径构建
+
+默认情况下，trunk 会假定您的站点在 `/` 处提供，并相应地构建站点。可以通过在 `index.html` 文件中添加 `<base data-trunk-public-url />` 来覆盖此行为。Trunk 会重写此标签以包含传递给 `--public-url` 的值。Yew 路由会自动检测 `<base />` 的存在并适当处理。
+
+## 使用环境变量自定义行为
+
+通常使用环境变量来自定义构建环境。由于应用程序在浏览器中运行，我们无法在运行时读取环境变量。
+[`std::env!`](https://doc.rust-lang.org/std/macro.env.html) 宏可以在编译时获取环境变量的值。

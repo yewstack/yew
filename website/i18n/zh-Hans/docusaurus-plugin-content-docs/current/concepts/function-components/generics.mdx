@@ -1,0 +1,44 @@
+---
+title: '泛型组件'
+description: '函数组件的 #[function_component] 属性'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`#[function_component]` 属性也适用于用于创建泛型组件的泛型函数。
+
+```rust
+use std::fmt::Display;
+use yew::{function_component, html, Properties, Html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props<T>
+where
+    T: PartialEq,
+{
+    data: T,
+}
+
+#[function_component]
+pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
+where
+    T: PartialEq + Clone + Into<Html>,
+{
+    html! {
+        <p>
+            { props.data.clone().into() }
+        </p>
+    }
+}
+
+// 之后可以像这样使用
+html! {
+    <MyGenericComponent<i32> data=123 />
+};
+
+// 或者
+html! {
+    <MyGenericComponent<String> data={"foo".to_string()} />
+};
+```

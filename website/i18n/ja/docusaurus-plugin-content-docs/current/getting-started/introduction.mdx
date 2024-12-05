@@ -1,0 +1,44 @@
+---
+title: '始めに'
+---
+
+Yew アプリケーションをコンパイル、ビルド、パッケージ、およびデバッグするためにいくつかのツールが必要です。最初に、[Trunk](https://trunkrs.dev/) を使用することをお勧めします。Trunk は Rust 用の WASM Web アプリケーションパッケージツールです。
+
+## Rust のインストール
+
+Rust をインストールするには、[公式の手順](https://www.rust-lang.org/tools/install) に従ってください。
+
+:::important
+Yew がサポートする最低 Rust バージョン（MSRV）は `1.76.0` です。古いバージョンではコンパイルできません。`rustup show`（「active toolchain」の下）または `rustc --version` を使用してツールチェーンのバージョンを確認できます。ツールチェーンを更新するには、`rustup update` を実行してください。
+:::
+
+## WebAssembly ターゲットのインストール
+
+Rust は異なる「ターゲット」（例えば異なるプロセッサ）に対してソースコードをコンパイルできます。ブラウザベースの WebAssembly 用のコンパイルターゲットは `wasm32-unknown-unknown` と呼ばれます。以下のコマンドは、開発環境に WebAssembly ターゲットを追加します。
+
+```shell
+rustup target add wasm32-unknown-unknown
+```
+
+## Trunk のインストール
+
+Trunk は、デプロイとパッケージ管理に推奨されるツールであり、ドキュメントやサンプル全体で使用されています。
+
+```shell
+# 注意：これはすべての内容をゼロからコンパイルするため、インストールに時間がかかる場合があります
+# Trunk は多くの主要なパッケージマネージャーに対して事前構築されたバイナリを提供しています
+# 詳細については、https://trunkrs.dev/#install を参照してください
+cargo install --locked trunk
+```
+
+### 他のオプション
+
+Trunk の他にも、Yew アプリケーションをパッケージ化するための他のオプションがあります。以下のオプションのいずれかを試してみることをお勧めします：
+
+-   [`wasm-pack`](https://rustwasm.github.io/wasm-pack/)
+-   [`wasm-run`](https://github.com/IMI-eRnD-Be/wasm-run)
+-   [`xtask-wasm`](https://github.com/rustminded/xtask-wasm/)（まだ初期開発段階です）
+
+## 次のステップ
+
+開発環境の設定が完了したら、ドキュメントの読み進めを続けることができます。実践を通じて学ぶのが好きな方は、[チュートリアル](../tutorial)をチェックすることをお勧めします。

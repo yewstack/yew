@@ -1,0 +1,34 @@
+---
+title: '純組件'
+---
+
+每個函數元件都是一個[純](https://zh.wikipedia.org/zh-hk/%E7%BA%AF%E5%87%BD%E6%95%B0)函數，它接受一個屬性物件並傳回一個`Html` 物件。純函數是指在給定相同輸入時，總是會傳回相同輸出的函數。
+
+這個例子是一個純組件。對於給定的屬性 `is_loading`，它總是傳回相同的 `Html`，沒有任何副作用。
+
+```rust
+use yew::{Properties, function_component, Html, html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    if props.is_loading {
+        html! { "Loading" }
+    } else {
+        html! { "Hello world" }
+    }
+}
+```
+
+:::note
+如果您有一個內部純元件，它不使用 hooks 和其他元件機制，您通常可以將其編寫為傳回 `Html` 的普通函數，從而避免 Yew 運行元件生命週期相關的一些開銷。使用 [表達式語法](concepts/html/literals-and-expressions.mdx#expressions) 在 `html!` 中渲染它們。
+:::
+
+## 非純組件
+
+您可能想知道，如果元件不使用任何全域變量，那麼它是否可以是不“純”的，因為它只是在每次渲染時調用的固定函數。
+這就是下一個主題 - [hooks](./hooks) 的用武之地。

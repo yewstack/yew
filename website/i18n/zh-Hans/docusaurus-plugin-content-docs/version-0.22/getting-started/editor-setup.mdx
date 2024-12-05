@@ -1,0 +1,159 @@
+---
+title: '设置编辑器'
+description: '设置您的代码编辑器'
+---
+
+:::important 改进文档
+有在使用不同的编辑器？如有推荐，请随意添加您选择的编辑器的说明。
+:::
+
+## 为创建组件添加模板
+
+### JetBrains IDEs
+
+1. 从导航栏依次点击 File | Settings | Editor | Live Templates.
+2. 选择 Rust 并点击 + 图标添加新的 Live Template。
+3. 根据需要给它一个的名称和描述。
+4. 将以下代码片段粘贴到模板文本部分。
+5. 在右下角更改适用性，选择 Rust > Item > Module
+
+对于函数式组件，使用以下模板。
+
+-   (可选) 点击编辑变量，并给 `tag` 一个合理的默认值，例如 "div"，用双引号。
+
+```rust ,ignore
+#[derive(PartialEq, Properties)]
+pub struct $Name$Props {
+}
+
+#[function_component]
+pub fn $Name$(props: &$Name$Props) -> Html {
+    html! {
+        <$tag$>$END$</$tag$>
+    }
+}
+```
+
+对于结构体组件，可以使用以下更复杂的模板。
+
+```rust ,ignore
+struct $NAME$;
+
+enum $NAME$Msg {
+}
+
+impl Component for $NAME$ {
+    type Message = $NAME$Msg;
+    type Properties = ();
+
+    fn create(ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            $HTML$
+        }
+    }
+}
+```
+
+### VS Code
+
+1. 从导航栏依次点击 File > Preferences > User Snippets.
+2. 选择 Rust 作为设置语言。
+3. 在 JSON 文件中添加以下代码片段：
+
+```json
+{
+    "New Yew function component": {
+        "prefix": "yewfc",
+        "body": [
+            "#[derive(PartialEq, Properties)]",
+            "pub struct ${1:ComponentName}Props {}",
+            "",
+            "#[function_component]",
+            "pub fn $1(props: &${1}Props) -> Html {",
+            "    let ${1}Props {} = props;",
+            "    html! {",
+            "        <${2:div}>$0</${2}>",
+            "    }",
+            "}"
+        ],
+        "description": "Create a minimal Yew function component"
+    },
+    "New Yew struct component": {
+        "prefix": "yewsc",
+        "body": [
+            "pub struct ${1:ComponentName};",
+            "",
+            "pub enum ${1}Msg {",
+            "}",
+            "",
+            "impl Component for ${1} {",
+            "    type Message = ${1}Msg;",
+            "    type Properties = ();",
+            "",
+            "    fn create(ctx: &Context<Self>) -> Self {",
+            "        Self",
+            "    }",
+            "",
+            "    fn view(&self, ctx: &Context<Self>) -> Html {",
+            "        html! {",
+            "            $0",
+            "        }",
+            "    }",
+            "}"
+        ],
+        "description": "Create a new Yew component with a message enum"
+    }
+}
+```
+
+## 支持 `html!` 宏
+
+### JetBrains IDEs
+
+JetBrains 在 2021 年 4 月添加了对过程宏扩展的实验性支持。
+必须先启用此功能才能生效。
+[查阅这篇博客以了解详情。](https://blog.jetbrains.com/rust/2021/04/08/intellij-rust-updates-for-2021-1/#proc-macros)
+
+这仍然不会启用 HTML 的自动填充和格式化帮助，但会启用宏内部组件名称和属性的变量解析。
+重命名、转到声明、查找用法等工具将在宏内部工作。
+
+### VS Code
+
+#### Rust-Yew 扩展
+
+> 这是一个**正在进行中**的，**由社区维护**的项目！[请查看详细信息，并将相关的 bug 报告/问题/疑问直接发送到扩展的存储库](https://github.com/TechTheAwesome/code-yew-server)
+
+Rust-Yew 扩展 [可以在 VSC Marketplace 上找到](https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew)，提供语法高亮、重命名、悬停等功能。
+
+Emmet 支持应该可以直接使用，如果不能，请回退到编辑 `settings.json` 文件：
+
+```json
+"emmet.includeLanguages": {
+    "rust": "html",
+}
+```
+
+### Neovim
+
+#### Lazyvim
+
+> 下面的配置适用于 [LazyVim](https://www.lazyvim.org) 配置和 lazy.vim 插件，请在 `lua/plugins/nvim-lspconfig.lua` 中创建一个文件（或更新您的 `lspconfig`）：
+
+```json
+return {
+  {
+    "neovim/nvim-lspconfig",
+    init_options = {
+      userLanguages = {
+        eelixir = "html-eex",
+        eruby = "erb",
+        rust = "html",
+      },
+    },
+  },
+}
+```
