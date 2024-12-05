@@ -54,7 +54,7 @@ struct NodeWriter<'s> {
     slot: DomSlot,
 }
 
-impl<'s> NodeWriter<'s> {
+impl NodeWriter<'_> {
     /// Write a new node that has no ancestor
     fn add(self, node: VNode) -> (Self, BNode) {
         test_log!("adding: {:?}", node);
