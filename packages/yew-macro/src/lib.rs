@@ -112,14 +112,14 @@ pub fn derive_props(input: TokenStream) -> TokenStream {
     TokenStream::from(input.into_token_stream())
 }
 
-#[proc_macro_error::proc_macro_error]
+#[proc_macro_error2::proc_macro_error]
 #[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRoot);
     TokenStream::from(root.into_token_stream())
 }
 
-#[proc_macro_error::proc_macro_error]
+#[proc_macro_error2::proc_macro_error]
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRootVNode);
@@ -138,7 +138,7 @@ pub fn classes(input: TokenStream) -> TokenStream {
     TokenStream::from(classes.into_token_stream())
 }
 
-#[proc_macro_error::proc_macro_error]
+#[proc_macro_error2::proc_macro_error]
 #[proc_macro_attribute]
 pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as FunctionComponent);
@@ -149,7 +149,7 @@ pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::T
         .into()
 }
 
-#[proc_macro_error::proc_macro_error]
+#[proc_macro_error2::proc_macro_error]
 #[proc_macro_attribute]
 pub fn hook(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
     let item = parse_macro_input!(item as HookFn);
