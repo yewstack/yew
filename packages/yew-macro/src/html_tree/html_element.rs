@@ -11,6 +11,45 @@ use crate::props::{ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
 use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
 
+fn is_normalised_element_name(name: &str) -> bool {
+    match name {
+        "animateMotion"
+        | "animateTransform"
+        | "clipPath"
+        | "feBlend"
+        | "feColorMatrix"
+        | "feComponentTransfer"
+        | "feComposite"
+        | "feConvolveMatrix"
+        | "feDiffuseLighting"
+        | "feDisplacementMap"
+        | "feDistantLight"
+        | "feDropShadow"
+        | "feFlood"
+        | "feFuncA"
+        | "feFuncB"
+        | "feFuncG"
+        | "feFuncR"
+        | "feGaussianBlur"
+        | "feImage"
+        | "feMerge"
+        | "feMergeNode"
+        | "feMorphology"
+        | "feOffset"
+        | "fePointLight"
+        | "feSpecularLighting"
+        | "feSpotLight"
+        | "feTile"
+        | "feTurbulence"
+        | "foreignObject"
+        | "glyphRef"
+        | "linearGradient"
+        | "radialGradient"
+        | "textPath" => true,
+        _ => !name.chars().any(|c| c.is_ascii_uppercase()),
+    }
+}
+
 pub struct HtmlElement {
     pub name: TagName,
     pub props: ElementProps,
@@ -310,9 +349,9 @@ impl ToTokens for HtmlElement {
             TagName::Lit(dashedname) => {
                 let name_span = dashedname.span();
                 let name = dashedname.to_ascii_lowercase_string();
-                if name != dashedname.to_string() {
+                if !is_normalised_element_name(&dashedname.to_string()) {
                     emit_warning!(
-                        dashedname.span(),
+                        name_span.clone(),
                         format!(
                             "The tag '{dashedname}' is not matching its normalized form '{name}'. If you want \
                              to keep this form, change this to a dynamic tag `@{{\"{dashedname}\"}}`."

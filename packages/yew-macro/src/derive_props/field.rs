@@ -200,7 +200,7 @@ pub struct PropFieldCheck<'a> {
     check_arg: GenericParam,
 }
 
-impl<'a> PropFieldCheck<'a> {
+impl PropFieldCheck<'_> {
     pub fn to_fake_prop_decl(&self) -> proc_macro2::TokenStream {
         let Self { this, .. } = self;
         if !this.is_required() {
