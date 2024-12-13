@@ -29,9 +29,8 @@ rustversion = "1"
 trybuild = "1"
 yew = { path = "../yew" }
 
-[features]
-default = []
-nightly_yew = ["proc-macro-error2/nightly"]
+[target.'cfg(nightly_yew)'.dependencies]
+proc-macro-error2 = { version = "2", features = ["nightly"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(nightly_yew)'] }
