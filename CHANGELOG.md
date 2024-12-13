@@ -7,6 +7,7 @@
 ## 🛠 Fixes
 
  - Fix: Hydratation of empty lists next to components.. [[@WorldSEnder](https://github.com/WorldSEnder), [#3630](https://github.com/yewstack/yew/pull/3630)]
+silenced non-normalised element name warnings for SVG elements [@Tim Kurdov](https://github.com/its-the-shrimp), [#3769](https://github.com/yewstack/yew/pull/3769)]
 
 ## ⚡️ Features
 
