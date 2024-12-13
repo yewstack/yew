@@ -16,7 +16,7 @@ rust-version = "1.76.0"
 proc-macro = true
 
 [dependencies]
-proc-macro-error = "1"
+proc-macro-error2 = "2"
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "2", features = ["full", "extra-traits", "visit-mut"] }
@@ -29,6 +29,8 @@ rustversion = "1"
 trybuild = "1"
 yew = { path = "../yew" }
 
+[target.'cfg(nightly_yew)'.dependencies]
+proc-macro-error2 = { version = "2", features = ["nightly"] }
+
 [lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(nightly_yew)'] }
-
