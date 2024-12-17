@@ -1,0 +1,177 @@
+---
+title: 'wasm-bindgen'
+sidebar_label: wasm-bindgen
+---
+
+[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) は、JavaScript と Rust 関数の間に呼び出しブリッジを作成するためのライブラリおよびツールです。これは [Rust と WebAssembly ワーキンググループ](https://rustwasm.github.io/) によって Rust で構築されました。
+
+Yew は `wasm-bindgen` を使用して、いくつかのクレートを介してブラウザと対話します：
+
+-   [`js-sys`](https://crates.io/crates/js-sys)
+-   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+-   [`web-sys`](https://crates.io/crates/web-sys)
+
+このセクションでは、これらのクレートをより抽象的なレベルから探求し、Yew での `wasm-bindgen` API の理解と使用を容易にします。`wasm-bindgen` および関連するクレートに関する詳細なガイドについては、[`wasm-bindgen` ガイド](https://rustwasm.github.io/docs/wasm-bindgen/) を参照してください。
+
+上記のクレートのドキュメントについては、[`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) を参照してください。
+
+:::tip
+`wasm-bindgen` doc.rs 検索を使用して、`wasm-bindgen` を使用してインポートされたブラウザ API および JavaScript タイプを見つけます。
+:::
+
+## [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+
+このクレートは、上記の他のクレートに多くの構成要素を提供します。このセクションでは、`wasm-bindgen` クレートの主要な領域の 2 つ、つまりマクロと、何度も目にするタイプ/トレイトのいくつかについてのみ説明します。
+
+### `#[wasm_bindgen]` マクロ
+
+`#[wasm_bindgen]` マクロは Rust と JavaScript の間のインターフェースを提供し、両者の間で変換を行うシステムを提供します。このマクロの使用はより高度であり、外部の JavaScript ライブラリを使用する場合を除いて使用しないでください。`js-sys` および `web-sys` クレートは、組み込みの JavaScript タイプおよびブラウザ API に対して `wasm-bindgen` 定義を提供します。
+
+`#[wasm-bindgen]` マクロを使用して、特定のバージョンの [`console.log`](https://developer.mozilla.org/en-US/docs/Web/API/Console/log) 関数をインポートする簡単な例を見てみましょう。
+
+```rust ,no_run
+use wasm_bindgen::prelude::*;
+
+// まず、`web_sys` を使用せずに `console.log` を手動でバインドしてみましょう。
+// ここでは、手動で `#[wasm_bindgen]` アノテーションを書きます。プログラムの正確性はこれらのアノテーションの正確性に依存します！
+#[wasm_bindgen]
+extern "C" {
+    // ここで `js_namespace` を使用して `console.log(..)` をバインドします。`log(..)` だけではありません。
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    // `console.log` は多態的なので、複数のシグネチャを使用してバインドできます。
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    // 複数の引数も可能です！
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
+
+// インポートされた関数を使用します！
+log("Hello from Rust!");
+log_u32(42);
+log_many("Logging", "many values!");
+```
+
+_この例は、[1.2 `wasm-bindgen` ガイドの console.log を使用する](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html) に基づいています。_
+
+### 継承のシミュレーション
+
+JavaScript クラス間の継承は、JavaScript 言語のコア機能であり、DOM（ドキュメントオブジェクトモデル）はそれを中心に設計されています。`wasm-bindgen` を使用して型をインポートする際にも、それらの継承関係を記述する属性を追加できます。
+
+Rust では、この継承関係は [`Deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html) と [`AsRef`](https://doc.rust-lang.org/std/convert/trait.AsRef.html) トレイトを使用して表現されます。ここで例を挙げると役立つかもしれません。例えば、`A`、`B`、`C` という 3 つの型があり、`C` が `B` を拡張し、`B` が `A` を拡張しているとします。
+
+これらの型をインポートする際、`#[wasm-bindgen]` マクロは次のように `Deref` と `AsRef` トレイトを実装します：
+
+-   `C` は `B` に `Deref` できます
+-   `B` は `A` に `Deref` できます
+-   `C` は `B` に `AsRef` できます
+-   `C` と `B` はどちらも `A` に `AsRef` できます
+
+これらの実装により、`C` のインスタンスで `A` のメソッドを呼び出したり、`C` を `&B` または `&A` として使用したりできます。
+
+注意すべき点は、`#[wasm-bindgen]` を使用してインポートされたすべての型には同じルート型があり、それを上記の例の `A` と見なすことができるということです。この型は [`JsValue`](#jsvalue) であり、以下にそのセクションがあります。
+
+_[`wasm-bindgen` ガイドの extends セクション](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
+
+### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+
+これは JavaScript が所有するオブジェクトの表現であり、`wasm-bindgen` のルートキャプチャ型です。`wasm-bindgen` からの任意の型は `JsValue` です。これは、JavaScript には強い型システムがないため、変数 `x` を受け取る任意の関数がその型を定義しないため、`x` は有効な JavaScript 値である可能性があるためです。したがって `JsValue` です。`JsValue` を受け取るインポート関数や型を使用している場合、技術的には任意のインポート値が有効です。
+
+`JsValue` は関数で受け取ることができますが、その関数は特定の型のみを受け取る可能性があり、それがパニックを引き起こす可能性があります。したがって、元の `wasm-bindgen` API を使用する場合は、インポートされた JavaScript のドキュメントを確認して、その値が特定の型でない場合に例外（パニック）を引き起こすかどうかを確認してください。
+
+_[`JsValue` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)_
+
+### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+
+Rust には強い型システムがありますが、JavaScript にはありません😞。Rust がこれらの強い型を維持しながらも便利であるために、WebAssembly ワーキンググループは非常に巧妙な機能 `JsCast` を提案しました。これは、ある JavaScript "型" から別の "型" への変換を支援するものです。これは曖昧に聞こえますが、ある型が別の型であることがわかっている場合、`JsCast` の関数を使用してある型から別の型にジャンプできます。`web-sys`、`wasm_bindgen`、`js-sys` を使用する際にこの機能を理解しておくと便利です。これらのクレートから多くの型が `JsCast` を実装していることに気付くでしょう。
+
+`JsCast` はチェック付きとチェックなしの変換メソッドを提供します。したがって、実行時にオブジェクトがどの型であるかわからない場合は、変換を試みることができ、失敗する可能性のある型として [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) や [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html) を返します。
+
+一般的な例は [`web-sys`](./web-sys.mdx) で、イベントのターゲットを取得しようとする場合です。ターゲット要素が何であるかを知っているかもしれませんが、[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API は常に [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target) を返します。
+その要素型に変換する必要があり、そのメソッドを呼び出すことができます。
+
+```rust
+// このトレイトを最初にインポートする必要があります
+use wasm_bindgen::JsCast;
+use web_sys::{Event, EventTarget, HtmlInputElement, HtmlSelectElement};
+
+fn handle_event(event: Event) {
+    let target: EventTarget = event
+        .target()
+        .expect("I'm sure this event has a target!");
+
+    // もしかしたらターゲットは選択要素かもしれませんか？
+    if let Some(select_element) = target.dyn_ref::<HtmlSelectElement>() {
+        // 別のことをする
+        return;
+    }
+
+    // それが選択要素でないことが確実であれば、入力要素であることが確実です！
+    let input_element: HtmlInputElement = target.unchecked_into();
+}
+```
+
+[`dyn_ref`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref) メソッドはチェック付きの変換であり、`Option<&T>` を返します。これは、変換が失敗した場合に元の型を再度使用できることを意味し、`None` を返します。 [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) メソッドは `self` を消費し、Rust の `into` メソッドの規約に従い、`Result<T, Self>` 型を返します。変換が失敗した場合、元の `Self` 値は `Err` に返されます。再試行するか、元の型で他の操作を行うことができます。
+
+_[`JsCast` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)._
+
+### [`Closure`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)
+
+`Closure` 型は、Rust のクロージャを JavaScript に渡す方法を提供します。健全性の理由から、JavaScript に渡されるクロージャは `'static` ライフタイムを持つ必要があります。
+
+この型は「ハンドル」であり、破棄されると、それが参照する JS クロージャを無効にします。`Closure` が破棄された後、JS 内のクロージャの使用はすべて例外を引き起こします。
+
+`Closure` は、[`&js_sys::Function`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Function.html) 型を受け取る `js-sys` または `web-sys` API を使用する際に一般的に使用されます。Yew で `Closure` を使用する例は、[Events](../html/events.mdx) ページの[Using `Closure` セクション](../html/events.mdx#using-closure-verbose) にあります。
+
+_[`Closure` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)._
+
+## [`js-sys`](https://crates.io/crates/js-sys)
+
+`js-sys` クレートは、JavaScript の標準組み込みオブジェクトのバインディング/インポートを提供します。これには、それらのメソッドやプロパティが含まれます。
+
+これは Web API を含みません。Web API は [`web-sys`](./web-sys.mdx) の役割です！
+
+_[`js-sys` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/js_sys/index.html)._
+
+## [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+
+`wasm-bindgen-futures` クレートは、JavaScript の Promise 型を Rust の [`Future`](https://doc.rust-lang.org/stable/std/future/trait.Future.html) として扱うためのブリッジを提供し、Rust の Future を JavaScript の Promise に変換するユーティリティを含みます。Rust（wasm）で非同期または他のブロッキング作業を処理する際に役立ち、JavaScript のイベントや JavaScript I/O プリミティブと対話する能力を提供します。
+
+現在、このクレートには3つの主要なインターフェースがあります：
+
+1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
+   [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html) を使用して構築された型で、`Future<Output=Result<JsValue, JsValue>>` として使用できます。`Promise` が解決されると、この `Future` は `Ok` に解決され、`Promise` が拒否されると `Err` に解決され、それぞれ `Promise` の解決または拒否の値を含みます。
+
+2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
+   Rust の `Future<Output=Result<JsValue, JsValue>>` を JavaScript の `Promise` に変換します。Future の結果は、JavaScript 内の解決または拒否された `Promise` に変換されます。
+
+3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
+   現在のスレッドで `Future<Output = ()>` を生成します。これは、Rust 内で Future を実行する最良の方法であり、JavaScript に送信するのではなく、Rust 内で実行します。
+
+_[`wasm-bindgen-futures` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
+
+### [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)
+
+`spawn_local` は、非同期 API を使用するライブラリを使用する際に、Yew で `wasm-bindgen-futures` クレートの最も一般的に使用される部分です。
+
+```rust ,no_run
+use web_sys::console;
+use wasm_bindgen_futures::spawn_local;
+
+async fn my_async_fn() -> String { String::from("Hello") }
+
+spawn_local(async {
+    let mut string = my_async_fn().await;
+    string.push_str(", world!");
+    // "Hello, world!" を出力します
+    console::log_1(&string.into());
+});
+```
+
+Yew はいくつかの API に futures のサポートを追加しており、特に `async` ブロックを受け入れる `callback_future` を作成できることが注目されます。これは内部的に `spawn_local` を使用しています。
+
+_[`spawn_local` ドキュメント](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)._

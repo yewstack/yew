@@ -1,0 +1,307 @@
+---
+title: '子コンポーネント'
+---
+
+:::caution
+
+`Children` をチェックおよび操作すると、アプリケーションで驚くべきかつ説明が難しい動作が発生することがよくあります。これにより、エッジケースが発生し、通常は予期しない結果が生じる可能性があります。`Children` を操作しようとする場合は、他の方法を検討する必要があります。
+
+Yew は、子コンポーネントのプロパティの型として `Html` を使用することをサポートしています。`Children` または `ChildrenRenderer` が必要ない場合は、子コンポーネントとして `Html` を使用することをお勧めします。これは `Children` の欠点がなく、パフォーマンスのオーバーヘッドも低くなります。
+
+:::
+
+## 一般的な使用法
+
+_ほとんどの場合、_ コンポーネントに子コンポーネントを持たせる場合、子コンポーネントの型を気にする必要はありません。この場合、以下の例で十分です。
+
+````rust
+use yew::{html, Component, Context, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct ListProps {
+    #[prop_or_default]
+    pub children: Html,
+}
+
+pub struct List;
+
+impl Component for List {
+    type Message = ();
+    type Properties = ListProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="list">
+                {ctx.props().children.clone()}
+            </div>
+        }
+    }
+}
+
+## 高度な使用法
+
+### 型指定された子コンポーネント
+
+特定のタイプのコンポーネントを子コンポーネントとして渡したい場合は、`yew::html::ChildrenWithProps<T>` を使用できます。
+
+```rust
+use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
+
+pub struct Item;
+
+impl Component for Item {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "item" }
+        }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct ListProps {
+    #[prop_or_default]
+    pub children: ChildrenWithProps<Item>,
+}
+
+pub struct List;
+
+impl Component for List {
+    type Message = ();
+    type Properties = ListProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="list">
+                { for ctx.props().children.iter() }
+            </div>
+        }
+    }
+}
+````
+
+## プロパティを持つネストされた子コンポーネント
+
+コンポーネントがその子コンポーネントを型指定している場合、ネストされたコンポーネントのプロパティにアクセスして変更することができます。
+
+```rust
+use std::rc::Rc;
+use yew::prelude::*;
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct ListItemProps {
+    value: String,
+}
+
+#[function_component]
+fn ListItem(props: &ListItemProps) -> Html {
+    let ListItemProps { value } = props.clone();
+    html! {
+        <span>
+            {value}
+        </span>
+    }
+}
+
+#[derive(PartialEq, Properties)]
+pub struct Props {
+    pub children: ChildrenWithProps<ListItem>,
+}
+
+#[function_component]
+fn List(props: &Props) -> Html {
+    let modified_children = props.children.iter().map(|mut item| {
+            let mut props = Rc::make_mut(&mut item.props);
+            props.value = format!("item-{}", props.value);
+            item
+    });
+    html! { for modified_children }
+}
+
+html! {
+    <List>
+        <ListItem value="a" />
+        <ListItem value="b" />
+        <ListItem value="c" />
+    </List>
+};
+```
+
+### 列挙型の子コンポーネント
+
+もちろん、時には子コンポーネントをいくつかの異なるコンポーネントに制限する必要がある場合があります。そのような場合には、Yewについてさらに深く理解する必要があります。
+
+ここでは、より良いエルゴノミクスを提供するために [`derive_more`](https://github.com/JelteF/derive_more) を使用しています。使用したくない場合は、各バリアントに対して手動で `From` を実装することができます。
+
+```rust
+use yew::{
+    html, html::ChildrenRenderer, virtual_dom::VChild, Component,
+    Context, Html, Properties,
+};
+
+pub struct Primary;
+
+impl Component for Primary {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "Primary" }
+        }
+    }
+}
+
+pub struct Secondary;
+
+impl Component for Secondary {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "Secondary" }
+        }
+    }
+}
+
+#[derive(Clone, derive_more::From, PartialEq)]
+pub enum Item {
+    Primary(VChild<Primary>),
+    Secondary(VChild<Secondary>),
+}
+
+// 現在、`Into<Html>` を実装して、yew が `Item` をどのようにレンダリングするかを知ることができるようにします。
+#[allow(clippy::from_over_into)]
+impl Into<Html> for Item {
+    fn into(self) -> Html {
+        match self {
+            Self::Primary(child) => child.into(),
+            Self::Secondary(child) => child.into(),
+        }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct ListProps {
+    #[prop_or_default]
+    pub children: ChildrenRenderer<Item>,
+}
+
+pub struct List;
+
+impl Component for List {
+    type Message = ();
+    type Properties = ListProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="list">
+                { for ctx.props().children.iter() }
+            </div>
+        }
+    }
+}
+```
+
+### オプションの型の子コンポーネント
+
+特定の型の単一のオプションの子コンポーネントを持つこともできます：
+
+```rust
+use yew::{
+    html, html_nested, virtual_dom::VChild, Component,
+    Context, Html, Properties
+};
+
+pub struct PageSideBar;
+
+impl Component for PageSideBar {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "sidebar" }
+        }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct PageProps {
+    #[prop_or_default]
+    pub sidebar: Option<VChild<PageSideBar>>,
+}
+
+struct Page;
+
+impl Component for Page {
+    type Message = ();
+    type Properties = PageProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="page">
+                { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
+                // ... ページ内容
+            </div>
+        }
+    }
+}
+
+// ページコンポーネントはサイドバーを含むかどうかを選択できます：
+
+pub fn render_page(with_sidebar: bool) -> Html {
+    if with_sidebar {
+        // サイドバーを含むページ
+        html! {
+            <Page sidebar={html_nested! {
+                <PageSideBar />
+            }} />
+        }
+    } else {
+        // サイドバーを含まないページ
+        html! {
+            <Page />
+        }
+    }
+}
+```
+
+## さらに読む
+
+-   このパターンの実際の例については、yew-router のソースコードを参照してください。より高度な例については、yew リポジトリの[関連する例のリスト](https://github.com/yewstack/yew/tree/master/examples/nested_list)を参照してください。

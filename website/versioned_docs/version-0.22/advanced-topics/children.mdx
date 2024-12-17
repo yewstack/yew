@@ -1,0 +1,318 @@
+---
+title: 'Children'
+---
+
+:::caution
+
+Inspecting and manipulating `Children` can often result in surprising and hard-to-explain behaviours in your application.
+This can lead to edge cases and often does not yield expected result.
+You should consider other approaches if you are trying to manipulate `Children`.
+
+Yew supports using `Html` as the type of the children prop.
+You should use `Html` as children if you do not need `Children` or `ChildrenRenderer`.
+It doesn't have the drawbacks of `Children` and has a lower performance overhead.
+
+:::
+
+## General usage
+
+_Most of the time,_ when allowing a component to have children, you don't care
+what type of children the component has. In such cases, the below example will
+suffice.
+
+```rust
+use yew::{html, Component, Context, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct ListProps {
+    #[prop_or_default]
+    pub children: Html,
+}
+
+pub struct List;
+
+impl Component for List {
+    type Message = ();
+    type Properties = ListProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="list">
+                {ctx.props().children.clone()}
+            </div>
+        }
+    }
+}
+```
+
+## Advanced usage
+
+### Typed children
+
+In cases where you want one type of component to be passed as children to your component,
+you can use `yew::html::ChildrenWithProps<T>`.
+
+```rust
+use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
+
+pub struct Item;
+
+impl Component for Item {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "item" }
+        }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct ListProps {
+    #[prop_or_default]
+    pub children: ChildrenWithProps<Item>,
+}
+
+pub struct List;
+
+impl Component for List {
+    type Message = ();
+    type Properties = ListProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="list">
+                { for ctx.props().children.iter() }
+            </div>
+        }
+    }
+}
+```
+
+## Nested Children with Props
+
+Nested component properties can be accessed and mutated if the containing component types its children.
+
+```rust
+use std::rc::Rc;
+use yew::prelude::*;
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct ListItemProps {
+    value: String,
+}
+
+#[function_component]
+fn ListItem(props: &ListItemProps) -> Html {
+    let ListItemProps { value } = props.clone();
+    html! {
+        <span>
+            {value}
+        </span>
+    }
+}
+
+#[derive(PartialEq, Properties)]
+pub struct Props {
+    pub children: ChildrenWithProps<ListItem>,
+}
+
+#[function_component]
+fn List(props: &Props) -> Html {
+    let modified_children = props.children.iter().map(|mut item| {
+            let mut props = Rc::make_mut(&mut item.props);
+            props.value = format!("item-{}", props.value);
+            item
+    });
+    html! { for modified_children }
+}
+
+html! {
+    <List>
+        <ListItem value="a" />
+        <ListItem value="b" />
+        <ListItem value="c" />
+    </List>
+};
+```
+
+### Enum typed children
+
+Of course, sometimes you might need to restrict the children to a few different
+components. In these cases, you have to get a little more hands-on with Yew.
+
+The [`derive_more`](https://github.com/JelteF/derive_more) crate is used here
+for better ergonomics. If you don't want to use it, you can manually implement
+`From` for each variant.
+
+```rust
+use yew::{
+    html, html::ChildrenRenderer, virtual_dom::VChild, Component,
+    Context, Html, Properties,
+};
+
+pub struct Primary;
+
+impl Component for Primary {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "Primary" }
+        }
+    }
+}
+
+pub struct Secondary;
+
+impl Component for Secondary {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "Secondary" }
+        }
+    }
+}
+
+#[derive(Clone, derive_more::From, PartialEq)]
+pub enum Item {
+    Primary(VChild<Primary>),
+    Secondary(VChild<Secondary>),
+}
+
+// Now, we implement `Into<Html>` so that yew knows how to render `Item`.
+#[allow(clippy::from_over_into)]
+impl Into<Html> for Item {
+    fn into(self) -> Html {
+        match self {
+            Self::Primary(child) => child.into(),
+            Self::Secondary(child) => child.into(),
+        }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct ListProps {
+    #[prop_or_default]
+    pub children: ChildrenRenderer<Item>,
+}
+
+pub struct List;
+
+impl Component for List {
+    type Message = ();
+    type Properties = ListProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="list">
+                { for ctx.props().children.iter() }
+            </div>
+        }
+    }
+}
+```
+
+### Optional typed child
+
+You can also have a single optional child component of a specific type too:
+
+```rust
+use yew::{
+    html, html_nested, virtual_dom::VChild, Component,
+    Context, Html, Properties
+};
+
+pub struct PageSideBar;
+
+impl Component for PageSideBar {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            { "sidebar" }
+        }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct PageProps {
+    #[prop_or_default]
+    pub sidebar: Option<VChild<PageSideBar>>,
+}
+
+struct Page;
+
+impl Component for Page {
+    type Message = ();
+    type Properties = PageProps;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div class="page">
+                { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
+                // ... page content
+            </div>
+        }
+    }
+}
+
+// The page component can be called either with the sidebar or without:
+
+pub fn render_page(with_sidebar: bool) -> Html {
+    if with_sidebar {
+        // Page with sidebar
+        html! {
+            <Page sidebar={html_nested! {
+                <PageSideBar />
+            }} />
+        }
+    } else {
+        // Page without sidebar
+        html! {
+            <Page />
+        }
+    }
+}
+```
+
+## Further Reading
+
+-   For a real-world example of this pattern, check out the yew-router source code. For a more advanced example, check out the [nested-list example](https://github.com/yewstack/yew/tree/master/examples/nested_list) in the main yew repository.

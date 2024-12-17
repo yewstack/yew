@@ -1,0 +1,48 @@
+---
+title: 'ポータル (Portals)'
+description: 'コンテンツをDOMツリー外のノードにレンダリングする'
+---
+
+## ポータルとは？
+
+ポータル (Portal) は、子要素を親コンポーネントのDOM階層外のDOMノードにレンダリングする方法を提供します。`yew::create_portal(child, host)` は `Html` 値を返し、`child` を `host` 要素の子要素としてレンダリングしますが、親コンポーネントの階層下ではありません。
+
+## 使用方法
+
+ポータルの典型的な用途には、モーダルダイアログやホバーカード、さらに技術的な用途として、要素の [`shadowRoot`](https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot) の内容を制御すること、スタイルシートを周囲のドキュメントの `<head>` に添付すること、`<svg>` の中央の `<defs>` 要素に参照される要素を収集することなどがあります。
+
+`yew::create_portal` は低レベルの構成要素であることに注意してください。ライブラリはこれを使用してより高レベルのAPIを実装し、その後アプリケーションはこれらのAPIを使用できます。例えば、ここでは `children` を `yew` 以外の要素にレンダリングするシンプルなモーダルダイアログを示します。この要素は `id="modal_host"` で識別されます。
+
+```rust
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+pub struct ModalProps {
+    #[prop_or_default]
+    pub children: Html,
+}
+
+#[function_component]
+fn Modal(props: &ModalProps) -> Html {
+    let modal_host = gloo::utils::document()
+        .get_element_by_id("modal_host")
+        .expect("Expected to find a #modal_host element");
+
+    create_portal(
+        props.children.clone(),
+        modal_host.into(),
+    )
+}
+```
+
+## イベント処理
+
+ポータル内部の要素で発生するイベントは、仮想DOMのバブリングに従います。つまり、ポータルが要素の子要素としてレンダリングされる場合、その要素上のイベントリスナーは、ポータル内部から発生するイベントをキャプチャします。たとえポータルが実際のDOM内の無関係な位置にその内容をレンダリングしていてもです。
+
+これにより、開発者は使用しているコンポーネントがポータルを使用して実装されているかどうかを気にする必要がなくなります。いずれにせよ、その子要素上で発生するイベントはバブリングします。
+
+既知の問題として、ポータルから **閉じた** シャドウルートへのイベントは2回分配されます。1回はシャドウルート内部の要素に対して、もう1回はホスト要素自体に対してです。**開いた** シャドウルートは正常に動作しますので、これが影響する場合は、いつでもバグレポートを提出してください。
+
+## さらなる読み物
+
+-   [ポータルの例](https://github.com/yewstack/yew/tree/master/examples/portals)
