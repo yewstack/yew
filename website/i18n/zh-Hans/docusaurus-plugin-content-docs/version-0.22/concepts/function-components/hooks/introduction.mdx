@@ -1,0 +1,50 @@
+---
+title: 'Hooks'
+slug: /concepts/function-components/hooks
+---
+
+## Hooks
+
+Hooks 是一类能够存储状态和执行副作用的函数。
+
+Yew 提供了一些预定义的 hooks。您也可以创建自己的 hooks，或者发现许多[社区制作的 hooks](/community/awesome#hooks)。
+
+## Hooks 规则
+
+1. 每个 Hook 函数的名称必须以 `use_` 开头
+2. Hooks 只能在以下位置使用：
+    - 函数/ Hook 的顶层
+    - 函数/ Hook 内的块，只要它没有被分支
+    - 函数/ Hook 内顶层 `if` 表达式的条件
+    - 函数/ Hook 内顶层 `match` 表达式的选择器
+3. 每次渲染时，Hooks 必须以相同的顺序调用。只有在使用 [Suspense](../../suspense.mdx) 时才允许提前返回
+
+这些规则由编译时或运行时错误来执行。
+
+### 预定义 Hooks
+
+Yew 提供了以下预定义 Hooks：
+
+-   `use_state`
+-   `use_state_eq`
+-   `use_memo`
+-   `use_callback`
+-   `use_ref`
+-   `use_mut_ref`
+-   `use_node_ref`
+-   `use_reducer`
+-   `use_reducer_eq`
+-   `use_effect`
+-   `use_effect_with`
+-   `use_context`
+-   `use_force_update`
+
+这些 hooks 的文档可以在 [Yew API 文档](https://yew-rs-api.web.app/next/yew/functional/)中找到。
+
+### 自定义 Hooks
+
+有些情况下，您可能希望定义自己的 Hooks，以将组件中的可能具有状态的逻辑封装到可重用的函数中。
+
+## 进一步阅读
+
+-   React 文档中有一个关于 [React hooks](https://reactjs.org/docs/hooks-intro.html) 的部分。

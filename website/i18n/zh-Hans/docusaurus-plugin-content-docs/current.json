@@ -12,11 +12,11 @@
     "description": "The label for category Concepts in sidebar docs"
   },
   "sidebar.docs.category.Concepts.link.generated-index.title": {
-    "message": "Yew concepts",
+    "message": "Yew 核心概念",
     "description": "The generated-index page title for category Concepts in sidebar docs"
   },
   "sidebar.docs.category.Concepts.link.generated-index.description": {
-    "message": "Learn about the important Yew concepts!",
+    "message": "了解 Yew 的重要概念！",
     "description": "The generated-index page description for category Concepts in sidebar docs"
   },
   "sidebar.docs.category.HTML": {
@@ -24,7 +24,7 @@
     "description": "The label for category HTML in sidebar docs"
   },
   "sidebar.docs.category.Components": {
-    "message": "Function Components",
+    "message": "函数式组件",
     "description": "The label for category Components in sidebar docs"
   },
   "sidebar.docs.category.Advanced topics": {
@@ -36,7 +36,7 @@
     "description": "The generated-index page title for category Advanced topics in sidebar docs"
   },
   "sidebar.docs.category.Advanced topics.link.generated-index.description": {
-    "message": "Learn about the advanced topics and inner workings of Yew!",
+    "message": "了解 Yew 的更多内部细节！",
     "description": "The generated-index page description for category Advanced topics in sidebar docs"
   },
   "sidebar.docs.category.More": {
@@ -44,11 +44,11 @@
     "description": "The label for category More in sidebar docs"
   },
   "sidebar.docs.category.More.link.generated-index.title": {
-    "message": "Miscellaneous",
+    "message": "杂项",
     "description": "The generated-index page title for category More in sidebar docs"
   },
   "sidebar.docs.category.Migration guides": {
-    "message": "Migration guides",
+    "message": "迁移指南",
     "description": "The label for category Migration guides in sidebar docs"
   },
   "sidebar.docs.category.yew": {
@@ -64,23 +64,23 @@
     "description": "The label for category yew-router in sidebar docs"
   },
   "sidebar.docs.category.Using Basic Web Technologies In Yew": {
-    "message": "Intro With Basic Web Technologies",
+    "message": "Yew 中的基本 Web 技术",
     "description": "The label for category Using Basic Web Technologies In Yew in sidebar docs"
   },
   "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.title": {
-    "message": "Yew Take on Basic Web Technologies",
+    "message": "Yew 对基本 Web 技术的看法",
     "description": "The generated-index page title for category Using Basic Web Technologies In Yew in sidebar docs"
   },
   "sidebar.docs.category.Using Basic Web Technologies In Yew.link.generated-index.description": {
-    "message": "Yew mostly operates on the idea of keeping everything that a reusable piece of UI may need, in one place - rust files. But also seeks to stay close to the original look of the technology. Explore further to fully grasp what we mean by these statements:",
+    "message": "Yew 主要基于将可重用的 UI 部件所需的所有内容放在一个地方 - rust 文件的想法。但也力求保持与技术的原始外观接近。进一步探索，以充分理解我们对这些陈述的含义：",
     "description": "The generated-index page description for category Using Basic Web Technologies In Yew in sidebar docs"
   },
   "sidebar.docs.category.Hooks": {
-    "message": "Hooks",
+    "message": "钩子",
     "description": "The label for category Hooks in sidebar docs"
   },
   "sidebar.docs.category.Struct Components": {
-    "message": "Struct Components",
+    "message": "结构化组件",
     "description": "The label for category Struct Components in sidebar docs"
   }
 }

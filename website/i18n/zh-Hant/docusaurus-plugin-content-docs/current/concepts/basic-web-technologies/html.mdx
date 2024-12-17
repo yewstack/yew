@@ -1,0 +1,75 @@
+---
+title: '使用 html! 巨集處理 HTML'
+description: '這是 HTML，但不完全是！ '
+comment: '盡量保持文件簡短和簡單。它的目的是讓讀者更容易了解 Yew 中的元件，而不是提供正確的 API 文件'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+你可以使用 `html!` 巨集來寫類似 HTML 的表達式。 Yew 會在背景轉換為表達 DOM 的 Rust 程式碼。
+
+```rust
+use yew::prelude::*;
+
+let my_header: Html = html! {
+    <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />
+};
+```
+
+類似於格式化表達式，您可以透過使用花括號將周圍上下文的值嵌入 HTML 中：
+
+```rust
+use yew::prelude::*;
+
+let header_text = "Hello world".to_string();
+let header_html: Html = html! {
+    <h1>{header_text}</h1>
+};
+
+let count: usize = 5;
+let counter_html: Html = html! {
+    <p>{"My age is: "}{count}</p>
+};
+
+let combined_html: Html = html! {
+    <div>{header_html}{counter_html}</div>
+};
+```
+
+使用 `html!` 有一個重要的規則 - 您只能傳回一個包裝節點。為了渲染多個元素的列表，`html!` 允許使用空標籤（Fragments）。空標籤是沒有名稱的標籤，它們本身不會產生 HTML 元素。
+
+<Tabs>
+<TabItem value="Invalid" label="Invalid">
+
+```rust , compile_fail
+use yew::html;
+
+// 錯誤：只允許一個根 HTML 元素
+html! {
+
+    <div></div>
+    <p></p>
+
+};
+```
+
+</TabItem>
+<TabItem value="Valid" label="Valid">
+
+```rust
+use yew::html;
+
+// 修正：使用 HTML 空標籤包裹
+html! {
+    <>
+        <div></div>
+        <p></p>
+    </>
+};
+```
+
+</TabItem>
+</Tabs>
+
+更多關於 Yew 和 HTML 的內容請參考[更多 HTML](concepts/html/introduction.mdx)。

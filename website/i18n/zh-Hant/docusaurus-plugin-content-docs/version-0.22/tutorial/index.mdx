@@ -1,0 +1,584 @@
+---
+title: '教學'
+slug: /tutorial
+---
+
+## 介紹
+
+在這個實作教程中，我們將學習如何使用 Yew 建立 Web 應用程式。
+**Yew** 是一個現代的 [Rust](https://www.rust-lang.org/) 框架，用於使用 [WebAssembly](https://webassembly.org/) 建立前端 Web 應用程式。
+Yew 透過利用 Rust 強大的類型系統，鼓勵可重複使用、可維護和良好結構化的架構。
+一個龐大的社群所創造的函式庫生態系統，稱為Rust 中的[crates](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html)，為常用模式（如狀態管理）提供了元件。
+Rust 的套件管理器 [Cargo](https://doc.rust-lang.org/cargo/) 允許我們利用 [crates.io](https://crates.io) 上提供的大量 crate，例如 Yew。
+
+### 我們將要建構的內容
+
+Rustconf 是 Rust 社群每年舉辦的星際派對。
+Rustconf 2020 有大量的演講，提供了大量的資訊。
+在這個實作教程中，我們將建立一個 Web 應用程序，幫助其他 Rustaceans 了解這些演講並從一個頁面觀看它們。
+
+## 設定
+
+### 先決條件
+
+這個教程假設您已經熟悉 Rust。如果您是Rust 的新手，免費的[Rust 書](https://doc.rust-lang.org/book/ch00-00-introduction.html) 為初學者提供了一個很好的起點，並且即使對於有經驗的Rust 開發人員來說，它仍然是一個很好的資源。
+
+確保安裝了最新版本的 Rust，方法是執行 `rustup update` 或[安裝 Rust](https://www.rust-lang.org/tools/install)。
+
+安裝 Rust 後，您可以使用 Cargo 執行以下命令安裝 `trunk`：
+
+```bash
+cargo install trunk
+```
+
+我們還需要新增 WASM 建置目標，執行以下命令：
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+### 設定項目
+
+首先，建立一個新的 cargo 專案：
+
+```bash
+cargo new yew-app
+cd yew-app
+```
+
+為了驗證 Rust 環境是否設定正確，使用 cargo 建置工具執行初始專案。
+在關於建置過程的輸出之後，您應該會看到預期的 "Hello, world!" 訊息。
+
+```bash
+cargo run
+```
+
+## 我們的第一個靜態頁面
+
+為了將這個簡單的命令列應用程式轉換為一個基本的 Yew web 應用程序，需要進行一些更改。
+
+```toml title="Cargo.toml" {7}
+[package]
+name = "yew-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+```
+
+:::info
+
+如果你只是正在建立一個應用程序，你只需要 `csr` 特性。它將啟用 `Renderer` 和所有與客戶端渲染相關的程式碼。
+
+如果你正在製作一個函式庫，請不要啟用此特性，因為它會將客戶端渲染邏輯拉入伺服器端渲染包中。
+
+如果你需要 Renderer 進行測試或範例，你應該在 `dev-dependencies` 中啟用它。
+
+:::
+
+```rust ,no_run title="src/main.rs"
+use yew::prelude::*;
+
+#[function_component(App)]
+fn app() -> Html {
+    html! {
+        <h1>{ "Hello World" }</h1>
+    }
+}
+
+fn main() {
+    yew::Renderer::<App>::new().render();
+}
+```
+
+現在，讓我們在專案的根目錄中建立一個 `index.html`。
+
+```html title="index.html"
+<!doctype html>
+<html lang="en">
+    <head></head>
+    <body></body>
+</html>
+```
+
+### 啟動開發伺服器
+
+運行以下命令建置並在本地提供應用程式。
+
+```bash
+trunk serve --open
+```
+
+:::info
+刪除選項 '--open' 以在執行 `trunk serve` 後不開啟預設瀏覽器。
+:::
+
+Trunk 將在您修改任何原始程式碼檔案時即時重新建立您的應用程式。
+預設情況下，伺服器將在位址 '127.0.0.1' 的連接埠 '8080' 上監聽 => [http://localhost:8080](http://127.0.0.1:8080)。
+若要變更這部分配置，請建立以下檔案並根據需要進行編輯：
+
+```toml title="Trunk.toml"
+[serve]
+# 區域網路上的監聽位址
+address = "127.0.0.1"
+# 廣域網路上的監聽位址
+# address = "0.0.0.0"
+# 監聽的端口
+port = 8000
+```
+
+如果您有興趣，您可以執行 `trunk help` 和 `trunk help <subcommand>` 以獲取更多關於正在進行的流程的詳細資訊。
+
+### 恭喜
+
+您現在已經成功設定了 Yew 開發環境，並建立了您的第一個 Yew Web 應用程式。
+
+## 建立 HTML
+
+Yew 利用了 Rust 的過程宏，並為我們提供了一種類似於 JSX（JavaScript 的擴展，可讓您在 JavaScript 中編寫類似 HTML 的程式碼）的語法來建立標記。
+
+### 轉換為經典 HTML
+
+由於我們已經對我們的網站長什麼樣子有了一個很好的想法，我們可以簡單地將我們的草稿轉換為與 `html!` 相容的表示。如果您習慣於編寫簡單的 HTML，那麼您在 `html!` 中編寫標記時應該沒有問題。要注意的是，這個巨集與 HTML 有一些不同之處：
+
+1. 表達式必須用大括號（`{ }`）括起來
+2. 只能有一個根節點。如果您想要在不將它們包裝在容器中的情況下擁有多個元素，可以使用空標籤/片段（`<> ... </>`）
+3. 元素必須正確關閉。
+
+我們想要建立一個佈局，原始 HTML 如下：
+
+```html
+<h1>RustConf Explorer</h1>
+<div>
+    <h3>Videos to watch</h3>
+    <p>John Doe: Building and breaking things</p>
+    <p>Jane Smith: The development process</p>
+    <p>Matt Miller: The Web 7.0</p>
+    <p>Tom Jerry: Mouseless development</p>
+</div>
+<div>
+    <h3>John Doe: Building and breaking things</h3>
+    <img
+        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        alt="video thumbnail"
+    />
+</div>
+```
+
+現在，讓我們將這個 HTML 轉換為 `html!`。將下列程式碼片段輸入（或複製/貼上）到 `app` 函數的主體中，以便函數傳回 `html!` 的值
+
+```rust ,ignore
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+            <p>{ "John Doe: Building and breaking things" }</p>
+            <p>{ "Jane Smith: The development process" }</p>
+            <p>{ "Matt Miller: The Web 7.0" }</p>
+            <p>{ "Tom Jerry: Mouseless development" }</p>
+        </div>
+        <div>
+            <h3>{ "John Doe: Building and breaking things" }</h3>
+            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+        </div>
+    </>
+}
+```
+
+刷新瀏覽器頁面，您應該看到以下輸出：
+
+![Running WASM application screenshot](/img/tutorial_application_screenshot.png)
+
+### 在標記中使用 Rust 語言結構
+
+在 Rust 中編寫標記的一個很大的優勢是，我們在標記中獲得了 Rust 的所有優點。
+現在，我們不再在 HTML 中硬編碼影片列表，而是將它們定義為 `Vec` 的 `Video` 結構體。
+我們建立一個簡單的 `struct`（在 `main.rs` 或我們選擇的任何檔案中）來保存我們的資料。
+
+```rust
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+接下來，我們將在 `app` 函數中建立這個結構體的實例，並使用它們來取代硬編碼的資料：
+
+```rust
+use website_test::tutorial::Video; // 換成你自己的路徑
+
+let videos = vec![
+    Video {
+        id: 1,
+        title: "Building and breaking things".to_string(),
+        speaker: "John Doe".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 2,
+        title: "The development process".to_string(),
+        speaker: "Jane Smith".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 3,
+        title: "The Web 7.0".to_string(),
+        speaker: "Matt Miller".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 4,
+        title: "Mouseless development".to_string(),
+        speaker: "Tom Jerry".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+];
+```
+
+為了顯示它們，我們需要將 `Vec` 轉換為 `Html`。我們可以透過建立一個迭代器，將其映射到 `html!` 並將其收集為 `Html` 來實現：
+
+```rust ,ignore
+let videos = videos.iter().map(|video| html! {
+    <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+}).collect::<Html>();
+```
+
+:::tip
+在清單項目上使用鍵有助於 Yew 追蹤清單中哪些項目發生了變化，從而實現更快的重新渲染。 [始終建議在清單中使用鍵](/concepts/html/lists.mdx#keyed-lists)。
+:::
+
+最後，我們需要用從資料建立的 `Html` 取代硬編碼的影片清單：
+
+```rust ,ignore {6-10}
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           <p>{ "John Doe: Building and breaking things" }</p>
+-           <p>{ "Jane Smith: The development process" }</p>
+-           <p>{ "Matt Miller: The Web 7.0" }</p>
+-           <p>{ "Tom Jerry: Mouseless development" }</p>
++           { videos }
+        </div>
+        // ...
+    </>
+}
+```
+
+## 元件
+
+組件是 Yew 應用程式的構建塊。透過組合組件（可以由其他組件組成），我們建立我們的應用程式。透過為可重複使用性建立元件並保持它們的通用性，我們將能夠在應用程式的多個部分中使用它們，而無需重複程式碼或邏輯。
+
+到目前為止我們一直在使用的 `app` 函數是一個元件，稱為 `App`。它是一個「函數式元件」。
+
+1. 結構體組件
+2. 函數式組件
+
+在本教程中，我們將使用函數式元件。
+
+現在，讓我們將 `App` 元件拆分為更小的元件。我們首先將影片清單提取到自己的組件中。
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+
+#[derive(Properties, PartialEq)]
+struct VideosListProps {
+    videos: Vec<Video>,
+}
+
+#[function_component(VideosList)]
+fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
+    videos.iter().map(|video| html! {
+        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+    }).collect()
+}
+```
+
+注意我們的 `VideosList` 函數元件的參數。函數元件只接受一個參數，該參數定義了它的 "props"（"properties" 的縮寫）。 Props 用於從父元件傳遞資料到子元件。在這種情況下，`VideosListProps` 是一個定義 props 的結構體。
+
+:::important
+用於 props 的結構體必須透過派生實作 `Properties`。
+:::
+
+為了讓上面的程式碼編譯通過，我們需要修改 `Video` 結構體如下：
+
+```rust {1}
+#[derive(Clone, PartialEq)]
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+現在，我們可以更新我們的 `App` 元件以使用 `VideosList` 元件。
+
+```rust ,ignore {4-7,13-14}
+#[function_component(App)]
+fn app() -> Html {
+    // ...
+-    let videos = videos.iter().map(|video| html! {
+-        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+-    }).collect::<Html>();
+-
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-               { videos }
++               <VideosList videos={videos} />
+            </div>
+            // ...
+        </>
+    }
+}
+```
+
+透過查看瀏覽器窗口，我們可以驗證清單是否按預期呈現。我們已經將清單的渲染邏輯移動到了它的元件中。這縮短了 `App` 元件的原始程式碼，使我們更容易閱讀和理解。
+
+### 使應用程式可以交互
+
+這裡的最終目標是顯示所選影片。為了做到這一點，`VideosList` 元件需要在選擇影片時「通知」其父元件，這是透過 `Callback` 完成的。這個概念稱為「傳遞處理程序」。我們修改其 props 以接受一個 `on_click` 回呼：
+
+```rust ,ignore {4}
+#[derive(Properties, PartialEq)]
+struct VideosListProps {
+    videos: Vec<Video>,
++    on_click: Callback<Video>
+}
+```
+
+然後我們修改 `VideosList` 元件以將所選影片傳遞給回呼。
+
+```rust ,ignore {2-4,6-12,15-16}
+#[function_component(VideosList)]
+-fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
++fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
++    let on_click = on_click.clone();
+    videos.iter().map(|video| {
++        let on_video_select = {
++            let on_click = on_click.clone();
++            let video = video.clone();
++            Callback::from(move |_| {
++                on_click.emit(video.clone())
++            })
++        };
+
+        html! {
+-            <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
++            <p key={video.id} onclick={on_video_select}>{format!("{}: {}", video.speaker, video.title)}</p>
+        }
+    }).collect()
+}
+```
+
+接下來，我們需要修改 `VideosList` 的使用以傳遞該回呼。但在這樣做之前，我們應該建立一個新的元件 `VideoDetails`，當點擊影片時才會顯示。
+
+```rust
+use website_test::tutorial::Video;
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+struct VideosDetailsProps {
+    video: Video,
+}
+
+#[function_component(VideoDetails)]
+fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
+    html! {
+        <div>
+            <h3>{ video.title.clone() }</h3>
+            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+        </div>
+    }
+}
+```
+
+現在，修改 `App` 元件以在選擇影片時顯示 `VideoDetails` 元件。
+
+```rust ,ignore {4,6-11,13-15,22-23,25-29}
+#[function_component(App)]
+fn app() -> Html {
+    // ...
++    let selected_video = use_state(|| None);
+
++    let on_video_select = {
++        let selected_video = selected_video.clone();
++        Callback::from(move |video: Video| {
++            selected_video.set(Some(video))
++        })
++    };
+
++    let details = selected_video.as_ref().map(|video| html! {
++        <VideoDetails video={video.clone()} />
++    });
+
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-               <VideosList videos={videos} />
++               <VideosList videos={videos} on_click={on_video_select.clone()} />
+            </div>
++            { for details }
+-            <div>
+-                <h3>{ "John Doe: Building and breaking things" }</h3>
+-                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-            </div>
+        </>
+    }
+}
+```
+
+現在不用擔心 `use_state`，我們稍後會回到這個問題。注意我們用 `{ for details }` 提取列表資料的技巧。
+`Option<_>` 實作了`Iterator`，所以我們可以使用特殊的`{ for ... }` 語法來逐個顯示`Iterator` 返回的唯一元素，而這[由`html!` 巨集支援](concepts/html/lists)。
+
+### 處理狀態
+
+還記得之前使用的 `use_state` 嗎？那是一個特殊的函數，稱為 "hook"。 Hooks 用於 "hook" 到函數元件的生命週期中並執行操作。您可以在[這裡](concepts/function-components/hooks/introduction.mdx#pre-defined-hooks)了解更多關於這個 hook 和其他 hook 的資訊。
+
+:::note
+結構體組件的行為不同。請查看[文件](advanced-topics/struct-components/introduction.mdx)以了解有關這些的資訊。
+:::
+
+## 取得資料（使用外部 REST API）
+
+在真實的應用程式中，資料通常來自 API 而不是硬編碼。讓我們從外部來源取得我們的影片清單。為此，我們需要添加以下 crate：
+
+-   [`gloo-net`](https://crates.io/crates/gloo-net)
+    用於進行 fetch 調用。
+-   [`serde`](https://serde.rs) 及其衍生特性
+    用於反序列化 JSON 回應
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+    用於將 Rust 的 Future 作為 Promise 執行
+
+讓我們更新 `Cargo.toml` 檔案中的依賴項：
+
+```toml title="Cargo.toml"
+[dependencies]
+gloo-net = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen-futures = "0.4"
+```
+
+:::note
+在選擇依賴項時，請確保它們與 `wasm32` 相容！否則，您將無法運行您的應用程式。
+:::
+
+更新 `Video` 結構體以衍生 `Deserialize` 特性：
+
+```rust ,ignore {1, 3-4}
++ use serde::Deserialize;
+
+- #[derive(Clone, PartialEq)]
++ #[derive(Clone, PartialEq, Deserialize)]
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+最後一步，我們需要更新我們的 `App` 元件，以便進行 fetch 請求，而不是使用硬編碼的數據
+
+```rust ,ignore {1,5-25,34-35}
++ use gloo_net::http::Request;
+
+#[function_component(App)]
+fn app() -> Html {
+-    let videos = vec![
+-        // ...
+-    ]
++    let videos = use_state(|| vec![]);
++    {
++        let videos = videos.clone();
++        use_effect_with((), move |_| {
++            let videos = videos.clone();
++            wasm_bindgen_futures::spawn_local(async move {
++                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
++                    .send()
++                    .await
++                    .unwrap()
++                    .json()
++                    .await
++                    .unwrap();
++                videos.set(fetched_videos);
++            });
++            || ()
++        });
++    }
+
+    // ...
+
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-                <VideosList videos={videos} on_click={on_video_select.clone()} />
++                <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
+            </div>
+            { for details }
+        </>
+    }
+}
+```
+
+:::note
+我們在這裡使用 `unwrap`，因為這是一個演示應用程式。在真實的應用程式中，您可能希望有[適當的錯誤處理](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html)。
+:::
+
+現在，查看瀏覽器，看看一切是否按預期工作……如果不是因為 CORS 的話。為了解決這個問題，我們需要一個代理伺服器。幸運的是 trunk 提供了這個功能。
+
+更新這些行：
+
+```rust ,ignore {2-3}
+// ...
+-                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
++                let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")
+// ...
+```
+
+現在，使用以下命令重新運行伺服器：
+
+```bash
+trunk serve --proxy-backend=https://yew.rs/tutorial
+```
+
+刷新網頁，一切都應該按預期工作。
+
+## 總結
+
+恭喜！您已經建立了一個從外部 API 取得資料並顯示影片清單的 Web 應用程式。
+
+## 接下來
+
+這個應用程式離完美或有用還有很長的路要走。完成本教學後，您可以將其作為探索更高級主題的起點。
+
+### 樣式
+
+我們的應用程式看起來非常醜陋。沒有 CSS 或任何樣式。不幸的是，Yew 沒有提供內建的樣式組件。請查看 [Trunk 的 assets](https://trunkrs.dev/assets/)，以了解如何新增樣式表。
+
+### 更多依賴函式庫
+
+我們的應用程式只使用了很少的外部依賴。有很多 crate 可以使用。請查看[外部程式庫](/community/external-libs)以取得更多詳細資訊。
+
+### 了解更多關於 Yew
+
+閱讀我們的[官方文件](../getting-started/introduction.mdx)。它更詳細地解釋了許多概念。要了解有關 Yew API 的更多信息，請查看我們的[API 文件](https://docs.rs/yew)。

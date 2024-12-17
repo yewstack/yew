@@ -1,0 +1,73 @@
+---
+title: '条件レンダリング'
+description: 'HTMLで条件付きノードをレンダリングする！'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## If ブロック
+
+条件付きでマークアップをレンダリングするには、それを `if` ブロックでラップします：
+
+<Tabs>
+  <TabItem value="if" label="if">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    if true {
+        <p>{ "True case" }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if - else" label="if - else">
+
+```rust
+use yew::prelude::*;
+let some_condition = true;
+
+html! {
+    if some_condition {
+        <p>{ "True case" }</p>
+    } else {
+        <p>{ "False case" }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if let" label="if let">
+
+```rust
+use yew::prelude::*;
+let some_text = Some("text");
+
+html! {
+    if let Some(text) = some_text {
+        <p>{ text }</p>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="if let else" label="if let else">
+
+```rust
+use yew::prelude::*;
+let some_text = Some("text");
+
+html! {
+    if let Some(text) = some_text {
+        <p>{ text }</p>
+    } else {
+        <p>{ "False case" }</p>
+    }
+};
+```
+
+  </TabItem>
+</Tabs>
