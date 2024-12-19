@@ -1,5 +1,5 @@
 use proc_macro2::{Delimiter, Group, Span, TokenStream};
-use proc_macro_error::emit_warning;
+use proc_macro_error2::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
