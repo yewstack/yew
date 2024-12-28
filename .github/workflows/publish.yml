@@ -70,7 +70,7 @@ jobs:
 
       - name: Create a version branch
         if: github.event.inputs.level != 'patch'
-        uses: peterjgrainger/action-create-branch@v2.4.0
+        uses: peterjgrainger/action-create-branch@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
