@@ -69,5 +69,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: size-cmp-${{ matrix.target }}-info
+          include-hidden-files: true
           path: ".SIZE_CMP_INFO"
           retention-days: 1
