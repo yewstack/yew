@@ -212,6 +212,18 @@ impl BList {
             rev_bundles.iter().map(|v| key!(v)),
         );
 
+        if cfg!(debug_assertions) {
+            let mut keys = HashSet::with_capacity(left_vdoms.len());
+            for (idx, n) in left_vdoms.iter().enumerate() {
+                let key = key!(n);
+                debug_assert!(
+                    keys.insert(key!(n)),
+                    "duplicate key detected: {key} at index {idx}. Keys in keyed lists must be \
+                     unique!",
+                );
+            }
+        }
+
         // If there is no key mismatch, apply the unkeyed approach
         // Corresponds to adding or removing items from the back of the list
         if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
@@ -239,20 +251,50 @@ impl BList {
 
         // Step 2. Diff matching children in the middle, that is between the first and last key
         // mismatch Find first key mismatch from the front
-        let matching_len_start = matching_len(
+        let mut matching_len_start = matching_len(
             lefts.iter().map(|v| key!(v)),
             rev_bundles.iter().map(|v| key!(v)).rev(),
         );
 
         // Step 2.1. Splice out the existing middle part and build a lookup by key
         let rights_to = rev_bundles.len() - matching_len_start;
-        let mut spliced_middle =
-            rev_bundles.splice(matching_len_end..rights_to, std::iter::empty());
+        let mut bundle_middle = matching_len_end..rights_to;
+        if bundle_middle.start > bundle_middle.end {
+            // If this range is "inverted", this implies that the incoming nodes in lefts contain a
+            // duplicate key!
+            // Pictogram:
+            //                                         v lefts_to
+            // lefts:              | SSSSSSSS | ------ | EEEEEEEE |
+            //                                ↕ matching_len_start
+            // rev_bundles.rev():  | SSS | ?? | EEE |
+            //                           ^ rights_to
+            // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a
+            // key in the ? portion of bundles. Since the former can't overlap, a key
+            // must be duplicate. Duplicates might lead to us forgetting about some
+            // bundles entirely. It is NOT straight forward to adjust the below code to
+            // consistently check and handle this. The duplicate keys might
+            // be in the start or end portion.
+            // With debug_assertions we can never reach this. For production code, hope for the best
+            // by pretending. We still need to adjust some things so splicing doesn't
+            // panic:
+            matching_len_start = 0;
+            bundle_middle = matching_len_end..rev_bundles.len();
+        }
+        let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
+
+        // BNode contains js objects that look suspicious to clippy but are harmless
         #[allow(clippy::mutable_key_type)]
-        let mut spare_bundles: HashSet<KeyedEntry> =
-            HashSet::with_capacity((matching_len_end..rights_to).len());
+        let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
+        let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
         for (idx, r) in (&mut spliced_middle).enumerate() {
-            spare_bundles.insert(KeyedEntry(idx, r));
+            #[cold]
+            fn duplicate_in_bundle(root: &BSubtree, parent: &Element, r: BNode) {
+                test_log!("removing: {:?}", r);
+                r.detach(root, parent, false);
+            }
+            if let Some(KeyedEntry(_, dup)) = spare_bundles.replace(KeyedEntry(idx, r)) {
+                duplicate_in_bundle(root, parent, dup);
+            }
         }
 
         // Step 2.2. Put the middle part back together in the new key order
@@ -1419,6 +1461,27 @@ mod layout_tests_keys {
                 expected: "<p>3</p><p>2</p><p>1</p>",
             },
         ]);
+
+        diff_layouts(layouts);
+    }
+
+    #[test]
+    //#[should_panic(expected = "duplicate key detected: vtag at index 1")]
+    // can't inspect panic message in wasm :/
+    #[should_panic]
+    fn duplicate_keys() {
+        let mut layouts = vec![];
+
+        layouts.push(TestLayout {
+            name: "A list with duplicate keys",
+            node: html! {
+                <>
+                    <i key="vtag" />
+                    <i key="vtag" />
+                </>
+            },
+            expected: "<i></i><i></i>",
+        });
 
         diff_layouts(layouts);
     }
