@@ -218,7 +218,8 @@ impl BList {
                 let key = key!(n);
                 debug_assert!(
                     keys.insert(key!(n)),
-                    "duplicate key detected: {key} at index {idx}. Keys in keyed lists must be unique!",
+                    "duplicate key detected: {key} at index {idx}. Keys in keyed lists must be \
+                     unique!",
                 );
             }
         }
@@ -259,28 +260,30 @@ impl BList {
         let rights_to = rev_bundles.len() - matching_len_start;
         let mut bundle_middle = matching_len_end..rights_to;
         if bundle_middle.start > bundle_middle.end {
-            // If this range is "inverted", this implies that the incoming nodes in lefts contain a duplicate key! Pictogram:
+            // If this range is "inverted", this implies that the incoming nodes in lefts contain a
+            // duplicate key!
+            // Pictogram:
             //                                         v lefts_to
             // lefts:              | SSSSSSSS | ------ | EEEEEEEE |
             //                                ↕ matching_len_start
             // rev_bundles.rev():  | SSS | ?? | EEE |
             //                           ^ rights_to
-            // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a key in the ? portion of bundles.
-            // Since the former can't overlap, a key must be duplicate.
-            // Duplicates might lead to us forgetting about some bundles entirely.
-            // It is NOT straight forward to adjust the below code to consistently check and handle this. The duplicate keys might
+            // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a
+            // key in the ? portion of bundles. Since the former can't overlap, a key
+            // must be duplicate. Duplicates might lead to us forgetting about some
+            // bundles entirely. It is NOT straight forward to adjust the below code to
+            // consistently check and handle this. The duplicate keys might
             // be in the start or end portion.
-            // With debug_assertions we can never reach this. For production code, hope for the best by pretending. We still need
-            // to adjust some things so splicing doesn't panic:
+            // With debug_assertions we can never reach this. For production code, hope for the best
+            // by pretending. We still need to adjust some things so splicing doesn't
+            // panic:
             matching_len_start = 0;
             bundle_middle = matching_len_end..rev_bundles.len();
         }
         let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
 
-        #[allow(
-            clippy::mutable_key_type,
-            reason = "BNode contains js objects that look suspicious to clippy but are harmless"
-        )]
+        // BNode contains js objects that look suspicious to clippy but are harmless
+        #[allow(clippy::mutable_key_type)]
         let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
         let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
         for (idx, r) in (&mut spliced_middle).enumerate() {
@@ -1463,7 +1466,8 @@ mod layout_tests_keys {
     }
 
     #[test]
-    //#[should_panic(expected = "duplicate key detected: vtag at index 1")] // can't inspect panic message in wasm :/
+    //#[should_panic(expected = "duplicate key detected: vtag at index 1")]
+    // can't inspect panic message in wasm :/
     #[should_panic]
     fn duplicate_keys() {
         let mut layouts = vec![];
