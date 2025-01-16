@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
-use crate::query::ToQuery;
 use crate::history::{AnyHistory, History, HistoryError, HistoryResult};
+use crate::query::ToQuery;
 use crate::routable::Routable;
 
 pub type NavigationError = HistoryError;
