@@ -1,0 +1,339 @@
+---
+title: '属性 (Properties)'
+description: '父子组件通信'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+:::note
+
+属性 (Properties) 通常被简写为 "Props"。
+
+:::
+
+属性 (Properties) 是组件的参数，Yew 可以监视这些参数。
+
+在组件的属性中使用一个类型之前，它必须实现 `Properties` trait。
+
+## 响应性
+
+在重新渲染时，Yew 在协调虚拟 DOM 时检查属性是否已更改，以了解是否需要重新渲染嵌套组件。这样，Yew 可以被认为是一个非常具有响应性的框架，因为来自父组件的更改总是会向下传播，视图永远不会与来自属性/状态的数据不同步。
+
+:::tip
+
+如果您尚未完成 [教程](../../tutorial)，请尝试并自行测试这种响应性！
+
+:::
+
+## 派生宏
+
+Yew 提供了一个派生宏，可以轻松地在结构体上实现 `Properties` trait。
+
+您派生 `Properties` 的类型也必须实现 `PartialEq`，以便 Yew 可以进行数据比较。
+
+```rust
+use yew::Properties;
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+```
+
+## 在函数组件中使用
+
+属性 `#[function_component]` 允许在函数参数中选择性地接收 Props。要提供它们，可以通过 `html!` 宏中的属性进行赋值。
+
+<Tabs>
+  <TabItem value="with-props" label="With Props">
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(&Props { is_loading }: &Props) -> Html {
+    html! { <>{"Am I loading? - "}{is_loading}</> }
+}
+
+// 然后提供属性
+#[function_component]
+fn App() -> Html {
+    html! { <HelloWorld is_loading=true /> }
+}
+
+```
+
+  </TabItem>
+  <TabItem value="no-props" label="No Props">
+
+```rust
+use yew::{function_component, html, Html};
+
+#[function_component]
+fn HelloWorld() -> Html {
+    html! { "Hello world" }
+}
+
+// 没有属性需要提供
+#[function_component]
+fn App() -> Html {
+    html! { <HelloWorld /> }
+}
+
+```
+
+  </TabItem>
+</Tabs>
+
+## 派生宏字段属性
+
+在派生 `Properties` 时，默认情况下所有字段都是必需的。
+
+以下属性允许您为属性提供默认值，当父组件没有设置它们时将使用这些默认值。
+
+:::tip
+属性在 Rustdoc 生成的文档中是不可见的。您的属性的文档字符串应该提到一个属性是否是可选的，以及它是否有一个特殊的默认值。
+:::
+
+<Tabs>
+  <TabItem value="prop_or_default" label="#[prop_or_default]">
+
+使用 `Default` trait 的字段类型的默认值初始化属性值。
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    // highlight-start
+    #[prop_or_default]
+    // highlight-end
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(&Props { is_loading }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { "Hello world" }
+    }
+}
+
+// 这样使用默认值
+#[function_component]
+fn Case1() -> Html {
+    html! { <HelloWorld /> }
+}
+// 或者不覆盖默认值
+#[function_component]
+fn Case2() -> Html {
+    html! { <HelloWorld is_loading=true /> }
+}
+```
+
+  </TabItem>
+  <TabItem value="prop_or_value" label="#[prop_or(value)]">
+
+使用 `value` 来初始化属性值。`value` 可以是返回字段类型的任何表达式。
+
+例如，要将布尔属性默认为 `true`，请使用属性 `#[prop_or(true)]`。当属性被构造时，表达式会被评估，且没有给出明确的值。
+
+```rust
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    #[prop_or_default]
+    pub is_loading: bool,
+    // highlight-start
+    #[prop_or(AttrValue::Static("Bob"))]
+    // highlight-end
+    pub name: AttrValue,
+}
+
+#[function_component]
+fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{"Hello "}{name} </>}
+    }
+}
+
+// 这样使用默认值
+#[function_component]
+fn Case1() -> Html {
+    html! { <Hello /> }
+}
+// 或者不覆盖默认值
+#[function_component]
+fn Case2() -> Html {
+    html! { <Hello name="Sam" /> }
+}
+```
+
+  </TabItem>
+  <TabItem value="prop_or_else_function" label="#[prop_or_else(function)]">
+
+调用 `function` 来初始化属性值。`function` 应该具有 `FnMut() -> T` 签名，其中 `T` 是字段类型。当没有为该属性给出明确的值时，将调用该函数。
+这个函数在属性被构造时被调用。
+
+```rust
+use yew::prelude::*;
+
+fn create_default_name() -> AttrValue {
+    AttrValue::Static("Bob")
+}
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    #[prop_or_default]
+    pub is_loading: bool,
+    // highlight-start
+    #[prop_or_else(create_default_name)]
+    // highlight-end
+    pub name: AttrValue,
+}
+
+#[function_component]
+fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{"Hello "}{name}</> }
+    }
+}
+
+// 使用默认值
+#[function_component]
+fn Case1() -> Html {
+    html! { <Hello /> }
+}
+// 或者不覆盖默认值
+#[function_component]
+fn Case2() -> Html {
+    html! { <Hello name="Sam" /> }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## 使用 Properties 的性能开销
+
+内部属性是以引用计数的智能指针传递的。这意味着只有一个共享指针被传递到组件树中的属性，这样就能节约克隆整个属性的高昂成本。
+
+:::tip
+`AttrValue` 是我们用于属性值的自定义类型，这样就不用将它们定义为 String 或其他类似克隆成本高昂的类型了。
+:::
+
+## Props 宏
+
+`yew::props!` 宏允许您以与 `html!` 宏相同的方式构建属性。
+
+该宏使用与结构表达式相同的语法，只是您不能使用属性或基本表达式 (`Foo { ..base }`)。类型路径可以直接指向属性 (`path::to::Props`)，也可以指向组件的关联属性 (`MyComp::Properties`)。
+
+```rust
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    #[prop_or_default]
+    pub is_loading: bool,
+    #[prop_or(AttrValue::Static("Bob"))]
+    pub name: AttrValue,
+}
+
+#[function_component]
+fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{"Hello "}{name}</> }
+    }
+}
+
+#[function_component]
+fn App() -> Html {
+    // highlight-start
+    let pre_made_props = yew::props! {
+        Props {} // 注意我们不需要指定 name 属性
+    };
+    // highlight-end
+    html! { <Hello ..pre_made_props /> }
+}
+```
+
+## 自动生成属性 (yew-autoprops)
+
+为了简化您的开发流程，您还可以使用宏 `#[autoprops]`（来自 `yew-autoprops` 包）自动生成 `Properties` 结构体。
+
+```rust
+use yew::prelude::*;
+use yew_autoprops::autoprops;
+
+// #[autoprops] 宏必须出现在 #[function_component] 之前，顺序很重要
+#[autoprops]
+#[function_component]
+fn Greetings(
+    #[prop_or_default]
+    is_loading: bool,
+    #[prop_or(AttrValue::Static("Hello"))]
+    message: &AttrValue,
+    #[prop_or(AttrValue::Static("World"))]
+    name: &AttrValue,
+) -> Html {
+    if is_loading {
+        html! { "Loading" }
+    } else {
+        html! { <>{message}{" "}{name}</> }
+    }
+}
+
+// 结构体 "GreetingsProps" 将会被自动生成。
+//
+// `is_loading` 将作为值传递给组件，而 `message` 和 `name` 将使用引用，因为定义中有一个前导的 `&`。
+```
+
+## 评估顺序
+
+属性按照指定的顺序进行评估，如下例所示：
+
+```rust
+#[derive(yew::Properties, PartialEq)]
+struct Props { first: usize, second: usize, last: usize }
+
+fn main() {
+    let mut g = 1..=3;
+    let props = yew::props!(Props { first: g.next().unwrap(), second: g.next().unwrap(), last: g.next().unwrap() });
+
+    assert_eq!(props.first, 1);
+    assert_eq!(props.second, 2);
+    assert_eq!(props.last, 3);
+}
+```
+
+## 反模式
+
+虽然几乎任何 Rust 类型都可以作为属性传递，但有一些反模式应该避免。这些包括但不限于：
+
+1. 使用 `String` 类型而不是 `AttrValue`。 <br />
+   **为什么不好？** `String` 克隆成本高昂。当属性值与钩子和回调一起使用时，通常需要克隆。`AttrValue` 是一个引用计数的字符串 (`Rc<str>`) 或一个 `&'static str`，因此非常便宜克隆。<br />
+   **注意**：`AttrValue` 在内部是来自 [implicit-clone](https://crates.io/crates/implicit-clone) 的 `IString`。查看该包以了解更多信息。
+2. 使用内部可变性。 <br />
+   **为什么不好？** 内部可变性（例如 `RefCell`、`Mutex` 等）应该 _通常_ 避免使用。它可能会导致重新渲染问题（Yew 不知道状态何时发生了变化），因此您可能需要手动强制重新渲染。就像所有事物一样，它有其用武之地。请谨慎使用。
+3. 使用 `Vec` 类型而不是 `IArray`。 <br />
+   **为什么不好？** `Vec`，就像 `String` 一样，克隆成本也很高。`IArray` 是一个引用计数的切片 (`Rc<T>`) 或一个 `&'static [T]`，因此非常便宜克隆。<br />
+   **注意**：`IArray` 可以从 [implicit-clone](https://crates.io/crates/implicit-clone) 导入。查看该包以了解更多信息。
+4. 您发觉可能的新内容。您是否遇到了一个希望早点了解清楚的边缘情况？请随时创建一个问题或向本文档提供修复的 PR。
+
+## yew-autoprops
+
+[yew-autoprops](https://crates.io/crates/yew-autoprops) 是一个实验性包，允许您根据函数的参数动态创建 Props 结构体。如果属性结构体永远不会被重用，这可能会很有用。

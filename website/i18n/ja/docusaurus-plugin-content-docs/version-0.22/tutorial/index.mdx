@@ -1,0 +1,584 @@
+---
+title: 'チュートリアル'
+slug: /tutorial
+---
+
+## 紹介
+
+この実践チュートリアルでは、Yew を使用して Web アプリケーションを構築する方法を学びます。
+**Yew** は、[WebAssembly](https://webassembly.org/) を使用してフロントエンド Web アプリケーションを構築するためのモダンな [Rust](https://www.rust-lang.org/) フレームワークです。
+Yew は Rust の強力な型システムを活用し、再利用可能で保守しやすく、良好に構造化されたアーキテクチャを奨励します。
+Rust の [crates](https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html) と呼ばれるライブラリのエコシステムは、状態管理などの一般的なパターンのためのコンポーネントを提供します。
+Rust のパッケージマネージャー [Cargo](https://doc.rust-lang.org/cargo/) を使用すると、Yew などの多くの crate を [crates.io](https://crates.io) から利用できます。
+
+### 構築する内容
+
+Rustconf は、Rust コミュニティが毎年開催する星間集会です。
+Rustconf 2020 には多くの講演があり、大量の情報が提供されました。
+この実践チュートリアルでは、他の Rustaceans がこれらの講演を理解し、1つのページから視聴できるようにする Web アプリケーションを構築します。
+
+## セットアップ
+
+### 前提条件
+
+このチュートリアルは、Rust に精通していることを前提としています。Rust の初心者である場合、無料の [Rust 本](https://doc.rust-lang.org/book/ch00-00-introduction.html) は初心者にとって素晴らしい出発点であり、経験豊富な Rust 開発者にとっても優れたリソースです。
+
+最新バージョンの Rust がインストールされていることを確認するには、`rustup update` を実行するか、[Rust をインストール](https://www.rust-lang.org/tools/install) します。
+
+Rust をインストールした後、Cargo を使用して以下のコマンドを実行し、`trunk` をインストールします：
+
+```bash
+cargo install trunk
+```
+
+WASM のビルドターゲットも追加する必要があります。次のコマンドを実行します：
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+### プロジェクトの設定
+
+まず、新しい cargo プロジェクトを作成します：
+
+```bash
+cargo new yew-app
+cd yew-app
+```
+
+Rust 環境が正しく設定されていることを確認するために、cargo ビルドツールを使用して初期プロジェクトを実行します。
+ビルドプロセスの出力に続いて、期待される "Hello, world!" メッセージが表示されるはずです。
+
+```bash
+cargo run
+```
+
+## 最初の静的ページ
+
+このシンプルなコマンドラインアプリケーションを基本的な Yew Web アプリケーションに変換するために、いくつかの変更が必要です。
+
+```toml title="Cargo.toml" {7}
+[package]
+name = "yew-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+```
+
+:::info
+
+アプリケーションを構築するだけの場合は、`csr` 特性のみが必要です。これにより、`Renderer` とクライアントサイドレンダリングに関連するすべてのコードが有効になります。
+
+ライブラリを作成している場合は、この特性を有効にしないでください。クライアントサイドレンダリングロジックがサーバーサイドレンダリングパッケージに含まれてしまいます。
+
+テストやサンプルのために Renderer が必要な場合は、`dev-dependencies` で有効にするべきです。
+
+:::
+
+```rust ,no_run title="src/main.rs"
+use yew::prelude::*;
+
+#[function_component(App)]
+fn app() -> Html {
+    html! {
+        <h1>{ "Hello World" }</h1>
+    }
+}
+
+fn main() {
+    yew::Renderer::<App>::new().render();
+}
+```
+
+それでは、プロジェクトのルートディレクトリに `index.html` を作成しましょう。
+
+```html title="index.html"
+<!doctype html>
+<html lang="en">
+    <head></head>
+    <body></body>
+</html>
+```
+
+### 開発サーバーの起動
+
+以下のコマンドを実行して、アプリケーションをビルドし、ローカルで提供します。
+
+```bash
+trunk serve --open
+```
+
+:::info
+`--open` オプションを削除して、`trunk serve` を実行した後にデフォルトのブラウザを開かないようにします。
+:::
+
+Trunk は、ソースコードファイルを変更するたびにアプリケーションをリアルタイムで再構築します。
+デフォルトでは、サーバーはアドレス '127.0.0.1' のポート '8080' でリッスンします => [http://localhost:8080](http://127.0.0.1:8080)。
+この設定を変更するには、次のファイルを作成して必要に応じて編集します：
+
+```toml title="Trunk.toml"
+[serve]
+# ローカルネットワーク上のリッスンアドレス
+address = "127.0.0.1"
+# 広域ネットワーク上のリッスンアドレス
+# address = "0.0.0.0"
+# リッスンするポート
+port = 8000
+```
+
+もし興味があれば、`trunk help` および `trunk help <subcommand>` を実行して、進行中のプロセスの詳細についてさらに学ぶことができます。
+
+### おめでとうございます
+
+これで、Yew 開発環境を正常にセットアップし、最初の Yew Web アプリケーションを構築しました。
+
+## HTML の構築
+
+Yew は Rust のプロシージャルマクロを利用しており、JSX（JavaScript の拡張で、JavaScript 内で HTML に似たコードを書くことができる）に似た構文を提供して、マークアップを作成します。
+
+### クラシック HTML への変換
+
+私たちのウェブサイトがどのように見えるかについての良いアイデアが既にあるので、単純にドラフトを `html!` と互換性のある表現に変換することができます。シンプルな HTML を書くことに慣れているなら、`html!` でマークアップを書くのに問題はないはずです。このマクロは HTML といくつかの違いがあることに注意してください：
+
+1. 式は中括弧（`{ }`）で囲む必要があります。
+2. ルートノードは1つだけでなければなりません。コンテナにラップせずに複数の要素を持ちたい場合は、空のタグ/フラグメント（`<> ... </>`）を使用できます。
+3. 要素は正しく閉じる必要があります。
+
+レイアウトを構築したいので、元の HTML は次のようになります：
+
+```html
+<h1>RustConf Explorer</h1>
+<div>
+    <h3>Videos to watch</h3>
+    <p>John Doe: Building and breaking things</p>
+    <p>Jane Smith: The development process</p>
+    <p>Matt Miller: The Web 7.0</p>
+    <p>Tom Jerry: Mouseless development</p>
+</div>
+<div>
+    <h3>John Doe: Building and breaking things</h3>
+    <img
+        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        alt="video thumbnail"
+    />
+</div>
+```
+
+それでは、この HTML を `html!` に変換しましょう。次のコードスニペットを `app` 関数の本体に入力（またはコピー/ペースト）して、関数が `html!` の値を返すようにします。
+
+```rust ,ignore
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+            <p>{ "John Doe: Building and breaking things" }</p>
+            <p>{ "Jane Smith: The development process" }</p>
+            <p>{ "Matt Miller: The Web 7.0" }</p>
+            <p>{ "Tom Jerry: Mouseless development" }</p>
+        </div>
+        <div>
+            <h3>{ "John Doe: Building and breaking things" }</h3>
+            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+        </div>
+    </>
+}
+```
+
+ブラウザページをリフレッシュすると、次の出力が表示されるはずです：
+
+![Running WASM application screenshot](/img/tutorial_application_screenshot.png)
+
+### マークアップ内でRustの構造を使用する
+
+Rustでマークアップを書く大きな利点の1つは、マークアップ内でRustのすべての利点を享受できることです。
+今では、HTML内にビデオリストをハードコーディングするのではなく、それらを `Vec` の `Video` 構造体として定義します。
+データを保持するために、`main.rs` または選択した任意のファイルにシンプルな `struct` を作成します。
+
+```rust
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+次に、この構造体のインスタンスを `app` 関数内で作成し、ハードコーディングされたデータの代わりにそれらを使用します：
+
+```rust
+use website_test::tutorial::Video; // 自分のパスに置き換えてください
+
+let videos = vec![
+    Video {
+        id: 1,
+        title: "Building and breaking things".to_string(),
+        speaker: "John Doe".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 2,
+        title: "The development process".to_string(),
+        speaker: "Jane Smith".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 3,
+        title: "The Web 7.0".to_string(),
+        speaker: "Matt Miller".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+    Video {
+        id: 4,
+        title: "Mouseless development".to_string(),
+        speaker: "Tom Jerry".to_string(),
+        url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+    },
+];
+```
+
+それらを表示するために、`Vec` を `Html` に変換する必要があります。これを実現するには、イテレータを作成し、それを `html!` にマッピングして `Html` として収集します：
+
+```rust ,ignore
+let videos = videos.iter().map(|video| html! {
+    <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+}).collect::<Html>();
+```
+
+:::tip
+リスト項目にキーを使用することで、Yew はリスト内のどの項目が変更されたかを追跡し、より高速な再レンダリングを実現できます。[リストには常にキーを使用することをお勧めします](/concepts/html/lists.mdx#keyed-lists)。
+::
+
+最後に、データから作成された `Html` を使用してハードコーディングされたビデオリストを置き換える必要があります：
+
+```rust ,ignore {6-10}
+html! {
+    <>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           <p>{ "John Doe: Building and breaking things" }</p>
+-           <p>{ "Jane Smith: The development process" }</p>
+-           <p>{ "Matt Miller: The Web 7.0" }</p>
+-           <p>{ "Tom Jerry: Mouseless development" }</p>
++           { videos }
+        </div>
+        // ...
+    </>
+}
+```
+
+## コンポーネント
+
+コンポーネントは Yew アプリケーションの構成要素です。コンポーネントを組み合わせることで（他のコンポーネントで構成されることもあります）、アプリケーションを構築します。再利用可能性を考慮してコンポーネントを構築し、それらを汎用的に保つことで、コードやロジックを繰り返すことなく、アプリケーションの複数の部分でそれらを使用できるようになります。
+
+これまで使用してきた `app` 関数は `App` と呼ばれるコンポーネントであり、「関数コンポーネント」と呼ばれます。
+
+1. 構造体コンポーネント
+2. 関数コンポーネント
+
+このチュートリアルでは、関数コンポーネントを使用します。
+
+では、`App` コンポーネントをより小さなコンポーネントに分割しましょう。まず、ビデオリストを独自のコンポーネントに抽出します。
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+
+#[derive(Properties, PartialEq)]
+struct VideosListProps {
+    videos: Vec<Video>,
+}
+
+#[function_component(VideosList)]
+fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
+    videos.iter().map(|video| html! {
+        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+    }).collect()
+}
+```
+
+`VideosList` 関数コンポーネントのパラメータに注意してください。関数コンポーネントは1つの引数しか受け取らず、その引数は "props"（"properties" の略）を定義します。Props は親コンポーネントから子コンポーネントにデータを渡すために使用されます。この場合、`VideosListProps` は props を定義する構造体です。
+
+:::important
+props に使用される構造体は `Properties` を派生実装する必要があります。
+:::
+
+上記のコードをコンパイルするために、`Video` 構造体を次のように変更する必要があります：
+
+```rust {1}
+#[derive(Clone, PartialEq)]
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+次に、`VideosList` コンポーネントを使用するように `App` コンポーネントを更新できます。
+
+```rust ,ignore {4-7,13-14}
+#[function_component(App)]
+fn app() -> Html {
+    // ...
+-    let videos = videos.iter().map(|video| html! {
+-        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+-    }).collect::<Html>();
+-
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-               { videos }
++               <VideosList videos={videos} />
+            </div>
+            // ...
+        </>
+    }
+}
+```
+
+ブラウザウィンドウを確認することで、リストが期待通りにレンダリングされているかどうかを検証できます。リストのレンダリングロジックをそのコンポーネントに移動しました。これにより、`App` コンポーネントのソースコードが短くなり、読みやすく理解しやすくなりました。
+
+### アプリケーションをインタラクティブにする
+
+ここでの最終目標は、選択したビデオを表示することです。そのためには、`VideosList` コンポーネントがビデオを選択したときに親コンポーネントに「通知」する必要があります。これは `Callback` を使用して行います。この概念は「ハンドラの伝播」と呼ばれます。props を変更して `on_click` コールバックを受け取るようにします：
+
+```rust ,ignore {4}
+#[derive(Properties, PartialEq)]
+struct VideosListProps {
+    videos: Vec<Video>,
++    on_click: Callback<Video>
+}
+```
+
+次に、選択したビデオをコールバックに渡すように `VideosList` コンポーネントを変更します。
+
+```rust ,ignore {2-4,6-12,15-16}
+#[function_component(VideosList)]
+-fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
++fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
++    let on_click = on_click.clone();
+    videos.iter().map(|video| {
++        let on_video_select = {
++            let on_click = on_click.clone();
++            let video = video.clone();
++            Callback::from(move |_| {
++                on_click.emit(video.clone())
++            })
++        };
+
+        html! {
+-            <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
++            <p key={video.id} onclick={on_video_select}>{format!("{}: {}", video.speaker, video.title)}</p>
+        }
+    }).collect()
+}
+```
+
+次に、`VideosList` の使用を変更してそのコールバックを渡す必要があります。しかし、その前に、新しいコンポーネント `VideoDetails` を作成し、ビデオがクリックされたときに表示されるようにします。
+
+```rust
+use website_test::tutorial::Video;
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+struct VideosDetailsProps {
+    video: Video,
+}
+
+#[function_component(VideoDetails)]
+fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
+    html! {
+        <div>
+            <h3>{ video.title.clone() }</h3>
+            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+        </div>
+    }
+}
+```
+
+次に、`App` コンポーネントを変更して、ビデオが選択されたときに `VideoDetails` コンポーネントを表示するようにします。
+
+```rust ,ignore {4,6-11,13-15,22-23,25-29}
+#[function_component(App)]
+fn app() -> Html {
+    // ...
++    let selected_video = use_state(|| None);
+
++    let on_video_select = {
++        let selected_video = selected_video.clone();
++        Callback::from(move |video: Video| {
++            selected_video.set(Some(video))
++        })
++    };
+
++    let details = selected_video.as_ref().map(|video| html! {
++        <VideoDetails video={video.clone()} />
++    });
+
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-               <VideosList videos={videos} />
++               <VideosList videos={videos} on_click={on_video_select.clone()} />
+            </div>
++            { for details }
+-            <div>
+-                <h3>{ "John Doe: Building and breaking things" }</h3>
+-                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-            </div>
+        </>
+    }
+}
+```
+
+今は `use_state` について心配する必要はありません。後でこの問題に戻ります。リストデータを `{ for details }` で抽出するテクニックに注目してください。
+`Option<_>` は `Iterator` を実装しているので、特殊な `{ for ... }` 構文を使用して `Iterator` が返す唯一の要素を順番に表示することができます。これは [`html!` マクロ](concepts/html/lists) によってサポートされています。
+
+### 状態の処理
+
+以前に使用した `use_state` を覚えていますか？それは "フック" と呼ばれる特殊な関数です。フックは関数コンポーネントのライフサイクルに "フック" して操作を実行するために使用されます。このフックや他のフックについては[こちら](concepts/function-components/hooks/introduction.mdx#pre-defined-hooks)で詳しく学ぶことができます。
+
+:::note
+構造体コンポーネントは異なる動作をします。これらについては[ドキュメント](advanced-topics/struct-components/introduction.mdx)を参照してください。
+:::
+
+## データの取得（外部 REST API の使用）
+
+実際のアプリケーションでは、データは通常ハードコーディングされているのではなく、API から取得されます。外部ソースからビデオリストを取得してみましょう。そのためには、以下のクレートを追加する必要があります：
+
+-   [`gloo-net`](https://crates.io/crates/gloo-net)
+    fetch 呼び出しを行うために使用します。
+-   [`serde`](https://serde.rs) とその派生特性
+    JSON 応答をデシリアライズするために使用します。
+-   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+    Rust の Future を Promise として実行するために使用します。
+
+`Cargo.toml` ファイルの依存関係を更新しましょう：
+
+```toml title="Cargo.toml"
+[dependencies]
+gloo-net = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen-futures = "0.4"
+```
+
+:::note
+依存関係を選択する際には、それらが `wasm32` と互換性があることを確認してください！そうでない場合、アプリケーションを実行することはできません。
+:::
+
+`Deserialize` 特性を派生するように `Video` 構造体を更新します：
+
+```rust ,ignore {1, 3-4}
++ use serde::Deserialize;
+
+- #[derive(Clone, PartialEq)]
++ #[derive(Clone, PartialEq, Deserialize)]
+struct Video {
+    id: usize,
+    title: String,
+    speaker: String,
+    url: String,
+}
+```
+
+最後のステップとして、ハードコーディングされたデータを使用するのではなく、fetch リクエストを行うように `App` コンポーネントを更新する必要があります。
+
+```rust ,ignore {1,5-25,34-35}
++ use gloo_net::http::Request;
+
+#[function_component(App)]
+fn app() -> Html {
+-    let videos = vec![
+-        // ...
+-    ]
++    let videos = use_state(|| vec![]);
++    {
++        let videos = videos.clone();
++        use_effect_with((), move |_| {
++            let videos = videos.clone();
++            wasm_bindgen_futures::spawn_local(async move {
++                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
++                    .send()
++                    .await
++                    .unwrap()
++                    .json()
++                    .await
++                    .unwrap();
++                videos.set(fetched_videos);
++            });
++            || ()
++        });
++    }
+
+    // ...
+
+    html! {
+        <>
+            <h1>{ "RustConf Explorer" }</h1>
+            <div>
+                <h3>{"Videos to watch"}</h3>
+-                <VideosList videos={videos} on_click={on_video_select.clone()} />
++                <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
+            </div>
+            { for details }
+        </>
+    }
+}
+```
+
+:::note
+ここでは `unwrap` を使用していますが、これはデモアプリケーションのためです。実際のアプリケーションでは、[適切なエラーハンドリング](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html)を行うことをお勧めします。
+:::
+
+さて、ブラウザを確認して、すべてが期待通りに動作しているかを確認しましょう……CORS の問題がなければ。これを解決するために、プロキシサーバーが必要です。幸いなことに、trunk はこの機能を提供しています。
+
+これらの行を更新します：
+
+```rust ,ignore {2-3}
+// ...
+-                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
++                let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")
+// ...
+```
+
+次に、以下のコマンドを使用してサーバーを再起動します：
+
+```bash
+trunk serve --proxy-backend=https://yew.rs/tutorial
+```
+
+ページをリフレッシュすると、すべてが期待通りに動作するはずです。
+
+## まとめ
+
+おめでとうございます！外部 API からデータを取得し、ビデオリストを表示する Web アプリケーションを作成しました。
+
+## 次に
+
+このアプリケーションは、完璧または有用になるまでにはまだ長い道のりがあります。このチュートリアルを完了した後、より高度なトピックを探求するための出発点として使用できます。
+
+### スタイル
+
+私たちのアプリケーションは非常に見栄えが悪いです。CSS やその他のスタイルがありません。残念ながら、Yew は組み込みのスタイルコンポーネントを提供していません。スタイルシートを追加する方法については、[Trunk のアセット](https://trunkrs.dev/assets/)を参照してください。
+
+### さらなる依存ライブラリ
+
+私たちのアプリケーションは、非常に少ない外部依存関係を使用しています。使用できる多くのクレートがあります。詳細については、[外部ライブラリ](/community/external-libs)を参照してください。
+
+### Yew についてもっと知る
+
+私たちの[公式ドキュメント](../getting-started/introduction.mdx)を読んでください。多くの概念についてより詳細に説明しています。Yew API についてもっと知りたい場合は、[API ドキュメント](https://docs.rs/yew)を参照してください。

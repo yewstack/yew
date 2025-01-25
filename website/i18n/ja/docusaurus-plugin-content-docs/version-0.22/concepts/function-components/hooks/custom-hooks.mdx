@@ -1,0 +1,106 @@
+---
+title: 'カスタムフック'
+---
+
+## カスタムフックの定義
+
+コンポーネントのステートフルなロジックは、カスタムフックを作成することで再利用可能な関数として抽出できます。
+
+例えば、`window` オブジェクト上のイベントをリッスンするイベントリスナーを作成したいとします。
+
+```rust
+use yew::prelude::*;
+use gloo::events::EventListener;
+use gloo::utils::window;
+use std::mem::drop;
+
+
+#[function_component(ShowStorageChanged)]
+pub fn show_storage_changed() -> Html {
+    let state_storage_changed = use_state(|| false);
+
+    {
+        let state_storage_changed = state_storage_changed.clone();
+        use_effect(|| {
+            let listener = EventListener::new(&window(), "storage", move |_| state_storage_changed.set(true));
+
+            move || { drop(listener); }
+        });
+    }
+
+    html! { <div>{"Storage Event Fired: "}{*state_storage_changed}</div> }
+}
+```
+
+このコードには問題があります。ロジックは他のコンポーネントで再利用できません。異なるイベントをリッスンする別のコンポーネントを作成する場合、コードをコピーするのではなく、ロジックをカスタムフックに移すことができます。
+
+まず、`use_event` という新しい関数を作成します。`use_` プレフィックスは関数がフックであることを示します。この関数はイベントターゲット、イベントタイプ、およびコールバックを受け取ります。すべてのフックはその関数定義に `#[hook]` とマークする必要があります。
+
+```rust
+use web_sys::{Event, EventTarget};
+use std::borrow::Cow;
+use gloo::events::EventListener;
+use yew::prelude::*;
+
+#[hook]
+pub fn use_event<E, F>(target: &EventTarget, event_type: E, callback: F)
+where
+    E: Into<Cow<'static, str>>,
+    F: Fn(&Event) + 'static,
+{
+    todo!()
+}
+```
+
+このシンプルなフックは、組み込みのフックを組み合わせることで作成できます。この例では、`use_effect_with` フックを使用します。これにより、フックのパラメータが変更されたときにイベントリスナーを再作成できます。
+
+```rust
+use yew::prelude::*;
+use web_sys::{Event, EventTarget};
+use std::borrow::Cow;
+use std::rc::Rc;
+use gloo::events::EventListener;
+
+#[hook]
+pub fn use_event<E, F>(target: &EventTarget, event_type: E, callback: F)
+where
+    E: Into<Cow<'static, str>>,
+    F: Fn(Event) + 'static,
+{
+    #[derive(PartialEq, Clone)]
+    struct EventDependents {
+        target: EventTarget,
+        event_type: Cow<'static, str>,
+        callback: Callback<Event>,
+    }
+
+    let deps = EventDependents {
+        target: target.clone(),
+        event_type: event_type.into(),
+        callback: Callback::from(callback),
+    };
+
+    use_effect_with(
+        deps,
+        |deps| {
+            let EventDependents {
+                target,
+                event_type,
+                callback,
+            } = deps.clone();
+
+            let listener = EventListener::new(&target, event_type, move |e| {
+                callback.emit(e.clone());
+            });
+
+            move || {
+                drop(listener);
+            }
+        },
+    );
+}
+```
+
+この方法はほとんどすべてのケースで有効ですが、私たちがすでに使用しているような基本的なフックを作成するためには使用できません。
+
+[docs.rs](https://docs.rs/yew) 上のドキュメントや `hooks` ディレクトリを参照して、事前定義されたフックの実装を確認してください。

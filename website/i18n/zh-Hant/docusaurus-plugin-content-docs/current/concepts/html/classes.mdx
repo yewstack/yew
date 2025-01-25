@@ -1,0 +1,122 @@
+---
+title: '類別'
+description: '一個方便的巨集來處理類別'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## 類別
+
+`Classes` 結構體可以用來處理 HTML 類別。
+
+將字串推送到集合時，`Classes` 確保每個類別都有一個元素，即使單一字串可能包含多個類別。
+
+`Classes` 也可以透過使用 `Extend`（即 `classes1.extend(classes2)`）或 `push()`（即 `classes1.push(classes2)`）來合併。任何實作 `Into<Classes>` 的類型都可以推送到現有的 `Classes` 上。
+
+`classes!` 是一個方便的巨集，它建立一個單一的 `Classes`。它的輸入接受一個逗號分隔的表達式清單。唯一的要求是每個表達式都實作了 `Into<Classes>`。
+
+<Tabs>
+  <TabItem value="Literal" label="Literal">
+
+```rust
+use yew::{classes, html};
+
+html! {
+    <div class={classes!("container")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Multiple" label="Multiple">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("class-1", "class-2")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="String" label="String">
+
+```rust
+use yew::{classes, html};
+
+let my_classes = String::from("class-1 class-2");
+
+html! {
+  <div class={classes!(my_classes)}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Optional" label="Optional">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(Some("class"))} />
+};
+```
+
+  </TabItem>
+  <TabItem value="Vector" label="Vector">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(vec!["class-1", "class-2"])}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Array" label="Array">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(["class-1", "class-2"])}></div>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+## 接受類別的元件
+
+```rust
+use yew::prelude::*;
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    #[prop_or_default]
+    class: Classes,
+    fill: bool,
+    children: Html,
+}
+
+#[function_component]
+fn MyComponent(props: &Props) -> Html {
+    let Props {
+        class,
+        fill,
+        children,
+    } = props;
+    html! {
+        <div
+            class={classes!(
+                "my-container-class",
+                fill.then(|| Some("my-fill-class")),
+                class.clone(),
+            )}
+        >
+            { children.clone() }
+        </div>
+    }
+}
+```

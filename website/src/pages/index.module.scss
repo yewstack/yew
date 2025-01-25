@@ -48,12 +48,12 @@
     img {
         $dimensions: calc(var(--ifm-h1-font-size) * 5);
 
+        width: $dimensions;
+        height: $dimensions;
+
         @include devices(tablet) {
             $dimensions: calc(var(--ifm-h1-font-size) * 3);
         }
-
-        width: $dimensions;
-        height: $dimensions;
     }
 }
 

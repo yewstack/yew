@@ -1,0 +1,26 @@
+---
+title: '状态'
+---
+
+## 如何存储状态的一般视图
+
+这个表格可以作为一个指南，帮助您决定哪种状态存储类型最适合您的用例：
+
+| Hook             | 类型                       | 何时渲染?                        | 作用域                   |
+| ---------------- | -------------------------- | -------------------------------- | ------------------------ |
+| [use_state]      | `T`                        | 被设置一个值                     | 组件内部实例             |
+| [use_state_eq]   | `T: PartialEq`             | 被设置一个不同的值               | 组件内部实例             |
+| [use_reducer]    | `T: Reducible`             | 被调用归纳                       | 组件内部实例             |
+| [use_reducer_eq] | `T: Reducible + PartialEq` | 被调用归纳，归纳后的值与之前不同 | 组件内部实例             |
+| [use_memo]       | `Deps -> T`                | 依赖项发生变化                   | 组件内部实例             |
+| [use_callback]   | `Deps -> Callback<E>`      | 依赖项发生变化                   | 组件内部实例             |
+| [use_mut_ref]    | `T`                        | -                                | 组件内部实例             |
+| 全局静态常量     | `T`                        | -                                | 全局，任何位置都可以使用 |
+
+[use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html
+[use_state_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html
+[use_reducer]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html
+[use_reducer_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer_eq.html
+[use_memo]: https://yew-rs-api.web.app/next/yew/functional/fn.use_memo.html
+[use_callback]: https://yew-rs-api.web.app/next/yew/functional/fn.use_callback.html
+[use_mut_ref]: https://yew-rs-api.web.app/next/yew/functional/fn.use_mut_ref.html

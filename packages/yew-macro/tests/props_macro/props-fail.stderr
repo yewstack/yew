@@ -14,7 +14,7 @@ error: expected ident
   --> tests/props_macro/props-fail.rs:13:31
    |
 13 |     yew::props!(Props { a: 1, ..props });
-   |                               ^^
+   |                               ^
 
 error[E0425]: cannot find value `does_not_exist` in this scope
   --> tests/props_macro/props-fail.rs:15:25
@@ -28,7 +28,7 @@ error[E0609]: no field `fail` on type `Props`
 10 |     yew::props!(Props { a: 5, fail: 10 });
    |                               ^^^^ unknown field
    |
-   = note: available fields are: `a`
+   = note: available field is: `a`
 
 error[E0599]: no method named `fail` found for struct `PropsBuilder` in the current scope
   --> tests/props_macro/props-fail.rs:10:31
@@ -45,7 +45,7 @@ error[E0609]: no field `does_not_exist` on type `Props`
 15 |     yew::props!(Props { does_not_exist });
    |                         ^^^^^^^^^^^^^^ unknown field
    |
-   = note: available fields are: `a`
+   = note: available field is: `a`
 
 error[E0599]: no method named `does_not_exist` found for struct `PropsBuilder` in the current scope
   --> tests/props_macro/props-fail.rs:15:25

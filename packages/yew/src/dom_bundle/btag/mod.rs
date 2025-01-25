@@ -288,13 +288,13 @@ impl BTag {
         self.key.as_ref()
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn children(&self) -> Option<&BNode> {
         match &self.inner {
@@ -303,7 +303,7 @@ impl BTag {
         }
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -403,7 +403,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
@@ -985,7 +985,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        // this should remove the the "disabled" attribute
+        // this should remove the "disabled" attribute
         elem_vtag.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut elem);
 
         assert_eq!(
@@ -1000,7 +1000,7 @@ mod tests {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;

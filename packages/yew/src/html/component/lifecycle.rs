@@ -148,16 +148,17 @@ where
 /// methods.
 pub(crate) trait Stateful {
     fn view(&self) -> HtmlResult;
+    #[cfg(feature = "csr")]
     fn rendered(&mut self, first_render: bool);
     fn destroy(&mut self);
 
     fn any_scope(&self) -> AnyScope;
 
     fn flush_messages(&mut self) -> bool;
+    #[cfg(feature = "csr")]
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool;
 
     fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
 
     #[cfg(feature = "hydration")]
     fn creation_mode(&self) -> RenderMode;
@@ -171,6 +172,7 @@ where
         self.component.view(&self.context)
     }
 
+    #[cfg(feature = "csr")]
     fn rendered(&mut self, first_render: bool) {
         self.component.rendered(&self.context, first_render)
     }
@@ -199,6 +201,7 @@ where
             })
     }
 
+    #[cfg(feature = "csr")]
     fn props_changed(&mut self, props: Rc<dyn Any>) -> bool {
         let props = match Rc::downcast::<COMP::Properties>(props) {
             Ok(m) => m,
@@ -214,10 +217,6 @@ where
     }
 
     fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }
@@ -430,7 +429,9 @@ impl ComponentState {
         fields(component.id = self.comp_id)
     )]
     fn render(&mut self, shared_state: &Shared<Option<ComponentState>>) {
-        match self.inner.view() {
+        let view = self.inner.view();
+        tracing::trace!(?view, "render result");
+        match view {
             Ok(vnode) => self.commit_render(shared_state, vnode),
             Err(RenderError::Suspended(susp)) => self.suspend(shared_state, susp),
         };
@@ -740,7 +741,7 @@ mod feat_csr {
 #[cfg(feature = "csr")]
 pub(super) use feat_csr::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     extern crate self as yew;
@@ -797,7 +798,7 @@ mod tests {
     struct Props {
         lifecycle: Rc<RefCell<Vec<String>>>,
         #[allow(dead_code)]
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
         create_message: Option<bool>,
         update_message: RefCell<Option<bool>>,
         view_message: RefCell<Option<bool>>,
@@ -814,7 +815,7 @@ mod tests {
 
         fn create(ctx: &Context<Self>) -> Self {
             ctx.props().lifecycle.borrow_mut().push("create".into());
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
             if let Some(msg) = ctx.props().create_message {
                 ctx.link().send_message(msg);
             }
@@ -901,7 +902,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle: lifecycle.clone(),
-                #[cfg(target_arch = "wasm32")]
+                #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
                 create_message: Some(false),
                 ..Props::default()
             },
@@ -982,7 +983,7 @@ mod tests {
         test_lifecycle(
             Props {
                 lifecycle,
-                #[cfg(target_arch = "wasm32")]
+                #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
                 create_message: Some(true),
                 update_message: RefCell::new(Some(true)),
                 ..Props::default()

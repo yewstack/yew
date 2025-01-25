@@ -2,7 +2,7 @@
 name = "yew-agent-macro"
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.64.0"
+rust-version = "1.76.0"
 authors = ["Kaede Hoshikawa <futursolo@icloud.com>"]
 repository = "https://github.com/yewstack/yew"
 homepage = "https://yew.rs"

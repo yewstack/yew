@@ -144,11 +144,13 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
 
         let as_boxed_fn = with_output.then(|| quote! { as #boxed_fn_type });
 
+        let generic_types = generics.type_params().map(|t| &t.ident);
+
         // We need boxing implementation for `impl Trait` arguments.
         quote! {
             let #boxed_inner_ident = ::std::boxed::Box::new(
                     move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
-                        #inner_fn_ident (#ctx_ident, #(#input_args,)*)
+                        #inner_fn_ident :: <#(#generic_types,)*> (#ctx_ident, #(#input_args,)*)
                     }
                 ) #as_boxed_fn;
 

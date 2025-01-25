@@ -1,0 +1,17 @@
+---
+title: '節點引用'
+description: 'DOM 外部存取'
+---
+
+`ref` 屬性可以用於將 `NodeRef` 附加到 HTML 元素上。在回呼中，您可以取得 `ref` 附加到的 DOM `Element`。這可以用於在 `view` 生命週期方法之外對 DOM 進行更改，檢索 `<input>` 的值以及透過 javascript API 直接與 DOM 互動。
+
+這對於獲取 canvas 元素或滾動到頁面的不同部分很有用。
+
+:::caution
+不要手動修改 Yew 渲染的 DOM 樹。如果不確定，請將 `NodeRef` 視為唯讀存取。
+:::
+
+## 進一步閱讀
+
+-   [use_node_ref hook](https://yew-rs-api.web.app/next/yew/functional/fn.use_node_ref.html)
+-   [`node_refs` 範例](https://github.com/yewstack/yew/tree/master/examples/node_refs)

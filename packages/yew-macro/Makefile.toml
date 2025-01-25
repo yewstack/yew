@@ -1,6 +1,6 @@
 [tasks.test]
 clear = true
-toolchain = "1.64.0"
+toolchain = "1.76.0"
 command = "cargo"
 # test target can be optionally specified like `cargo make test html_macro`,
 args = ["test", "${@}"]

@@ -5,7 +5,7 @@ use crate::html::{BaseComponent, ChildrenProps, Html};
 
 /// A Component to represent a component that does not exist in current implementation.
 ///
-/// During Hydration, Yew expected the Virtual DOM hierarchy to match the the layout used in
+/// During Hydration, Yew expected the Virtual DOM hierarchy to match the layout used in
 /// server-side rendering. However, sometimes it is possible / reasonable to omit certain components
 /// from one side of the implementation. This component is used to represent a component as if a
 /// component "existed" in the place it is defined.

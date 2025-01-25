@@ -158,7 +158,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use gloo::utils::document;
@@ -391,7 +391,7 @@ mod tests {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
