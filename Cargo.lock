@@ -950,7 +950,7 @@ name = "futures"
 version = "0.1.0"
 dependencies = [
  "gloo",
- "pulldown-cmark",
+ "pulldown-cmark 0.12.1",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2366,6 +2366,18 @@ dependencies = [
  "anyhow",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "pulldown-cmark"
+version = "0.9.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57206b407293d2bcd3af849ce869d52068623f19e1b5ff8e8778e3309439682b"
+dependencies = [
+ "bitflags",
+ "getopts",
+ "memchr",
+ "unicase",
 ]
 
 [[package]]
@@ -3954,7 +3966,7 @@ dependencies = [
  "prettyplease",
  "proc-macro-error",
  "proc-macro2",
- "pulldown-cmark",
+ "pulldown-cmark 0.9.6",
  "quote",
  "rustversion",
  "syn 2.0.79",
