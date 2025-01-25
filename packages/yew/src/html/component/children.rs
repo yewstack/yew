@@ -1,6 +1,7 @@
 //! Component children module
 
 use std::fmt;
+use std::rc::Rc;
 
 use crate::html::Html;
 use crate::virtual_dom::{VChild, VComp, VList, VNode};
@@ -152,7 +153,7 @@ pub type ChildrenWithProps<CHILD> = ChildrenRenderer<VChild<CHILD>>;
 /// A type used for rendering children html.
 #[derive(Clone)]
 pub struct ChildrenRenderer<T> {
-    children: Vec<T>,
+    pub(crate) children: Vec<T>,
 }
 
 impl<T: PartialEq> PartialEq for ChildrenRenderer<T> {
@@ -192,10 +193,11 @@ where
     /// ```
     /// # let children = Children::new(Vec::new());
     /// # use yew::{classes, html, Children};
+    /// # let _ =
     /// children.map(|children| {
     ///     html! {
     ///         <div class={classes!("container")}>
-    ///             {children}
+    ///             {children.clone()}
     ///         </div>
     ///     }
     /// })
@@ -241,7 +243,7 @@ impl From<ChildrenRenderer<Html>> for Html {
             }
         }
 
-        Html::VList(val.into())
+        Html::VList(Rc::new(val.into()))
     }
 }
 

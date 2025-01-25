@@ -1,6 +1,5 @@
 use std::fmt;
 
-use boolinator::Boolinator;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::buffer::Cursor;
@@ -54,7 +53,9 @@ impl fmt::Display for HtmlDashedName {
 impl Peek<'_, Self> for HtmlDashedName {
     fn peek(cursor: Cursor) -> Option<(Self, Cursor)> {
         let (name, cursor) = cursor.ident()?;
-        non_capitalized_ascii(&name.to_string()).as_option()?;
+        if !non_capitalized_ascii(&name.to_string()) {
+            return None;
+        }
 
         let mut extended = Vec::new();
         let mut cursor = cursor;

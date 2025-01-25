@@ -4,17 +4,13 @@
 
 Yew apps 可以用 `web-sys` 或 `stdweb` 編譯。這兩個 creates 都提供了 Rust 與 WebAPIs 的連結。當把 `yew` 加進你的依賴時，請擇其一使用：
 
-{% code title="Cargo.toml" %}
-
-```rust
+```rust title="Cargo.toml"
 # 選擇 `web-sys`
 yew = { version = "0.13", features = ["web_sys"] }
 
 # 選擇 `stdweb`
 yew = { version = "0.13", features = ["std_web"] }
 ```
-
-{% endcode %}
 
 我們建議使用 `web-sys`，因為他是由 [Rust / Wasm Working Group](https://rustwasm.github.io/) 維護。
 

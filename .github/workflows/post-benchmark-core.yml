@@ -1,14 +1,15 @@
 ---
-name: Post Comment for Size Comparison
+name: Post Comment for Benchmark - core
 
 on:
   workflow_run:
-    workflows: ["Size Comparison"]
+    workflows: ["Benchmark - core"]
     types:
       - completed
 
 jobs:
-  post-size-cmp:
+  post-benchmark-core:
+    if: github.event.workflow_run.event == 'pull_request'
     name: Post Comment on Pull Request
     runs-on: ubuntu-latest
 
@@ -16,33 +17,48 @@ jobs:
       - name: Download Repository
         uses: actions/checkout@v4
 
-      - if: github.event.workflow_run.event == 'pull_request'
-        name: Download Artifact (master)
+      - name: Download Artifact
         uses: Legit-Labs/action-download-artifact@v2
         with:
           github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: size-cmp.yml
+          workflow: benchmark-core.yml
           run_id: ${{ github.event.workflow_run.id }}
-          name: size-cmp-master-info
-          path: "size-cmp-master-info/"
-
-      - if: github.event.workflow_run.event == 'pull_request'
-        name: Download Artifact (PR)
-        uses: Legit-Labs/action-download-artifact@v2
-        with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: size-cmp.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: size-cmp-pr-info
-          path: "size-cmp-pr-info/"
+          name: benchmark-core
+          path: "benchmark-core/"
 
       - name: Make pull request comment
-        run: python3 ci/make_example_size_cmt.py
+        run: |
+          cat - >>comment.txt <<EOF
+          ### Benchmark - core
+          #### Yew Master
+          \`\`\`
+          EOF
+          cat benchmark-core/yew-master/tools/output.log >>comment.txt
+          cat - >>comment.txt <<EOF
+          \`\`\`
+          #### Pull Request
+          \`\`\`
+          EOF
+          cat benchmark-core/current-pr/tools/output.log >>comment.txt
+          cat - >>comment.txt <<EOF
+          \`\`\`
+          EOF
+
+      - name: Read Pull Request ID
+        run: |
+          PR_NUMBER=$(cat "benchmark-core/.PR_NUMBER")
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "pr number invalid"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
 
       - name: Post Comment
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs');
+
             const commentInfo = {
               ...context.repo,
               issue_number: ${{ env.PR_NUMBER }},
@@ -50,11 +66,11 @@ jobs:
 
             const comment = {
               ...commentInfo,
-              body: JSON.parse(process.env.YEW_EXAMPLE_SIZES),
+              body: fs.readFileSync("comment.txt", 'utf-8'),
             };
 
             function isCommentByBot(comment) {
-              return comment.user.type === "Bot" && comment.body.includes("### Size Comparison");
+              return comment.user.type === "Bot" && comment.body.includes("### Benchmark - core");
             }
 
             let commentId = null;

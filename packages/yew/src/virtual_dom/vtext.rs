@@ -3,6 +3,7 @@
 use std::cmp::PartialEq;
 
 use super::AttrValue;
+use crate::html::ImplicitClone;
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
@@ -12,6 +13,8 @@ pub struct VText {
     /// Contains a text of the node.
     pub text: AttrValue,
 }
+
+impl ImplicitClone for VText {}
 
 impl VText {
     /// Creates new virtual text node with a content.

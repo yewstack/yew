@@ -463,16 +463,7 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
    |                          |
    |                          required by a bound introduced by this call
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -706,7 +697,9 @@ error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRe
 117 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
     |              ^^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
     |
-    = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `yew::virtual_dom::VText`
+    = help: the following other types implement trait `IntoPropValue<T>`:
+              <yew::virtual_dom::VText as IntoPropValue<ChildrenRenderer<VNode>>>
+              <yew::virtual_dom::VText as IntoPropValue<VNode>>
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |

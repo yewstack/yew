@@ -142,5 +142,5 @@ mod feat_csr {
 /// ## Relevant examples
 /// - [Portals](https://github.com/yewstack/yew/tree/master/examples/portals)
 pub fn create_portal(child: Html, host: Element) -> Html {
-    VNode::VPortal(VPortal::new(child, host))
+    VNode::VPortal(Rc::new(VPortal::new(child, host)))
 }

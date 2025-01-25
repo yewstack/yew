@@ -39,7 +39,7 @@ pub struct usize;
 fn main() {
     // Ensure Rust keywords can be used as element names.
     // See: #1771
-    ::yew::html! {
+    _ = ::yew::html! {
         <a class="btn btn-primary" href="https://example.org/">
             <svg class="bi" fill="currentColor">
                 <use href="/bootstrap-icons.svg#wrench"/>
@@ -49,7 +49,7 @@ fn main() {
     };
 
     // some general SVG
-    ::yew::html! {
+    _ = ::yew::html! {
         <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
             <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>

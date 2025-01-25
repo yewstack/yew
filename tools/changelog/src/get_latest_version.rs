@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use git2::Repository;
 use semver::{Error, Version};
 
@@ -8,7 +8,7 @@ pub fn get_latest_version(package: &YewPackage) -> Result<Version> {
     let common_tag_pattern = format!("{package}-v");
     let search_pattern = format!("{common_tag_pattern}*");
 
-    let mut tags: Vec<Version> = Repository::open_from_env()?
+    let tags: Vec<Version> = Repository::open_from_env()?
         .tag_names(Some(&search_pattern))?
         .iter()
         .filter_map(|mb_tag| {
@@ -19,8 +19,5 @@ pub fn get_latest_version(package: &YewPackage) -> Result<Version> {
         })
         .collect::<Result<Vec<Version>, Error>>()?;
 
-    tags.sort();
-    tags.reverse();
-
-    Ok(tags[0].clone())
+    tags.into_iter().max().context("no version found")
 }

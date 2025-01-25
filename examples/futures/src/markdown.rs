@@ -1,5 +1,7 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
+use std::rc::Rc;
+
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag};
 use yew::virtual_dom::{VNode, VTag, VText};
 use yew::{html, Classes, Html};
@@ -56,16 +58,22 @@ pub fn render_markdown(src: &str) -> Html {
                     if let Some(top_children) = top.children_mut() {
                         for r in top_children.to_vlist_mut().iter_mut() {
                             if let VNode::VTag(ref mut vtag) = r {
-                                if let Some(vtag_children) = vtag.children_mut() {
+                                if let Some(vtag_children) = Rc::make_mut(vtag).children_mut() {
                                     for (i, c) in
                                         vtag_children.to_vlist_mut().iter_mut().enumerate()
                                     {
                                         if let VNode::VTag(ref mut vtag) = c {
                                             match aligns[i] {
                                                 Alignment::None => {}
-                                                Alignment::Left => add_class(vtag, "text-left"),
-                                                Alignment::Center => add_class(vtag, "text-center"),
-                                                Alignment::Right => add_class(vtag, "text-right"),
+                                                Alignment::Left => {
+                                                    add_class(Rc::make_mut(vtag), "text-left")
+                                                }
+                                                Alignment::Center => {
+                                                    add_class(Rc::make_mut(vtag), "text-center")
+                                                }
+                                                Alignment::Right => {
+                                                    add_class(Rc::make_mut(vtag), "text-right")
+                                                }
                                             }
                                         }
                                     }
@@ -79,7 +87,7 @@ pub fn render_markdown(src: &str) -> Html {
                             if let VNode::VTag(ref mut vtag) = c {
                                 // TODO
                                 //                            vtag.tag = "th".into();
-                                vtag.add_attribute("scope", "col");
+                                Rc::make_mut(vtag).add_attribute("scope", "col");
                             }
                         }
                     }
@@ -99,7 +107,7 @@ pub fn render_markdown(src: &str) -> Html {
     }
 
     if elems.len() == 1 {
-        VNode::VTag(Box::new(elems.pop().unwrap()))
+        VNode::VTag(Rc::new(elems.pop().unwrap()))
     } else {
         html! {
             <div>{ for elems.into_iter() }</div>

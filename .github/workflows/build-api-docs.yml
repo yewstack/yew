@@ -19,7 +19,7 @@ jobs:
     env:
       PR_INFO_FILE: ".PR_INFO"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master

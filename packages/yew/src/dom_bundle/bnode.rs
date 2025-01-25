@@ -7,6 +7,7 @@ use web_sys::{Element, Node};
 use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
+use crate::utils::RcExt;
 use crate::virtual_dom::{Key, VNode};
 
 /// The bundle implementation to [VNode].
@@ -95,7 +96,8 @@ impl Reconcilable for VNode {
     ) -> (DomSlot, Self::Bundle) {
         match self {
             VNode::VTag(vtag) => {
-                let (node_ref, tag) = vtag.attach(root, parent_scope, parent, slot);
+                let (node_ref, tag) =
+                    RcExt::unwrap_or_clone(vtag).attach(root, parent_scope, parent, slot);
                 (node_ref, tag.into())
             }
             VNode::VText(vtext) => {
@@ -103,11 +105,13 @@ impl Reconcilable for VNode {
                 (node_ref, text.into())
             }
             VNode::VComp(vcomp) => {
-                let (node_ref, comp) = vcomp.attach(root, parent_scope, parent, slot);
+                let (node_ref, comp) =
+                    RcExt::unwrap_or_clone(vcomp).attach(root, parent_scope, parent, slot);
                 (node_ref, comp.into())
             }
             VNode::VList(vlist) => {
-                let (node_ref, list) = vlist.attach(root, parent_scope, parent, slot);
+                let (node_ref, list) =
+                    RcExt::unwrap_or_clone(vlist).attach(root, parent_scope, parent, slot);
                 (node_ref, list.into())
             }
             VNode::VRef(node) => {
@@ -115,11 +119,13 @@ impl Reconcilable for VNode {
                 (DomSlot::at(node.clone()), BNode::Ref(node))
             }
             VNode::VPortal(vportal) => {
-                let (node_ref, portal) = vportal.attach(root, parent_scope, parent, slot);
+                let (node_ref, portal) =
+                    RcExt::unwrap_or_clone(vportal).attach(root, parent_scope, parent, slot);
                 (node_ref, portal.into())
             }
             VNode::VSuspense(vsuspsense) => {
-                let (node_ref, suspsense) = vsuspsense.attach(root, parent_scope, parent, slot);
+                let (node_ref, suspsense) =
+                    RcExt::unwrap_or_clone(vsuspsense).attach(root, parent_scope, parent, slot);
                 (node_ref, suspsense.into())
             }
             VNode::VRaw(vraw) => {
@@ -149,20 +155,46 @@ impl Reconcilable for VNode {
         bundle: &mut BNode,
     ) -> DomSlot {
         match self {
-            VNode::VTag(vtag) => vtag.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VTag(vtag) => RcExt::unwrap_or_clone(vtag).reconcile_node(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                bundle,
+            ),
             VNode::VText(vtext) => vtext.reconcile_node(root, parent_scope, parent, slot, bundle),
-            VNode::VComp(vcomp) => vcomp.reconcile_node(root, parent_scope, parent, slot, bundle),
-            VNode::VList(vlist) => vlist.reconcile_node(root, parent_scope, parent, slot, bundle),
+            VNode::VComp(vcomp) => RcExt::unwrap_or_clone(vcomp).reconcile_node(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                bundle,
+            ),
+            VNode::VList(vlist) => RcExt::unwrap_or_clone(vlist).reconcile_node(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                bundle,
+            ),
             VNode::VRef(node) => match bundle {
                 BNode::Ref(ref n) if &node == n => DomSlot::at(node),
                 _ => VNode::VRef(node).replace(root, parent_scope, parent, slot, bundle),
             },
-            VNode::VPortal(vportal) => {
-                vportal.reconcile_node(root, parent_scope, parent, slot, bundle)
-            }
-            VNode::VSuspense(vsuspsense) => {
-                vsuspsense.reconcile_node(root, parent_scope, parent, slot, bundle)
-            }
+            VNode::VPortal(vportal) => RcExt::unwrap_or_clone(vportal).reconcile_node(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                bundle,
+            ),
+            VNode::VSuspense(vsuspsense) => RcExt::unwrap_or_clone(vsuspsense).reconcile_node(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                bundle,
+            ),
             VNode::VRaw(vraw) => vraw.reconcile_node(root, parent_scope, parent, slot, bundle),
         }
     }
@@ -246,10 +278,16 @@ mod feat_hydration {
             fragment: &mut Fragment,
         ) -> Self::Bundle {
             match self {
-                VNode::VTag(vtag) => vtag.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VTag(vtag) => RcExt::unwrap_or_clone(vtag)
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
                 VNode::VText(vtext) => vtext.hydrate(root, parent_scope, parent, fragment).into(),
-                VNode::VComp(vcomp) => vcomp.hydrate(root, parent_scope, parent, fragment).into(),
-                VNode::VList(vlist) => vlist.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VComp(vcomp) => RcExt::unwrap_or_clone(vcomp)
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
+                VNode::VList(vlist) => RcExt::unwrap_or_clone(vlist)
+                    .hydrate(root, parent_scope, parent, fragment)
+                    .into(),
                 // You cannot hydrate a VRef.
                 VNode::VRef(_) => {
                     panic!(
@@ -264,7 +302,7 @@ mod feat_hydration {
                          use_effect."
                     )
                 }
-                VNode::VSuspense(vsuspense) => vsuspense
+                VNode::VSuspense(vsuspense) => RcExt::unwrap_or_clone(vsuspense)
                     .hydrate(root, parent_scope, parent, fragment)
                     .into(),
                 VNode::VRaw(vraw) => vraw.hydrate(root, parent_scope, parent, fragment).into(),

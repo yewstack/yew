@@ -21,14 +21,14 @@ jobs:
 
     steps:
       - name: Checkout master
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: ${{ matrix.target == 'master' }}
         with:
           repository: "yewstack/yew"
           ref: master
 
       - name: Checkout pull request
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: ${{ matrix.target == 'pr' }}
 
       - name: Write Optimisation Flags

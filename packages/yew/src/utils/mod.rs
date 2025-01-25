@@ -64,3 +64,14 @@ pub fn print_node(n: &web_sys::Node) -> String {
         None => n.text_content().unwrap_or_default(),
     }
 }
+
+// NOTE: replace this by Rc::unwrap_or_clone() when it becomes stable
+pub(crate) trait RcExt<T: Clone> {
+    fn unwrap_or_clone(this: Self) -> T;
+}
+
+impl<T: Clone> RcExt<T> for std::rc::Rc<T> {
+    fn unwrap_or_clone(this: Self) -> T {
+        std::rc::Rc::try_unwrap(this).unwrap_or_else(|rc| (*rc).clone())
+    }
+}

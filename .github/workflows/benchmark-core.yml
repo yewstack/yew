@@ -1,21 +1,17 @@
 ---
-name: Benchmark - SSR
+name: Benchmark - core
 
 on:
   pull_request:
     branches: [master]
     paths:
-      - .github/workflows/benchmark-ssr.yml
+      - .github/workflows/benchmark-core.yml
       - "packages/yew/**"
-      - "packages/yew-macro/**"
-      - "packages/yew-router/**"
-      - "packages/yew-router-macro/**"
-      - "examples/function_router/**"
-      - "tools/benchmark-ssr/**"
+      - "tools/benchmark-core/**"
 
 jobs:
-  benchmark-ssr:
-    name: Benchmark - SSR
+  benchmark-core:
+    name: Benchmark - core
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +31,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          targets: wasm32-unknown-unknown
 
       - name: Restore Rust cache for master
         uses: Swatinem/rust-cache@v2
@@ -50,12 +45,16 @@ jobs:
           key: pr
 
       - name: Run pull request benchmark
-        run: cargo run --profile=bench -- --output-path ../output.json
-        working-directory: current-pr/tools/benchmark-ssr
+        run: cargo bench -q > ../output.log
+        working-directory: current-pr/tools/benchmark-core
 
       - name: Run master benchmark
-        run: cargo run --profile=bench -- --output-path ../output.json
-        working-directory: yew-master/tools/benchmark-ssr
+        run: cargo bench -q > ../output.log
+        continue-on-error: true
+        working-directory: yew-master/tools/benchmark-core
+
+      - name: Make sure master's output log exists
+        run: touch yew-master/tools/output.log
 
       - name: Write Pull Request ID
         run: |
@@ -64,9 +63,9 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: benchmark-ssr
+          name: benchmark-core
           path: |
             .PR_NUMBER
-            yew-master/tools/output.json
-            current-pr/tools/output.json
+            yew-master/tools/output.log
+            current-pr/tools/output.log
           retention-days: 1

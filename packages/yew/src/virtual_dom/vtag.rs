@@ -1,16 +1,16 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use std::borrow::Cow;
 use std::cmp::PartialEq;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
+use wasm_bindgen::JsValue;
 use web_sys::{HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 
-use super::{ApplyAttributeAs, AttrValue, Attributes, Key, Listener, Listeners, VNode};
-use crate::html::{IntoPropValue, NodeRef};
+use super::{AttrValue, AttributeOrProperty, Attributes, Key, Listener, Listeners, VNode};
+use crate::html::{ImplicitClone, IntoPropValue, NodeRef};
 
 /// SVG namespace string used for creating svg elements
 pub const SVG_NAMESPACE: &str = "http://www.w3.org/2000/svg";
@@ -22,8 +22,16 @@ pub const MATHML_NAMESPACE: &str = "http://www.w3.org/1998/Math/MathML";
 pub const HTML_NAMESPACE: &str = "http://www.w3.org/1999/xhtml";
 
 /// Value field corresponding to an [Element]'s `value` property
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub(crate) struct Value<T>(Option<AttrValue>, PhantomData<T>);
+
+impl<T> Clone for Value<T> {
+    fn clone(&self) -> Self {
+        Self::new(self.0.clone())
+    }
+}
+
+impl<T> ImplicitClone for Value<T> {}
 
 impl<T> Default for Value<T> {
     fn default() -> Self {
@@ -68,6 +76,8 @@ pub(crate) struct InputFields {
     pub(crate) checked: Option<bool>,
 }
 
+impl ImplicitClone for InputFields {}
+
 impl Deref for InputFields {
     type Target = Value<InputElement>;
 
@@ -111,11 +121,13 @@ pub(crate) enum VTagInner {
     /// Fields for all other kinds of [VTag]s
     Other {
         /// A tag of the element.
-        tag: Cow<'static, str>,
+        tag: AttrValue,
         /// children of the element.
         children: VNode,
     },
 }
+
+impl ImplicitClone for VTagInner {}
 
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
@@ -133,10 +145,12 @@ pub struct VTag {
     pub key: Option<Key>,
 }
 
+impl ImplicitClone for VTag {}
+
 impl VTag {
     /// Creates a new [VTag] instance with `tag` name (cannot be changed later in DOM).
-    pub fn new(tag: impl Into<Cow<'static, str>>) -> Self {
-        let tag: Cow<'static, str> = tag.into();
+    pub fn new(tag: impl Into<AttrValue>) -> Self {
+        let tag = tag.into();
         Self::new_base(
             match &*tag.to_ascii_lowercase() {
                 "input" => VTagInner::Input(Default::default()),
@@ -226,7 +240,7 @@ impl VTag {
     #[doc(hidden)]
     #[allow(clippy::too_many_arguments)]
     pub fn __new_other(
-        tag: Cow<'static, str>,
+        tag: AttrValue,
         node_ref: NodeRef,
         key: Option<Key>,
         // at bottom for more readable macro-expanded coded
@@ -373,17 +387,17 @@ impl VTag {
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
         self.attributes.get_mut_index_map().insert(
             AttrValue::Static(key),
-            (value.into(), ApplyAttributeAs::Attribute),
+            AttributeOrProperty::Attribute(value.into()),
         );
     }
 
     /// Set the given key as property on the element
     ///
     /// [`js_sys::Reflect`] is used for setting properties.
-    pub fn add_property(&mut self, key: &'static str, value: impl Into<AttrValue>) {
+    pub fn add_property(&mut self, key: &'static str, value: impl Into<JsValue>) {
         self.attributes.get_mut_index_map().insert(
             AttrValue::Static(key),
-            (value.into(), ApplyAttributeAs::Property),
+            AttributeOrProperty::Property(value.into()),
         );
     }
 
@@ -399,7 +413,7 @@ impl VTag {
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
         self.attributes.get_mut_index_map().insert(
             AttrValue::from(key),
-            (value.into_prop_value(), ApplyAttributeAs::Property),
+            AttributeOrProperty::Attribute(value.into_prop_value()),
         );
     }
 

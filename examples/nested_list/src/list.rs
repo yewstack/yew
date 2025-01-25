@@ -1,56 +1,11 @@
 use std::rc::Rc;
 
-use yew::html::ChildrenRenderer;
 use yew::prelude::*;
-use yew::virtual_dom::{VChild, VComp};
+use yew::virtual_dom::VChild;
 
-use crate::header::{ListHeader, Props as HeaderProps};
-use crate::item::{ListItem, Props as ItemProps};
+use crate::header::ListHeader;
+use crate::item::ListItem;
 use crate::{Hovered, WeakComponentLink};
-
-#[derive(Clone, PartialEq)]
-pub enum Variants {
-    Item(Rc<<ListItem as Component>::Properties>),
-    Header(Rc<<ListHeader as Component>::Properties>),
-}
-
-impl From<ItemProps> for Variants {
-    fn from(props: ItemProps) -> Self {
-        Variants::Item(Rc::new(props))
-    }
-}
-
-impl From<HeaderProps> for Variants {
-    fn from(props: HeaderProps) -> Self {
-        Variants::Header(Rc::new(props))
-    }
-}
-
-#[derive(PartialEq, Clone)]
-pub struct ListVariant {
-    props: Variants,
-}
-
-impl<CHILD> From<VChild<CHILD>> for ListVariant
-where
-    CHILD: Component,
-    CHILD::Properties: Into<Variants> + Clone,
-{
-    fn from(vchild: VChild<CHILD>) -> Self {
-        Self {
-            props: (*vchild.props).clone().into(),
-        }
-    }
-}
-
-impl From<ListVariant> for Html {
-    fn from(variant: ListVariant) -> Html {
-        match variant.props {
-            Variants::Header(props) => VComp::new::<ListHeader>(props, None).into(),
-            Variants::Item(props) => VComp::new::<ListItem>(props, None).into(),
-        }
-    }
-}
 
 pub enum Msg {
     HeaderClick,
@@ -58,7 +13,11 @@ pub enum Msg {
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
-    pub children: ChildrenRenderer<ListVariant>,
+    #[prop_or_default]
+    pub header: Vec<VChild<ListHeader>>,
+    #[prop_or_default]
+    pub children: Vec<VChild<ListItem>>,
+
     pub on_hover: Callback<Hovered>,
     pub weak_link: WeakComponentLink<List>,
 }
@@ -97,9 +56,9 @@ impl Component for List {
         html! {
             <div class="list-container" {onmouseover}>
                 <div class={classes!("list", inactive)}>
-                    { Self::view_header(&ctx.props().children) }
+                    { ctx.props().header.clone() }
                     <div class="items">
-                        { Self::view_items(&ctx.props().children) }
+                        { Self::view_items(ctx.props().children.clone()) }
                     </div>
                 </div>
             </div>
@@ -108,21 +67,14 @@ impl Component for List {
 }
 
 impl List {
-    fn view_header(children: &ChildrenRenderer<ListVariant>) -> Html {
-        html! { for children.iter().filter(|c| matches!(c.props, Variants::Header(_))) }
-    }
-
-    fn view_items(children: &ChildrenRenderer<ListVariant>) -> Html {
+    fn view_items(children: Vec<VChild<ListItem>>) -> Html {
         children
-            .iter()
-            .filter(|c| matches!(&c.props, Variants::Item(props) if !props.hide))
+            .into_iter()
+            .filter(|c| !c.props.hide)
             .enumerate()
             .map(|(i, mut c)| {
-                if let Variants::Item(props) = c.props {
-                    let mut props = (*props).clone();
-                    props.name = format!("#{} - {}", i + 1, props.name);
-                    c.props = Variants::Item(Rc::new(props));
-                }
+                let props = Rc::make_mut(&mut c.props);
+                props.name = format!("#{} - {}", i + 1, props.name).into();
                 c
             })
             .collect::<Html>()

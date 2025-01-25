@@ -20,6 +20,7 @@ use tower_http::services::ServeDir;
 use yew::platform::Runtime;
 
 // We use jemalloc as it produces better performance.
+#[cfg(unix)]
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 

@@ -48,7 +48,7 @@ fn compile_pass() {
 
     let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> = ::std::option::Option::None;
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <div>
             <div data-key="abc"></div>
             <div ref={&parent_ref}></div>
@@ -92,8 +92,7 @@ fn compile_pass() {
             </@>
 
             <@{
-                let tag = dyn_tag();
-                if tag == "test" {
+                if dyn_tag() == "test" {
                     "div"
                 } else {
                     "a"
@@ -113,17 +112,17 @@ fn compile_pass() {
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    ::yew::html! { <div>{children}</div> };
+    _ = ::yew::html! { <div>{children}</div> };
 
     // handle misleading angle brackets
-    ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
-    ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
+    _ = ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
+    _ = ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
 
     // test for https://github.com/yewstack/yew/issues/2810
-    ::yew::html! {  <div data-type="date" data-as="calender" /> };
+    _ = ::yew::html! {  <div data-type="date" data-as="calender" /> };
 
     let option_vnode = ::std::option::Option::Some(::yew::html! {});
-    ::yew::html! { <div>{option_vnode}</div> };
+    _ = ::yew::html! { <div>{option_vnode}</div> };
 }
 
 fn main() {}

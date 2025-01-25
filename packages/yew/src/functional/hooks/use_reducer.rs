@@ -5,6 +5,8 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use crate::functional::{hook, Hook, HookContext};
+use crate::html::IntoPropValue;
+use crate::Callback;
 
 type DispatchFn<T> = Rc<dyn Fn(<T as Reducible>::Action)>;
 
@@ -133,6 +135,24 @@ where
     }
 }
 
+impl<T> From<UseReducerDispatcher<T>> for Callback<<T as Reducible>::Action>
+where
+    T: Reducible,
+{
+    fn from(val: UseReducerDispatcher<T>) -> Self {
+        Callback { cb: val.dispatch }
+    }
+}
+
+impl<T> IntoPropValue<Callback<<T as Reducible>::Action>> for UseReducerDispatcher<T>
+where
+    T: Reducible,
+{
+    fn into_prop_value(self) -> Callback<<T as Reducible>::Action> {
+        Callback { cb: self.dispatch }
+    }
+}
+
 impl<T> UseReducerDispatcher<T>
 where
     T: Reducible,
@@ -140,6 +160,14 @@ where
     /// Dispatch the given action to the reducer.
     pub fn dispatch(&self, value: T::Action) {
         (self.dispatch)(value)
+    }
+
+    /// Get a callback, invoking which is equivalent to calling `dispatch()`
+    /// on this same dispatcher.
+    pub fn to_callback(&self) -> Callback<<T as Reducible>::Action> {
+        Callback {
+            cb: self.dispatch.clone(),
+        }
     }
 }
 

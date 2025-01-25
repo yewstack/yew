@@ -2,27 +2,13 @@ use std::collections::HashSet;
 
 use once_cell::sync::Lazy;
 use syn::parse::{Parse, ParseStream};
-use syn::{Expr, ExprTuple};
 
 use super::{Prop, Props, SpecialProps};
-
-pub enum ClassesForm {
-    Tuple(ExprTuple),
-    Single(Box<Expr>),
-}
-impl ClassesForm {
-    fn from_expr(expr: Expr) -> Self {
-        match expr {
-            Expr::Tuple(expr_tuple) => ClassesForm::Tuple(expr_tuple),
-            expr => ClassesForm::Single(Box::new(expr)),
-        }
-    }
-}
 
 pub struct ElementProps {
     pub attributes: Vec<Prop>,
     pub listeners: Vec<Prop>,
-    pub classes: Option<ClassesForm>,
+    pub classes: Option<Prop>,
     pub booleans: Vec<Prop>,
     pub value: Option<Prop>,
     pub checked: Option<Prop>,
@@ -42,9 +28,7 @@ impl Parse for ElementProps {
         let booleans =
             props.drain_filter(|prop| BOOLEAN_SET.contains(prop.label.to_string().as_str()));
 
-        let classes = props
-            .pop("class")
-            .map(|prop| ClassesForm::from_expr(prop.value));
+        let classes = props.pop("class");
         let value = props.pop("value");
         let checked = props.pop("checked");
         let special = props.special;

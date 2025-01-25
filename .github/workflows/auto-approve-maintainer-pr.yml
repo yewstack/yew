@@ -19,7 +19,7 @@ jobs:
         uses: JamesSingleton/is-organization-member@1.0.1
         with:
           organization: "yewstack"
-          username: ${{ github.actor }}
+          username: ${{ github.event.pull_request.user.login }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto approve

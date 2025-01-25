@@ -14,6 +14,7 @@ use tokio::task::{spawn_local, LocalSet};
 use yew::platform::time::sleep;
 use yew::prelude::*;
 
+#[cfg(unix)]
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 

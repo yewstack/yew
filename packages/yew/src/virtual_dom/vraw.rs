@@ -1,3 +1,4 @@
+use crate::html::ImplicitClone;
 use crate::AttrValue;
 
 /// A raw HTML string to be used in VDOM.
@@ -5,6 +6,8 @@ use crate::AttrValue;
 pub struct VRaw {
     pub html: AttrValue,
 }
+
+impl ImplicitClone for VRaw {}
 
 impl From<AttrValue> for VRaw {
     fn from(html: AttrValue) -> Self {

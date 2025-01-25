@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Artifact
         uses: Legit-Labs/action-download-artifact@v2

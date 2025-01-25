@@ -139,7 +139,7 @@ impl Component for App {
                         { &self.time }
                     </div>
                     <div id="messages">
-                        { for self.messages.iter().map(|message| html! { <p>{ message }</p> }) }
+                        { for self.messages.iter().map(|message| html! { <p>{ *message }</p> }) }
                     </div>
                 </div>
             </>
