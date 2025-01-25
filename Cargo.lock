@@ -2386,8 +2386,7 @@ version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "666f0f59e259aea2d72e6012290c09877a780935cc3c18b1ceded41f3890d59c"
 dependencies = [
- "bitflags 2.4.0",
- "getopts",
+ "bitflags",
  "memchr",
  "unicase",
 ]
