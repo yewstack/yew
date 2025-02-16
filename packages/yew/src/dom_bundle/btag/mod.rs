@@ -239,11 +239,7 @@ impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
         let tag = self.tag();
 
-        if tag == "svg"
-            || parent
-                .namespace_uri()
-                .map_or(false, |ns| ns == SVG_NAMESPACE)
-        {
+        if tag == "svg" || parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
             let namespace = Some(SVG_NAMESPACE);
             document()
                 .create_element_ns(namespace, tag)
@@ -251,7 +247,7 @@ impl VTag {
         } else if tag == "math"
             || parent
                 .namespace_uri()
-                .map_or(false, |ns| ns == MATHML_NAMESPACE)
+                .is_some_and(|ns| ns == MATHML_NAMESPACE)
         {
             let namespace = Some(MATHML_NAMESPACE);
             document()

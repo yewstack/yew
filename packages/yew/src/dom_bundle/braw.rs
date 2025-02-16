@@ -74,14 +74,11 @@ impl Reconcilable for VRaw {
         parent: &Element,
         slot: DomSlot,
     ) -> (DomSlot, Self::Bundle) {
-        let namespace = if parent
-            .namespace_uri()
-            .map_or(false, |ns| ns == SVG_NAMESPACE)
-        {
+        let namespace = if parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
             Some(SVG_NAMESPACE)
         } else if parent
             .namespace_uri()
-            .map_or(false, |ns| ns == MATHML_NAMESPACE)
+            .is_some_and(|ns| ns == MATHML_NAMESPACE)
         {
             Some(MATHML_NAMESPACE)
         } else {
