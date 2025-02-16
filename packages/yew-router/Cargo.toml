@@ -43,6 +43,5 @@ features = [
     "HtmlHeadElement",
 ]
 
-[lints.rust]
-# for wasm-bindgen-test
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(wasm_bindgen_unstable_test_coverage)"] }
+[lints]
+workspace = true
