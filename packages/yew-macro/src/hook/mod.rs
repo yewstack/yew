@@ -3,7 +3,7 @@ use proc_macro_error::emit_error;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::{
-    parse_file, parse_quote, visit_mut, Attribute, Ident, ItemFn, LitStr, ReturnType, Signature,
+    parse_quote, visit_mut, Attribute, File, Ident, Item, ItemFn, LitStr, ReturnType, Signature,
     Type,
 };
 
@@ -51,16 +51,14 @@ impl Parse for HookFn {
 
 impl HookFn {
     fn doc_attr(&self) -> Attribute {
-        let vis = &self.inner.vis;
-        let sig = &self.inner.sig;
-
-        let sig_s = quote! { #vis #sig {
-            __yew_macro_dummy_function_body__
-        } }
-        .to_string();
-
-        let sig_file = parse_file(&sig_s).unwrap();
-        let sig_formatted = prettyplease::unparse(&sig_file);
+        let sig_formatted = prettyplease::unparse(&File {
+            shebang: None,
+            attrs: vec![],
+            items: vec![Item::Fn(ItemFn {
+                block: parse_quote!({ __yew_macro_dummy_function_body__ }),
+                ..self.inner.clone()
+            })],
+        });
 
         let literal = LitStr::new(
             &format!(
