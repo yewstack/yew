@@ -47,8 +47,8 @@ yew::set_event_bubbling(false);
 
 可能會讓人驚訝的是，事件監聽器並不是直接註冊在它們被渲染的元素上。相反，事件是從 Yew 應用的子樹根節點委託的。不過，事件仍然以其原生形式傳遞，並且不會創建任何合成形式。這可能會導致 HTML 監聽器中預期的事件與 Yew 中出現的事件之間的不符。
 
--   [`Event::current_target`] 指向 Yew 子樹根節點，而不是新增監聽器的元素。如果您想存取底層的 `HtmlElement`，請使用 [`NodeRef`](../function-components/node-refs.mdx)。
--   [`Event::event_phase`] 總是 [`Event::CAPTURING_PHASE`]。在內部，事件將表現得像是在冒泡階段，事件傳播將被重播，並且事件會[向上冒泡](#event-bubbling)，即虛擬DOM 中較高的事件監聽器將在較低的事件監聽器之後觸發。目前，Yew 不支援捕獲監聽器。
+- [`Event::current_target`] 指向 Yew 子樹根節點，而不是新增監聽器的元素。如果您想存取底層的 `HtmlElement`，請使用 [`NodeRef`](../function-components/node-refs.mdx)。
+- [`Event::event_phase`] 總是 [`Event::CAPTURING_PHASE`]。在內部，事件將表現得像是在冒泡階段，事件傳播將被重播，並且事件會[向上冒泡](#event-bubbling)，即虛擬DOM 中較高的事件監聽器將在較低的事件監聽器之後觸發。目前，Yew 不支援捕獲監聽器。
 
 這也意味著由 Yew 註冊的事件通常會在其他事件監聽器之前觸發。
 
