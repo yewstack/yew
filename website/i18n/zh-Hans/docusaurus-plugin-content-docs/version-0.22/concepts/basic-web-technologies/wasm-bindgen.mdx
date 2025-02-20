@@ -7,10 +7,10 @@ sidebar_label: wasm-bindgen
 
 Yew 使用 `wasm-bindgen` 通过一些 crate 与浏览器进行交互：
 
--   [`js-sys`](https://crates.io/crates/js-sys)
--   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
--   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
--   [`web-sys`](https://crates.io/crates/web-sys)
+- [`js-sys`](https://crates.io/crates/js-sys)
+- [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+- [`web-sys`](https://crates.io/crates/web-sys)
 
 本节将从更抽象的层次上探讨这些 crate，以便更容易地理解和使用 Yew 中的 `wasm-bindgen` API。要了解有关 `wasm-bindgen` 及其相关 crate 的更深入指南，请查看 [`wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/)。
 
@@ -66,10 +66,10 @@ _这个示例是基于 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https:
 
 在导入这些类型时，`#[wasm-bindgen]` 宏将按照以下方式实现 `Deref` 和 `AsRef` 特性：
 
--   `C` 可以 `Deref` 到 `B`
--   `B` 可以 `Deref` 到 `A`
--   `C` 可以被 `AsRef` 到 `B`
--   `C` 和 `B` 都可以被 `AsRef` 到 `A`
+- `C` 可以 `Deref` 到 `B`
+- `B` 可以 `Deref` 到 `A`
+- `C` 可以被 `AsRef` 到 `B`
+- `C` 和 `B` 都可以被 `AsRef` 到 `A`
 
 这些实现允许您在 `C` 的实例上调用 `A` 的方法，并将 `C` 用作 `&B` 或 `&A`。
 

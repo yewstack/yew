@@ -7,10 +7,10 @@ sidebar_label: wasm-bindgen
 
 Yew は `wasm-bindgen` を使用して、いくつかのクレートを介してブラウザと対話します：
 
--   [`js-sys`](https://crates.io/crates/js-sys)
--   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
--   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
--   [`web-sys`](https://crates.io/crates/web-sys)
+- [`js-sys`](https://crates.io/crates/js-sys)
+- [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+- [`web-sys`](https://crates.io/crates/web-sys)
 
 このセクションでは、これらのクレートをより抽象的なレベルから探求し、Yew での `wasm-bindgen` API の理解と使用を容易にします。`wasm-bindgen` および関連するクレートに関する詳細なガイドについては、[`wasm-bindgen` ガイド](https://rustwasm.github.io/docs/wasm-bindgen/) を参照してください。
 
@@ -66,10 +66,10 @@ Rust では、この継承関係は [`Deref`](https://doc.rust-lang.org/std/ops/
 
 これらの型をインポートする際、`#[wasm-bindgen]` マクロは次のように `Deref` と `AsRef` トレイトを実装します：
 
--   `C` は `B` に `Deref` できます
--   `B` は `A` に `Deref` できます
--   `C` は `B` に `AsRef` できます
--   `C` と `B` はどちらも `A` に `AsRef` できます
+- `C` は `B` に `Deref` できます
+- `B` は `A` に `Deref` できます
+- `C` は `B` に `AsRef` できます
+- `C` と `B` はどちらも `A` に `AsRef` できます
 
 これらの実装により、`C` のインスタンスで `A` のメソッドを呼び出したり、`C` を `&B` または `&A` として使用したりできます。
 
