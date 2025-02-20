@@ -90,6 +90,12 @@ pub mod history {
     };
 }
 
+pub mod query {
+    //! A module that provides custom query serialization & deserialization.
+
+    pub use gloo::history::query::{FromQuery, Raw, ToQuery};
+}
+
 pub mod prelude {
     //! Prelude module to be imported when working with `yew-router`.
     //!
