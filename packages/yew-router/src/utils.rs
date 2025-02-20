@@ -66,7 +66,12 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     }
 }
 
-#[cfg(test)]
+// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
+#[cfg(all(
+    test,
+    target_arch = "wasm32",
+    any(target_os = "unknown", target_os = "none")
+))]
 mod tests {
     use gloo::utils::document;
     use wasm_bindgen_test::wasm_bindgen_test as test;

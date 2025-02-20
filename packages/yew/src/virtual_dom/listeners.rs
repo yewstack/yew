@@ -199,7 +199,7 @@ impl PartialEq for Listeners {
                         })
                 }
             }
-            (None, Pending(pending)) | (Pending(pending), None) => pending.len() == 0,
+            (None, Pending(pending)) | (Pending(pending), None) => pending.is_empty(),
         }
     }
 }

@@ -42,3 +42,6 @@ version = "0.3"
 features = [
     "HtmlHeadElement",
 ]
+
+[lints]
+workspace = true

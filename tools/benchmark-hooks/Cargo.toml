@@ -16,3 +16,6 @@ yew = { version = "0.21.0", features = ["csr"], path = "../../packages/yew" }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ['-O4']
+
+[lints]
+workspace = true
