@@ -156,16 +156,16 @@ pub fn ThemedButton() -> Html {
 
 我们有两种选择在结构体组件中使用上下文：
 
--   [高阶组件](../advanced-topics/struct-components/hoc.mdx)：一个高阶函数组件将使用上下文并将数据传递给需要它的结构体组件。
--   直接在结构体组件中使用上下文。请参阅 [结构体组件作为消费者的示例](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
+- [高阶组件](../advanced-topics/struct-components/hoc.mdx)：一个高阶函数组件将使用上下文并将数据传递给需要它的结构体组件。
+- 直接在结构体组件中使用上下文。请参阅 [结构体组件作为消费者的示例](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
 
 ## 使用场景
 
 通常，如果某些数据需要在树的不同部分的远程组件中使用，上下文可能会对你有所帮助。
 以下是一些这样的例子：
 
--   **主题**：你可以在应用程序的顶部放置一个上下文来保存你的应用程序主题，并使用它来调整视觉外观，如上例所示。
--   **当前用户帐户**：在许多情况下，组件需要知道当前登录的用户。你可以使用上下文将当前用户对象提供给组件。
+- **主题**：你可以在应用程序的顶部放置一个上下文来保存你的应用程序主题，并使用它来调整视觉外观，如上例所示。
+- **当前用户帐户**：在许多情况下，组件需要知道当前登录的用户。你可以使用上下文将当前用户对象提供给组件。
 
 ### 使用上下文前的考虑
 
@@ -186,4 +186,4 @@ pub fn ThemedButton() -> Html {
 
 ## 进一步阅读
 
--   [上下文示例](https://github.com/yewstack/yew/tree/master/examples/contexts)
+- [上下文示例](https://github.com/yewstack/yew/tree/master/examples/contexts)

@@ -11,10 +11,10 @@ SSR hydration. They have been removed. Read more in the [github issue](https://g
 
 The Function Components and Hooks API are re-implemented with a different mechanism:
 
--   User-defined hooks are now required to have a prefix `use_` and must be marked with the `#[hook]` attribute.
--   Hooks will now report compile errors if they are not called from the top level of a function component
-    or a user defined hook. The limitation existed in the previous version of Yew as well. In this version,
-    It is reported as a compile time error.
+- User-defined hooks are now required to have a prefix `use_` and must be marked with the `#[hook]` attribute.
+- Hooks will now report compile errors if they are not called from the top level of a function component
+  or a user defined hook. The limitation existed in the previous version of Yew as well. In this version,
+  It is reported as a compile time error.
 
 ## Automatic Message Batching
 
