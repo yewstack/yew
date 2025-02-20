@@ -1,4 +1,5 @@
-#![cfg(not(target_os = "wasi"))]
+// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
+#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
 
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::time::Duration;

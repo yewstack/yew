@@ -92,6 +92,16 @@ impl Parse for HtmlElement {
             //
             // For dynamic tags this is done at runtime!
             match name.to_ascii_lowercase_string().as_str() {
+                "textarea" => {
+                    return Err(syn::Error::new_spanned(
+                        open.to_spanned(),
+                        "the tag `<textarea>` is a void element and cannot have children (hint: \
+                         to provide value to it, rewrite it as `<textarea value={x} />`. If you \
+                         wish to set the default value, rewrite it as `<textarea defaultvalue={x} \
+                         />`)",
+                    ))
+                }
+
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
                 | "meta" | "param" | "source" | "track" | "wbr" => {
                     return Err(syn::Error::new_spanned(
@@ -100,8 +110,9 @@ impl Parse for HtmlElement {
                             "the tag `<{name}>` is a void element and cannot have children (hint: \
                              rewrite this as `<{name} />`)",
                         ),
-                    ));
+                    ))
                 }
+
                 _ => {}
             }
         }
@@ -156,23 +167,34 @@ impl ToTokens for HtmlElement {
             checked,
             listeners,
             special,
+            defaultvalue,
         } = &props;
 
         // attributes with special treatment
 
         let node_ref = special.wrap_node_ref_attr();
         let key = special.wrap_key_attr();
-        let value = value
-            .as_ref()
-            .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
-            .unwrap_or(quote! { ::std::option::Option::None });
-        let checked = checked
-            .as_ref()
-            .map(|attr| {
-                let value = &attr.value;
-                quote! { ::std::option::Option::Some( #value ) }
-            })
-            .unwrap_or(quote! { ::std::option::Option::None });
+        let value = || {
+            value
+                .as_ref()
+                .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
+                .unwrap_or(quote! { ::std::option::Option::None })
+        };
+        let checked = || {
+            checked
+                .as_ref()
+                .map(|attr| {
+                    let value = &attr.value;
+                    quote! { ::std::option::Option::Some( #value ) }
+                })
+                .unwrap_or(quote! { ::std::option::Option::None })
+        };
+        let defaultvalue = || {
+            defaultvalue
+                .as_ref()
+                .map(|prop| wrap_attr_value(prop.value.optimize_literals()))
+                .unwrap_or(quote! { ::std::option::Option::None })
+        };
 
         // other attributes
 
@@ -360,6 +382,8 @@ impl ToTokens for HtmlElement {
                 }
                 let node = match &*name {
                     "input" => {
+                        let value = value();
+                        let checked = checked();
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_input(
@@ -374,10 +398,13 @@ impl ToTokens for HtmlElement {
                         }
                     }
                     "textarea" => {
+                        let value = value();
+                        let defaultvalue = defaultvalue();
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_textarea(
                                     #value,
+                                    #defaultvalue,
                                     #node_ref,
                                     #key,
                                     #attributes,
@@ -439,6 +466,9 @@ impl ToTokens for HtmlElement {
                 #[cfg(not(nightly_yew))]
                 let invalid_void_tag_msg_start = "";
 
+                let value = value();
+                let checked = checked();
+                let defaultvalue = defaultvalue();
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
@@ -466,6 +496,7 @@ impl ToTokens for HtmlElement {
                         _ if "textarea".eq_ignore_ascii_case(::std::convert::AsRef::<::std::primitive::str>::as_ref(&#vtag_name)) => {
                             ::yew::virtual_dom::VTag::__new_textarea(
                                 #value,
+                                #defaultvalue,
                                 #node_ref,
                                 #key,
                                 #attributes,
@@ -500,7 +531,7 @@ impl ToTokens for HtmlElement {
                         ::std::debug_assert!(
                             !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
                                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
-                                    | "link" | "meta" | "param" | "source" | "track" | "wbr"
+                                    | "link" | "meta" | "param" | "source" | "track" | "wbr" | "textarea"
                             ),
                             concat!(#invalid_void_tag_msg_start, "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children."),
                             #vtag.tag(),
