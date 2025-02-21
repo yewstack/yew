@@ -27,7 +27,7 @@ pub struct App {
 impl App {
     pub fn random_mutate(&mut self) {
         for cellule in self.cellules.iter_mut() {
-            if rand::thread_rng().gen() {
+            if rand::rng().random() {
                 cellule.set_alive();
             } else {
                 cellule.set_dead();
