@@ -1,4 +1,5 @@
-use rand::{distr::Bernoulli, Rng};
+use rand::distr::Bernoulli;
+use rand::Rng;
 
 /// `0 <= p <= 1`
 pub fn chance(p: f64) -> bool {

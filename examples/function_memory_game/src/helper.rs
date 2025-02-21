@@ -1,6 +1,6 @@
 use nanoid::nanoid;
-use rand::seq::SliceRandom;
 use rand::rng;
+use rand::seq::SliceRandom;
 
 use crate::constant::RAW_CARDS;
 use crate::state::Card;
