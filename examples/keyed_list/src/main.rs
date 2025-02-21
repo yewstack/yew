@@ -93,10 +93,13 @@ impl Component for App {
                 true
             }
             Msg::SwapRandom => {
-                let (a, b) = random::choose_two_distinct_mut(&mut self.persons).unwrap();
-                log::info!("Swapping {} and {}.", a.info().id, b.info().id);
-                std::mem::swap(a, b);
-                true
+                if let Some((a, b)) = random::choose_two_distinct_mut(&mut self.persons) {
+                    log::info!("Swapping {} and {}.", a.info().id, b.info().id);
+                    std::mem::swap(a, b);
+                    true
+                } else {
+                    false
+                }
             }
             Msg::ReverseList => {
                 self.persons.reverse();

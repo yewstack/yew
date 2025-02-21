@@ -79,7 +79,7 @@ jobs:
       - name: Build benchmark-struct app
         working-directory: yew/tools/benchmark-struct
         run: |
-          wasm-pack build \
+          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build \
             --release \
             --target web \
             --no-typescript \
@@ -101,7 +101,7 @@ jobs:
       - name: Build benchmark-hooks app
         working-directory: yew/tools/benchmark-hooks
         run: |
-          wasm-pack build \
+          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build \
             --release \
             --target web \
             --no-typescript \
