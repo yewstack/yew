@@ -8,7 +8,7 @@ description: 用于生成 HTML 和 SVG 的宏程序
 
 **重要提示**
 
-1. `html!` 宏调用中只能有一个根节点（你可以通过[使用片段（fragments）或迭代器](html/lists.mdx)来绕过这一点）
+1. `html!` 宏调用中只能有一个根节点（你可以通过[使用片段（fragments）或迭代器](../html/lists.mdx)来绕过这一点）
 2. 空的 `html! {}` 宏调用是有效的但不会渲染任何内容
 3. 常量必须始终被引号括起来并被包含在大括号里：`html! { "Hello, World" }`
 
@@ -117,7 +117,7 @@ html! {
 
 有一些特殊的属性不会直接影响 DOM，而是充当 Yew 虚拟 DOM 的指令。目前，有这样两个特殊的 props： `ref`和`key` 。
 
-`ref`允许您直接访问和操作底层 DOM 节点。见[参考文献](components/refs)获取的更多细节。
+`ref`允许您直接访问和操作底层 DOM 节点。见[参考文献](../components/refs.mdx)获取的更多细节。
 
 `key`为元素提供了一个唯一标识符，Yew 可以将其用于优化。
 
