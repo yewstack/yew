@@ -16,19 +16,13 @@ description: Set yourself up for success
 
 一套 CLI 工具，由 Rust/Wasm Working Group 為了編譯並打包 WebAssembly 所開發的。最好與 Webpack 的 [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) 搭配使用。
 
-[開始使用 wasm-pack](project-setup/using-wasm-pack.md)
-
-### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
-
-同時是套件，也是 CLI 工具，並由 Rust / Wasm Working Group 開發。他是一套較底層的工具（通常是 `wasm-pack` 內部使用），用以增加 JavaScript 與 WebAssembly 的互操作性。我們不建議直接使用 `wasm-bindgen`，因為你需要多寫一些 JavaScript 的程式碼來引入你的 WebAssembly 二進位檔案。雖然如此，你仍然可以使用 wasm-bindgen，更多資訊請參考 [**`wasm-bindgen` guide**](https://rustwasm.github.io/docs/wasm-bindgen/)**。**
-
-[開始使用 wasm-bindgen](project-setup/using-wasm-bindgen.md)
+[開始使用 wasm-pack](project-setup/using-wasm-pack.mdx)
 
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 在 `wasm-pack` 與 `wasm-bindgen` 出來之前，這是我們的首選工具。在安裝與執行方面，他的速度仍是最快的，我們推薦你安裝他去執行我們的那些還沒有使用 `wasm-pack` 的範例。
 
-[開始使用 cargo-web](project-setup/using-cargo-web.md)
+[開始使用 cargo-web](project-setup/using-cargo-web.mdx)
 
 ### 比較
 
@@ -40,9 +34,6 @@ description: Set yourself up for success
                 <code>wasm-pack</code>
             </th>
             <th style={{ textAlign: 'left' }}>
-                <code>wasm-bindgen</code>
-            </th>
-            <th style={{ textAlign: 'left' }}>
                 <code>cargo-web</code>
             </th>
         </tr>
@@ -51,13 +42,6 @@ description: Set yourself up for success
         <tr>
             <td style={{ textAlign: 'left' }}>
                 &#x5C08;&#x6848;&#x72C0;&#x614B;
-            </td>
-            <td style={{ textAlign: 'left' }}>
-                &#x6301;&#x7E8C;&#x7531;{' '}
-                <a href="https://rustwasm.github.io/">
-                    Rust / Wasm Working Group
-                </a>{' '}
-                &#x7DAD;&#x8B77;&#x4E2D;
             </td>
             <td style={{ textAlign: 'left' }}>
                 &#x6301;&#x7E8C;&#x7531;{' '}
@@ -80,9 +64,6 @@ description: Set yourself up for success
                 Webpack
             </td>
             <td style={{ textAlign: 'left' }}>
-                &#x592A;&#x904E;&#x5E95;&#x5C64;&#xFF0C;&#x4F60;&#x9700;&#x8981;&#x5BEB;&#x4E00;&#x8173;&#x672C;&#x4F86;&#x512A;&#x5316;&#x958B;&#x767C;&#x9AD4;&#x9A57;
-            </td>
-            <td style={{ textAlign: 'left' }}>
                 &#x53EF;&#x4EE5;&#x52D5;&#xFF01;&#x53E6;&#x5916;&#x7121;&#x9700;&#x5916;&#x90E8;&#x5957;&#x4EF6;&#x652F;&#x63F4;
             </td>
         </tr>
@@ -94,7 +75,6 @@ description: Set yourself up for success
             <td style={{ textAlign: 'left' }}>
                 &#x642D;&#x914D; <code>webpack</code> &#x63D2;&#x4EF6;
             </td>
-            <td style={{ textAlign: 'left' }}>&#x4E0D;&#x652F;&#x63F4;</td>
             <td style={{ textAlign: 'left' }}>&#x652F;&#x63F4;</td>
         </tr>
         <tr>
@@ -104,7 +84,6 @@ description: Set yourself up for success
             <td style={{ textAlign: 'left' }}>
                 &#x642D;&#x914D; <code>webpack</code> &#x63D2;&#x4EF6;
             </td>
-            <td style={{ textAlign: 'left' }}>&#x4E0D;&#x652F;&#x63F4;</td>
             <td style={{ textAlign: 'left' }}>&#x652F;&#x63F4;</td>
         </tr>
         <tr>
@@ -117,11 +96,6 @@ description: Set yourself up for success
                 </a>
             </td>
             <td style={{ textAlign: 'left' }}>
-                <a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">
-                    Supported
-                </a>
-            </td>
-            <td style={{ textAlign: 'left' }}>
                 <a href="https://github.com/koute/cargo-web#features">
                     Supported
                 </a>
@@ -130,13 +104,6 @@ description: Set yourself up for success
         <tr>
             <td style={{ textAlign: 'left' }}>
                 &#x652F;&#x63F4;&#x7684;&#x76EE;&#x6A19;&#x7A0B;&#x5F0F;&#x78BC;
-            </td>
-            <td style={{ textAlign: 'left' }}>
-                <ul>
-                    <li>
-                        <code>wasm32-unknown-unknown</code>
-                    </li>
-                </ul>
             </td>
             <td style={{ textAlign: 'left' }}>
                 <ul>
@@ -164,14 +131,12 @@ description: Set yourself up for success
                 <code>web-sys</code>
             </td>
             <td style={{ textAlign: 'left' }}>&#x76F8;&#x5BB9;</td>
-            <td style={{ textAlign: 'left' }}>&#x76F8;&#x5BB9;</td>
             <td style={{ textAlign: 'left' }}>&#x4E0D;&#x76F8;&#x5BB9;</td>
         </tr>
         <tr>
             <td style={{ textAlign: 'left' }}>
                 <code>stdweb</code>
             </td>
-            <td style={{ textAlign: 'left' }}>&#x76F8;&#x5BB9;</td>
             <td style={{ textAlign: 'left' }}>&#x76F8;&#x5BB9;</td>
             <td style={{ textAlign: 'left' }}>&#x76F8;&#x5BB9;</td>
         </tr>
@@ -182,12 +147,6 @@ description: Set yourself up for success
             <td style={{ textAlign: 'left' }}>
                 <a href="https://github.com/yewstack/yew-wasm-pack-minimal">
                     &#x65B0;&#x624B;&#x6A21;&#x677F;
-                </a>
-            </td>
-            <td style={{ textAlign: 'left' }}>
-                Yew &#x7BC4;&#x4F8B;&#x7684;
-                <a href="https://github.com/yewstack/yew/blob/master/examples/build_all.sh">
-                    &#x7DE8;&#x8B6F;&#x8173;&#x672C;
                 </a>
             </td>
             <td style={{ textAlign: 'left' }}>

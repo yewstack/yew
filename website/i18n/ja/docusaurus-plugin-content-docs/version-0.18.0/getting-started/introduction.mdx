@@ -1,6 +1,7 @@
 ---
-title: Introduction
-description: Set yourself up for success
+title: 'Project Setup'
+sidebar_label: Introduction
+description: 'Set yourself up for success'
 ---
 
 # 始める
@@ -22,15 +23,6 @@ Webpack には[`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin
 
 [`wasm-pack`で始める](project-setup/using-wasm-pack.mdx)
 
-### [**`wasm-bindgen`**](https://rustwasm.github.io/docs/wasm-bindgen/)
-
-Rust/Wasm 活動チームによって開発されているライブラリと CLI ツールで、JS / WebAssembly の互換性を持たせるための低レベルなツールです
-(`wasm-pack`で内部的に使われています)。
-`wasm-bindgen`は手書きの JavaScript で WebAssembly のバイナリを使う必要があるため、直接使うのは非推奨です。
-しかし、詳細な情報については[**`wasm-bindgen` ガイド**](https://rustwasm.github.io/docs/wasm-bindgen/)から得られます。
-
-[`wasm-bindgen`で始める。](project-setup/using-wasm-bindgen.mdx)
-
 ### [**`cargo-web`**](https://github.com/koute/cargo-web)
 
 `wasm-pack`と`wasm-bindgen`を導入する前は好まれた Web ワークフローツールです。
@@ -48,9 +40,6 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
                 <code>wasm-pack</code>
             </th>
             <th style={{ textAlign: 'left' }}>
-                <code>wasm-bindgen</code>
-            </th>
-            <th style={{ textAlign: 'left' }}>
                 <code>cargo-web</code>
             </th>
         </tr>
@@ -63,10 +52,6 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
                 により活発にメンテナンス
             </td>
             <td style={{ textAlign: 'left' }}>
-                <a href="https://rustwasm.github.io/">Rust / Wasm 活動チーム</a>
-                により活発にメンテナンス
-            </td>
-            <td style={{ textAlign: 'left' }}>
                 6ヶ月間GitHubでの活発な活動無し
             </td>
         </tr>
@@ -74,9 +59,6 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
             <td style={{ textAlign: 'left' }}>開発体験</td>
             <td style={{ textAlign: 'left' }}>
                 ほぼ大丈夫! <code>webpack</code>があればなお良い。
-            </td>
-            <td style={{ textAlign: 'left' }}>
-                だいたい大丈夫。開発においては少し流れを書かないといけない。
             </td>
             <td style={{ textAlign: 'left' }}>
                 しっかり動く！完結していて、外部ライブラリに頼る必要無し。
@@ -87,7 +69,6 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
             <td style={{ textAlign: 'left' }}>
                 <code>webpack</code>プラグインによるサポートあり
             </td>
-            <td style={{ textAlign: 'left' }}>サポート無し</td>
             <td style={{ textAlign: 'left' }}>サポートあり</td>
         </tr>
         <tr>
@@ -97,18 +78,12 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
             <td style={{ textAlign: 'left' }}>
                 <code>webpack</code>プラグインによるサポートあり
             </td>
-            <td style={{ textAlign: 'left' }}>サポート無し</td>
             <td style={{ textAlign: 'left' }}>サポートあり</td>
         </tr>
         <tr>
             <td style={{ textAlign: 'left' }}>ヘッドレスブラウザテスト</td>
             <td style={{ textAlign: 'left' }}>
                 <a href="https://rustwasm.github.io/docs/wasm-pack/commands/test.html">
-                    サポートあり
-                </a>
-            </td>
-            <td style={{ textAlign: 'left' }}>
-                <a href="https://rustwasm.github.io/docs/wasm-bindgen/wasm-bindgen-test/index.html">
                     サポートあり
                 </a>
             </td>
@@ -120,13 +95,6 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
         </tr>
         <tr>
             <td style={{ textAlign: 'left' }}>サポートされているターゲット</td>
-            <td style={{ textAlign: 'left' }}>
-                <ul>
-                    <li>
-                        <code>wasm32-unknown-unknown</code>
-                    </li>
-                </ul>
-            </td>
             <td style={{ textAlign: 'left' }}>
                 <ul>
                     <li>
@@ -153,7 +121,6 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
                 <code>web-sys</code>
             </td>
             <td style={{ textAlign: 'left' }}>互換性あり</td>
-            <td style={{ textAlign: 'left' }}>互換性あり</td>
             <td style={{ textAlign: 'left' }}>互換性無し</td>
         </tr>
         <tr>
@@ -162,19 +129,12 @@ Rust/Wasm 活動チームによって開発されているライブラリと CLI
             </td>
             <td style={{ textAlign: 'left' }}>互換性あり</td>
             <td style={{ textAlign: 'left' }}>互換性あり</td>
-            <td style={{ textAlign: 'left' }}>互換性あり</td>
         </tr>
         <tr>
             <td style={{ textAlign: 'left' }}>使用例</td>
             <td style={{ textAlign: 'left' }}>
                 <a href="https://github.com/yewstack/yew-wasm-pack-minimal">
                     入門用テンプレート
-                </a>
-            </td>
-            <td style={{ textAlign: 'left' }}>
-                Yewで
-                <a href="https://github.com/yewstack/yew/blob/master/examples/build.sh">
-                    作る例
                 </a>
             </td>
             <td style={{ textAlign: 'left' }}>
