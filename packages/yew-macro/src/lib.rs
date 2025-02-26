@@ -140,7 +140,7 @@ pub fn classes(input: TokenStream) -> TokenStream {
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
-pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+pub fn function_component(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as FunctionComponent);
     let attr = parse_macro_input!(attr as FunctionComponentName);
 
@@ -151,7 +151,7 @@ pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::T
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
-pub fn hook(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+pub fn hook(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as HookFn);
 
     if let Some(m) = proc_macro2::TokenStream::from(attr).into_iter().next() {
