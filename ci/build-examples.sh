@@ -25,7 +25,7 @@ for path in examples/*; do
     # shellcheck disable=SC2164
     cd "$path"
     dist_dir="$output/$example"
-    export RUSTFLAGS="--cfg nightly_yew"
+    export RUSTFLAGS="--cfg nightly_yew --cfg getrandom_backend=\"wasm_js\""
 
     trunk build --release --dist "$dist_dir" --public-url "$PUBLIC_URL_PREFIX/$example" --no-sri
 

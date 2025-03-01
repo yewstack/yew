@@ -68,16 +68,15 @@ key_impl_from_to_string!(i64);
 key_impl_from_to_string!(i128);
 key_impl_from_to_string!(isize);
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod test {
     use std::rc::Rc;
 
-    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
 
-    #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]

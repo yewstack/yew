@@ -123,10 +123,6 @@
     "message": "Collapse sidebar",
     "description": "The title attribute for collapse button of doc sidebar"
   },
-  "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "Toggle the collapsible sidebar category '{label}'",
-    "description": "The ARIA label to toggle the collapsible sidebar category"
-  },
   "theme.docs.tagDocListPageTitle.nDocsTagged": {
     "message": "One doc tagged|{count} docs tagged",
     "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
@@ -207,10 +203,6 @@
     "message": "light mode",
     "description": "The name for the light color mode"
   },
-  "theme.docs.DocCard.categoryDescription": {
-    "message": "{count} items",
-    "description": "The default description for a category card in the generated index about how many items this category includes"
-  },
   "theme.docs.versionBadge.label": {
     "message": "Version: {versionLabel}"
   },
@@ -229,9 +221,6 @@
   "theme.CodeBlock.wordWrapToggle": {
     "message": "切換自動換行",
     "description": "The title attribute for toggle word wrapping button of code block lines"
-  },
-  "theme.SearchBar.noResultsText": {
-    "message": "No results"
   },
   "theme.SearchBar.seeAll": {
     "message": "See all results"
@@ -307,14 +296,6 @@
   "theme.DocSidebarItem.collapseCategoryAriaLabel": {
     "message": "Collapse sidebar category '{label}'",
     "description": "The ARIA label to collapse the sidebar category"
-  },
-  "theme.unlistedContent.title": {
-    "message": "未列出頁",
-    "description": "The unlisted content banner title"
-  },
-  "theme.unlistedContent.message": {
-    "message": "此頁面未列出。搜索引擎不會對其索引，只有擁有直接連結的用戶才能訪問。",
-    "description": "The unlisted content banner message"
   },
   "theme.SearchPage.inputPlaceholder": {
     "message": "在此輸入搜尋字詞",
@@ -455,5 +436,9 @@
   "theme.contentVisibility.draftBanner.message": {
     "message": "This page is a draft. It will only be visible in dev and be excluded from the production build.",
     "description": "The draft content banner message"
+  },
+  "theme.blog.author.noPosts": {
+    "message": "This author has not written any posts yet.",
+    "description": "The text for authors with 0 blog post"
   }
 }

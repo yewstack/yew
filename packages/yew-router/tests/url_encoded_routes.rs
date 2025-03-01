@@ -1,3 +1,6 @@
+// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
+#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
+
 use std::time::Duration;
 
 use yew::platform::time::sleep;

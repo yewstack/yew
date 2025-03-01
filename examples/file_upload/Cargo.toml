@@ -13,4 +13,4 @@ gloo = "0.11"
 
 [dependencies.web-sys]
 version = "0.3"
-features = ["File", "DragEvent", "DataTransfer"]
+features = ["DataTransfer"]

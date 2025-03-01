@@ -30,10 +30,21 @@ jobs:
           cd website
           npm ci
 
+
       - name: Run prettier
+        id: fmt
+        continue-on-error: true
         run: |
           cd website
           npm run fmt
+
+      - if: steps.fmt.outcome == 'failure'
+        run: |
+          cd website
+          npm run fmt:write
+          git diff
+          exit 1
+
 
       - name: Check Translations
         run: |
@@ -62,5 +73,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pr-info
+          include-hidden-files: true
           path: .PR_INFO
           retention-days: 1

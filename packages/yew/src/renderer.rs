@@ -24,6 +24,10 @@ pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 's
 }
 
 fn set_default_panic_hook() {
+    if std::thread::panicking() {
+        // very unlikely, but avoid hitting this when running parallel tests.
+        return;
+    }
     if !PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.replace(true)) {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     }
