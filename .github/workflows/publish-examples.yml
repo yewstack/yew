@@ -3,7 +3,6 @@ on:
   push:
     branches: [master]
     paths:
-      - 'ci/**'
       - 'tools/build-examples/**'
       - 'examples/**'
 
