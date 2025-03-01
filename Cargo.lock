@@ -303,6 +303,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "build-examples"
+version = "0.1.0"
+dependencies = [
+ "regex",
+ "reqwest",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
