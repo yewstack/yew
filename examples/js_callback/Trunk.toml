@@ -1,3 +1,6 @@
+[tools]
+wasm_opt = "version_122"
+
 [[hooks]]
 stage = "pre_build"
 command = "rustc"
