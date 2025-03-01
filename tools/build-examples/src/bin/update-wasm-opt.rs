@@ -5,7 +5,6 @@ use std::process::ExitCode;
 use build_examples::{get_latest_wasm_opt_version, is_wasm_opt_outdated, NO_TRUNK_EXAMPLES};
 use regex::Regex;
 
-
 fn main() -> ExitCode {
     // Must be run from root of the repo
     let examples_dir = Path::new("examples");
