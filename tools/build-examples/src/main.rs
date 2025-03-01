@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::{Command, ExitCode};
 use std::{env, fs};
 
-use build_examples::{get_latest_wasm_opt_version, is_wasm_opt_outdated, NO_TRUNK_EXAMPLES};
+use build_examples::{NO_TRUNK_EXAMPLES, get_latest_wasm_opt_version, is_wasm_opt_outdated};
 
 fn main() -> ExitCode {
     // Must be run from root of the repo:
@@ -81,20 +81,26 @@ fn main() -> ExitCode {
 }
 
 fn build_example(path: &Path, output_dir: &Path, example: &str) -> bool {
-    // Get the public URL prefix from environment or use default
     let public_url_prefix = env::var("PUBLIC_URL_PREFIX").unwrap_or_default();
 
-    // Set up the dist directory for this example
     let dist_dir = output_dir.join(example);
+
+    let uses_rand = has_rand_dependency(path);
+
+    let rustflags = format!(
+        "--cfg nightly_yew{}",
+        if uses_rand {
+            " --cfg getrandom_backend=\"wasm_js\""
+        } else {
+            ""
+        }
+    );
 
     // Run trunk build command
     let status = Command::new("trunk")
         .current_dir(path)
         .arg("build")
-        .env(
-            "RUSTFLAGS",
-            "--cfg nightly_yew --cfg getrandom_backend=\"wasm_js\"",
-        )
+        .env("RUSTFLAGS", rustflags)
         .arg("--release")
         .arg("--dist")
         .arg(&dist_dir)
@@ -128,5 +134,19 @@ fn build_example(path: &Path, output_dir: &Path, example: &str) -> bool {
             true
         }
         _ => false,
+    }
+}
+
+// Function to check if the crate has a rand dependency
+fn has_rand_dependency(path: &Path) -> bool {
+    let cargo_toml_path = path.join("Cargo.toml");
+
+    if !cargo_toml_path.exists() {
+        return false;
+    }
+
+    match fs::read_to_string(&cargo_toml_path) {
+        Ok(content) => content.contains("rand = ") || content.contains("rand =\n"),
+        Err(_) => false,
     }
 }
