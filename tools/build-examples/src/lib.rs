@@ -1,23 +1,45 @@
 use std::fs;
 use std::path::Path;
 
-use regex::Regex;
+use serde::Deserialize;
+use toml::Table;
 
 /// Examples that don't use Trunk for building
 pub const NO_TRUNK_EXAMPLES: [&str; 3] = ["simple_ssr", "ssr_router", "wasi_ssr_module"];
 
+#[derive(Deserialize)]
+struct GitHubRelease {
+    tag_name: String,
+}
+
 pub fn get_latest_wasm_opt_version() -> String {
-    let url = "https://github.com/WebAssembly/binaryen/releases";
+    let url = "https://api.github.com/repos/WebAssembly/binaryen/releases/latest";
     let client = reqwest::blocking::Client::new();
-    let res = client.get(url).send().unwrap();
-    let body = res.text().unwrap();
-    let re = Regex::new(r#"version_(\d+)"#).unwrap();
-    let captures = re.captures_iter(&body);
-    let mut versions: Vec<u32> = captures
-        .map(|c| c.get(1).unwrap().as_str().parse().unwrap())
-        .collect();
-    versions.sort();
-    format!("version_{}", versions.last().unwrap())
+
+    // github api requires a user agent
+    // https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api?apiVersion=2022-11-28#user-agent-required
+    let req_builder = client.get(url).header("User-Agent", "yew-wasm-opt-checker");
+
+    // Send the request
+    let res = req_builder
+        .send()
+        .expect("Failed to send request to GitHub API");
+
+    if !res.status().is_success() {
+        // Get more details about the error
+        let status = res.status();
+        let error_text = res
+            .text()
+            .unwrap_or_else(|_| "Could not read error response".to_string());
+
+        panic!(
+            "GitHub API request failed with status: {}. Details: {}",
+            status, error_text
+        );
+    }
+
+    let release: GitHubRelease = res.json().expect("Failed to parse GitHub API response");
+    release.tag_name
 }
 
 pub fn is_wasm_opt_outdated(path: &Path, latest_version: &str) -> bool {
@@ -33,12 +55,8 @@ pub fn is_wasm_opt_outdated(path: &Path, latest_version: &str) -> bool {
     };
 
     // Check if wasm_opt is configured and up-to-date
-    let re = Regex::new(r#"(?m)^\[tools\]\s*\nwasm_opt\s*=\s*"(version_\d+)""#).unwrap();
-    match re.captures(&content) {
-        Some(captures) => {
-            let current_version = captures.get(1).unwrap().as_str();
-            current_version != latest_version
-        }
-        None => true,
-    }
+    let table: Table = toml::from_str(&content).unwrap();
+    let tools = table.get("tools").unwrap().as_table().unwrap();
+    let wasm_opt = tools.get("wasm_opt").unwrap().as_str().unwrap();
+    wasm_opt != latest_version
 }
