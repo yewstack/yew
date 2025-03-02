@@ -15,6 +15,12 @@ cd examples/todomvc
 trunk serve --open
 ```
 
+Some examples using the `rand` crate require a special rust flag to be enabled:
+
+```bash
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --open
+```
+
 Some examples may perform better using the `release` profile. If something is slow, you can try running it with the `--release` argument.
 
 We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
