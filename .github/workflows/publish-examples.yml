@@ -33,7 +33,7 @@ jobs:
           version: 'latest'
 
       - name: Build examples
-        run: cargo run -p build-examples -b build-examples
+        run: cargo run -p build-examples --bin build-examples
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v1
