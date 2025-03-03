@@ -253,4 +253,15 @@ mod layout_tests {
             "expected {target:#?} to point to the same position as {replacement:#?}"
         );
     }
+
+    #[test]
+    fn debug_printing() {
+        // basic tests that these don't panic. We don't enforce any specific format.
+        println!("At end: {:?}", DomSlot::at_end());
+        println!("Trapped: {:?}", DomSlot::new_debug_trapped());
+        println!(
+            "At element: {:?}",
+            DomSlot::at(document().create_element("p").unwrap().into())
+        );
+    }
 }
