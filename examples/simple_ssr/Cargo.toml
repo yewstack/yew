@@ -16,9 +16,9 @@ required-features = ["ssr"]
 yew = { path = "../../packages/yew" }
 reqwest = { version = "0.12.8", features = ["json"] }
 serde = { version = "1.0.218", features = ["derive"] }
-uuid = { version = "1.14.0", features = ["serde"] }
+uuid = { version = "1.15.1", features = ["serde"] }
 futures = "0.3"
-bytes = "1.7"
+bytes = "1.10"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
