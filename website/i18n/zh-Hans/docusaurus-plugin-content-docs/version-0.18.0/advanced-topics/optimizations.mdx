@@ -70,10 +70,10 @@ Yew 没有原生支持纯组件或者函数式组件，但是可以通过外部�
 
 ## 减少二进制文件的大小
 
--   优化 Rust 代码
-    -   wee_alloc （使用小型的分配器（allocator））
-    -   cargo.toml （定义 release profile）
--   使用 wasm-opt 优化 wasm 代码
+- 优化 Rust 代码
+    - wee_alloc （使用小型的分配器（allocator））
+    - cargo.toml （定义 release profile）
+- 使用 wasm-opt 优化 wasm 代码
 
 **注意：更多有关减小二进制文件大小的信息，请参见 [《Rust Wasm Book》](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size) 。**
 
@@ -113,8 +113,8 @@ lto = true
 
 Rust Wasm Book 中有关于减小 Wasm 二进制文件大小的章节： [缩减 .wasm 大小](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
--   使用 `wasm-pack` （默认情况下会在 release 构建中优化 `wasm` ）
--   直接对`wasm` 文件使用 `wasm-opt` 。
+- 使用 `wasm-pack` （默认情况下会在 release 构建中优化 `wasm` ）
+- 直接对`wasm` 文件使用 `wasm-opt` 。
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
@@ -132,7 +132,7 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 ## 进一步阅读：
 
--   [Rust Book 关于智能指针的章节](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
--   [Rust Wasm Book 中有关减小二进制文件大小的内容](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
--   [Rust 配置信息相关的文档](https://doc.rust-lang.org/cargo/reference/profiles.html)
--   [二进制项目](https://github.com/WebAssembly/binaryen)
+- [Rust Book 关于智能指针的章节](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Rust Wasm Book 中有关减小二进制文件大小的内容](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Rust 配置信息相关的文档](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [二进制项目](https://github.com/WebAssembly/binaryen)

@@ -152,8 +152,9 @@ impl EventListener {
 
         let callback = Closure::wrap(Box::new(callback) as Box<dyn Fn(&Event)>);
         // defaults: { once: false }
-        let mut options = AddEventListenerOptions::new();
-        options.capture(true).passive(desc.passive);
+        let options = AddEventListenerOptions::new();
+        options.set_capture(true);
+        options.set_passive(desc.passive);
 
         target
             .add_event_listener_with_callback_and_add_event_listener_options(

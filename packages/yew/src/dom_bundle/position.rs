@@ -30,11 +30,12 @@ pub(crate) struct DynamicDomSlot {
 impl std::fmt::Debug for DomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.with_next_sibling(|n| {
-            write!(
-                f,
-                "DomSlot {{ next_sibling: {:?} }}",
-                n.map(crate::utils::print_node)
-            )
+            let formatted_node = match n {
+                None => None,
+                Some(n) if trap_impl::is_trap(n) => Some("<not yet initialized />".to_string()),
+                Some(n) => Some(crate::utils::print_node(n)),
+            };
+            write!(f, "DomSlot {{ next_sibling: {formatted_node:?} }}")
         })
     }
 }
@@ -45,10 +46,37 @@ impl std::fmt::Debug for DynamicDomSlot {
     }
 }
 
-#[cfg(debug_assertions)]
-thread_local! {
-    // A special marker element that should not be referenced
-    static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
+mod trap_impl {
+    use super::Node;
+    #[cfg(debug_assertions)]
+    thread_local! {
+        // A special marker element that should not be referenced
+        static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
+    }
+    /// Get a "trap" node, or None if compiled without debug_assertions
+    pub fn get_trap_node() -> Option<Node> {
+        #[cfg(debug_assertions)]
+        {
+            TRAP.with(|trap| Some(trap.clone()))
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            None
+        }
+    }
+    #[inline]
+    pub fn is_trap(node: &Node) -> bool {
+        #[cfg(debug_assertions)]
+        {
+            TRAP.with(|trap| node == trap)
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            // When not running with debug_assertions, there is no trap node
+            let _ = node;
+            false
+        }
+    }
 }
 
 impl DomSlot {
@@ -71,41 +99,38 @@ impl DomSlot {
     /// A new "placeholder" [DomSlot] that should not be used to insert nodes
     #[inline]
     pub fn new_debug_trapped() -> Self {
-        #[cfg(debug_assertions)]
-        {
-            Self::at(TRAP.with(|trap| trap.clone()))
-        }
-        #[cfg(not(debug_assertions))]
-        {
-            Self::at_end()
-        }
+        Self::create(trap_impl::get_trap_node())
     }
 
     /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
     /// the end
-    fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
+    fn with_next_sibling_check_trap<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         let checkedf = |node: Option<&Node>| {
-            #[cfg(debug_assertions)]
-            TRAP.with(|trap| {
-                assert!(
-                    node != Some(trap),
-                    "Should not use a trapped DomSlot. Please report this as an internal bug in \
-                     yew."
-                )
-            });
+            // MSRV 1.82 could rewrite this with `is_none_or`
+            let is_trapped = match node {
+                None => false,
+                Some(node) => trap_impl::is_trap(node),
+            };
+            assert!(
+                !is_trapped,
+                "Should not use a trapped DomSlot. Please report this as an internal bug in yew."
+            );
             f(node)
         };
+        self.with_next_sibling(checkedf)
+    }
 
+    fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         match &self.variant {
-            DomSlotVariant::Node(ref n) => checkedf(n.as_ref()),
-            DomSlotVariant::Chained(ref chain) => chain.with_next_sibling(checkedf),
+            DomSlotVariant::Node(ref n) => f(n.as_ref()),
+            DomSlotVariant::Chained(ref chain) => chain.with_next_sibling(f),
         }
     }
 
     /// Insert a [Node] at the position denoted by this slot. `parent` must be the actual parent
     /// element of the children that this slot is implicitly a part of.
     pub(super) fn insert(&self, parent: &Element, node: &Node) {
-        self.with_next_sibling(|next_sibling| {
+        self.with_next_sibling_check_trap(|next_sibling: Option<&Node>| {
             parent
                 .insert_before(node, next_sibling)
                 .unwrap_or_else(|err| {
@@ -124,7 +149,7 @@ impl DomSlot {
         });
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn get(&self) -> Option<Node> {
         self.with_next_sibling(|n| n.cloned())
@@ -180,7 +205,7 @@ impl DynamicDomSlot {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     use gloo::utils::document;
@@ -251,6 +276,17 @@ mod layout_tests {
             target_pos.get(),
             replacement.get(),
             "expected {target:#?} to point to the same position as {replacement:#?}"
+        );
+    }
+
+    #[test]
+    fn debug_printing() {
+        // basic tests that these don't panic. We don't enforce any specific format.
+        println!("At end: {:?}", DomSlot::at_end());
+        println!("Trapped: {:?}", DomSlot::new_debug_trapped());
+        println!(
+            "At element: {:?}",
+            DomSlot::at(document().create_element("p").unwrap().into())
         );
     }
 }

@@ -1,0 +1,99 @@
+---
+title: 'classes! マクロを使用して CSS クラスを処理する'
+description: '便利なマクロを使用して CSS クラスを処理する'
+comment: 'ファイルを短くシンプルに保つようにしてください。これは、読者が Yew のコンポーネントをより理解しやすくするためであり、正確な API ドキュメントを提供するためではありません。'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+Yew はネイティブの CSS-in-Rust ソリューションを提供していませんが、HTML の `class` 属性とプログラム的に対話する方法を提供することでスタイルを支援します。
+
+## `classes!` マクロ
+
+`classes!` マクロと関連する `Classes` 構造体は、HTML クラスの使用を簡素化します：
+
+<Tabs>
+  <TabItem value="Literal" label="Literal">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("container")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Multiple" label="Multiple">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("class-1", "class-2")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="String" label="String">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(String::from("class-1 class-2"))}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Optional" label="Optional">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(Some("class"))} />
+};
+```
+
+  </TabItem>
+  <TabItem value="Vector" label="Vector">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(vec!["class-1", "class-2"])}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Slice" label="Slice">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(["class-1", "class-2"].as_ref())}></div>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+詳細な CSS に関する内容は[こちらのドキュメント](../../more/css)をご覧ください。
+
+## インラインスタイル
+
+現在、Yew は `style` 属性を使用して指定されたインラインスタイルを処理するための特別な支援ツールを提供していませんが、他の HTML 属性と同様に処理することができます：
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div style="color: red;"></div>
+};
+```
+
+詳細な CSS に関する内容は[こちらのドキュメント](../../more/css)をご覧ください。

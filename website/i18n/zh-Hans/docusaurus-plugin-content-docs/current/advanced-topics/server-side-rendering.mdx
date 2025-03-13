@@ -1,0 +1,184 @@
+---
+title: '服务端渲染'
+description: '在服务端渲染 Yew 组件。'
+---
+
+# 服务端渲染 (Server-Side Rendering)
+
+默认情况下，Yew 组件在客户端渲染。当用户访问一个网站时，服务器会发送一个骨架 HTML 文件，不包含任何实际内容，以及一个 WebAssembly 包给浏览器。所有内容都由 WebAssembly 包在客户端渲染。这被称为客户端渲染。
+
+这种方法对于大多数网站来说都是有效的，但有一些注意事项：
+
+1. 用户在整个 WebAssembly 包下载并完成初始渲染之前将看不到任何内容。这可能会导致在缓慢的网络上用户体验不佳。
+2. 一些搜索引擎不支持动态渲染的网页内容，而那些支持的搜索引擎通常会将动态网站排名较低。
+
+为了解决这些问题，我们可以在服务端渲染我们的网站。
+
+## 工作原理
+
+Yew 提供了一个 `ServerRenderer` 来在服务端渲染页面。
+
+要在服务端渲染 Yew 组件，您可以使用 `ServerRenderer::<App>::new()` 创建一个渲染器，并调用 `renderer.render().await` 将 `<App />` 渲染为一个 `String`。
+
+```rust
+use yew::prelude::*;
+use yew::ServerRenderer;
+
+#[function_component]
+fn App() -> Html {
+    html! {<div>{"Hello, World!"}</div>}
+}
+
+// 我们在使用 `flavor = "current_thread"` 以保证这个示例可以在 CI 中的 WASM 环境运行,
+// 如果你希望使用多线程的话，可以使用默认的 `#[tokio::main]` 宏
+#[tokio::main(flavor = "current_thread")]
+async fn no_main() {
+    let renderer = ServerRenderer::<App>::new();
+
+    let rendered = renderer.render().await;
+
+    // 打印: <div>Hello, World!</div>
+    println!("{}", rendered);
+}
+```
+
+## 组件生命周期
+
+与客户端渲染不同，组件的生命周期在服务端渲染时会有所不同。
+
+在组件成功第一次渲染为 `Html` 之前，除了 `use_effect` (和 `use_effect_with`) 之外的所有钩子都会正常工作。
+
+:::caution 浏览器接口不可用！
+
+浏览器相关的接口，如 `web_sys`，在组件在服务端渲染时是不可用的。如果您尝试使用它们，您的应用程序将会崩溃。您应该将需要这部分逻辑隔离在 `use_effect` 或 `use_effect_with` 中，因为在服务端渲染时它们无法也不应当执行。
+
+:::
+
+:::danger 结构化组件
+
+尽管可以在服务端渲染时使用结构化组件，但是在客户端安全逻辑（如函数组件的 `use_effect` 钩子）和生命周期事件之间没有明确的边界，并且生命周期事件的调用顺序与客户端不同。
+
+此外，结构化组件将继续接受消息，直到所有子组件都被渲染并调用了 `destroy` 方法。开发人员需要确保不会将可能传递给组件的消息链接到调用浏览器接口的逻辑。
+
+在设计支持服务端渲染的应用程序时，请尽量使用函数组件，除非您有充分的理由不这样做。
+
+:::
+
+## 服务端渲染期间的数据获取
+
+数据获取是服务端渲染和注水（hydration）期间的难点之一。
+
+传统做法中，当一个组件渲染时，它会立即可用（输出一个虚拟 DOM 以进行渲染）。当组件不需要获取任何数据时，这种方式是有效的。但是如果组件在渲染时想要获取一些数据会发生什么呢？
+
+过去，Yew 没有机制来检测组件是否仍在获取数据。数据获取客户端负责实现一个解决方案，以检测在初始渲染期间请求了什么，并在请求完成后触发第二次渲染。服务器会重复这个过程，直到在返回响应之前没有在渲染期间添加更多的挂起请求。
+
+这不仅浪费了 CPU 资源，因为重复渲染组件，而且数据客户端还需要提供一种方法，在注水过程中使在服务端获取的数据可用，以确保初始渲染返回的虚拟 DOM 与服务端渲染的 DOM 树一致，这可能很难实现。
+
+Yew 采用了一种不同的方法，通过 `<Suspense />` 来解决这个问题。
+
+`<Suspense />` 是一个特殊的组件，当在客户端使用时，它提供了一种在组件获取数据（挂起）时显示一个回退 UI 的方法，并在数据获取完成后恢复到正常 UI。
+
+当应用程序在服务端渲染时，Yew 会等待组件不再挂起，然后将其序列化到字符串缓冲区中。
+
+在注水过程中，`<Suspense />` 组件中的元素保持未注水状态，直到所有子组件不再挂起。
+
+通过这种方法，开发人员可以轻松构建一个准备好进行服务端渲染的、与客户端无关的应用程序，并进行数据获取。
+
+## SSR Hydration
+
+## 服务端渲染注水（SSR Hydration）
+
+注水是将 Yew 应用程序连接到服务端生成的 HTML 文件的过程。默认情况下，`ServerRender` 打印可注水的 HTML 字符串，其中包含额外的信息以便于注水。当调用 `Renderer::hydrate` 方法时，Yew 不会从头开始渲染，而是将应用程序生成的虚拟 DOM 与服务器渲染器生成的 HTML 字符串进行协调。
+
+:::caution
+
+为了成功对由 `ServerRenderer` 创建的 HTML 标记注水，客户端必须生成一个虚拟 DOM 布局，它与用于 SSR 的布局完全匹配，包括不包含任何元素的组件。如果您有任何只在一个实现中有用的组件，您可能希望使用 `PhantomComponent` 来填充额外组件的位置。
+:::
+
+:::warning
+
+只有在浏览器初始渲染 SSR 输出（静态 HTML）后，真实 DOM 与预期 DOM 匹配时，注水才能成功。如果您的 HTML 不符合规范，注水可能会失败。浏览器可能会更改不正确的 HTML 的 DOM 结构，导致实际 DOM 与预期 DOM 不同。例如，[如果您有一个没有 `<tbody>` 的 `<table>`，浏览器可能会向 DOM 添加一个 `<tbody>`](https://github.com/yewstack/yew/issues/2684)
+:::
+
+## 注水期间的组件生命周期
+
+在注水期间，组件在创建后安排了 2 次连续的渲染。任何效果都是在第二次渲染完成后调用的。确保您的组件的渲染函数没有副作用是很重要的。它不应该改变任何状态或触发额外的渲染。如果您的组件当前改变状态或触发额外的渲染，请将它们移动到 `use_effect` 钩子中。
+
+在注水过程中，可以使用结构化组件进行服务端渲染，视图函数将在渲染函数之前被调用多次。直到调用渲染函数之前，DOM 被认为是未连接的，您应该防止在调用 `rendered()` 方法之前访问渲染节点。
+
+## 示例
+
+```rust ,ignore
+use yew::prelude::*;
+use yew::Renderer;
+
+#[function_component]
+fn App() -> Html {
+    html! {<div>{"Hello, World!"}</div>}
+}
+
+fn main() {
+    let renderer = Renderer::<App>::new();
+
+    // 对 body 元素下的所有内容进行注水，移除尾部元素（如果有）。
+    renderer.hydrate();
+}
+```
+
+示例: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
+示例: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+
+## 单线程模式
+
+Yew 支持以单线程进行服务端渲染，通过 `yew::LocalServerRenderer`。这种模式适用于像 WASI 这样的单线程环境。
+
+```rust
+// 在构建时使用 `wasm32-wasip1` 或 `wasm32-wasip2` 目标（在 rustc 1.78 之后）。
+// 如果您使用的是较旧版本的 rustc（1.84 之前），您仍然可以使用 `wasm32-wasi` 目标进行构建。
+// 有关更多信息，请参见 https://blog.rust-lang.org/2024/04/09/updates-to-rusts-wasi-targets.html。
+
+use yew::prelude::*;
+use yew::LocalServerRenderer;
+
+#[function_component]
+fn App() -> Html {
+    use yew_router::prelude::*;
+
+    html! {
+        <>
+            <h1>{"Yew WASI SSR demo"}</h1>
+        </>
+    }
+}
+
+pub async fn render() -> String {
+    let renderer = LocalServerRenderer::<App>::new();
+    let html_raw = renderer.render().await;
+
+    let mut body = String::new();
+    body.push_str("<body>");
+    body.push_str("<div id='app'>");
+    body.push_str(&html_raw);
+    body.push_str("</div>");
+    body.push_str("</body>");
+
+    body
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    println!("{}", render().await);
+}
+```
+
+示例: [wasi_ssr_module](https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module)
+
+:::note
+如果您使用 `wasm32-unknown-unknown` 目标构建 SSR 应用程序，您可以使用 `not_browser_env` 功能标志来禁用 Yew 内部对特定于浏览器的 API 的访问。这在像 Cloudflare Worker 这样的无服务器平台上非常有用。
+:::
+
+:::caution
+
+服务端渲染目前是实验性的。如果您发现了一个 bug，[请在 GitHub 反馈](https://github.com/yewstack/yew/issues/new?assignees=&labels=bug&template=bug_report.md&title=)。
+
+:::

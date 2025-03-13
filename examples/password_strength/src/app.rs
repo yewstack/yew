@@ -17,17 +17,16 @@ pub struct App {
 }
 
 impl App {
-    fn get_estimate(&self) -> Option<u8> {
-        zxcvbn(&self.password, &[])
-            .ok()
-            .map(|estimate| estimate.score())
+    fn get_estimate(&self) -> u8 {
+        let score = zxcvbn(&self.password, &[]).score();
+        score.into()
     }
 
     fn redout_top_row_text(&self) -> String {
         if self.password.is_empty() {
             return "Provide a password".to_string();
         }
-        let estimate_text = match self.get_estimate().unwrap_or(0) {
+        let estimate_text = match self.get_estimate() {
             0 => "That's a password?",
             1 => "You can do a lot better.",
             2 => "Meh",

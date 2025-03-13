@@ -107,7 +107,8 @@ fn is_ide_completion() -> bool {
 
 #[proc_macro_derive(Properties, attributes(prop_or, prop_or_else, prop_or_default))]
 pub fn derive_props(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DerivePropsInput);
+    let mut input = parse_macro_input!(input as DerivePropsInput);
+    input.normalise();
     TokenStream::from(input.into_token_stream())
 }
 
@@ -139,7 +140,7 @@ pub fn classes(input: TokenStream) -> TokenStream {
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
-pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+pub fn function_component(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as FunctionComponent);
     let attr = parse_macro_input!(attr as FunctionComponentName);
 
@@ -150,7 +151,7 @@ pub fn function_component(attr: TokenStream, item: TokenStream) -> proc_macro::T
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro_attribute]
-pub fn hook(attr: TokenStream, item: TokenStream) -> proc_macro::TokenStream {
+pub fn hook(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = parse_macro_input!(item as HookFn);
 
     if let Some(m) = proc_macro2::TokenStream::from(attr).into_iter().next() {

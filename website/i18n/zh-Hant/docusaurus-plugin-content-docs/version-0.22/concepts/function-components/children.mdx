@@ -1,0 +1,37 @@
+---
+title: '子元素 (Children)'
+---
+
+`Children` 是一種特殊的屬性類型，可讓您接收嵌套的 `Html`，就像 html 子元素一樣提供。
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[function_component]
+fn App() -> Html {
+    html! {
+        // highlight-start
+        <HelloWorld>
+            <span>{"Hey what is up ;)"}</span>
+            <h1>{"THE SKY"}</h1>
+        </HelloWorld>
+        // highlight-end
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    // highlight-next-line
+    pub children: Html, // `children` 鍵很重要！
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    html! {
+        <div class="very-stylized-container">
+            // highlight-next-line
+            { props.children.clone() } // 可以靠這種方式轉送子元素
+        </div>
+    }
+}
+```

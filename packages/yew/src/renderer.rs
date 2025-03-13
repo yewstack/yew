@@ -1,4 +1,7 @@
 use std::cell::Cell;
+#[rustversion::since(1.81)]
+use std::panic::PanicHookInfo as PanicInfo;
+#[rustversion::before(1.81)]
 use std::panic::PanicInfo;
 use std::rc::Rc;
 
@@ -8,7 +11,7 @@ use crate::app_handle::AppHandle;
 use crate::html::BaseComponent;
 
 thread_local! {
-    static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
+    static PANIC_HOOK_IS_SET: Cell<bool> = const { Cell::new(false) };
 }
 
 /// Set a custom panic hook.
@@ -21,6 +24,10 @@ pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 's
 }
 
 fn set_default_panic_hook() {
+    if std::thread::panicking() {
+        // very unlikely, but avoid hitting this when running parallel tests.
+        return;
+    }
     if !PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.replace(true)) {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     }

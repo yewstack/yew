@@ -28,6 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -67,13 +69,15 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.76.0
           - stable
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -116,14 +120,12 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.76.0
           - stable
           - nightly
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -131,6 +133,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       - name: Run native tests
         env:
@@ -159,8 +163,79 @@ jobs:
           toolchain: nightly
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       - name: Run tests
         env:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         run: cargo test -p yew-macro test_html_lints
+
+  unit_tests_wasi:
+    name: Unit Tests (WASI) on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: wasm32-wasip1
+
+      - name: Install wasmtime
+        run: |
+          wget https://github.com/bytecodealliance/wasmtime/releases/download/v24.0.0/wasmtime-v24.0.0-x86_64-linux.tar.xz
+          tar xf wasmtime-v24.0.0-x86_64-linux.tar.xz
+          mv wasmtime-v24.0.0-x86_64-linux/wasmtime ~/wasmtime
+          rm -rf wasmtime-v24.0.0-x86_64-linux.tar.xz wasmtime-v24.0.0-x86_64-linux
+          chmod +x ~/wasmtime
+          mv ~/wasmtime /usr/local/bin
+          source ~/.bashrc
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run WASI tests for yew
+        run: |
+          RUST_LOG=info
+          cargo test --features ssr,hydration --target wasm32-wasip1 -p yew
+
+  example-runnable-tests-on-wasi:
+    name: Example Runnable Tests on WASI
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - wasi_ssr_module
+        toolchain:
+          - stable
+          - nightly
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: wasm32-wasip1
+
+      - name: Install wasmtime
+        run: |
+          wget https://github.com/bytecodealliance/wasmtime/releases/download/v24.0.0/wasmtime-v24.0.0-x86_64-linux.tar.xz
+          tar xf wasmtime-v24.0.0-x86_64-linux.tar.xz
+          mv wasmtime-v24.0.0-x86_64-linux/wasmtime ~/wasmtime
+          rm -rf wasmtime-v24.0.0-x86_64-linux.tar.xz wasmtime-v24.0.0-x86_64-linux
+          chmod +x ~/wasmtime
+          mv ~/wasmtime /usr/local/bin
+          source ~/.bashrc
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build and run ${{ matrix.package }}
+        run: |
+          cargo build --target wasm32-wasip1 -p ${{ matrix.package }}
+          wasmtime -W unknown-imports-trap=y target/wasm32-wasip1/debug/${{ matrix.package }}.wasm

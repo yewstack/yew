@@ -16,7 +16,9 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
+use crate::virtual_dom::vtag::{
+    InputFields, TextareaFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE,
+};
 use crate::virtual_dom::{AttrValue, Attributes, Key, VTag};
 use crate::NodeRef;
 
@@ -129,8 +131,8 @@ impl Reconcilable for VTag {
                 let f = f.apply(root, el.unchecked_ref());
                 BTagInner::Input(f)
             }
-            VTagInner::Textarea { value } => {
-                let value = value.apply(root, el.unchecked_ref());
+            VTagInner::Textarea(f) => {
+                let value = f.apply(root, el.unchecked_ref());
                 BTagInner::Textarea { value }
             }
             VTagInner::Other { children, tag } => {
@@ -201,7 +203,10 @@ impl Reconcilable for VTag {
             (VTagInner::Input(new), BTagInner::Input(old)) => {
                 new.apply_diff(root, el.unchecked_ref(), old);
             }
-            (VTagInner::Textarea { value: new }, BTagInner::Textarea { value: old }) => {
+            (
+                VTagInner::Textarea(TextareaFields { value: new, .. }),
+                BTagInner::Textarea { value: old },
+            ) => {
                 new.apply_diff(root, el.unchecked_ref(), old);
             }
             (
@@ -233,15 +238,17 @@ impl Reconcilable for VTag {
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
         let tag = self.tag();
-        
-        // check for an xmlns attribute. If it exists, create an element with the specified namespace
-        let xmlns = self.attributes.iter().find(|(k, _)| *k == "xmlns").map(|(_, v)| v);
-        if let Some(xmlns) = xmlns {
+        // check for an xmlns attribute. If it exists, create an element with the specified
+        // namespace
+        if let Some(xmlns) = self
+            .attributes
+            .iter()
+            .find(|(k, _)| *k == "xmlns")
+            .map(|(_, v)| v) {
             document()
                 .create_element_ns(Some(xmlns), tag)
                 .expect("can't create namespaced element for vtag")
-        } else
-        if tag == "svg"
+        } else if tag == "svg"
             || parent
                 .namespace_uri()
                 .map_or(false, |ns| ns == SVG_NAMESPACE)
@@ -253,7 +260,7 @@ impl VTag {
         } else if tag == "math"
             || parent
                 .namespace_uri()
-                .map_or(false, |ns| ns == MATHML_NAMESPACE)
+                .is_some_and(|ns| ns == MATHML_NAMESPACE)
         {
             let namespace = Some(MATHML_NAMESPACE);
             document()
@@ -295,13 +302,13 @@ impl BTag {
         self.key.as_ref()
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn reference(&self) -> &Element {
         &self.reference
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn children(&self) -> Option<&BNode> {
         match &self.inner {
@@ -310,7 +317,7 @@ impl BTag {
         }
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
     #[cfg(test)]
     fn tag(&self) -> &str {
         match &self.inner {
@@ -369,7 +376,7 @@ mod feat_hydration {
                 el.tag_name().to_lowercase(),
             );
 
-            // We simply registers listeners and updates all attributes.
+            // We simply register listeners and update all attributes.
             let attributes = attributes.apply(root, &el);
             let listeners = listeners.apply(root, &el);
 
@@ -379,8 +386,8 @@ mod feat_hydration {
                     let f = f.apply(root, el.unchecked_ref());
                     BTagInner::Input(f)
                 }
-                VTagInner::Textarea { value } => {
-                    let value = value.apply(root, el.unchecked_ref());
+                VTagInner::Textarea(f) => {
+                    let value = f.apply(root, el.unchecked_ref());
 
                     BTagInner::Textarea { value }
                 }
@@ -410,7 +417,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
@@ -992,7 +999,7 @@ mod tests {
         let elem_vtag = assert_vtag(next_elem);
 
         // Sync happens here
-        // this should remove the the "disabled" attribute
+        // this should remove the "disabled" attribute
         elem_vtag.reconcile_node(&root, &scope, &parent, DomSlot::at_end(), &mut elem);
 
         assert_eq!(
@@ -1007,7 +1014,7 @@ mod tests {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;

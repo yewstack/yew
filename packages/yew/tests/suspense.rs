@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
@@ -227,7 +227,7 @@ async fn suspense_not_suspended_at_start() {
 
         Ok(html! {
             <div class="content-area">
-                <textarea value={value.to_string()} oninput={on_text_input}></textarea>
+                <textarea value={value.to_string()} oninput={on_text_input}/>
                 <div class="action-area">
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>

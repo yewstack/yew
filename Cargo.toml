@@ -18,5 +18,13 @@ opt-level = "z"
 [profile.bench]
 lto = true
 codegen-units = 1
-panic = "abort"
 opt-level = 3
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    "cfg(documenting)",
+    "cfg(verbose_tests)",
+    "cfg(yew_lints)",
+    "cfg(nightly_yew)",
+    "cfg(wasm_bindgen_unstable_test_coverage)"
+]}

@@ -11,6 +11,6 @@ error[E0277]: the trait bound `u32: IntoHtmlResult` is not satisfied
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IntoHtmlResult` is not implemented for `u32`
    |
    = help: the following other types implement trait `IntoHtmlResult`:
-             Result<VNode, RenderError>
              VNode
+             Result<VNode, RenderError>
    = note: this error originates in the attribute macro `function_component` (in Nightly builds, run with -Z macro-backtrace for more info)

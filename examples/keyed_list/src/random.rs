@@ -1,46 +1,33 @@
-use rand::distributions::Bernoulli;
+use rand::distr::Bernoulli;
 use rand::Rng;
 
 /// `0 <= p <= 1`
 pub fn chance(p: f64) -> bool {
     let d = Bernoulli::new(p).unwrap();
-    rand::thread_rng().sample(d)
+    rand::rng().sample(d)
 }
 
 /// half-open: [min, max)
 pub fn range_exclusive(min: usize, max: usize) -> usize {
-    let len: usize = rand::thread_rng().gen();
-    len % (max - min) + min
-}
-
-/// Choose two distinct indices `(a, b)` such that `a < b`.
-pub fn choose_two_distinct_indices<T>(items: &[T]) -> Option<(usize, usize)> {
-    match items.len() {
-        0 | 1 => None,
-        2 => Some((0, 1)),
-        n => {
-            let first = range_exclusive(0, n);
-            // find another index that isn't `first`
-            let second = loop {
-                let i = range_exclusive(0, n);
-                // this must be true at some point because there are at least three items
-                if i != first {
-                    break i;
-                }
-            };
-
-            // make sure that `a < b`
-            if first > second {
-                Some((second, first))
-            } else {
-                Some((first, second))
-            }
-        }
-    }
+    rand::rng().random_range(min..max)
 }
 
 pub fn choose_two_distinct_mut<T>(items: &mut [T]) -> Option<(&mut T, &mut T)> {
-    let (lo, hi) = choose_two_distinct_indices(items)?;
+    let (lo, hi) = {
+        // Choose two distinct indices `(a, b)` such that `a < b`.
+        match items.len() {
+            0 | 1 => return None,
+            _ => {
+                let indexes = rand::seq::index::sample(&mut rand::rng(), items.len(), 2);
+                let (a, b) = (indexes.index(0), indexes.index(1));
+                if a < b {
+                    (a, b)
+                } else {
+                    (b, a)
+                }
+            }
+        }
+    };
 
     // a = `items[0..hi]` which contains `lo` because `lo < hi`
     // b = `items[hi..]` where `items[hi] == b[0]`
