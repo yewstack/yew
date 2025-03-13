@@ -244,15 +244,12 @@ impl VTag {
             .attributes
             .iter()
             .find(|(k, _)| *k == "xmlns")
-            .map(|(_, v)| v) {
+            .map(|(_, v)| v)
+        {
             document()
                 .create_element_ns(Some(xmlns), tag)
                 .expect("can't create namespaced element for vtag")
-        } else if tag == "svg"
-            || parent
-                .namespace_uri()
-                .map_or(false, |ns| ns == SVG_NAMESPACE)
-        {
+        } else if tag == "svg" || parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
             let namespace = Some(SVG_NAMESPACE);
             document()
                 .create_element_ns(namespace, tag)
