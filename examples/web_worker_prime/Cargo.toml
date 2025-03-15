@@ -8,4 +8,4 @@ yew-agent = { path = "../../packages/yew-agent" }
 yew = { path = "../../packages/yew", features = ["csr"] }
 futures = "0.3.30"
 primes = "0.4.0"
-serde = { version = "1.0.218", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
