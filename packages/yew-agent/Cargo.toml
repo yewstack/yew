@@ -20,4 +20,4 @@ futures = "0.3"
 yew-agent-macro = { version = "0.2", path = "../yew-agent-macro" }
 
 [dev-dependencies]
-serde = "1.0.218"
+serde = "1.0.219"
