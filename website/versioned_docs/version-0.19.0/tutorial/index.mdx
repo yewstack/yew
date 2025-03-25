@@ -152,7 +152,7 @@ We want to build a layout that looks something like this in raw HTML:
 <div>
     <h3>John Doe: Building and breaking things</h3>
     <img
-        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        src="https://placehold.co/640x360.png?text=Video+Player+Placeholder"
         alt="video thumbnail"
     />
 </div>
@@ -174,7 +174,7 @@ html! {
         </div>
         <div>
             <h3>{ "John Doe: Building and breaking things" }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     </>
 }
@@ -403,7 +403,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
             <h3>{ video.title.clone() }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     }
 }
@@ -439,7 +439,7 @@ fn app() -> Html {
 +            { for details }
 -            <div>
 -                <h3>{ "John Doe: Building and breaking things" }</h3>
--                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-                <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
 -            </div>
 -        </>
     }
