@@ -85,7 +85,6 @@ pub use feat_ssr::*;
 /// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This
 /// type is used during client side rendering to deserialize the state prepared on the server
 /// side.
-///
 pub use use_prepared_state_macro as use_prepared_state;
 // With SSR.
 #[doc(hidden)]
