@@ -247,7 +247,7 @@ impl HtmlChildrenTree {
                 .iter()
                 .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
             return quote! {
-                ::std::vec![#(#children_into),*]
+                [#(#children_into),*].to_vec()
             };
         }
 

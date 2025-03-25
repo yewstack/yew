@@ -3,7 +3,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::{Expr, Lit};
+use syn::Lit;
 
 use super::ToNodeIterator;
 use crate::stringify::Stringify;
@@ -11,7 +11,7 @@ use crate::PeekValue;
 
 pub enum HtmlNode {
     Literal(Box<Lit>),
-    Expression(Box<Expr>),
+    Expression(Box<TokenStream>),
 }
 
 impl Parse for HtmlNode {
