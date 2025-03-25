@@ -58,52 +58,10 @@ impl Parse for PreparedState {
 }
 
 impl PreparedState {
-    // Async closure is not stable, so we rewrite it to closure + async block
-    #[cfg(not(nightly_yew))]
-    pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
-        use proc_macro2::Span;
-        use syn::parse_quote;
-
-        let async_token = match &self.closure.asyncness {
-            Some(m) => m,
-            None => return self.closure.clone(),
-        };
-
-        // The async block always need to be move so input can be moved into it.
-        let move_token = self
-            .closure
-            .capture
-            .unwrap_or_else(|| Token![move](Span::call_site()));
-        let body = &self.closure.body;
-
-        let inner = parse_quote! {
-            #async_token #move_token {
-                #body
-            }
-        };
-
-        let mut closure = self.closure.clone();
-
-        closure.asyncness = None;
-        // We omit the output type as it's an opaque future type.
-        closure.output = ReturnType::Default;
-
-        closure.body = inner;
-
-        closure.attrs.push(parse_quote! { #[allow(unused_braces)] });
-
-        closure
-    }
-
-    #[cfg(nightly_yew)]
-    pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
-        self.closure.clone()
-    }
-
     pub fn to_token_stream_with_closure(&self) -> TokenStream {
         let deps = &self.deps;
         let rt = &self.return_type;
-        let closure = self.rewrite_to_closure_with_async_block();
+        let closure = &self.closure;
 
         match &self.closure.asyncness {
             Some(_) => quote! {

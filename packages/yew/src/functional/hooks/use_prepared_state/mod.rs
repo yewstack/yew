@@ -47,7 +47,7 @@ pub use feat_ssr::*;
 /// # { todo!() }
 /// ```
 ///
-/// The first argument can also be an [async closure](https://github.com/rust-lang/rust/issues/62290).
+/// The first argument can also be an async closure
 ///
 /// `let state = use_prepared_state!(async |deps| -> ReturnType { ... }, deps)?;`
 ///
@@ -86,9 +86,6 @@ pub use feat_ssr::*;
 /// type is used during client side rendering to deserialize the state prepared on the server
 /// side.
 ///
-/// Whilst async closure is an unstable feature, the procedural macro will rewrite this to a
-/// closure that returns an async block automatically. You can use this hook with async closure
-/// in stable Rust.
 pub use use_prepared_state_macro as use_prepared_state;
 // With SSR.
 #[doc(hidden)]
