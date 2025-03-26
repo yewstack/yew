@@ -16,19 +16,17 @@ then take the following steps:
 cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
 ```
 
-### Build project
-
-This step is only needed when this guide has been run on Microsoft windows.
-
-```shell
-trunk build
-```
-
 ### Run project
 
 ```shell
 trunk serve
 ```
+
+:::note
+
+Trunk [has a bug](https://github.com/trunk-rs/trunk/issues/852) on windows when `trunk serve` command fails. To workaround the issue you can run `trunk build` before running `trunk serve`.
+
+:::
 
 ## Setting up the application manually
 
