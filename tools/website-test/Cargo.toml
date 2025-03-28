@@ -19,7 +19,7 @@ weblog = "0.3.0"
 yew = { path = "../../packages/yew/", features = ["ssr", "csr"] }
 yew-autoprops = "0.4.1"
 yew-router = { path = "../../packages/yew-router/" }
-tokio = { version = "1.40.0", features = ["rt", "macros"] }
+tokio = { version = "1.44.1", features = ["rt", "macros"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"

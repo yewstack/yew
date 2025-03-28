@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-fake = "4.0.0"
+fake = "4.2.0"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 log = "0.4"
