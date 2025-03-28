@@ -27,9 +27,9 @@ yew-macro = { version = "^0.21.0", path = "../yew-macro" }
 thiserror = "2.0"
 futures = { version = "0.3", default-features = false, features = ["std"] }
 html-escape = { version = "0.2.13", optional = true }
-implicit-clone = { version = "0.5", features = ["map"] }
-base64ct = { version = "1.6.0", features = ["std"], optional = true }
-bincode = { version = "1.3.3", optional = true }
+implicit-clone = { version = "0.6", features = ["map"] }
+base64ct = { version = "1.7.3", features = ["std"], optional = true }
+bincode = { version = "2.0.1", optional = true }
 serde = { version = "1", features = ["derive"] }
 tracing = "0.1.40"
 tokise = "0.2.0"
@@ -40,7 +40,7 @@ wasm-bindgen-futures = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
-tokio = { version = "1.40", features = ["rt"] }
+tokio = { version = "1.44", features = ["rt"] }
 
 [dependencies.web-sys]
 version = "^0.3.70"
@@ -79,7 +79,7 @@ features = [
 ]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { version = "1.40", features = ["full"] }
+tokio = { version = "1.44", features = ["full"] }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi"))'.dependencies]
 tokio = { version = "1.40", features = ["macros", "rt", "time"] }
