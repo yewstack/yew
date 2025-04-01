@@ -25,9 +25,9 @@
         "clsx": "^2.1.1",
         "docusaurus-plugin-sass": "^0.2.6",
         "file-loader": "^6.2.0",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "sass": "^1.83.4",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "sass": "^1.86.1",
         "url-loader": "^4.1.1",
         "yew-docs": "file:"
     },
@@ -49,13 +49,13 @@
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.0.0",
         "@docusaurus/tsconfig": "3.7.0",
-        "@types/react": "^19.0.8",
+        "@types/react": "^19.0.12",
         "@types/react-helmet": "^6.1.11",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^8.22.0",
-        "@typescript-eslint/parser": "^8.22.0",
+        "@typescript-eslint/eslint-plugin": "^8.29.0",
+        "@typescript-eslint/parser": "^8.29.0",
         "dir-compare": "^5.0.0",
-        "prettier": "^3.5.1",
-        "typescript": "^5.7.3"
+        "prettier": "^3.5.3",
+        "typescript": "^5.8.2"
     }
 }
