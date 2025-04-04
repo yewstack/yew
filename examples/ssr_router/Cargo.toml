@@ -18,14 +18,14 @@ yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
 log = "0.4"
 futures = { version = "0.3", features = ["std"], default-features = false }
-hyper-util = "0.1.9"
+hyper-util = "0.1.11"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
 wasm-logger = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.44.1", features = ["full"] }
 axum = "0.8"
 tower = { version = "0.5", features = ["make"] }
 tower-http = { version = "0.6", features = ["fs"] }
