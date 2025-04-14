@@ -355,7 +355,7 @@ the `navigator.replace_with_query` functions. It uses the `ToQuery` trait to ser
 #### Obtaining query parameters for the current route
 
 `location.query` is used to obtain the query parameters. It uses the `FromQuery` trait to deserialize the parameters from the query string
-in the URL. The `FromQuery` trait i sautomatically implemented for `serde` so any type that implements `Deserialize` can be passed. If the URL is formatted in an custom way, a manual implementation of `FromQuery` can be used.
+in the URL. The `FromQuery` trait is automatically implemented for `serde` so any type that implements `Deserialize` can be passed. If the URL is formatted in an custom way, a manual implementation of `FromQuery` can be used.
 
 ## Nested Router
 
