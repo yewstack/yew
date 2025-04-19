@@ -1,3 +1,5 @@
+use std::fmt::{Display, Write};
+
 use proc_macro2::Span;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::discouraged::Speculative;
@@ -8,6 +10,41 @@ use syn::{Token, Type};
 use super::{HtmlChildrenTree, TagTokens};
 use crate::is_ide_completion;
 use crate::props::ComponentProps;
+
+/// Returns `true` if `s` looks like a component name
+pub fn is_component_name(s: impl Display) -> bool {
+    struct X {
+        is_ide_completion: bool,
+        empty: bool,
+    }
+
+    impl Write for X {
+        fn write_str(&mut self, chunk: &str) -> std::fmt::Result {
+            if self.empty {
+                self.empty = chunk.is_empty();
+                if !self.is_ide_completion
+                    && chunk
+                        .bytes()
+                        .next()
+                        .is_some_and(|b| !b.is_ascii_uppercase())
+                {
+                    return Err(std::fmt::Error);
+                }
+            }
+            chunk
+                .bytes()
+                .any(|b| b.is_ascii_uppercase())
+                .then_some(())
+                .ok_or(std::fmt::Error)
+        }
+    }
+
+    let mut writer = X {
+        is_ide_completion: is_ide_completion(),
+        empty: true,
+    };
+    write!(writer, "{s}").is_ok_and(|_| !writer.empty)
+}
 
 pub struct HtmlComponent {
     ty: Type,
