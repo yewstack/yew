@@ -58,6 +58,8 @@ mod stringify;
 mod use_prepared_state;
 mod use_transitive_state;
 
+use std::fmt::{Display, Write};
+
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
 use hook::{hook_impl, HookFn};
@@ -77,15 +79,113 @@ trait PeekValue<T> {
     fn peek(cursor: Cursor) -> Option<T>;
 }
 
-fn non_capitalized_ascii(string: &str) -> bool {
-    if !string.is_ascii() {
-        false
-    } else if let Some(c) = string.bytes().next() {
-        c.is_ascii_lowercase()
-    } else {
-        false
+/// Extension methods for treating `Display`able values like strings, without allocating the
+/// strings.
+///
+/// Needed to check the plentiful token-like values in the impl of the macros, which are
+/// `Display`able but which either correspond to multiple source code tokens, or are themselves
+/// tokens that don't provide a reference to their repr.
+trait DisplayExt: Display {
+    /// Equivalent to [`str::eq_ignore_ascii_case`], but works for anything that's `Display` without
+    /// allocations
+    fn repr_eq_ignore_ascii_case(&self, other: &str) -> bool {
+        /// Writer that only succeeds if all of the input is a prefix of the contained string.
+        struct X<'src>(&'src str);
+
+        impl Write for X<'_> {
+            fn write_str(&mut self, chunk: &str) -> std::fmt::Result {
+                if !self
+                    .0
+                    .get(..chunk.len())
+                    .is_some_and(|x| x.eq_ignore_ascii_case(chunk))
+                {
+                    return Err(std::fmt::Error);
+                }
+                self.0 = self.0.split_at(chunk.len()).1;
+                Ok(())
+            }
+        }
+
+        // The `is_ok_and` call ensures that there's nothing left over, ensuring
+        // `s1.to_string().eq_ignore_ascii_case(s2)`
+        // without ever allocating `s1`
+        let mut writer = X(other);
+        write!(writer, "{self}").is_ok_and(|_| writer.0.is_empty())
+    }
+
+    /// Equivalent of `s1.to_string() == s2` but without allocations
+    fn repr_eq(&self, other: &str) -> bool {
+        /// Writer that only succeeds if all of the input is a prefix of the contained string.
+        struct X<'src>(&'src str);
+
+        impl Write for X<'_> {
+            fn write_str(&mut self, chunk: &str) -> std::fmt::Result {
+                self.0
+                    .strip_prefix(chunk)
+                    .map(|rest| self.0 = rest)
+                    .ok_or(std::fmt::Error)
+            }
+        }
+
+        // The `is_ok_and` call ensures that there's nothing left over, ensuring `s1.to_string() ==
+        // s2` without ever allocating `s1`
+        let mut writer = X(other);
+        write!(writer, "{self}").is_ok_and(|_| writer.0.is_empty())
+    }
+
+    /// Equivalent of [`str::starts_with`], but works for anything that's `Display` without
+    /// allocations
+    fn starts_with(&self, prefix: &str) -> bool {
+        /// Writer that only succeeds if all of the input is a prefix of the contained string.
+        struct X<'src>(&'src str);
+
+        impl Write for X<'_> {
+            fn write_str(&mut self, s: &str) -> std::fmt::Result {
+                match self.0.strip_prefix(s) {
+                    Some(rest) => self.0 = rest,
+                    None if self.0.len() < s.len() => {
+                        s.strip_prefix(self.0).ok_or(std::fmt::Error)?;
+                        self.0 = "";
+                    }
+                    None => return Err(std::fmt::Error),
+                }
+
+                Ok(())
+            }
+        }
+
+        let mut writer = X(prefix);
+        write!(writer, "{self}").is_ok()
+    }
+
+    /// Returns `true` if `s` only displays ASCII chars & doesn't start with a capital letter
+    fn is_non_capitalized_ascii(&self) -> bool {
+        /// Writer that succeeds only if the input is non-capitalised ASCII
+        struct X {
+            empty: bool,
+        }
+
+        impl Write for X {
+            fn write_str(&mut self, mut s: &str) -> std::fmt::Result {
+                if self.empty {
+                    self.empty = s.is_empty();
+                    let mut iter = s.chars();
+                    if iter.next().is_some_and(|c| c.is_ascii_uppercase()) {
+                        return Err(std::fmt::Error);
+                    }
+                    s = iter.as_str();
+                }
+
+                s.is_ascii().then_some(()).ok_or(std::fmt::Error)
+            }
+        }
+
+        let mut writer = X { empty: true };
+        write!(writer, "{self}").is_ok_and(|_| !writer.empty)
     }
 }
+
+impl<T: Display> DisplayExt for T {}
 
 /// Combine multiple `syn` errors into a single one.
 /// Returns `Result::Ok` if the given iterator is empty
