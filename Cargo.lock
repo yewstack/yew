@@ -189,6 +189,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89e25b6adfb930f02d1981565a6e5d9c547ac15a96606256d3b59040e5cd4ca3"
 
 [[package]]
+name = "bench-stress-test"
+version = "0.1.0"
+dependencies = [
+ "yew",
+]
+
+[[package]]
 name = "benchmark-core"
 version = "0.1.0"
 dependencies = [
@@ -4207,6 +4214,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
+ "rand 0.9.2",
  "rustversion",
  "syn 2.0.106",
  "trybuild",

@@ -9,7 +9,7 @@ use syn::{Expr, Ident, Lit, LitStr, Token};
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
-use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
+use crate::{is_ide_completion, DisplayExt, Peek, PeekValue};
 
 fn is_normalised_element_name(name: &str) -> bool {
     match name {
@@ -672,13 +672,13 @@ impl PeekValue<TagKey> for HtmlElementOpen {
         let (tag_key, cursor) = TagName::peek(cursor)?;
         if let TagKey::Lit(name) = &tag_key {
             // Avoid parsing `<key=[...]>` as an element. It needs to be parsed as an `HtmlList`.
-            if name.to_string() == "key" {
+            if name.eq_str("key") {
                 let (punct, _) = cursor.punct()?;
                 // ... unless it isn't followed by a '='. `<key></key>` is a valid element!
                 if punct.as_char() == '=' {
                     return None;
                 }
-            } else if !non_capitalized_ascii(&name.to_string()) {
+            } else if !name.is_non_capitalized_ascii() {
                 return None;
             }
         }
@@ -747,7 +747,7 @@ impl PeekValue<TagKey> for HtmlElementClose {
         }
 
         let (tag_key, cursor) = TagName::peek(cursor)?;
-        if matches!(&tag_key, TagKey::Lit(name) if !non_capitalized_ascii(&name.to_string())) {
+        if matches!(&tag_key, TagKey::Lit(name) if !name.is_non_capitalized_ascii()) {
             return None;
         }
 

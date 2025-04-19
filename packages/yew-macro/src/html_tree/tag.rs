@@ -14,7 +14,7 @@ fn span_eq_hack(a: &Span, b: &Span) -> bool {
 fn error_replace_span(err: syn::Error, from: Span, to: impl ToTokens) -> syn::Error {
     let err_it = err.into_iter().map(|err| {
         if span_eq_hack(&err.span(), &from) {
-            syn::Error::new_spanned(&to, err.to_string())
+            syn::Error::new_spanned(&to, err)
         } else {
             err
         }
