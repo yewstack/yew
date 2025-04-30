@@ -348,14 +348,12 @@ fn create(ctx: &Context<Self>) -> Self {
 #### Specifying query parameters when navigating
 
 In order to specify query parameters when navigating to a new route, use either `navigator.push_with_query` or
-the `navigator.replace_with_query` functions. It uses `serde` to serialize the parameters into a query string for the URL so
-any type that implements `Serialize` can be passed. In its simplest form, this is just a `HashMap` containing string
-pairs.
+the `navigator.replace_with_query` functions. It uses the `ToQuery` trait to serialize the parameters into a query string for the URL. The `ToQuery` trait is automatically implemented for `serde` so any type that implements `Serialize` can be passed. In its simplest form, this is just a `HashMap` containing string pairs. In more complex scenarios the `ToQuery` trait can be implemented manually for a custom query format.
 
 #### Obtaining query parameters for the current route
 
-`location.query` is used to obtain the query parameters. It uses `serde` to deserialize the parameters from the query string
-in the URL.
+`location.query` is used to obtain the query parameters. It uses the `FromQuery` trait to deserialize the parameters from the query string
+in the URL. The `FromQuery` trait is automatically implemented for `serde` so any type that implements `Deserialize` can be passed. If the URL is formatted in an custom way, a manual implementation of `FromQuery` can be used.
 
 ## Nested Router
 
