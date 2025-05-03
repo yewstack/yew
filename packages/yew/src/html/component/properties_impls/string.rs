@@ -6,6 +6,6 @@ impl Properties for String {
     type Builder = String;
 
     fn builder() -> Self::Builder {
-        self
+		Self::Builder::new()
     }
 }
