@@ -10,6 +10,7 @@ use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, 
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
+use crate::DisplayExt;
 
 #[derive(Copy, Clone)]
 pub enum PropDirective {
@@ -226,12 +227,12 @@ impl PropList {
     }
 
     fn position(&self, key: &str) -> Option<usize> {
-        self.0.iter().position(|it| it.label.to_string() == key)
+        self.0.iter().position(|it| it.label.eq_str(key))
     }
 
     /// Get the first prop with the given key.
     pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
-        self.0.iter().find(|it| it.label.to_string() == key)
+        self.0.iter().find(|it| it.label.eq_str(key))
     }
 
     /// Pop the first prop with the given key.

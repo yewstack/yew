@@ -4155,6 +4155,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
+ "rand 0.9.0",
  "rustversion",
  "syn 2.0.98",
  "trybuild",

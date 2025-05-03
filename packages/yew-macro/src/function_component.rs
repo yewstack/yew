@@ -9,6 +9,7 @@ use syn::{
 };
 
 use crate::hook::BodyRewriter;
+use crate::DisplayExt;
 
 #[derive(Clone)]
 pub struct FunctionComponent {
@@ -157,14 +158,12 @@ impl FunctionComponent {
     fn filter_attrs_for_component_struct(&self) -> Vec<Attribute> {
         self.attrs
             .iter()
-            .filter_map(|m| {
+            .filter(|m| {
                 m.path()
                     .get_ident()
-                    .and_then(|ident| match ident.to_string().as_str() {
-                        "doc" | "allow" => Some(m.clone()),
-                        _ => None,
-                    })
+                    .is_some_and(|ident| (ident.eq_str("doc") || ident.eq_str("allow")))
             })
+            .cloned()
             .collect()
     }
 
@@ -172,14 +171,12 @@ impl FunctionComponent {
     fn filter_attrs_for_component_impl(&self) -> Vec<Attribute> {
         self.attrs
             .iter()
-            .filter_map(|m| {
+            .filter(|m| {
                 m.path()
                     .get_ident()
-                    .and_then(|ident| match ident.to_string().as_str() {
-                        "allow" => Some(m.clone()),
-                        _ => None,
-                    })
+                    .is_some_and(|ident| ident.eq_str("allow"))
             })
+            .cloned()
             .collect()
     }
 

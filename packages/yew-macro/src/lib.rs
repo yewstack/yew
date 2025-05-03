@@ -58,6 +58,8 @@ mod stringify;
 mod use_prepared_state;
 mod use_transitive_state;
 
+use std::fmt::{Display, Write};
+
 use derive_props::DerivePropsInput;
 use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
 use hook::{hook_impl, HookFn};
@@ -77,15 +79,135 @@ trait PeekValue<T> {
     fn peek(cursor: Cursor) -> Option<T>;
 }
 
-fn non_capitalized_ascii(string: &str) -> bool {
-    if !string.is_ascii() {
-        false
-    } else if let Some(c) = string.bytes().next() {
-        c.is_ascii_lowercase()
-    } else {
-        false
+/// Extension methods for treating `Display`able values like strings, without allocating the
+/// strings.
+///
+/// Needed to check the plentiful token-like values in the impl of the macros, which are
+/// `Display`able but which either correspond to multiple source code tokens, or are themselves
+/// tokens that don't provide a reference to their repr.
+pub(crate) trait DisplayExt: Display {
+    /// Equivalent to [`str::eq_ignore_ascii_case`], but works for anything that's `Display` without
+    /// allocations
+    fn eq_str_ignore_ascii_case(&self, other: &str) -> bool {
+        /// Writer that only succeeds if all of the input is a __prefix__ of the contained string,
+        /// ignoring ASCII case.
+        ///
+        /// It cannot verify that `other` is not longer than the input.
+        struct X<'src> {
+            other: &'src str,
+        }
+
+        impl Write for X<'_> {
+            fn write_str(&mut self, self_chunk: &str) -> std::fmt::Result {
+                if self.other.len() < self_chunk.len() {
+                    return Err(std::fmt::Error); // `other` is shorter than `self`.
+                }
+                let other_chunk;
+                // Chop off a chunk from `other` the size of `self_chunk` to compare them
+                (other_chunk, self.other) = self.other.split_at(self_chunk.len());
+                // Check if the chunks match
+                self_chunk
+                    .eq_ignore_ascii_case(other_chunk)
+                    .then_some(())
+                    .ok_or(std::fmt::Error)
+            }
+        }
+
+        let mut writer = X { other };
+        // The `is_ok_and` call ensures that there's nothing left over.
+        // If the remainder of `other` is not empty, it means `other` is longer than
+        // `self`.
+        write!(writer, "{self}").is_ok_and(|_| writer.other.is_empty())
+    }
+
+    /// Equivalent of `s1.to_string() == s2` but without allocations
+    fn eq_str(&self, other: &str) -> bool {
+        /// Writer that only succeeds if all of the input is a __prefix__ of the contained string.
+        ///
+        /// It cannot verify that `other` is not longer than the input.
+        struct X<'src> {
+            other: &'src str,
+        }
+
+        impl Write for X<'_> {
+            fn write_str(&mut self, chunk: &str) -> std::fmt::Result {
+                self.other
+                    .strip_prefix(chunk) // Try to chop off a chunk of `self` from `other`
+                    .map(|rest| self.other = rest) // If it matched, reassign the rest of `other`
+                    .ok_or(std::fmt::Error) // Otherwise, break out signifying a mismatch
+            }
+        }
+
+        let mut writer = X { other };
+        // The `is_ok_and` call ensures that there's nothing left over.
+        // If the remainder of `other` is not empty, it means `other` is longer than
+        // `self`.
+        write!(writer, "{self}").is_ok_and(|_| writer.other.is_empty())
+    }
+
+    /// Equivalent of [`str::starts_with`], but works for anything that's `Display` without
+    /// allocations
+    fn starts_with(&self, prefix: &str) -> bool {
+        /// Writer that only succeeds if `prefix` is a prefix of the input
+        struct X<'src> {
+            prefix: &'src str,
+        }
+
+        impl Write for X<'_> {
+            fn write_str(&mut self, chunk: &str) -> std::fmt::Result {
+                match self.prefix.strip_prefix(chunk) {
+                    // Try to chop off a chunk from `prefix`
+                    Some(rest) => self.prefix = rest, // Reassign the rest of `prefix` on success
+                    None => {
+                        // Check if `prefix` became shorter than the rest of input, but can still be
+                        // found in the input
+                        chunk.strip_prefix(self.prefix).ok_or(std::fmt::Error)?;
+                        self.prefix = ""; // All of `prefix` was found, ignore the rest of input
+                    }
+                }
+
+                Ok(())
+            }
+        }
+
+        let mut writer = X { prefix };
+        write!(writer, "{self}").is_ok()
+    }
+
+    /// Returns `true` if `s` only displays ASCII chars & doesn't start with a capital letter
+    fn is_non_capitalized_ascii(&self) -> bool {
+        /// Writer that succeeds only if the input is non-capitalised ASCII _or is empty_
+        ///
+        /// The case of empty input should be checked afterwards by the checking `self.empty`
+        struct X {
+            /// Whether there was any non-empty input
+            empty: bool,
+        }
+
+        impl Write for X {
+            fn write_str(&mut self, s: &str) -> std::fmt::Result {
+                if self.empty {
+                    // Executed if there was no input before that
+                    self.empty = s.is_empty();
+                    // Inspecting the 1st char
+                    if s.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
+                        // The 1st char is A-Z, the input is capitalised
+                        return Err(std::fmt::Error);
+                    }
+                }
+
+                // Check if everything is ASCII
+                s.is_ascii().then_some(()).ok_or(std::fmt::Error)
+            }
+        }
+
+        let mut writer = X { empty: true };
+        // The `is_ok_and` call ensures that empty input is _NOT_ considered non-capitalised ASCII
+        write!(writer, "{self}").is_ok_and(|_| !writer.empty)
     }
 }
+
+impl<T: Display> DisplayExt for T {}
 
 /// Combine multiple `syn` errors into a single one.
 /// Returns `Result::Ok` if the given iterator is empty
@@ -187,4 +309,67 @@ pub fn use_transitive_state_with_closure(input: TokenStream) -> TokenStream {
 pub fn use_transitive_state_without_closure(input: TokenStream) -> TokenStream {
     let transitive_state = parse_macro_input!(input as TransitiveState);
     transitive_state.to_token_stream_without_closure().into()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fmt::{Display, Formatter, Write};
+
+    use rand::rngs::SmallRng;
+    use rand::{Rng, SeedableRng};
+
+    use crate::DisplayExt;
+
+    const N_ITERS: usize = 0x4000;
+    const STR_LEN: usize = 32;
+
+    /// Implements `Display` by feeding the formatter 1 `char` at a time.
+    ///
+    /// Tests the ability of [`DisplayExt`] to handle disparate chunks of strings
+    struct DisplayObfuscator<'a>(&'a str);
+
+    impl Display for DisplayObfuscator<'_> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            for ch in self.0.chars() {
+                f.write_char(ch)?;
+            }
+            Ok(())
+        }
+    }
+
+    /// Does the same thing as [`DisplayObfuscator`] but also lowercases all chars.
+    struct Lowercaser<'a>(&'a str);
+
+    impl Display for Lowercaser<'_> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            for ch in self.0.chars() {
+                f.write_char(ch.to_ascii_lowercase())?;
+            }
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn display_ext_works() {
+        let rng = &mut SmallRng::from_os_rng();
+        let mut s = String::with_capacity(STR_LEN);
+
+        for i in 0..N_ITERS {
+            s.clear();
+            // Generate `STR_LEN` ASCII chars
+            s.extend(
+                rng.random_iter::<u8>()
+                    .take(STR_LEN)
+                    .map(|b| (b & 127) as char),
+            );
+
+            assert!(Lowercaser(&s).eq_str_ignore_ascii_case(&s));
+            assert!(DisplayObfuscator(&s).eq_str(&s));
+            assert!(DisplayObfuscator(&s).starts_with(&s[..i % STR_LEN]));
+            assert_eq!(
+                DisplayObfuscator(&s).is_non_capitalized_ascii(),
+                s.is_non_capitalized_ascii()
+            );
+        }
+    }
 }
