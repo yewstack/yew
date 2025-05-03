@@ -6,6 +6,14 @@ impl Properties for String {
     type Builder = String;
 
     fn builder() -> Self::Builder {
-		Self::Builder::new()
+        Self::Builder::new()
+    }
+}
+
+impl Properties for char {
+    type Builder = char;
+
+    fn builder() -> Self::Builder {
+        Self::Builder::default()
     }
 }
