@@ -5,7 +5,7 @@ use crate::Properties;
 impl Properties for String {
     type Builder = String;
 
-    fn builder(self) -> Self::Builder {
+    fn builder() -> Self::Builder {
         self
     }
 }
