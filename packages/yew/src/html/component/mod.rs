@@ -5,6 +5,7 @@ mod children;
 mod lifecycle;
 mod marker;
 mod properties;
+mod properties_impls;
 mod scope;
 
 use std::rc::Rc;
