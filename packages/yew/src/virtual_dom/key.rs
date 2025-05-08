@@ -11,7 +11,7 @@ use crate::html::ImplicitClone;
 /// Keys are cheap to clone.
 #[derive(Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Key {
-    key: Rc<str>,
+    key: Rc<String>,
 }
 
 impl Display for Key {
@@ -30,14 +30,21 @@ impl Deref for Key {
 
 impl From<Rc<str>> for Key {
     fn from(key: Rc<str>) -> Self {
-        Self { key }
+        Self {
+            key: Rc::from(key.to_string()),
+        }
     }
 }
 
-impl From<&'_ str> for Key {
-    fn from(key: &'_ str) -> Self {
-        let key: Rc<str> = Rc::from(key);
-        Self::from(key)
+impl From<Rc<String>> for Key {
+    fn from(key: Rc<String>) -> Self {
+        Self { key: key.clone() }
+    }
+}
+
+impl From<String> for Key {
+    fn from(key: String) -> Self {
+        Self { key: Rc::new(key) }
     }
 }
 
@@ -47,13 +54,13 @@ macro_rules! key_impl_from_to_string {
     ($type:ty) => {
         impl From<$type> for Key {
             fn from(key: $type) -> Self {
-                Self::from(key.to_string().as_str())
+                Self::from(key.to_string())
             }
         }
     };
 }
 
-key_impl_from_to_string!(String);
+key_impl_from_to_string!(&'_ str);
 key_impl_from_to_string!(char);
 key_impl_from_to_string!(u8);
 key_impl_from_to_string!(u16);
@@ -84,6 +91,7 @@ mod test {
         let _ = html! {
             <key="string literal">
                 <img key={"String".to_owned()} />
+                <p key={Rc::<String>::from("RcString".to_string())}></p>
                 <p key={Rc::<str>::from("rc")}></p>
                 <key='a'>
                     <p key=11_usize></p>
