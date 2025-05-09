@@ -91,7 +91,7 @@ mod test {
                     <p key=13_u16></p>
                     <p key=14_u32></p>
                     <p key=15_u64></p>
-                    <p key=15_u128></p>
+                    <p key=16_u128></p>
                     <p key=21_isize></p>
                     <p key=22_i8></p>
                     <p key=23_i16></p>
