@@ -27,6 +27,7 @@ pub fn lint<L>(tree: &HtmlTree)
 where
     L: Lint,
 {
+    let _ = L::lint;
     #[cfg(not(yew_lints))]
     let _ = tree;
     #[cfg(yew_lints)]
