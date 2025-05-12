@@ -54,7 +54,7 @@ jobs:
           version: "latest"
 
       - name: Build examples
-        run: find ./*/index.html | xargs -I '{}' trunk build --release '{}' || exit 0
+        run: cargo run -p build-examples --bin build-examples
         working-directory: examples
         env:
           RUSTUP_TOOLCHAIN: nightly
