@@ -32,9 +32,10 @@ jobs:
 
       - name: Write Optimisation Flags
         run: |
-          echo 'share-generics = true' >> .cargo/config.toml
           echo 'build-std = ["std", "panic_abort"]' >> .cargo/config.toml
           echo 'build-std-features = ["panic_immediate_abort"]' >> .cargo/config.toml
+          echo '[build]' >> .cargo/config.toml
+          echo 'rustflags = ["-Cpanic=abort"]' >> .cargo/config.toml
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -55,10 +56,6 @@ jobs:
 
       - name: Build examples
         run: cargo run -p build-examples --bin build-examples
-        working-directory: examples
-        env:
-          RUSTUP_TOOLCHAIN: nightly
-          RUSTFLAGS: --cfg nightly_yew
 
       - name: Collect size information
         run: python3 ci/collect_sizes.py
