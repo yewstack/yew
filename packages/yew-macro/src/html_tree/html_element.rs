@@ -454,17 +454,16 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
-                #[cfg(nightly_yew)]
-                let invalid_void_tag_msg_start = {
+                #[rustversion::since(1.89)]
+                fn derive_debug_tag(vtag: &Ident) -> String {
                     let span = vtag.span().unwrap();
-                    let source_file = span.source_file().path();
-                    let source_file = source_file.display();
-                    let start = span.start();
-                    format!("[{}:{}:{}] ", source_file, start.line(), start.column())
-                };
-
-                #[cfg(not(nightly_yew))]
-                let invalid_void_tag_msg_start = "";
+                    format!("[{}:{}:{}] ", span.file(), span.line(), span.column())
+                }
+                #[rustversion::before(1.89)]
+                fn derive_debug_tag(_: &Ident) -> &'static str {
+                    ""
+                }
+                let invalid_void_tag_msg_start = derive_debug_tag(&vtag);
 
                 let value = value();
                 let checked = checked();
