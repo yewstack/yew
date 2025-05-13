@@ -99,13 +99,14 @@ where
         children,
         path,
         lazy,
+        module,
         reach,
     } = props.clone();
 
     // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> ReactorBridge<R>> = {
         let path = path.clone();
-        Rc::new(move || ReactorSpawner::<R>::new().encoding::<C>().spawn(&path))
+        Rc::new(move || ReactorSpawner::<R>::new().as_module(module).encoding::<C>().spawn(&path))
     };
 
     let state = {
