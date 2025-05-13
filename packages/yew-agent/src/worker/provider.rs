@@ -3,14 +3,13 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use gloo_worker::Spawnable;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Worker, WorkerBridge};
 use crate::reach::Reach;
 use crate::utils::get_next_id;
-use crate::{Bincode, Codec};
+use crate::{Bincode, Codec, Spawnable};
 
 /// Properties for [WorkerProvider].
 #[derive(Debug, Properties, PartialEq, Clone)]

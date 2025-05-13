@@ -3,11 +3,10 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use gloo_worker::reactor::ReactorScoped;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
-use super::{Reactor, ReactorBridge, ReactorSpawner};
+use super::{Reactor, ReactorBridge, ReactorScoped, ReactorSpawner};
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
 use crate::{Bincode, Codec, Reach};
