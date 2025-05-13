@@ -3,14 +3,13 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use gloo_worker::Spawnable;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Worker, WorkerBridge};
 use crate::reach::Reach;
 use crate::utils::get_next_id;
-use crate::{Bincode, Codec};
+use crate::{Bincode, Codec, Spawnable};
 
 /// Properties for [WorkerProvider].
 #[derive(Debug, Properties, PartialEq, Clone)]
@@ -23,6 +22,11 @@ pub struct WorkerProviderProps {
     /// Default: [`Public`](Reach::Public).
     #[prop_or(Reach::Public)]
     pub reach: Reach,
+
+    /// Whether the agent should be created
+    /// with type `Module`.
+    #[prop_or(false)]
+    pub module: bool,
 
     /// Lazily spawn the agent.
     ///
@@ -112,13 +116,14 @@ where
         children,
         path,
         lazy,
+        module,
         reach,
     } = props.clone();
 
     // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>> = {
         let path = path.clone();
-        Rc::new(move || W::spawner().encoding::<C>().spawn(&path))
+        Rc::new(move || W::spawner().as_module(module).encoding::<C>().spawn(&path))
     };
 
     let state = {

@@ -1,7 +1,13 @@
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use wasm_bindgen::UnwrapThrowExt;
 use yew::Reducible;
+
+/// Convenience function to avoid repeating expect logic.
+pub fn window() -> web_sys::Window {
+    web_sys::window().expect_throw("Can't find the global Window")
+}
 
 /// Gets a unique worker id
 pub(crate) fn get_next_id() -> usize {
