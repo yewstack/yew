@@ -41,6 +41,12 @@ impl From<&'_ str> for Key {
     }
 }
 
+impl From<String> for Key {
+    fn from(key: String) -> Self {
+        Self::from(key.as_str())
+    }
+}
+
 impl ImplicitClone for Key {}
 
 macro_rules! key_impl_from_to_string {
@@ -53,7 +59,6 @@ macro_rules! key_impl_from_to_string {
     };
 }
 
-key_impl_from_to_string!(String);
 key_impl_from_to_string!(char);
 key_impl_from_to_string!(u8);
 key_impl_from_to_string!(u16);
