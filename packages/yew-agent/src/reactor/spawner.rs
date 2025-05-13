@@ -40,6 +40,29 @@ where
         }
     }
 
+    /// Indicates that [`spawn`](WorkerSpawner#method.spawn) should expect a
+    /// `path` to a loader shim script (e.g. when using Trunk, created by using
+    /// the [`data-loader-shim`](https://trunkrs.dev/assets/#link-asset-types)
+    /// asset type) and one does not need to be generated. `false` by default.
+    pub fn with_loader(mut self, with_loader: bool) -> Self {
+        self.inner.with_loader(with_loader);
+        self
+    }
+
+    /// Determines whether the worker will be spawned with
+    /// [`options.type`](https://developer.mozilla.org/en-US/docs/Web/API/Worker/Worker#type)
+    /// set to `module`. `true` by default.
+    ///
+    /// This option should be un-set if the worker was created with the
+    /// `--target no-modules` flag of `wasm-bindgen`. If using Trunk, see the
+    /// [`data-bindgen-target`](https://trunkrs.dev/assets/#link-asset-types)
+    /// asset type.
+    pub fn as_module(mut self, as_module: bool) -> Self {
+        self.inner.as_module(as_module);
+
+        self
+    }
+
     /// Spawns a reactor worker.
     pub fn spawn(mut self, path: &str) -> ReactorBridge<R>
     where
@@ -49,19 +72,6 @@ where
         let rx = ReactorBridge::register_callback(&mut self.inner);
 
         let inner = self.inner.spawn(path);
-
-        ReactorBridge::new(inner, rx)
-    }
-
-    /// Spawns a Reactor Worker with a loader shim script.
-    pub fn spawn_with_loader(mut self, loader_path: &str) -> ReactorBridge<R>
-    where
-        <R::Scope as ReactorScoped>::Input: Serialize + for<'de> Deserialize<'de>,
-        <R::Scope as ReactorScoped>::Output: Serialize + for<'de> Deserialize<'de>,
-    {
-        let rx = ReactorBridge::register_callback(&mut self.inner);
-
-        let inner = self.inner.spawn_with_loader(loader_path);
 
         ReactorBridge::new(inner, rx)
     }
