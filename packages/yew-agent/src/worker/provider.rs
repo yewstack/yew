@@ -23,6 +23,11 @@ pub struct WorkerProviderProps {
     #[prop_or(Reach::Public)]
     pub reach: Reach,
 
+    /// Whether the agent should be created
+    /// with type `Module`.
+    #[prop_or(false)]
+    pub module: bool,
+
     /// Lazily spawn the agent.
     ///
     /// The agent will be spawned when the first time a hook requests a bridge.
@@ -111,13 +116,14 @@ where
         children,
         path,
         lazy,
+        module,
         reach,
     } = props.clone();
 
     // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> WorkerBridge<W>> = {
         let path = path.clone();
-        Rc::new(move || W::spawner().encoding::<C>().spawn(&path))
+        Rc::new(move || W::spawner().as_module(module).encoding::<C>().spawn(&path))
     };
 
     let state = {
