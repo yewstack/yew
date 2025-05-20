@@ -1,0 +1,17 @@
+error[E0107]: missing generics for struct `Comp`
+  --> tests/function_component_attr/generic-props-missing-type-parameter-fail.rs:22:14
+   |
+22 |     html! { <Comp /> };
+   |              ^^^^ expected 1 generic argument
+   |
+note: struct defined here, with 1 generic parameter: `P`
+  --> tests/function_component_attr/generic-props-missing-type-parameter-fail.rs:8:22
+   |
+8  | #[function_component(Comp)]
+   |                      ^^^^
+9  | fn comp<P>(_props: &P) -> Html
+   |         -
+help: add missing generic argument
+   |
+22 |     html! { <Comp<P> /> };
+   |                  +++
