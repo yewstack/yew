@@ -17,17 +17,9 @@ where
 
 struct MissingTypeBounds;
 
-fn compile_fail() {
-    // missing prop 'a'
-    html! { <Comp<Props> /> };
-
+fn compile_fail_invalid_type_parameter() {
     // invalid type parameter
     html! { <Comp<INVALID> /> };
-    // parameter doesn't match bounds
-    html! { <Comp<MissingTypeBounds> /> };
-
-    // missing type param
-    html! { <Comp /> };
 }
 
 fn main() {}
