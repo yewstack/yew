@@ -1,4 +1,4 @@
- error[E0412]: cannot find type `INVALID` in this scope
+error[E0412]: cannot find type `INVALID` in this scope
   --> tests/function_component_attr/generic-props-invalid-type-parameter-fail.rs:22:19
    |
 22 |     html! { <Comp<INVALID> /> };
