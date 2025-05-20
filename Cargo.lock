@@ -4115,10 +4115,15 @@ dependencies = [
 name = "yew-agent"
 version = "0.3.0"
 dependencies = [
+ "bincode",
  "futures 0.3.31",
- "gloo-worker",
+ "js-sys",
+ "pinned",
  "serde",
+ "thiserror 1.0.69",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "yew",
  "yew-agent-macro",
 ]
