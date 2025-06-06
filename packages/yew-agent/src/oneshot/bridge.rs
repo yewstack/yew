@@ -57,7 +57,7 @@ where
         Self { inner, rx }
     }
 
-    /// Run the the current oneshot worker once in the current worker instance.
+    /// Run the current oneshot worker once in the current worker instance.
     pub async fn run(&mut self, input: N::Input) -> N::Output {
         // &mut self guarantees that the bridge will be
         // exclusively borrowed during the time the oneshot worker is running.
