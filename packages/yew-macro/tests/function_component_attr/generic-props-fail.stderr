@@ -9,22 +9,14 @@ help: you might be missing a type parameter
 20 | fn compile_fail<INVALID>() {
    |                +++++++++
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<a, _>` is not satisfied
+error[E0277]: not all required properties have been provided
   --> tests/function_component_attr/generic-props-fail.rs:22:14
    |
 22 |     html! { <Comp<Props> /> };
-   |              ^^^^ the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
+   |              ^^^^ missing required properties for this component
    |
-   = help: the following other types implement trait `HasProp<P, How>`:
-             <HasPropsa<B> as HasProp<a, HasPropsa<B>>>
-             <HasPropsa<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasContextProviderPropscontext<B> as HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>>
-             <HasContextProviderPropscontext<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasContextProviderPropschildren<B> as HasProp<children, HasContextProviderPropschildren<B>>>
-             <HasContextProviderPropschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-           and $N others
+   = help: the trait `HasProp<a, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<PropsBuilder, _>`
+   = note: make sure all required properties are set before building the component
 note: required for `CheckPropsAll<AssertAllProps>` to implement `HasAllProps<Props, (_,)>`
   --> tests/function_component_attr/generic-props-fail.rs:3:17
    |
@@ -80,6 +72,11 @@ error[E0599]: the function or associated item `new` exists for struct `VChild<Co
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
    |
+note: if you're trying to build a new `VChild<Comp<MissingTypeBounds>>`, consider using `VChild::<COMP>::new` which returns `VChild<_>`
+  --> $WORKSPACE/packages/yew/src/virtual_dom/vcomp.rs
+   |
+   |     pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = note: the following trait bounds were not satisfied:
            `Comp<MissingTypeBounds>: yew::BaseComponent`
 note: the trait `yew::BaseComponent` must be implemented

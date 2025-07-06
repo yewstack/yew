@@ -25,6 +25,11 @@ mod __macro {
     ///   previously (represented by the tail) is still set after P has been set.
     /// - ^ the two impls would be overlapping, where it not for the `How` argument, which resolves
     ///   the conflict.
+    #[diagnostic::on_unimplemented(
+        message = "property `{P}` is required but not provided",
+        label = "missing required property `{P}`",
+        note = "the component requires the property `{P}` to be set"
+    )]
     pub trait HasProp<P, How> {}
 
     /// A marker trait to ensure that the builder has received all required props.
@@ -32,6 +37,11 @@ mod __macro {
     /// all properties marked as required as a bound on the impl.
     ///
     /// [`Properties`]: super::Properties
+    #[diagnostic::on_unimplemented(
+        message = "not all required properties have been provided for `{P}`",
+        label = "missing required properties",
+        note = "ensure all required properties are set for the component"
+    )]
     pub trait HasAllProps<P, How> {}
 
     /// Trait finishing the builder and verifying all props were set.
@@ -81,6 +91,11 @@ mod __macro {
 
     /// Trait to specify the requirement for Self to be a valid token signaling all props have been
     /// provided to the builder.
+    #[diagnostic::on_unimplemented(
+        message = "not all required properties have been provided",
+        label = "missing required properties for this component",
+        note = "make sure all required properties are set before building the component"
+    )]
     pub trait AllPropsFor<Builder, How> {}
 
     impl<Token, Builder: Buildable<Token>, How> AllPropsFor<Builder, How> for Token where

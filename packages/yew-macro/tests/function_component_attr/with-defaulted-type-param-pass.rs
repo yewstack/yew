@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 
 #[derive(::yew::prelude::Properties, ::std::fmt::Debug)]
 pub struct CompProps<A> {

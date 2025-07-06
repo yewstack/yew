@@ -510,16 +510,15 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
 
-error[E0277]: expected a `Fn(MouseEvent)` closure, found `{integer}`
+error[E0277]: the trait bound `{integer}: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:51:28
    |
 51 |     html! { <input onclick=1 /> };
    |     -----------------------^-----
    |     |                      |
-   |     |                      expected an `Fn(MouseEvent)` closure, found `{integer}`
+   |     |                      the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`, which is required by `{integer}: IntoEventCallback<MouseEvent>`
    |     required by a bound introduced by this call
    |
-   = help: the trait `Fn<(MouseEvent,)>` is not implemented for `{integer}`
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
              yew::Callback<EVENT>
              Option<yew::Callback<EVENT>>
@@ -542,18 +541,19 @@ note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
    |   required by this bound in `Wrapper::__macro_new`
    = note: this error originates in the macro `impl_action` which comes from the expansion of the macro `impl_short` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: expected a `Fn(MouseEvent)` closure, found `yew::Callback<String>`
+error[E0277]: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:52:29
    |
 52 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
    |     ------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------
    |     |                       |
-   |     |                       expected an `Fn(MouseEvent)` closure, found `yew::Callback<String>`
+   |     |                       the trait `Fn<(MouseEvent,)>` is not implemented for `yew::Callback<String>`, which is required by `yew::Callback<String>: IntoEventCallback<MouseEvent>`
    |     required by a bound introduced by this call
    |
-   = help: the trait `Fn<(MouseEvent,)>` is not implemented for `yew::Callback<String>`
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
              yew::Callback<EVENT>
+             Option<yew::Callback<EVENT>>
+             Option<T>
              &yew::Callback<EVENT>
    = note: required for `yew::Callback<String>` to implement `IntoEventCallback<MouseEvent>`
 note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
@@ -631,18 +631,19 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              <Option<&'static str> as IntoPropValue<Option<String>>>
              <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
 
-error[E0277]: expected a `Fn(MouseEvent)` closure, found `yew::Callback<String>`
+error[E0277]: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:58:29
    |
 58 |     html! { <input onclick={Callback::from(|a: String| ())} /> };
    |     ------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^------
    |     |                       |
-   |     |                       expected an `Fn(MouseEvent)` closure, found `yew::Callback<String>`
+   |     |                       the trait `Fn<(MouseEvent,)>` is not implemented for `yew::Callback<String>`, which is required by `yew::Callback<String>: IntoEventCallback<MouseEvent>`
    |     required by a bound introduced by this call
    |
-   = help: the trait `Fn<(MouseEvent,)>` is not implemented for `yew::Callback<String>`
    = help: the following other types implement trait `IntoEventCallback<EVENT>`:
              yew::Callback<EVENT>
+             Option<yew::Callback<EVENT>>
+             Option<T>
              &yew::Callback<EVENT>
    = note: required for `yew::Callback<String>` to implement `IntoEventCallback<MouseEvent>`
 note: required by a bound in `yew::html::onclick::Wrapper::__macro_new`
@@ -694,7 +695,7 @@ error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{in
   --> tests/html_macro/element-fail.rs:79:16
    |
 79 |     html! { <@{55}></@> };
-   |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::string::IString`
+   |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::string::IString`, which is required by `{integer}: Into<implicit_clone::unsync::string::IString>`
    |
    = help: the following other types implement trait `From<T>`:
              <implicit_clone::unsync::string::IString as From<Cow<'static, str>>>

@@ -1,28 +1,24 @@
-error[E0277]: `()` doesn't implement `std::fmt::Display`
+error[E0277]: the trait bound `(): Into<NodeSeq<(), VNode>>` is not satisfied
  --> tests/html_macro/block-fail.rs:6:15
   |
 6 |             { () }
   |               ^^
   |               |
-  |               `()` cannot be formatted with the default formatter
+  |               the trait `std::fmt::Display` is not implemented for `()`, which is required by `(): Into<NodeSeq<_, _>>`
   |               required by a bound introduced by this call
   |
-  = help: the trait `std::fmt::Display` is not implemented for `()`
-  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required for `()` to implement `ToString`
   = note: required for `VNode` to implement `From<()>`
   = note: required for `()` to implement `Into<VNode>`
   = note: 2 redundant requirements hidden
   = note: required for `()` to implement `Into<NodeSeq<(), VNode>>`
 
-error[E0277]: `()` doesn't implement `std::fmt::Display`
+error[E0277]: the trait bound `(): Into<VNode>` is not satisfied
   --> tests/html_macro/block-fail.rs:15:17
    |
 15 |         <>{ for (0..3).map(|_| not_tree()) }</>
-   |                 ^^^^^^ `()` cannot be formatted with the default formatter
+   |                 ^^^^^^ the trait `std::fmt::Display` is not implemented for `()`, which is required by `(): Into<_>`
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`
-   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required for `()` to implement `ToString`
    = note: required for `VNode` to implement `From<()>`
    = note: required for `()` to implement `Into<VNode>`
