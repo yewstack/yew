@@ -127,7 +127,6 @@ impl PropsBuilder<'_> {
         quote! {
             #[automatically_derived]
             #( #extra_attrs )*
-            #[diagnostic::do_not_recommend]
             impl #builder_impl_generics #builder_name<#generic_args> #builder_where_clause {
                 #( #prop_fns )*
             }

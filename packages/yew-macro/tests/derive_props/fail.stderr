@@ -68,7 +68,6 @@ error[E0277]: not all required properties have been provided
    |                        ^^^^^ missing required properties for this component
    |
    = help: the trait `HasProp<t3::_Props::value, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<t3::PropsBuilder, _>`
-   = note: make sure all required properties are set before building the component
 note: required for `t3::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t3::Props, (_,)>`
   --> tests/derive_props/fail.rs:29:21
    |
@@ -92,7 +91,6 @@ error[E0277]: not all required properties have been provided
    |                        ^^^^^ missing required properties for this component
    |
    = help: the trait `HasProp<t4::_Props::value, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<t4::PropsBuilder, _>`
-   = note: make sure all required properties are set before building the component
 note: required for `t4::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t4::Props, (_,)>`
   --> tests/derive_props/fail.rs:41:21
    |

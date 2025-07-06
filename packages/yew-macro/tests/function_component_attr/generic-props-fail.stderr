@@ -16,7 +16,6 @@ error[E0277]: not all required properties have been provided
    |              ^^^^ missing required properties for this component
    |
    = help: the trait `HasProp<a, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<PropsBuilder, _>`
-   = note: make sure all required properties are set before building the component
 note: required for `CheckPropsAll<AssertAllProps>` to implement `HasAllProps<Props, (_,)>`
   --> tests/function_component_attr/generic-props-fail.rs:3:17
    |

@@ -5,7 +5,6 @@ error[E0277]: not all required properties have been provided
    |          ^^^ missing required properties for this component
    |
    = help: the trait `HasProp<bar, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<FooPropsBuilder, _>`
-   = note: make sure all required properties are set before building the component
 note: required for `CheckFooPropsAll<AssertAllProps>` to implement `HasAllProps<FooProps, (_, _)>`
   --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
    |
@@ -29,7 +28,6 @@ error[E0277]: not all required properties have been provided
    |          ^^^ missing required properties for this component
    |
    = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<FooPropsBuilder, _>`
-   = note: make sure all required properties are set before building the component
 note: required for `CheckFooPropsAll<AssertAllProps>` to implement `HasAllProps<FooProps, (_, _)>`
   --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
    |
@@ -53,7 +51,6 @@ error[E0277]: property `baz` is required but not provided
    |          ^^^ missing required property `baz`
    |
    = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`, which is required by `HasFooPropsbar<AssertAllProps>: AllPropsFor<FooPropsBuilder, _>`
-   = note: the component requires the property `baz` to be set
    = help: the following other types implement trait `HasProp<P, How>`:
              <HasFooPropsbar<B> as HasProp<bar, HasFooPropsbar<B>>>
              <HasFooPropsbar<B> as HasProp<P, &dyn HasProp<P, How>>>

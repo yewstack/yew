@@ -27,8 +27,7 @@ mod __macro {
     ///   the conflict.
     #[diagnostic::on_unimplemented(
         message = "property `{P}` is required but not provided",
-        label = "missing required property `{P}`",
-        note = "the component requires the property `{P}` to be set"
+        label = "missing required property `{P}`"
     )]
     pub trait HasProp<P, How> {}
 
@@ -39,8 +38,7 @@ mod __macro {
     /// [`Properties`]: super::Properties
     #[diagnostic::on_unimplemented(
         message = "not all required properties have been provided for `{P}`",
-        label = "missing required properties",
-        note = "ensure all required properties are set for the component"
+        label = "missing required properties"
     )]
     pub trait HasAllProps<P, How> {}
 
@@ -93,8 +91,7 @@ mod __macro {
     /// provided to the builder.
     #[diagnostic::on_unimplemented(
         message = "not all required properties have been provided",
-        label = "missing required properties for this component",
-        note = "make sure all required properties are set before building the component"
+        label = "missing required properties for this component"
     )]
     pub trait AllPropsFor<Builder, How> {}
 
