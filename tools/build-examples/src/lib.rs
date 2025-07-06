@@ -33,8 +33,7 @@ pub fn get_latest_wasm_opt_version() -> String {
             .unwrap_or_else(|_| "Could not read error response".to_string());
 
         panic!(
-            "GitHub API request failed with status: {}. Details: {}",
-            status, error_text
+            "GitHub API request failed with status: {status}. Details: {error_text}"
         );
     }
 

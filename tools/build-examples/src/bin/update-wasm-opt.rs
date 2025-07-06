@@ -51,8 +51,7 @@ fn main() -> ExitCode {
 
     if outdated_examples.is_empty() {
         println!(
-            "All examples are up-to-date with the latest wasm_opt version: {}",
-            latest_wasm_opt
+            "All examples are up-to-date with the latest wasm_opt version: {latest_wasm_opt}"
         );
         return ExitCode::from(0);
     }
@@ -62,15 +61,14 @@ fn main() -> ExitCode {
         outdated_examples.len()
     );
     for example in &outdated_examples {
-        println!("  - {}", example);
+        println!("  - {example}");
     }
-    println!("Latest wasm_opt version is: {}", latest_wasm_opt);
+    println!("Latest wasm_opt version is: {latest_wasm_opt}");
     println!("Updating all examples...");
 
     let updated_count = update_all_examples(&outdated_example_paths, &latest_wasm_opt);
     println!(
-        "Updated {} example configurations to use {}",
-        updated_count, latest_wasm_opt
+        "Updated {updated_count} example configurations to use {latest_wasm_opt}"
     );
 
     ExitCode::from(0)
@@ -90,8 +88,7 @@ pub fn update_all_examples(outdated_paths: &[PathBuf], latest_version: &str) -> 
             re.replace(&content, |_: &regex::Captures| {
                 format!(
                     r#"[tools]
-wasm_opt = "{}""#,
-                    latest_version
+wasm_opt = "{latest_version}""#
                 )
             })
             .to_string()
@@ -100,8 +97,7 @@ wasm_opt = "{}""#,
             if content.is_empty() {
                 format!(
                     r#"[tools]
-wasm_opt = "{}""#,
-                    latest_version
+wasm_opt = "{latest_version}""#
                 )
             } else {
                 format!(
