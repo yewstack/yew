@@ -280,7 +280,7 @@ impl Scheduler {
 
         // Priority rendering
         //
-        // This is needed for hydration susequent render to fix node refs.
+        // This is needed for hydration subsequent render to fix node refs.
         if let Some(r) = self.render_priority.pop_topmost() {
             to_run.push(r);
             return;

@@ -401,7 +401,7 @@ impl SubtreeData {
         &'s self,
         event: &'s Event,
     ) -> Option<impl 's + Iterator<Item = (&'s SubtreeData, Element)>> {
-        // Note: the event is not necessarily indentically the same object for all installed
+        // Note: the event is not necessarily identically the same object for all installed
         // handlers hence this cache can be unreliable. Hence the cached repsonsible_tree_id
         // might be missing. On the other hand, due to event retargeting at shadow roots,
         // the cache might be wrong! Keep in mind that we handle events in the capture
@@ -423,7 +423,7 @@ impl SubtreeData {
             // that is responsible for handling this event, and it's not this subtree.
             return None;
         }
-        // We're tasked with finding the subtree that is reponsible with handling the event, and/or
+        // We're tasked with finding the subtree that is responsible with handling the event, and/or
         // run the handling if that's `self`.
         let target = event_path.get(0).dyn_into::<Element>().ok()?;
         let should_bubble = BUBBLE_EVENTS.load(Ordering::Relaxed) && event.bubbles();
