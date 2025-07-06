@@ -32,9 +32,7 @@ pub fn get_latest_wasm_opt_version() -> String {
             .text()
             .unwrap_or_else(|_| "Could not read error response".to_string());
 
-        panic!(
-            "GitHub API request failed with status: {status}. Details: {error_text}"
-        );
+        panic!("GitHub API request failed with status: {status}. Details: {error_text}");
     }
 
     let release: GitHubRelease = res.json().expect("Failed to parse GitHub API response");

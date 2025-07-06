@@ -50,9 +50,7 @@ fn main() -> ExitCode {
     }
 
     if outdated_examples.is_empty() {
-        println!(
-            "All examples are up-to-date with the latest wasm_opt version: {latest_wasm_opt}"
-        );
+        println!("All examples are up-to-date with the latest wasm_opt version: {latest_wasm_opt}");
         return ExitCode::from(0);
     }
 
@@ -67,9 +65,7 @@ fn main() -> ExitCode {
     println!("Updating all examples...");
 
     let updated_count = update_all_examples(&outdated_example_paths, &latest_wasm_opt);
-    println!(
-        "Updated {updated_count} example configurations to use {latest_wasm_opt}"
-    );
+    println!("Updated {updated_count} example configurations to use {latest_wasm_opt}");
 
     ExitCode::from(0)
 }
