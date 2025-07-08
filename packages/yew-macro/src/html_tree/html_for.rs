@@ -43,18 +43,22 @@ impl Parse for HtmlFor {
         braced!(body_stream in input);
 
         let body = HtmlChildrenTree::parse_delimited(&body_stream)?;
-        // TODO: reduce nesting by using if-let guards / let-else statements once MSRV is raised
+        // TODO: more concise code by using if-let guards once MSRV is raised
         for child in body.0.iter() {
-            if let HtmlTree::Element(element) = child {
-                if let Some(key) = &element.props.special.key {
-                    if is_contextless_pure(&key.value) {
-                        return Err(syn::Error::new(
-                            key.value.span(),
-                            "duplicate key for a node in a `for`-loop\nthis will create elements \
+            let HtmlTree::Element(element) = child else {
+                continue;
+            };
+
+            let Some(key) = &element.props.special.key else {
+                continue;
+            };
+
+            if is_contextless_pure(&key.value) {
+                return Err(syn::Error::new(
+                    key.value.span(),
+                    "duplicate key for a node in a `for`-loop\nthis will create elements \
                              with duplicate keys if the loop iterates more than once",
-                        ));
-                    }
-                }
+                ));
             }
         }
         Ok(Self { pat, iter, body })
