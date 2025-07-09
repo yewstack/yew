@@ -52,7 +52,7 @@ error[E0308]: mismatched types
 9 |     _ = ::yew::html!{for (x, y) in 0 .. 10 {
   |                          ^^^^^^
   |                          |
-  |                          expected integer, found tuple
+  |                          expected integer, found `(_, _)`
   |                          expected due to this
   |
   = note: expected type `{integer}`
