@@ -56,8 +56,8 @@ impl Parse for HtmlFor {
             if is_contextless_pure(&key.value) {
                 return Err(syn::Error::new(
                     key.value.span(),
-                    "duplicate key for a node in a `for`-loop\nthis will create elements \
-                             with duplicate keys if the loop iterates more than once",
+                    "duplicate key for a node in a `for`-loop\nthis will create elements with \
+                     duplicate keys if the loop iterates more than once",
                 ));
             }
         }
