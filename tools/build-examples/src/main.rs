@@ -54,10 +54,10 @@ fn main() -> ExitCode {
             outdated_example_paths.push(path.clone());
         }
 
-        println!("::group::Building {}", example);
+        println!("::group::Building {example}");
 
         if !build_example(&path, &output_dir, &example) {
-            eprintln!("::error ::{}  failed to build", example);
+            eprintln!("::error ::{example}  failed to build");
             failure = true;
         }
 
@@ -105,7 +105,7 @@ fn build_example(path: &Path, output_dir: &Path, example: &str) -> bool {
         .arg("--dist")
         .arg(&dist_dir)
         .arg("--public-url")
-        .arg(format!("{}/{}", public_url_prefix, example))
+        .arg(format!("{public_url_prefix}/{example}"))
         .arg("--no-sri")
         .status();
 

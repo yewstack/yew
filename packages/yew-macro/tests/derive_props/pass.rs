@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 #![recursion_limit = "128"]
 
 // Shadow primitives

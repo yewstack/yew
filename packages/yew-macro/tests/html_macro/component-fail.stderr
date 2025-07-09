@@ -436,7 +436,10 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder`
    |                 ---------- method `r#type` not found for this struct
 ...
 85 |     html! { <Child type=0 /> };
-   |                    ^^^^ method not found in `ChildPropertiesBuilder`
+   |                    ^^^^
+   |
+help: there is a method `type_id` with a similar name, but with different arguments
+  --> $RUST/core/src/any.rs
 
 error[E0609]: no field `unknown` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:88:20
@@ -568,22 +571,13 @@ note: required by a bound in `ChildPropertiesBuilder::int`
    |         --- required by a bound in this associated function
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<int, _>` is not satisfied
+error[E0277]: not all required properties have been provided
   --> tests/html_macro/component-fail.rs:99:14
    |
 99 |     html! { <Child string="abc" /> };
-   |              ^^^^^ the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
+   |              ^^^^^ missing required properties for this component
    |
-   = help: the following other types implement trait `HasProp<P, How>`:
-             <HasChildPropertiesint<B> as HasProp<int, HasChildPropertiesint<B>>>
-             <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
-             <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasHtmlInPropsPropertiesheader<B> as HasProp<header, HasHtmlInPropsPropertiesheader<B>>>
-             <HasHtmlInPropsPropertiesheader<B> as HasProp<P, &dyn HasProp<P, How>>>
-           and $N others
+   = help: the trait `HasProp<int, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<ChildPropertiesBuilder, _>`
 note: required for `CheckChildPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildProperties, (_,)>`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -627,22 +621,13 @@ error[E0609]: no field `children` on type `ChildProperties`
     |
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
+error[E0277]: not all required properties have been provided
    --> tests/html_macro/component-fail.rs:115:14
     |
 115 |     html! { <ChildContainer /> };
-    |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
+    |              ^^^^^^^^^^^^^^ missing required properties for this component
     |
-    = help: the following other types implement trait `HasProp<P, How>`:
-              <HasChildPropertiesint<B> as HasProp<int, HasChildPropertiesint<B>>>
-              <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasHtmlInPropsPropertiesheader<B> as HasProp<header, HasHtmlInPropsPropertiesheader<B>>>
-              <HasHtmlInPropsPropertiesheader<B> as HasProp<P, &dyn HasProp<P, How>>>
-            and $N others
+    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<ChildContainerPropertiesBuilder, _>`
 note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildContainerProperties, (_,)>`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -659,22 +644,13 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
     |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
+error[E0277]: not all required properties have been provided
    --> tests/html_macro/component-fail.rs:116:14
     |
 116 |     html! { <ChildContainer></ChildContainer> };
-    |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
+    |              ^^^^^^^^^^^^^^ missing required properties for this component
     |
-    = help: the following other types implement trait `HasProp<P, How>`:
-              <HasChildPropertiesint<B> as HasProp<int, HasChildPropertiesint<B>>>
-              <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasHtmlInPropsPropertiesheader<B> as HasProp<header, HasHtmlInPropsPropertiesheader<B>>>
-              <HasHtmlInPropsPropertiesheader<B> as HasProp<P, &dyn HasProp<P, How>>>
-            and $N others
+    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<ChildContainerPropertiesBuilder, _>`
 note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildContainerProperties, (_,)>`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -716,7 +692,7 @@ error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
    --> tests/html_macro/component-fail.rs:118:29
     |
 118 |     html! { <ChildContainer><></></ChildContainer> };
-    |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`, which is required by `VNode: Into<_>`
     |
     = note: required for `VNode` to implement `Into<VChild<Child>>`
 
@@ -739,3 +715,11 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
 26  |     pub children: ChildrenWithProps<Child>,
     |         -------- required by a bound in this associated function
     = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused variable: `props`
+   --> tests/html_macro/component-fail.rs:144:16
+    |
+144 | fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemented!() }
+    |                ^^^^^ help: if this is intentional, prefix it with an underscore: `_props`
+    |
+    = note: `#[warn(unused_variables)]` on by default

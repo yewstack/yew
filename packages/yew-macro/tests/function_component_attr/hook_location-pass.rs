@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 
 #[derive(
     ::std::prelude::rust_2021::Debug,

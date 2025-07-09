@@ -245,9 +245,12 @@ impl PropFieldCheck<'_> {
             #vis struct #check_struct<How>(::std::marker::PhantomData<How>);
 
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B> ::yew::html::HasProp< #prop_name_mod :: #prop_check_name, #check_struct<B>>
                 for #check_struct<B> {}
+
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B, P, How> ::yew::html::HasProp<P, &dyn ::yew::html::HasProp<P, How>>
                 for #check_struct<B>
                 where B: ::yew::html::HasProp<P, How> {}

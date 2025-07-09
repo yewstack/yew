@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.76), test)]
+#[rustversion::attr(stable(1.78), test)]
 fn classes_macro() {
     let t = trybuild::TestCases::new();
     t.pass("tests/classes_macro/*-pass.rs");

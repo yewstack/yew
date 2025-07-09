@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 
 #[derive(::yew::prelude::Properties, ::std::prelude::rust_2021::PartialEq,)]
 struct Props {

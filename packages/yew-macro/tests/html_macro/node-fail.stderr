@@ -29,13 +29,6 @@ error[E0425]: cannot find value `invalid` in this scope
   |
 7 |     html! { invalid };
   |             ^^^^^^^ not found in this scope
-  |
-help: consider importing one of these items
-  |
-1 + use core::ptr::invalid;
-  |
-1 + use std::ptr::invalid;
-  |
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> tests/html_macro/node-fail.rs:6:13
@@ -43,7 +36,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 6 |     html! { () };
   |             ^^ `()` cannot be formatted with the default formatter
   |
-  = help: the trait `std::fmt::Display` is not implemented for `()`
+  = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: From<()>`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = help: the following other types implement trait `From<T>`:
             <VNode as From<yew::virtual_dom::VComp>>
@@ -65,7 +58,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 17 |         not_node()
    |         ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`
+   = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: From<()>`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = help: the following other types implement trait `From<T>`:
              <VNode as From<yew::virtual_dom::VComp>>
