@@ -17,7 +17,7 @@ use crate::Codec;
 
 /// A connection manager for components interaction with oneshot workers.
 ///
-/// As this type implements [Stream] + [Sink], it can be splitted with [`StreamExt::split`].
+/// As this type implements [Stream] + [Sink], it can be split with [`StreamExt::split`].
 pub struct ReactorBridge<R>
 where
     R: Reactor + 'static,
