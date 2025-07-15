@@ -67,13 +67,20 @@ impl ToTokens for HtmlNode {
 impl ToNodeIterator for HtmlNode {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
-            HtmlNode::Literal(_) => None,
-            HtmlNode::Expression(expr) => {
+            Self::Literal(_) => None,
+            Self::Expression(expr) => {
                 // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
                 Some(quote_spanned! {expr.span().resolved_at(Span::call_site())=>
                     ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into(#expr)
                 })
             }
+        }
+    }
+
+    fn is_singular(&self) -> bool {
+        match self {
+            Self::Literal(_) => true,
+            Self::Expression(_) => false,
         }
     }
 }
