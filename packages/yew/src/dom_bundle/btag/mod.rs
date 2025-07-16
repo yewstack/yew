@@ -365,14 +365,15 @@ mod feat_hydration {
             );
             let el = node.dyn_into::<Element>().expect("expected an element.");
 
-            assert_eq!(
-                el.tag_name().to_lowercase(),
-                tag_name,
-                "expected element of kind {}, found {}.",
-                tag_name,
-                el.tag_name().to_lowercase(),
-            );
+            {
+                let el_tag_name = el.tag_name();
+                let lowercased = el_tag_name.to_lowercase();
 
+                assert!(
+                    el_tag_name == tag_name || lowercased == tag_name,
+                    "expected element of kind {tag_name}, found {lowercased}.",
+                );
+            }
             // We simply register listeners and update all attributes.
             let attributes = attributes.apply(root, &el);
             let listeners = listeners.apply(root, &el);
