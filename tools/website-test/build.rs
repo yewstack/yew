@@ -43,43 +43,40 @@ fn should_combine_code_blocks(path: &Path) -> io::Result<bool> {
     Ok(buf.trim_ascii_end().ends_with(FLAG))
 }
 
-fn apply_diff(src: &mut String, preamble: &str, added: &str, removed: &str)
-    -> Result
-{
+fn apply_diff(src: &mut String, preamble: &str, added: &str, removed: &str) -> Result {
     assert!(
         !preamble.is_empty() || !removed.is_empty(),
-        "Failure on applying a diff: \n\
-         No preamble or text to remove provided, unable to find location to insert:\n{added}\n\
-         In the following text:\n{src}",
+        "Failure on applying a diff: \nNo preamble or text to remove provided, unable to find \
+         location to insert:\n{added}\nIn the following text:\n{src}",
     );
 
     let mut matches = src.match_indices(if preamble.is_empty() {
         removed
     } else {
-        &preamble
+        preamble
     });
     let Some((preamble_start, _)) = matches.next() else {
-        e!("Failure on applying a diff: \n\
-            couldn't find the following text:\n{preamble}\n\nIn the following text:\n{src}")
+        e!(
+            "Failure on applying a diff: \ncouldn't find the following text:\n{preamble}\n\nIn \
+             the following text:\n{src}"
+        )
     };
-    
+
     assert!(
         matches.next().is_none(),
-        "Failure on applying a diff: \n\
-         Ambiguous preamble:\n{preamble}\n\
-         In the following text:\n{src}\n\
-         While trying to remove the following text:\n{removed}\n\
-         And add the following:\n{added}\n"
+        "Failure on applying a diff: \nAmbiguous preamble:\n{preamble}\nIn the following \
+         text:\n{src}\nWhile trying to remove the following text:\n{removed}\nAnd add the \
+         following:\n{added}\n"
     );
 
     let preamble_end = preamble_start + preamble.len();
     assert!(
-        src.get(preamble_end .. preamble_end + removed.len()) == Some(removed),
-        "Failure on applying a diff: \n\
-         Text to remove not found:\n{removed}\n\nIn the following text:\n{src}",
+        src.get(preamble_end..preamble_end + removed.len()) == Some(removed),
+        "Failure on applying a diff: \nText to remove not found:\n{removed}\n\nIn the following \
+         text:\n{src}",
     );
 
-    src.replace_range(preamble_end .. preamble_end + removed.len(), added);
+    src.replace_range(preamble_end..preamble_end + removed.len(), added);
     Ok(())
 }
 
@@ -88,10 +85,10 @@ fn combined_code_blocks(path: &Path) -> Result<String> {
     let mut res = String::new();
 
     let mut err = Ok(());
-    let mut lines = file.lines().filter_map(|i| {
-        i.map_err(|e| err = Err(e)).ok()
-    }).enumerate();
-    while let Some((i, line)) = lines.next() {
+    let mut lines = file
+        .lines()
+        .filter_map(|i| i.map_err(|e| err = Err(e)).ok());
+    while let Some(line) = lines.next() {
         if !line.starts_with("```rust") {
             continue;
         }
@@ -100,13 +97,12 @@ fn combined_code_blocks(path: &Path) -> Result<String> {
         let mut added = String::new();
         let mut removed = String::new();
         let mut diff_applied = false;
-        for (i, line) in &mut lines {
+        for line in &mut lines {
             if line.starts_with("```") {
                 if !added.is_empty() || !removed.is_empty() {
-                    apply_diff(&mut res, &preamble, &added, &removed)
-                        .inspect_err(|_| eprintln!("Line {i}"))?;
-                } else if !diff_applied { // if no diff markers were found, just add the contents
-                    eprintln!("Shrimply added {preamble:?}, line {i}");
+                    apply_diff(&mut res, &preamble, &added, &removed)?;
+                } else if !diff_applied {
+                    // if no diff markers were found, just add the contents
                     res += &preamble;
                 }
                 break;
@@ -122,13 +118,13 @@ fn combined_code_blocks(path: &Path) -> Result<String> {
                 }
                 removed += line;
                 removed += "\n";
-            } else if line.trim_ascii() == "// ..." { // disregard the preamble
+            } else if line.trim_ascii() == "// ..." {
+                // disregard the preamble
                 preamble.clear();
             } else {
                 if !added.is_empty() || !removed.is_empty() {
                     diff_applied = true;
-                    apply_diff(&mut res, &preamble, &added, &removed)
-                        .inspect_err(|_| eprintln!("Line {i}"))?;
+                    apply_diff(&mut res, &preamble, &added, &removed)?;
                     preamble += &added;
                     added.clear();
                     removed.clear();
@@ -233,7 +229,10 @@ fn inner_main() -> Result {
         let mut parts = vec![];
 
         for part in rel {
-            parts.push(part.to_str().ok_or_else(|| format!("Non-UTF8 path: {rel:?}"))?);
+            parts.push(
+                part.to_str()
+                    .ok_or_else(|| format!("Non-UTF8 path: {rel:?}"))?,
+            );
         }
 
         level.insert(path.clone(), &parts[..]);

@@ -27,7 +27,7 @@ Note this only builds for English locale unlike a production build.
 ## Testing
 
 ```console
-cargo run website-test
+cargo make website-test
 ```
 
 [`website-test`](../tools/website-test) is a tool to test all code blocks in the docs as Rust doctests.
@@ -36,7 +36,7 @@ walkthrough, it makes more sense to combine the changes described in the blocks 
 For this end `website-test` scans all doc files for a special flag:
 
 ```html
-<!-- COMBINE CODE BLOCKS >
+<!-- COMBINE CODE BLOCKS -->
 ```
 If a file ends with this specific comment (and an optional newline after it), all code blocks will be
 sown together, with respect to the diff markers in them. For example:
@@ -55,7 +55,7 @@ fn main() {
 }
 \`\`\`
 
-<!-- COMBINE CODE BLOCKS>
+<!-- COMBINE CODE BLOCKS -->
 ```
 
 Will be tested as:
