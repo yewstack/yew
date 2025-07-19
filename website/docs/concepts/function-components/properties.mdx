@@ -318,14 +318,12 @@ Props are evaluated in the order they're specified, as shown by the following ex
 #[derive(yew::Properties, PartialEq)]
 struct Props { first: usize, second: usize, last: usize }
 
-fn main() {
-    let mut g = 1..=3;
-    let props = yew::props!(Props { first: g.next().unwrap(), second: g.next().unwrap(), last: g.next().unwrap() });
+let mut g = 1..=3;
+let props = yew::props!(Props { first: g.next().unwrap(), second: g.next().unwrap(), last: g.next().unwrap() });
 
-    assert_eq!(props.first, 1);
-    assert_eq!(props.second, 2);
-    assert_eq!(props.last, 3);
-}
+assert_eq!(props.first, 1);
+assert_eq!(props.second, 2);
+assert_eq!(props.last, 3);
 ```
 
 ## Anti Patterns
