@@ -21,13 +21,13 @@ pub use feat_ssr::*;
 /// The component sees the same value on the server side and client side if the component is
 /// hydrated.
 ///
-/// It accepts a closure as the first argument and a dependency type as the second argument.
+/// It accepts a closure as the second argument and its dependency value as the first argument.
 /// It returns `SuspensionResult<Option<Rc<T>>>`.
 ///
 /// During hydration, it will only return `Ok(Some(Rc<T>))` if the component is hydrated from a
 /// server-side rendering artifact and its dependency value matches.
 ///
-/// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps)?;`
+/// `let state = use_prepared_state!(deps, |deps| -> ReturnType { ... })?;`
 ///
 /// It has the following signature:
 ///
@@ -49,7 +49,7 @@ pub use feat_ssr::*;
 ///
 /// The first argument can also be an async closure
 ///
-/// `let state = use_prepared_state!(async |deps| -> ReturnType { ... }, deps)?;`
+/// `let state = use_prepared_state!(deps, async |deps| -> ReturnType { ... })?;`
 ///
 /// When accepting an async closure, it has the following signature:
 ///
