@@ -1,20 +1,20 @@
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     html! {
         <Foo />
     }
 }
 
-#[function_component]
+#[component]
 pub fn App1() -> Html {
     html! {
         <Foo bar={"bar".to_string()} />
     }
 }
 
-#[function_component]
+#[component]
 pub fn App2() -> Html {
     html! {
         <Foo bar={"bar".to_string()} baz={42} />
@@ -27,7 +27,7 @@ pub struct FooProps {
     pub baz: u32,
 }
 
-#[function_component]
+#[component]
 pub fn Foo(_props: &FooProps) -> Html {
     html! {}
 }

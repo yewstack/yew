@@ -17,7 +17,7 @@ async fn use_context_scoping_works() {
     #[derive(Clone, Debug, PartialEq)]
     struct ExampleContext(String);
 
-    #[function_component]
+    #[component]
     fn ExpectNoContextComponent() -> Html {
         let example_context = use_context::<ExampleContext>();
 
@@ -32,7 +32,7 @@ async fn use_context_scoping_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn UseContextComponent() -> Html {
         type ExampleContextProvider = ContextProvider<ExampleContext>;
         html! {
@@ -56,7 +56,7 @@ async fn use_context_scoping_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn UseContextComponentInner() -> Html {
         let context = use_context::<ExampleContext>();
         html! {
@@ -82,7 +82,7 @@ async fn use_context_works_with_multiple_types() {
     #[derive(Clone, Debug, PartialEq)]
     struct ContextB(u32);
 
-    #[function_component]
+    #[component]
     fn Test1() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -93,7 +93,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn Test2() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -104,7 +104,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn Test3() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -115,7 +115,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn Test4() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -126,7 +126,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn TestComponent() -> Html {
         type ContextAProvider = ContextProvider<ContextA>;
         type ContextBProvider = ContextProvider<ContextB>;
@@ -166,7 +166,7 @@ async fn use_context_update_works() {
         children: Children,
     }
 
-    #[function_component]
+    #[component]
     fn RenderCounter(props: &RenderCounterProps) -> Html {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
@@ -187,7 +187,7 @@ async fn use_context_update_works() {
         magic: usize,
     }
 
-    #[function_component]
+    #[component]
     fn ContextOutlet(props: &ContextOutletProps) -> Html {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
@@ -204,7 +204,7 @@ async fn use_context_update_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn TestComponent() -> Html {
         type MyContextProvider = ContextProvider<Rc<MyContext>>;
 

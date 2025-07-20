@@ -258,12 +258,12 @@ mod value_into_some_value_in_props {
         optional: ::std::option::Option<usize>
     }
 
-    #[::yew::function_component]
+    #[::yew::component]
     fn Inner(_props: &Props) -> ::yew::html::Html {
         ::yew::html!{}
     }
 
-    #[::yew::function_component]
+    #[::yew::component]
     fn Main() -> ::yew::html::Html {
         ::yew::html! {<>
             <Inner required=3 optional=5/>

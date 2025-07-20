@@ -104,7 +104,7 @@ where
 /// The Worker Agent Provider.
 ///
 /// This component provides its children access to a worker agent.
-#[function_component]
+#[component]
 pub fn WorkerProvider<W, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     W: Worker + 'static,

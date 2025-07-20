@@ -3,7 +3,7 @@ use yew::prelude::*;
 #[derive(Debug, PartialEq, Clone)]
 struct Ctx;
 
-#[function_component]
+#[component]
 fn Comp() -> Html {
     if let Some(_m) = use_context::<Ctx>() {
         use_context::<Ctx>().unwrap();

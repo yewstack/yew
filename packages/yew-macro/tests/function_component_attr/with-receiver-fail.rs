@@ -8,7 +8,7 @@ struct Props {
 struct Test;
 
 impl Test {
-    #[function_component(Comp)]
+    #[component(Comp)]
     fn comp(self, props: &Props) -> Html {
         html! {
             <p>

@@ -6,7 +6,7 @@
 )]
 struct Ctx;
 
-#[::yew::prelude::function_component]
+#[::yew::prelude::component]
 fn Comp() -> ::yew::prelude::Html {
     ::yew::prelude::use_context::<Ctx>().unwrap();
 

@@ -124,13 +124,13 @@ mod ssr_tests {
             name: String,
         }
 
-        #[function_component]
+        #[component]
         fn Child(props: &ChildProps) -> HtmlResult {
             use_sleep()?;
             Ok(html! { <div>{"Hello, "}{&props.name}{"!"}</div> })
         }
 
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let fallback = html! {"loading..."};
 

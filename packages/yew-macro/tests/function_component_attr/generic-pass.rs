@@ -40,7 +40,7 @@ struct Props {
     a: ::std::primitive::usize,
 }
 
-#[::yew::function_component(Comp)]
+#[::yew::component(Comp)]
 fn comp<P>(_props: &P) -> ::yew::Html
 where
     P: ::yew::Properties + ::std::cmp::PartialEq,
@@ -50,14 +50,14 @@ where
     }
 }
 
-#[::yew::function_component(Comp1)]
+#[::yew::component(Comp1)]
 fn comp1<T1, T2>(_props: &()) -> ::yew::Html {
     ::yew::html! {
         <p></p>
     }
 }
 
-#[::yew::function_component(ConstGenerics)]
+#[::yew::component(ConstGenerics)]
 fn const_generics<const N: ::std::primitive::i32>() -> ::yew::Html {
     ::yew::html! {
         <div>

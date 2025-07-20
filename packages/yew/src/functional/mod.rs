@@ -1,5 +1,5 @@
 //! Function components are a simplified version of normal components.
-//! They consist of a single function annotated with the attribute `#[function_component]`
+//! They consist of a single function annotated with the attribute `#[component]`
 //! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
 //!
 //! Functions with the attribute have to return `Html` and may take a single parameter for the type
@@ -12,7 +12,7 @@
 //! ```rust
 //! # use yew::prelude::*;
 //! #
-//! #[function_component]
+//! #[component]
 //! fn HelloWorld() -> Html {
 //!     html! { "Hello world" }
 //! }
@@ -314,7 +314,7 @@ pub trait FunctionProvider {
 ///
 /// Function Components should not be implemented with this type directly.
 ///
-/// Use the `#[function_component]` macro instead.
+/// Use the `#[component]` macro instead.
 #[doc(hidden)]
 pub struct FunctionComponent<T>
 where
