@@ -61,7 +61,6 @@ pub use hooks::*;
 /// }
 /// ```
 pub use yew_macro::function_component as component;
-
 /// A re-export of [`component`](yew_macro::function_component) with the older name.
 #[deprecated(since = "0.22.0", note = "renamed to `#[component]")]
 pub use yew_macro::function_component;
