@@ -50,15 +50,21 @@ fn apply_diff(src: &mut String, preamble: &str, added: &str, removed: &str) -> R
          location to insert:\n{added}\nIn the following text:\n{src}",
     );
 
-    let mut matches = src.match_indices(if preamble.is_empty() {
-        removed
-    } else {
-        preamble
-    });
-    let Some((preamble_start, _)) = matches.next() else {
+    let mut matches = src
+        .match_indices(preamble)
+        .filter_map(|(chunk_start, chunk)| {
+            let removed_start = chunk_start + chunk.len();
+            let removed_end = removed_start + removed.len();
+            src.get(removed_start..removed_end)
+                .eq(&Some(removed))
+                .then_some((removed_start, removed_end))
+        });
+
+    let Some((removed_start, removed_end)) = matches.next() else {
         e!(
-            "Failure on applying a diff: \ncouldn't find the following text:\n{preamble}\n\nIn \
-             the following text:\n{src}"
+            "Failure on applying a diff: \nCouldn't find the following preamble:\n{preamble}\nIn \
+             the following text:\n{src}\nWhile trying to remove the following \
+             text:\n{removed}\nAnd add the following:\n{added}"
         )
     };
 
@@ -66,17 +72,10 @@ fn apply_diff(src: &mut String, preamble: &str, added: &str, removed: &str) -> R
         matches.next().is_none(),
         "Failure on applying a diff: \nAmbiguous preamble:\n{preamble}\nIn the following \
          text:\n{src}\nWhile trying to remove the following text:\n{removed}\nAnd add the \
-         following:\n{added}\n"
+         following:\n{added}"
     );
 
-    let preamble_end = preamble_start + preamble.len();
-    assert!(
-        src.get(preamble_end..preamble_end + removed.len()) == Some(removed),
-        "Failure on applying a diff: \nText to remove not found:\n{removed}\n\nIn the following \
-         text:\n{src}",
-    );
-
-    src.replace_range(preamble_end..preamble_end + removed.len(), added);
+    src.replace_range(removed_start..removed_end, added);
     Ok(())
 }
 
