@@ -90,8 +90,8 @@ in the `dev-dependencies` instead.
 ```rust ,no_run title="src/main.rs"
 use yew::prelude::*;
 
-#[function_component(App)]
-fn app() -> Html {
+#[function_component]
+fn App() -> Html {
     html! {
         <h1>{ "Hello World" }</h1>
     }
@@ -186,8 +186,8 @@ Now, let's convert this HTML into `html!`. Type (or copy/paste) the following sn
 such that the value of `html!` is returned by the function
 
 ```rust {3-21}
-#[function_component(App)]
-fn app() -> Html {
+#[function_component]
+fn App() -> Html {
 -   html! {
 -       <h1>{ "Hello World" }</h1>
 -   }
@@ -224,66 +224,49 @@ We create a simple `struct` (in `main.rs` or any file of our choice) that will h
 #[derive(Clone, PartialEq)]
 struct Video {
     id: usize,
-    title: String,
-    speaker: String,
-    url: String,
+    title: AttrValue,
+    speaker: AttrValue,
+    url: AttrValue,
 }
 ```
 
 Next, we will create instances of this struct in our `app` function and use those instead of hardcoding the data:
 
 ```rust {3-29}
-#[function_component(App)]
-fn app() -> Html {
+#[function_component]
+fn App() -> Html {
 +   let videos = vec![
 +       Video {
 +           id: 1,
-+           title: "Building and breaking things".to_string(),
-+           speaker: "John Doe".to_string(),
-+           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
++           title: "Building and breaking things".into(),
++           speaker: "John Doe".into(),
++           url: "https://youtu.be/PsaFVLr8t4E".into(),
 +       },
 +       Video {
 +           id: 2,
-+           title: "The development process".to_string(),
-+           speaker: "Jane Smith".to_string(),
-+           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
++           title: "The development process".into(),
++           speaker: "Jane Smith".into(),
++           url: "https://youtu.be/PsaFVLr8t4E".into(),
 +       },
 +       Video {
 +           id: 3,
-+           title: "The Web 7.0".to_string(),
-+           speaker: "Matt Miller".to_string(),
-+           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
++           title: "The Web 7.0".into(),
++           speaker: "Matt Miller".into(),
++           url: "https://youtu.be/PsaFVLr8t4E".into(),
 +       },
 +       Video {
 +           id: 4,
-+           title: "Mouseless development".to_string(),
-+           speaker: "Tom Jerry".to_string(),
-+           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
++           title: "Mouseless development".into(),
++           speaker: "Tom Jerry".into(),
++           url: "https://youtu.be/PsaFVLr8t4E".into(),
 +       },
 +   ];
 +
 ```
 
-To display them, we need to convert the `Vec` into `Html`. We can do that by creating an iterator,
-mapping it to `html!` and collecting it as `Html`:
+To display them, we can use a `for` loop right in the macro in place of the hardcoded HTML:
 
-```rust {4-7}
-        },
-    ];
-
-+   let videos = videos.iter().map(|video| html! {
-+       <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
-+   }).collect::<Html>();
-+
-```
-
-:::tip
-Keys on list items help Yew keep track of which items have changed in the list, resulting in faster re-renders. [It is always recommended to use keys in lists](/concepts/html/lists.mdx#keyed-lists).
-:::
-
-And finally, we need to replace the hardcoded list of videos with the `Html` we created from the data:
-
-```rust {6-10}
+```rust {6-12}
     html! {
         <>
             <h1>{ "RustConf Explorer" }</h1>
@@ -293,12 +276,19 @@ And finally, we need to replace the hardcoded list of videos with the `Html` we 
 -               <p>{ "Jane Smith: The development process" }</p>
 -               <p>{ "Matt Miller: The Web 7.0" }</p>
 -               <p>{ "Tom Jerry: Mouseless development" }</p>
-+               { videos }
++               for video in &videos {
++                   <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
++               }
             </div>
             // ...
         </>
     }
 ```
+
+:::tip
+Keys on list items help Yew keep track of which items have changed in the list, resulting in faster re-renders.
+[It is always recommended to use keys in lists](/concepts/html/lists.mdx#keyed-lists).
+:::
 
 ## Components
 
@@ -323,11 +313,13 @@ struct VideosListProps {
     videos: Vec<Video>,
 }
 
-#[function_component(VideosList)]
-fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
-    videos.iter().map(|video| html! {
-        <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
-    }).collect()
+#[function_component]
+fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
+    html! {
+        for video in videos {
+            <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+        }
+    }
 }
 ```
 
@@ -341,21 +333,19 @@ The struct used for props must implement `Properties` by deriving it.
 
 Now, we can update our `App` component to make use of `VideosList` component.
 
-```rust {4-7,13-14}
-#[function_component(App)]
-fn app() -> Html {
+```rust {9-12}
+#[function_component]
+fn App() -> Html {
     // ...
--   let videos = videos.iter().map(|video| html! {
--       <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
--   }).collect::<Html>();
--
     html! {
         <>
             <h1>{ "RustConf Explorer" }</h1>
             <div>
                 <h3>{ "Videos to watch" }</h3>
--               { videos }
-+               <VideosList videos={videos} />
+-               for video in &videos {
+-                   <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+-               }
++               <VideosList {videos} />
             </div>
             // ...
         </>
@@ -384,25 +374,23 @@ struct VideosListProps {
 Then we modify the `VideosList` component to "emit" the selected video to the callback.
 
 ```rust {2-18}
-#[function_component(VideosList)]
--fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
-+fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
--   videos.iter().map(|video| html! {
--       <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
-+   let on_click = on_click.clone();
-+   videos.iter().map(|video| {
-+       let on_video_select = {
-+           let on_click = on_click.clone();
-+           let video = video.clone();
-+           Callback::from(move |_| {
-+               on_click.emit(video.clone())
-+           })
-+       };
+#[function_component]
+-fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
++fn VideosList(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
++   let on_select = |video: &Video| {
++       let on_click = on_click.clone();
++       let video = video.clone();
++       Callback::from(move |_| {
++           on_click.emit(video.clone())
++       })
++   };
 +
-+       html! {
-+            <p key={video.id} onclick={on_video_select}>{format!("{}: {}", video.speaker, video.title)}</p>
-+       }
-    }).collect()
+    html! {
+        for video in videos {
+-           <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
++           <p key={video.id} onclick={on_select(video)}>{format!("{}: {}", video.speaker, video.title)}</p>
+        }
+    }
 }
 ```
 
@@ -415,11 +403,11 @@ struct VideosDetailsProps {
     video: Video,
 }
 
-#[function_component(VideoDetails)]
-fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
+#[function_component]
+fn VideoDetails(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
-            <h3>{ video.title.clone() }</h3>
+            <h3>{ &*video.title }</h3>
             <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     }
@@ -428,7 +416,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
 
 Now, modify the `App` component to display `VideoDetails` component whenever a video is selected.
 
-```rust {3-15,22-23,25-29}
+```rust {3-11,18-19,21-28}
         },
     ];
 +
@@ -440,20 +428,18 @@ Now, modify the `App` component to display `VideoDetails` component whenever a v
 +           selected_video.set(Some(video))
 +       })
 +   };
-+
-+   let details = selected_video.as_ref().map(|video| html! {
-+       <VideoDetails video={video.clone()} />
-+   });
 
     html! {
         <>
             <h1>{ "RustConf Explorer" }</h1>
             <div>
                 <h3>{ "Videos to watch" }</h3>
--               <VideosList videos={videos} />
-+               <VideosList videos={videos} on_click={on_video_select.clone()} />
+-               <VideosList {videos} />
++               <VideosList {videos} on_click={on_video_select} />
             </div>
-+           { for details }
++           if let Some(video) = &*selected_video {
++               <VideoDetails video={video.clone()} />
++           }
 -           <div>
 -               <h3>{ "John Doe: Building and breaking things" }</h3>
 -               <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
@@ -462,11 +448,6 @@ Now, modify the `App` component to display `VideoDetails` component whenever a v
     }
 }
 ```
-
-Do not worry about the `use_state` right now, we will come back to that later.
-Note the trick we pulled with `{ for details }`. `Option<_>` implements `Iterator` so we can use it to display the only
-element returned by the `Iterator` with a special `{ for ... }` syntax
-[supported by the `html!` macro](concepts/html/lists).
 
 ### Handling state
 
@@ -492,12 +473,17 @@ videos list from an external source. For this we will need to add the following 
 
 Let's update the dependencies in `Cargo.toml` file:
 
-```toml title="Cargo.toml"
+```toml title="Cargo.toml" {2-6}
 [dependencies]
-gloo-net = "0.6"
-serde = { version = "1.0", features = ["derive"] }
-wasm-bindgen-futures = "0.4"
+-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
++yew = { git = "https://github.com/yewstack/yew/", features = ["csr", "serde"] }
++gloo-net = "0.6"
++serde = { version = "1.0", features = ["derive"] }
++wasm-bindgen-futures = "0.4"
 ```
+
+Yew's `serde` feature enables integration with the `serde` crate, the important point for us is that
+it adds a `serde::Deserialize` impl to `AttrValue`.
 
 :::note
 When choosing dependencies make sure they are `wasm32` compatible!
@@ -514,9 +500,9 @@ use yew::prelude::*;
 +#[derive(Clone, PartialEq, Deserialize)]
 struct Video {
     id: usize,
-    title: String,
-    speaker: String,
-    url: String,
+    title: AttrValue,
+    speaker: AttrValue,
+    url: AttrValue,
 }
 ```
 
@@ -526,32 +512,32 @@ Now as the last step, we need to update our `App` component to make the fetch re
 use yew::prelude::*;
 +use gloo_net::http::Request;
 
-#[function_component(App)]
-fn app() -> Html {
+#[function_component]
+fn App() -> Html {
 -   let videos = vec![
 -       Video {
 -           id: 1,
--           title: "Building and breaking things".to_string(),
--           speaker: "John Doe".to_string(),
--           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+-           title: "Building and breaking things".into(),
+-           speaker: "John Doe".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
 -       },
 -       Video {
 -           id: 2,
--           title: "The development process".to_string(),
--           speaker: "Jane Smith".to_string(),
--           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+-           title: "The development process".into(),
+-           speaker: "Jane Smith".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
 -       },
 -       Video {
 -           id: 3,
--           title: "The Web 7.0".to_string(),
--           speaker: "Matt Miller".to_string(),
--           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+-           title: "The Web 7.0".into(),
+-           speaker: "Matt Miller".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
 -       },
 -       Video {
 -           id: 4,
--           title: "Mouseless development".to_string(),
--           speaker: "Tom Jerry".to_string(),
--           url: "https://youtu.be/PsaFVLr8t4E".to_string(),
+-           title: "Mouseless development".into(),
+-           speaker: "Tom Jerry".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
 -       },
 -   ];
 -
@@ -581,10 +567,10 @@ fn app() -> Html {
             <h1>{ "RustConf Explorer" }</h1>
             <div>
                 <h3>{ "Videos to watch" }</h3>
--               <VideosList videos={videos} on_click={on_video_select.clone()} />
-+               <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
+-               <VideosList {videos} on_click={on_video_select} />
++               <VideosList videos={(*videos).clone()} on_click={on_video_select} />
             </div>
-            { for details }
+            // ...
         </>
     }
 }
