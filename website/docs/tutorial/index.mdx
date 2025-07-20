@@ -407,7 +407,7 @@ struct VideosDetailsProps {
 fn VideoDetails(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
-            <h3>{ video.title.clone() }</h3>
+            <h3>{ &*video.title }</h3>
             <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     }
@@ -435,7 +435,7 @@ Now, modify the `App` component to display `VideoDetails` component whenever a v
             <div>
                 <h3>{ "Videos to watch" }</h3>
 -               <VideosList {videos} />
-+               <VideosList {videos} on_click={on_video_select.clone()} />
++               <VideosList {videos} on_click={on_video_select} />
             </div>
 +           if let Some(video) = &*selected_video {
 +               <VideoDetails video={video.clone()} />
@@ -567,8 +567,8 @@ fn App() -> Html {
             <h1>{ "RustConf Explorer" }</h1>
             <div>
                 <h3>{ "Videos to watch" }</h3>
--               <VideosList {videos} on_click={on_video_select.clone()} />
-+               <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
+-               <VideosList {videos} on_click={on_video_select} />
++               <VideosList videos={(*videos).clone()} on_click={on_video_select} />
             </div>
             // ...
         </>
