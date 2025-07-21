@@ -66,7 +66,7 @@ enum Route {
     NotFound,
 }
 
-#[function_component(Secure)]
+#[component(Secure)]
 fn secure() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -89,7 +89,7 @@ fn switch(routes: Route) -> Html {
     }
 }
 
-#[function_component(Main)]
+#[component(Main)]
 fn app() -> Html {
     html! {
         <BrowserRouter>
@@ -202,7 +202,7 @@ For function components, the `use_navigator` hook re-renders the component when 
 Here is how to implement a button that navigates to the `Home` route when clicked.
 
 ```rust ,ignore
-#[function_component(MyComponent)]
+#[component(MyComponent)]
 pub fn my_component() -> Html {
     let navigator = use_navigator().unwrap();
     let onclick = Callback::from(move |_| navigator.push(&Route::Home));
@@ -232,7 +232,7 @@ implements `Clone`, here is for example how to have multiple buttons for differe
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-#[function_component(NavItems)]
+#[component(NavItems)]
 pub fn nav_items() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -292,7 +292,7 @@ navigator API. The component accepts a
 Here is an example:
 
 ```rust ,ignore
-#[function_component(SomePage)]
+#[component(SomePage)]
 fn some_page() -> Html {
     // made-up hook `use_user`
     let user = match use_user() {
@@ -471,7 +471,7 @@ fn switch_settings(route: SettingsRoute) -> Html {
     }
 }
 
-#[function_component(App)]
+#[component(App)]
 pub fn app() -> Html {
     html! {
         <BrowserRouter>

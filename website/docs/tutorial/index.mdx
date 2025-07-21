@@ -90,7 +90,7 @@ in the `dev-dependencies` instead.
 ```rust ,no_run title="src/main.rs"
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {
         <h1>{ "Hello World" }</h1>
@@ -186,7 +186,7 @@ Now, let's convert this HTML into `html!`. Type (or copy/paste) the following sn
 such that the value of `html!` is returned by the function
 
 ```rust {3-21}
-#[function_component]
+#[component]
 fn App() -> Html {
 -   html! {
 -       <h1>{ "Hello World" }</h1>
@@ -233,7 +233,7 @@ struct Video {
 Next, we will create instances of this struct in our `app` function and use those instead of hardcoding the data:
 
 ```rust {3-29}
-#[function_component]
+#[component]
 fn App() -> Html {
 +   let videos = vec![
 +       Video {
@@ -313,7 +313,7 @@ struct VideosListProps {
     videos: Vec<Video>,
 }
 
-#[function_component]
+#[component]
 fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
     html! {
         for video in videos {
@@ -334,7 +334,7 @@ The struct used for props must implement `Properties` by deriving it.
 Now, we can update our `App` component to make use of `VideosList` component.
 
 ```rust {9-12}
-#[function_component]
+#[component]
 fn App() -> Html {
     // ...
     html! {
@@ -374,7 +374,7 @@ struct VideosListProps {
 Then we modify the `VideosList` component to "emit" the selected video to the callback.
 
 ```rust {2-18}
-#[function_component]
+#[component]
 -fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
 +fn VideosList(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
 +   let on_select = |video: &Video| {
@@ -403,7 +403,7 @@ struct VideosDetailsProps {
     video: Video,
 }
 
-#[function_component]
+#[component]
 fn VideoDetails(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
@@ -512,7 +512,7 @@ Now as the last step, we need to update our `App` component to make the fetch re
 use yew::prelude::*;
 +use gloo_net::http::Request;
 
-#[function_component]
+#[component]
 fn App() -> Html {
 -   let videos = vec![
 -       Video {

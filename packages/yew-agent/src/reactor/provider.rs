@@ -85,7 +85,7 @@ where
 /// The Reactor Agent Provider.
 ///
 /// This component provides its children access to a reactor agent.
-#[function_component]
+#[component]
 pub fn ReactorProvider<R, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     R: 'static + Reactor,

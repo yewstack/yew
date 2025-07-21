@@ -35,7 +35,7 @@ impl Reducible for CounterState {
 
 #[wasm_bindgen_test]
 async fn use_reducer_works() {
-    #[function_component(UseReducerComponent)]
+    #[component(UseReducerComponent)]
     fn use_reducer_comp() -> Html {
         let counter = use_reducer(|| CounterState { counter: 10 });
 
@@ -80,7 +80,7 @@ impl Reducible for ContentState {
 
 #[wasm_bindgen_test]
 async fn use_reducer_eq_works() {
-    #[function_component(UseReducerComponent)]
+    #[component(UseReducerComponent)]
     fn use_reducer_comp() -> Html {
         let content = use_reducer_eq(|| ContentState {
             content: HashSet::default(),

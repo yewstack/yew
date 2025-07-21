@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_macro::{use_prepared_state_with_closure, use_prepared_state_without_closure};
 
-#[function_component]
+#[component]
 fn Comp() -> HtmlResult {
     use_prepared_state_with_closure!(123)?;
 
@@ -18,7 +18,7 @@ fn Comp() -> HtmlResult {
     Ok(Html::default())
 }
 
-#[function_component]
+#[component]
 fn Comp2() -> HtmlResult {
     use_prepared_state_without_closure!(123)?;
 

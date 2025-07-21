@@ -40,7 +40,7 @@ where
 /// use yew::prelude::*;
 /// # use std::rc::Rc;
 ///
-/// #[function_component(UseState)]
+/// #[component(UseState)]
 /// fn state() -> Html {
 ///     let counter = use_state(|| 0);
 ///     let onclick = {
