@@ -2,6 +2,8 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use implicit_clone::ImplicitClone;
+
 use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
 use crate::functional::hook;
 use crate::html::IntoPropValue;
@@ -151,6 +153,8 @@ where
     }
 }
 
+impl<T> ImplicitClone for UseStateHandle<T> {}
+
 /// Setter handle for [`use_state`] and [`use_state_eq`] hook
 pub struct UseStateSetter<T> {
     inner: UseReducerDispatcher<UseStateReducer<T>>,
@@ -190,6 +194,8 @@ impl<T> PartialEq for UseStateSetter<T> {
         self.inner == rhs.inner
     }
 }
+
+impl<T> ImplicitClone for UseStateSetter<T> {}
 
 impl<T> UseStateSetter<T> {
     /// Replaces the value
