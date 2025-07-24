@@ -1077,3 +1077,100 @@ async fn hydrate_empty() {
     let result = obtain_result_by_id("output");
     assert_eq!(result.as_str(), r#"<div>after</div><div>after</div>"#);
 }
+
+#[wasm_bindgen_test]
+async fn hydration_with_camelcase_svg_elements() {
+    #[function_component]
+    fn SvgWithCamelCase() -> Html {
+        html! {
+            <svg width="100" height="100">
+                <defs>
+                    <@{"linearGradient"} id="gradient1">
+                        <stop offset="0%" stop-color="red" />
+                        <stop offset="100%" stop-color="blue" />
+                    </@>
+                    <@{"radialGradient"} id="gradient2">
+                        <stop offset="0%" stop-color="yellow" />
+                        <stop offset="100%" stop-color="green" />
+                    </@>
+                    <@{"clipPath"} id="clip1">
+                        <circle cx="50" cy="50" r="40" />
+                    </@>
+                </defs>
+                <rect x="10" y="10" width="80" height="80" fill="url(#gradient1)" />
+                <circle cx="50" cy="50" r="30" fill="url(#gradient2)" clip-path="url(#clip1)" />
+                <@{"feDropShadow"} dx="2" dy="2" stdDeviation="2" />
+            </svg>
+        }
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let counter = use_state(|| 0);
+        let onclick = {
+            let counter = counter.clone();
+            Callback::from(move |_| counter.set(*counter + 1))
+        };
+
+        html! {
+            <div id="result">
+                <div class="counter">{"Count: "}{*counter}</div>
+                <button {onclick} class="increment">{"Increment"}</button>
+                <SvgWithCamelCase />
+            </div>
+        }
+    }
+
+    // Server render
+    let s = ServerRenderer::<App>::new().render().await;
+
+    // Set HTML
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    sleep(Duration::ZERO).await;
+
+    // Hydrate - this should not panic
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Verify the SVG elements are present and properly cased
+    let svg = gloo::utils::document()
+        .query_selector("svg")
+        .unwrap()
+        .unwrap();
+
+    let linear_gradient = svg.query_selector("linearGradient").unwrap().unwrap();
+    assert_eq!(linear_gradient.tag_name(), "linearGradient");
+
+    let radial_gradient = svg.query_selector("radialGradient").unwrap().unwrap();
+    assert_eq!(radial_gradient.tag_name(), "radialGradient");
+
+    let clip_path = svg.query_selector("clipPath").unwrap().unwrap();
+    assert_eq!(clip_path.tag_name(), "clipPath");
+
+    // Test interactivity still works after hydration
+    gloo::utils::document()
+        .query_selector(".increment")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<HtmlElement>()
+        .unwrap()
+        .click();
+
+    sleep(Duration::from_millis(10)).await;
+
+    let counter_text = gloo::utils::document()
+        .query_selector(".counter")
+        .unwrap()
+        .unwrap()
+        .text_content()
+        .unwrap();
+
+    assert_eq!(counter_text, "Count: 1");
+}
