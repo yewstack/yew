@@ -31,7 +31,7 @@ jobs:
         run: echo "PR_NUMBER=$(cat benchmark-ssr/.PR_NUMBER)" >> $GITHUB_ENV
 
       - name: Post Comment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const commentInfo = {
