@@ -50,7 +50,7 @@ jobs:
           shared-key: size-compare
 
       - name: Setup Trunk
-        uses: jetli/trunk-action@v0.5.0
+        uses: jetli/trunk-action@v0.5.1
         with:
           version: "latest"
 
