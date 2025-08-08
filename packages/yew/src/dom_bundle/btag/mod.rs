@@ -378,10 +378,8 @@ mod feat_hydration {
 
                 if should_compare_case_insensitive {
                     // Case-insensitive comparison for HTML elements
-                    let el_tag_lower = el_tag_name.to_lowercase();
-                    let tag_name_lower = tag_name.to_lowercase();
-                    assert_eq!(
-                        el_tag_lower, tag_name_lower,
+                    assert!(
+                        tag_name.eq_ignore_ascii_case(&el_tag_name),
                         "expected element of kind {tag_name}, found {el_tag_name}.",
                     );
                 } else {
