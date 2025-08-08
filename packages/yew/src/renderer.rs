@@ -18,6 +18,7 @@ thread_local! {
 /// Unless a panic hook is set through this function, Yew will
 /// overwrite any existing panic hook when an application is rendered with [Renderer].
 #[cfg(feature = "csr")]
+#[allow(clippy::incompatible_msrv)]
 pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
     std::panic::set_hook(hook);
     PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));

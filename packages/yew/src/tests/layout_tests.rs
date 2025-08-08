@@ -8,6 +8,7 @@ use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 use crate::{scheduler, Component, Context, Html};
 
+#[allow(dead_code)]
 struct Comp;
 impl Component for Comp {
     type Message = ();
