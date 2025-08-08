@@ -370,7 +370,14 @@ impl ToTokens for HtmlElement {
         tokens.extend(match &name {
             TagName::Lit(dashedname) => {
                 let name_span = dashedname.span();
-                let name = dashedname.to_ascii_lowercase_string();
+                let original_name = dashedname.to_string();
+                let name = if is_normalised_element_name(&original_name) {
+                    // Preserve case for known SVG/special elements
+                    original_name
+                } else {
+                    // Convert to lowercase for regular HTML elements
+                    dashedname.to_ascii_lowercase_string()
+                };
                 if !is_normalised_element_name(&dashedname.to_string()) {
                     emit_warning!(
                         name_span.clone(),
