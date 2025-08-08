@@ -45,7 +45,7 @@ impl Component for Child {
         let name = format!("I'm {my_name}.");
 
         // Here we emit the callback to the grandparent component, whenever the button is clicked.
-        let onclick = self.state.child_clicked.reform(move |_| (my_name.clone()));
+        let onclick = self.state.child_clicked.reform(move |_| my_name.clone());
 
         html! {
             <div class="child-body">
