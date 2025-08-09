@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-reqwest = { version = "0.12.12", features = ["blocking", "json"] }
+reqwest = { version = "0.12.15", features = ["blocking", "json"] }
 regex = "1.11.1"
-toml = "0.8.20"
+toml = "0.9.5"
 serde = { version = "1.0.218", features = ["derive"] }
