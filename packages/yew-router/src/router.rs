@@ -87,7 +87,7 @@ fn base_router(props: &RouterProps) -> Html {
             history.clone(),
             old_basename.as_ref().or(basename.as_ref()).cloned(),
         );
-        *old_basename = basename.clone();
+        old_basename.clone_from(&basename);
         let location = history.location();
         let stripped = old_navigator.strip_basename(Cow::from(location.path()));
         let prefixed = navigator.prefix_basename(&stripped);
