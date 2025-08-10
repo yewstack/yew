@@ -370,24 +370,20 @@ impl ToTokens for HtmlElement {
         tokens.extend(match &name {
             TagName::Lit(dashedname) => {
                 let name_span = dashedname.span();
-                let original_name = dashedname.to_string();
-                let name = if is_normalised_element_name(&original_name) {
-                    // Preserve case for known SVG/special elements
-                    original_name
-                } else {
-                    // Convert to lowercase for regular HTML elements
-                    dashedname.to_ascii_lowercase_string()
-                };
+                // Always preserve casing from the user's code
+                let name = dashedname.to_string();
+                let lowercase_name = dashedname.to_ascii_lowercase_string();
                 if !is_normalised_element_name(&dashedname.to_string()) {
                     emit_warning!(
                         name_span.clone(),
                         format!(
-                            "The tag '{dashedname}' is not matching its normalized form '{name}'. If you want \
+                            "The tag '{dashedname}' is not matching its normalized form '{lowercase_name}'. If you want \
                              to keep this form, change this to a dynamic tag `@{{\"{dashedname}\"}}`."
                         )
                     )
                 }
-                let node = match &*name {
+                // Use lowercase for compile-time checks but preserve original casing in output
+                let node = match &*lowercase_name {
                     "input" => {
                         let value = value();
                         let checked = checked();

@@ -158,12 +158,13 @@ impl VTag {
     /// Creates a new [VTag] instance with `tag` name (cannot be changed later in DOM).
     pub fn new(tag: impl Into<AttrValue>) -> Self {
         let tag = tag.into();
+        let lowercase_tag = tag.to_ascii_lowercase();
         Self::new_base(
-            match &*tag.to_ascii_lowercase() {
+            match &*lowercase_tag {
                 "input" => VTagInner::Input(Default::default()),
                 "textarea" => VTagInner::Textarea(Default::default()),
                 _ => VTagInner::Other {
-                    tag,
+                    tag,  // Preserve the original casing
                     children: Default::default(),
                 },
             },
@@ -537,7 +538,9 @@ mod feat_ssr {
                     let _ = w.write_str("</textarea>");
                 }
                 VTagInner::Other { tag, children } => {
-                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
+                    // Check if it's a void element using case-insensitive comparison
+                    let lowercase_tag = tag.to_ascii_lowercase();
+                    if !VOID_ELEMENTS.contains(&lowercase_tag.as_ref()) {
                         children
                             .render_into_stream(w, parent_scope, hydratable, tag.into())
                             .await;
