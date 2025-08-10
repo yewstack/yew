@@ -92,28 +92,7 @@ trybuild = "1"
 
 [dev-dependencies.web-sys]
 version = "0.3"
-features = [
-  "ShadowRootInit", 
-  "ShadowRootMode", 
-  "HtmlButtonElement",
-  "HtmlCanvasElement",
-  "CanvasRenderingContext2d",
-  "HtmlVideoElement",
-  "MediaStream",
-  "MediaStreamTrack",
-  "MediaDevices",
-  "Navigator",
-  "DisplayMediaStreamConstraints",
-  "MediaTrackSettings",
-  "DomRect",
-  "ImageData",
-  "Blob",
-  "BlobPropertyBag",
-  "Url",
-  "HtmlImageElement",
-  "CssStyleDeclaration",
-  "Element",
-]
+features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
 
 [features]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]

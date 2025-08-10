@@ -164,7 +164,7 @@ impl VTag {
                 "input" => VTagInner::Input(Default::default()),
                 "textarea" => VTagInner::Textarea(Default::default()),
                 _ => VTagInner::Other {
-                    tag, // Preserve the original casing
+                    tag,
                     children: Default::default(),
                 },
             },
@@ -538,7 +538,6 @@ mod feat_ssr {
                     let _ = w.write_str("</textarea>");
                 }
                 VTagInner::Other { tag, children } => {
-                    // Check if it's a void element using case-insensitive comparison
                     let lowercase_tag = tag.to_ascii_lowercase();
                     if !VOID_ELEMENTS.contains(&lowercase_tag.as_ref()) {
                         children

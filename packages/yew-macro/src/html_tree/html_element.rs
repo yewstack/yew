@@ -370,7 +370,6 @@ impl ToTokens for HtmlElement {
         tokens.extend(match &name {
             TagName::Lit(dashedname) => {
                 let name_span = dashedname.span();
-                // Always preserve casing from the user's code
                 let name = dashedname.to_string();
                 let lowercase_name = dashedname.to_ascii_lowercase_string();
                 if !is_normalised_element_name(&dashedname.to_string()) {
