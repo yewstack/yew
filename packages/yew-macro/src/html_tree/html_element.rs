@@ -457,15 +457,17 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
-                #[rustversion::since(1.89)]
+                #[rustversion::since(1.88)]
                 fn derive_debug_tag(vtag: &Ident) -> String {
                     let span = vtag.span().unwrap();
+                    // the file, line, column methods are stable since 1.88
                     format!("[{}:{}:{}] ", span.file(), span.line(), span.column())
                 }
-                #[rustversion::before(1.89)]
+                #[rustversion::before(1.88)]
                 fn derive_debug_tag(_: &Ident) -> &'static str {
                     ""
                 }
+
                 let invalid_void_tag_msg_start = derive_debug_tag(&vtag);
 
                 let value = value();

@@ -576,7 +576,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div></div> }
         }
@@ -592,7 +592,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_attr() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div class="abc"></div> }
         }
@@ -608,7 +608,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_content() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div>{"Hello!"}</div> }
         }
@@ -624,7 +624,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_nested_tag_and_input() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
@@ -640,7 +640,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_textarea() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <textarea value="teststring" /> }
         }
@@ -656,7 +656,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_textarea_w_defaultvalue() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <textarea defaultvalue="teststring" /> }
         }
@@ -672,7 +672,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_value_precedence_over_defaultvalue() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <textarea defaultvalue="defaultvalue" value="value" /> }
         }
@@ -688,7 +688,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_escaping_in_style_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <style>{"body > a {color: #cc0;}"}</style> }
         }
@@ -704,7 +704,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_escaping_in_script_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <script>{"foo.bar = x < y;"}</script> }
         }
@@ -720,7 +720,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_multiple_vtext_in_style_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let one = "html { background: black } ";
             let two = "body > a { color: white } ";

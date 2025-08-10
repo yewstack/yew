@@ -290,12 +290,12 @@ mod ssr_tests {
             name: String,
         }
 
-        #[function_component]
+        #[component]
         fn Child(props: &ChildProps) -> Html {
             html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
         }
 
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! {
                 <div>

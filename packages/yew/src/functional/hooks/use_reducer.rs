@@ -4,6 +4,8 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use implicit_clone::ImplicitClone;
+
 use crate::functional::{hook, Hook, HookContext};
 use crate::html::IntoPropValue;
 use crate::Callback;
@@ -97,6 +99,8 @@ where
     }
 }
 
+impl<T> ImplicitClone for UseReducerHandle<T> where T: Reducible {}
+
 /// Dispatcher handle for [`use_reducer`] and [`use_reducer_eq`] hook
 pub struct UseReducerDispatcher<T>
 where
@@ -137,6 +141,8 @@ where
         Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
     }
 }
+
+impl<T> ImplicitClone for UseReducerDispatcher<T> where T: Reducible {}
 
 impl<T> From<UseReducerDispatcher<T>> for Callback<<T as Reducible>::Action>
 where
@@ -299,7 +305,7 @@ where
 ///     }
 /// }
 ///
-/// #[function_component(UseReducer)]
+/// #[component(UseReducer)]
 /// fn reducer() -> Html {
 ///     // The use_reducer hook takes an initialization function which will be called only once.
 ///     let counter = use_reducer(CounterState::default);

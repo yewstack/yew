@@ -8,7 +8,7 @@ use gloo::utils::window;
 use js_sys::{JsString, Object, Reflect};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
-use yew::functional::function_component;
+use yew::functional::component;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -59,7 +59,7 @@ struct NavigationMenuProps {
     assertion: Option<fn(&Navigator, &Location)>,
 }
 
-#[function_component(NavigationMenu)]
+#[component(NavigationMenu)]
 fn navigation_menu(props: &NavigationMenuProps) -> Html {
     let navigator = use_navigator().unwrap();
     let location = use_location().unwrap();
@@ -98,7 +98,7 @@ fn navigation_menu(props: &NavigationMenuProps) -> Html {
     }
 }
 
-#[function_component(RootForBrowserRouter)]
+#[component(RootForBrowserRouter)]
 fn root_for_browser_router() -> Html {
     html! {
         <BrowserRouter>
@@ -140,7 +140,7 @@ struct BasenameProps {
     assertion: fn(&Navigator, &Location),
 }
 
-#[function_component(RootForBasename)]
+#[component(RootForBasename)]
 fn root_for_basename(props: &BasenameProps) -> Html {
     html! {
         <BrowserRouter basename={props.basename.clone()}>
@@ -283,7 +283,7 @@ async fn link_with_basename(correct_initial_path: bool) {
     assert_eq!(RENDERS.load(Ordering::Relaxed), 5);
 }
 
-#[function_component(RootForHashRouter)]
+#[component(RootForHashRouter)]
 fn root_for_hash_router() -> Html {
     html! {
         <HashRouter>

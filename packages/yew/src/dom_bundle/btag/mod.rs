@@ -16,6 +16,8 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
+#[cfg(feature = "hydration")]
+use crate::virtual_dom::vtag::HTML_NAMESPACE;
 use crate::virtual_dom::vtag::{
     InputFields, TextareaFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE,
 };
@@ -365,14 +367,29 @@ mod feat_hydration {
             );
             let el = node.dyn_into::<Element>().expect("expected an element.");
 
-            assert_eq!(
-                el.tag_name().to_lowercase(),
-                tag_name,
-                "expected element of kind {}, found {}.",
-                tag_name,
-                el.tag_name().to_lowercase(),
-            );
+            {
+                let el_tag_name = el.tag_name();
+                let parent_namespace = _parent.namespace_uri();
 
+                // In HTML namespace (or no namespace), createElement is case-insensitive
+                // In other namespaces (SVG, MathML), createElementNS is case-sensitive
+                let should_compare_case_insensitive = parent_namespace.is_none()
+                    || parent_namespace.as_deref() == Some(HTML_NAMESPACE);
+
+                if should_compare_case_insensitive {
+                    // Case-insensitive comparison for HTML elements
+                    assert!(
+                        tag_name.eq_ignore_ascii_case(&el_tag_name),
+                        "expected element of kind {tag_name}, found {el_tag_name}.",
+                    );
+                } else {
+                    // Case-sensitive comparison for namespaced elements (SVG, MathML)
+                    assert_eq!(
+                        el_tag_name, tag_name,
+                        "expected element of kind {tag_name}, found {el_tag_name}.",
+                    );
+                }
+            }
             // We simply register listeners and update all attributes.
             let attributes = attributes.apply(root, &el);
             let listeners = listeners.apply(root, &el);

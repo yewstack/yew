@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Check if organization member
         id: is_organization_member
-        uses: JamesSingleton/is-organization-member@1.0.1
+        uses: JamesSingleton/is-organization-member@1.1.0
         with:
           organization: "yewstack"
           username: ${{ github.event.pull_request.user.login }}

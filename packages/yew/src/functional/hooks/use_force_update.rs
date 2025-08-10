@@ -80,7 +80,7 @@ mod feat_nightly {
 /// ```rust
 /// use yew::prelude::*;
 ///
-/// #[function_component]
+/// #[component]
 /// fn ManuallyUpdatedDate() -> Html {
 ///     let trigger = use_force_update();
 ///     let onclick = use_state(move || Callback::from(move |_| trigger.force_update()));
@@ -116,7 +116,7 @@ pub fn use_force_update() -> impl Hook<Output = UseForceUpdateHandle> {
 mod nightly_test {
     use yew::prelude::*;
 
-    #[function_component]
+    #[component]
     fn ManuallyUpdatedDate() -> Html {
         let trigger = use_force_update();
         let _ = move || trigger();

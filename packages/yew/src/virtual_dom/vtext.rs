@@ -80,7 +80,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_str() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { "abc" }
         }

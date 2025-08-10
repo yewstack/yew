@@ -301,7 +301,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_text_back_to_back() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let s = "world";
 
@@ -324,12 +324,12 @@ mod ssr_tests {
             name: String,
         }
 
-        #[function_component]
+        #[component]
         fn Child(props: &ChildProps) -> Html {
             html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
         }
 
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! {
                 <>

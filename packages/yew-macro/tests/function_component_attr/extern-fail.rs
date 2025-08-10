@@ -5,7 +5,7 @@ struct Props {
     a: usize,
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 extern "C" fn comp(props: &Props) -> Html {
     html! {
         <p>

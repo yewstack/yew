@@ -34,7 +34,7 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseRef<F> {
 /// use web_sys::HtmlInputElement;
 /// use yew::prelude::*;
 ///
-/// #[function_component(UseRef)]
+/// #[component(UseRef)]
 /// fn ref_hook() -> Html {
 ///     let message = use_state(|| "".to_string());
 ///     let message_count = use_ref(|| Cell::new(0));
@@ -88,7 +88,7 @@ where
 /// use web_sys::HtmlInputElement;
 /// use yew::prelude::*;
 ///
-/// #[function_component(UseRef)]
+/// #[component(UseRef)]
 /// fn ref_hook() -> Html {
 ///     let message = use_state(|| "".to_string());
 ///     let message_count = use_mut_ref(|| 0);
@@ -141,9 +141,9 @@ where
 /// use wasm_bindgen::prelude::Closure;
 /// use wasm_bindgen::JsCast;
 /// use web_sys::{Event, HtmlElement};
-/// use yew::{function_component, html, use_effect_with, use_node_ref, Html};
+/// use yew::{component, html, use_effect_with, use_node_ref, Html};
 ///
-/// #[function_component(UseNodeRef)]
+/// #[component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {
 ///     let div_ref = use_node_ref();
 ///

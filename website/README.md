@@ -24,6 +24,55 @@ Note this only builds for English locale unlike a production build.
 > Documentation is written in `mdx`, a superset of markdown empowered with jsx.
 > JetBrains and VSCode both provide MDX plugins.
 
+## Testing
+
+```console
+cargo make website-test
+```
+
+[`website-test`](../tools/website-test) is a tool to test all code blocks in the docs as Rust doctests.
+It gathers the Rust code blocks automatically, but by default they're all tested separate. In case of a 
+walkthrough, it makes more sense to combine the changes described in the blocks & test the code as one.
+For this end `website-test` scans all doc files for a special flag:
+
+```html
+<!-- COMBINE CODE BLOCKS -->
+```
+If a file ends with this specific comment (and an optional newline after it), all code blocks will be
+sown together, with respect to the diff markers in them. For example:
+
+```md
+\`\`\`rust
+fn main() {
+    println!("Hello, World");
+}
+\`\`\`
+
+\`\`\`rust
+fn main() {
+-   println!("Hello, World");
++   println!("Goodbye, World");
+}
+\`\`\`
+
+<!-- COMBINE CODE BLOCKS -->
+```
+
+Will be tested as:
+```rust
+fn main() {
+    println!("Goodbye, World");
+}
+```
+
+:::warning
+The current implementation only uses the code before the diff or the code to remove as context,
+so make sure there's enough of it. The test assembler will tell you if there isn't.
+:::
+
+While assembling the code blocks, the test assembler will put special meaning into a code
+line `// ...`. This line tells the test assembler to disregard any previous context for applying a diff
+
 ## Production Build
 
 ```console

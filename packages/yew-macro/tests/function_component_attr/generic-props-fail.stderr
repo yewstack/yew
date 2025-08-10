@@ -55,8 +55,8 @@ error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisf
 note: required by a bound in `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:11:8
    |
-8  | #[function_component(Comp)]
-   |                      ---- required by a bound in this struct
+8  | #[component(Comp)]
+   |             ---- required by a bound in this struct
 ...
 11 |     P: Properties + PartialEq,
    |        ^^^^^^^^^^ required by this bound in `Comp`
@@ -65,8 +65,8 @@ note: required by a bound in `Comp`
 error[E0599]: the function or associated item `new` exists for struct `VChild<Comp<MissingTypeBounds>>`, but its trait bounds were not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14
    |
-8  | #[function_component(Comp)]
-   | ------------------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
+8  | #[component(Comp)]
+   | ---------------- doesn't satisfy `Comp<MissingTypeBounds>: yew::BaseComponent`
 ...
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
@@ -106,10 +106,10 @@ error[E0107]: missing generics for struct `Comp`
    |              ^^^^ expected 1 generic argument
    |
 note: struct defined here, with 1 generic parameter: `P`
-  --> tests/function_component_attr/generic-props-fail.rs:8:22
+  --> tests/function_component_attr/generic-props-fail.rs:8:13
    |
-8  | #[function_component(Comp)]
-   |                      ^^^^
+8  | #[component(Comp)]
+   |             ^^^^
 9  | fn comp<P>(_props: &P) -> Html
    |         -
 help: add missing generic argument
