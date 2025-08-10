@@ -164,7 +164,7 @@ impl VTag {
                 "input" => VTagInner::Input(Default::default()),
                 "textarea" => VTagInner::Textarea(Default::default()),
                 _ => VTagInner::Other {
-                    tag,  // Preserve the original casing
+                    tag, // Preserve the original casing
                     children: Default::default(),
                 },
             },
