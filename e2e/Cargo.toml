@@ -1,0 +1,10 @@
+[package]
+name = "e2e"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yew = { path = "../packages/yew", features = ["csr"] }
+
+[lints]
+workspace = true

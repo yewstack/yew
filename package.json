@@ -1,0 +1,12 @@
+{
+  "name": "yew-playwright-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Internal package for Playwright E2E testing of Yew",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  }
+}

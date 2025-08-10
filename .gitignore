@@ -8,3 +8,11 @@ dist/
 *.iml
 /.idea/
 /.vscode/
+
+# Node/npm
+node_modules/
+
+# Playwright
+playwright-report/
+test-results/
+tests/svg-test-screenshot.png

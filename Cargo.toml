@@ -2,7 +2,7 @@
 members = [
     "packages/*",
     "tools/*",
-    "examples/*",
+    "examples/*", "e2e",
 ]
 default-members = [
     "packages/*",

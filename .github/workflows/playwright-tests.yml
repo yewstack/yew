@@ -1,0 +1,75 @@
+name: Playwright Tests
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/playwright-tests.yml"
+      - "e2e/**"
+      - "tests/**"
+      - "playwright.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "packages/**/*"
+  push:
+    branches: [master]
+
+jobs:
+  playwright_tests:
+    name: Playwright Browser Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
+
+      # for wasm-bindgen-cli, always use stable rust
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
+
+      - name: Setup toolchain for wasm
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - uses: jetli/trunk-action@v0.5.1
+        with:
+          version: 'latest'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
