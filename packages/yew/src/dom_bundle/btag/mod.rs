@@ -123,10 +123,15 @@ impl Reconcilable for VTag {
             key,
             ..
         } = self;
-        slot.insert(parent, &el);
 
+        // Apply attributes BEFORE inserting the element into the DOM
+        // This is crucial for SVG animation elements where the animation
+        // starts immediately upon DOM insertion
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
+
+        // Now insert the element with attributes already set
+        slot.insert(parent, &el);
 
         let inner = match self.inner {
             VTagInner::Input(f) => {
