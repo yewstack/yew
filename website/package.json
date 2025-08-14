@@ -17,17 +17,17 @@
         "fmt:write": "prettier --write ."
     },
     "dependencies": {
-        "@docusaurus/core": "^3.7.0",
-        "@docusaurus/plugin-client-redirects": "^3.7.0",
-        "@docusaurus/preset-classic": "^3.7.0",
+        "@docusaurus/core": "^3.8.1",
+        "@docusaurus/plugin-client-redirects": "^3.8.1",
+        "@docusaurus/preset-classic": "^3.8.1",
         "@mdx-js/react": "^3.1.0",
         "@svgr/webpack": "^8.1.0",
         "clsx": "^2.1.1",
         "docusaurus-plugin-sass": "^0.2.6",
         "file-loader": "^6.2.0",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "sass": "^1.83.4",
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1",
+        "sass": "^1.89.2",
         "url-loader": "^4.1.1",
         "yew-docs": "file:"
     },
@@ -48,14 +48,14 @@
     },
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.0.0",
-        "@docusaurus/tsconfig": "3.7.0",
-        "@types/react": "^19.0.8",
+        "@docusaurus/tsconfig": "3.8.1",
+        "@types/react": "^19.1.9",
         "@types/react-helmet": "^6.1.11",
         "@types/react-router-dom": "^5.3.3",
-        "@typescript-eslint/eslint-plugin": "^8.22.0",
+        "@typescript-eslint/eslint-plugin": "^8.38.0",
         "@typescript-eslint/parser": "^8.22.0",
         "dir-compare": "^5.0.0",
-        "prettier": "^3.5.1",
-        "typescript": "^5.7.3"
+        "prettier": "^3.6.2",
+        "typescript": "^5.9.2"
     }
 }
