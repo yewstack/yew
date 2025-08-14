@@ -40,13 +40,7 @@ fn should_combine_code_blocks(path: &Path) -> io::Result<bool> {
     }
     let mut buf = [0u8; 32];
     file.read_exact(&mut buf)?;
-    // TODO: Use trim_ascii_end() when MSRV is updated to 1.80+
-    let trimmed = buf
-        .iter()
-        .rposition(|&b| !b.is_ascii_whitespace())
-        .map(|i| &buf[..=i])
-        .unwrap_or(&buf[..0]);
-    Ok(trimmed.ends_with(FLAG))
+    Ok(buf.trim_ascii_end().ends_with(FLAG))
 }
 
 fn apply_diff(src: &mut String, preamble: &str, added: &str, removed: &str) -> Result {
@@ -123,8 +117,7 @@ fn combined_code_blocks(path: &Path) -> Result<String> {
                 }
                 removed += line;
                 removed += "\n";
-            // TODO: Use trim_ascii() when MSRV is updated to 1.80+
-            } else if line.trim() == "// ..." {
+            } else if line.trim_ascii() == "// ..." {
                 // disregard the preamble
                 preamble.clear();
             } else {

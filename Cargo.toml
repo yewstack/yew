@@ -7,7 +7,7 @@ members = [
 default-members = [
     "packages/*",
 ]
-resolver = "2"
+resolver = "3"
 
 [profile.release]
 lto = true

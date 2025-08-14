@@ -22,13 +22,13 @@ error[E0277]: can't compare `Props` with `Props`
 9 |     type Properties = Props;
   |                       ^^^^^ no implementation for `Props == Props`
   |
-  = help: the trait `PartialEq` is not implemented for `Props`, which is required by `<MyComp as yew::Component>::Properties: yew::Properties`
+  = help: the trait `PartialEq` is not implemented for `Props`
   = help: the following other types implement trait `yew::Properties`:
-            Props
-            ContextProviderProps<T>
-            ChildrenProps
-            SuspenseProps
             ()
+            ChildrenProps
+            ContextProviderProps<T>
+            Props
+            SuspenseProps
   = note: required for `<MyComp as yew::Component>::Properties` to implement `yew::Properties`
 note: required by a bound in `yew::Component::Properties`
  --> $WORKSPACE/packages/yew/src/html/component/mod.rs
@@ -48,11 +48,11 @@ error[E0277]: the trait bound `Vec<_>: yew::Properties` is not satisfied
    |                 ^^^^^^ the trait `yew::Properties` is not implemented for `Vec<_>`
    |
    = help: the following other types implement trait `yew::Properties`:
-             Props
-             ContextProviderProps<T>
-             ChildrenProps
-             SuspenseProps
              ()
+             ChildrenProps
+             ContextProviderProps<T>
+             Props
+             SuspenseProps
 
 error[E0277]: the trait bound `Vec<_>: yew::Properties` is not satisfied
   --> tests/props_macro/resolve-prop-fail.rs:29:17
@@ -61,11 +61,11 @@ error[E0277]: the trait bound `Vec<_>: yew::Properties` is not satisfied
    |                 ^^^ the trait `yew::Properties` is not implemented for `Vec<_>`
    |
    = help: the following other types implement trait `yew::Properties`:
-             Props
-             ContextProviderProps<T>
-             ChildrenProps
-             SuspenseProps
              ()
+             ChildrenProps
+             ContextProviderProps<T>
+             Props
+             SuspenseProps
 
 error[E0277]: the trait bound `MyComp: yew::Properties` is not satisfied
   --> tests/props_macro/resolve-prop-fail.rs:30:17
@@ -74,11 +74,11 @@ error[E0277]: the trait bound `MyComp: yew::Properties` is not satisfied
    |                 ^^^^^^ the trait `yew::Properties` is not implemented for `MyComp`
    |
    = help: the following other types implement trait `yew::Properties`:
-             Props
-             ContextProviderProps<T>
-             ChildrenProps
-             SuspenseProps
              ()
+             ChildrenProps
+             ContextProviderProps<T>
+             Props
+             SuspenseProps
 
 error[E0277]: the trait bound `MyNotAComponent: yew::Component` is not satisfied
   --> tests/props_macro/resolve-prop-fail.rs:31:17
@@ -87,5 +87,5 @@ error[E0277]: the trait bound `MyNotAComponent: yew::Component` is not satisfied
    |                 ^^^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `MyNotAComponent`
    |
    = help: the following other types implement trait `yew::Component`:
-             MyComp
              ContextProvider<T>
+             MyComp

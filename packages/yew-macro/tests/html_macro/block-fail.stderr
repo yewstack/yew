@@ -4,7 +4,7 @@ error[E0277]: the trait bound `(): Into<NodeSeq<(), VNode>>` is not satisfied
 6 |             { () }
   |               ^^
   |               |
-  |               the trait `std::fmt::Display` is not implemented for `()`, which is required by `(): Into<NodeSeq<_, _>>`
+  |               the trait `std::fmt::Display` is not implemented for `()`
   |               required by a bound introduced by this call
   |
   = note: required for `()` to implement `ToString`
@@ -17,7 +17,7 @@ error[E0277]: the trait bound `(): Into<VNode>` is not satisfied
   --> tests/html_macro/block-fail.rs:15:17
    |
 15 |         <>{ for (0..3).map(|_| not_tree()) }</>
-   |                 ^^^^^^ the trait `std::fmt::Display` is not implemented for `()`, which is required by `(): Into<_>`
+   |                 ^^^^^^ the trait `std::fmt::Display` is not implemented for `()`
    |
    = note: required for `()` to implement `ToString`
    = note: required for `VNode` to implement `From<()>`

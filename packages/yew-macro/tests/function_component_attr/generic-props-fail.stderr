@@ -15,7 +15,17 @@ error[E0277]: not all required properties have been provided
 22 |     html! { <Comp<Props> /> };
    |              ^^^^ missing required properties for this component
    |
-   = help: the trait `HasProp<a, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<PropsBuilder, _>`
+   = help: the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
+   = help: the following other types implement trait `HasProp<P, How>`:
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `HasPropsa<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+           and $N others
 note: required for `CheckPropsAll<AssertAllProps>` to implement `HasAllProps<Props, (_,)>`
   --> tests/function_component_attr/generic-props-fail.rs:3:17
    |
@@ -47,11 +57,11 @@ error[E0277]: the trait bound `MissingTypeBounds: yew::Properties` is not satisf
    |              ^^^^ the trait `yew::Properties` is not implemented for `MissingTypeBounds`
    |
    = help: the following other types implement trait `yew::Properties`:
-             Props
-             ContextProviderProps<T>
-             ChildrenProps
-             SuspenseProps
              ()
+             ChildrenProps
+             ContextProviderProps<T>
+             Props
+             SuspenseProps
 note: required by a bound in `Comp`
   --> tests/function_component_attr/generic-props-fail.rs:11:8
    |
@@ -71,11 +81,6 @@ error[E0599]: the function or associated item `new` exists for struct `VChild<Co
 27 |     html! { <Comp<MissingTypeBounds> /> };
    |              ^^^^ function or associated item cannot be called on `VChild<Comp<MissingTypeBounds>>` due to unsatisfied trait bounds
    |
-note: if you're trying to build a new `VChild<Comp<MissingTypeBounds>>`, consider using `VChild::<COMP>::new` which returns `VChild<_>`
-  --> $WORKSPACE/packages/yew/src/virtual_dom/vcomp.rs
-   |
-   |     pub fn new(props: COMP::Properties, key: Option<Key>) -> Self {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = note: the following trait bounds were not satisfied:
            `Comp<MissingTypeBounds>: yew::BaseComponent`
 note: the trait `yew::BaseComponent` must be implemented

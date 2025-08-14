@@ -133,9 +133,7 @@ fn main() {
 Yewは `yew::LocalServerRenderer` を使用してシングルスレッドでのサーバーサイドレンダリングをサポートしています。このモードはWASIのようなシングルスレッド環境に適しています。
 
 ```rust
-// Rustc 1.78以降では、`wasm32-wasip1` または `wasm32-wasip2` ターゲットを使用してビルドします。
-// 古いバージョンのRustc（1.84以前）を使用している場合は、`wasm32-wasi` ターゲットを使用してビルドすることもできます。
-// 詳細については、https://blog.rust-lang.org/2024/04/09/updates-to-rusts-wasi-targets.html を参照してください。
+// `wasm32-wasip1` または `wasm32-wasip2` ターゲットを使用してビルドしてください。
 
 use yew::prelude::*;
 use yew::LocalServerRenderer;

@@ -1,8 +1,5 @@
 use std::cell::Cell;
-#[rustversion::since(1.81)]
 use std::panic::PanicHookInfo as PanicInfo;
-#[rustversion::before(1.81)]
-use std::panic::PanicInfo;
 use std::rc::Rc;
 
 use web_sys::Element;
