@@ -15,6 +15,9 @@ module.exports = {
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
     themeConfig: {
+        colorMode: {
+            respectPrefersColorScheme: true,
+        },
         docs: {
             sidebar: {
                 hideable: true,
