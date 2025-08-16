@@ -10,5 +10,5 @@ name = "vnode"
 harness = false
 
 [dependencies]
-divan = "0.1.14"
+divan = "0.1.21"
 yew = { path = "../../packages/yew" }
