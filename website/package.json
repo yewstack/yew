@@ -17,9 +17,9 @@
         "fmt:write": "prettier --write ."
     },
     "dependencies": {
-        "@docusaurus/core": "^3.7.0",
-        "@docusaurus/plugin-client-redirects": "^3.7.0",
-        "@docusaurus/preset-classic": "^3.7.0",
+        "@docusaurus/core": "^3.8.1",
+        "@docusaurus/plugin-client-redirects": "^3.8.1",
+        "@docusaurus/preset-classic": "^3.8.1",
         "@mdx-js/react": "^3.1.0",
         "@svgr/webpack": "^8.1.0",
         "clsx": "^2.1.1",
@@ -48,7 +48,7 @@
     },
     "devDependencies": {
         "@docusaurus/module-type-aliases": "^3.0.0",
-        "@docusaurus/tsconfig": "3.7.0",
+        "@docusaurus/tsconfig": "3.8.1",
         "@types/react": "^19.0.8",
         "@types/react-helmet": "^6.1.11",
         "@types/react-router-dom": "^5.3.3",
