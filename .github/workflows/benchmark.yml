@@ -57,7 +57,7 @@ jobs:
 
       - name: Setup chrome
         id: setup-chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
         with:
           install-chromedriver: true
 
