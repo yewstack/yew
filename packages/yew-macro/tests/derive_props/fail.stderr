@@ -67,7 +67,17 @@ error[E0277]: not all required properties have been provided
 35 |         ::yew::props!{ Props { } };
    |                        ^^^^^ missing required properties for this component
    |
-   = help: the trait `HasProp<t3::_Props::value, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<t3::PropsBuilder, _>`
+   = help: the trait `HasProp<t3::_Props::value, _>` is not implemented for `AssertAllProps`
+   = help: the following other types implement trait `HasProp<P, How>`:
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `suspense::component::CheckSuspensePropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `t10::CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+           and $N others
 note: required for `t3::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t3::Props, (_,)>`
   --> tests/derive_props/fail.rs:29:21
    |
@@ -90,7 +100,17 @@ error[E0277]: not all required properties have been provided
 47 |         ::yew::props!{ Props { } };
    |                        ^^^^^ missing required properties for this component
    |
-   = help: the trait `HasProp<t4::_Props::value, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<t4::PropsBuilder, _>`
+   = help: the trait `HasProp<t4::_Props::value, _>` is not implemented for `AssertAllProps`
+   = help: the following other types implement trait `HasProp<P, How>`:
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `suspense::component::CheckSuspensePropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `t10::CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+           and $N others
 note: required for `t4::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t4::Props, (_,)>`
   --> tests/derive_props/fail.rs:41:21
    |
@@ -125,7 +145,7 @@ error[E0277]: expected a `FnOnce()` closure, found `{integer}`
 76 |         #[prop_or_else(123)]
    |                        ^^^ expected an `FnOnce()` closure, found `{integer}`
    |
-   = help: the trait `FnOnce<()>` is not implemented for `{integer}`
+   = help: the trait `FnOnce()` is not implemented for `{integer}`
    = note: wrap the `{integer}` in a closure with no arguments: `|| { /* code */ }`
 note: required by a bound in `Option::<T>::unwrap_or_else`
   --> $RUST/core/src/option.rs

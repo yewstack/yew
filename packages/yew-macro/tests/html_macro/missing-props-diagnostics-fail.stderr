@@ -4,7 +4,17 @@ error[E0277]: not all required properties have been provided
 6  |         <Foo />
    |          ^^^ missing required properties for this component
    |
-   = help: the trait `HasProp<bar, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<FooPropsBuilder, _>`
+   = help: the trait `HasProp<bar, _>` is not implemented for `AssertAllProps`
+   = help: the following other types implement trait `HasProp<P, How>`:
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckFooPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `HasFooPropsbar<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+           and $N others
 note: required for `CheckFooPropsAll<AssertAllProps>` to implement `HasAllProps<FooProps, (_, _)>`
   --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
    |
@@ -27,7 +37,17 @@ error[E0277]: not all required properties have been provided
 6  |         <Foo />
    |          ^^^ missing required properties for this component
    |
-   = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<FooPropsBuilder, _>`
+   = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`
+   = help: the following other types implement trait `HasProp<P, How>`:
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckFooPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `HasFooPropsbar<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+           and $N others
 note: required for `CheckFooPropsAll<AssertAllProps>` to implement `HasAllProps<FooProps, (_, _)>`
   --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
    |
@@ -50,16 +70,16 @@ error[E0277]: property `baz` is required but not provided
 13 |         <Foo bar={"bar".to_string()} />
    |          ^^^ missing required property `baz`
    |
-   = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`, which is required by `HasFooPropsbar<AssertAllProps>: AllPropsFor<FooPropsBuilder, _>`
+   = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`
    = help: the following other types implement trait `HasProp<P, How>`:
-             <HasFooPropsbar<B> as HasProp<bar, HasFooPropsbar<B>>>
-             <HasFooPropsbar<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasFooPropsbaz<B> as HasProp<baz, HasFooPropsbaz<B>>>
-             <HasFooPropsbaz<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckFooPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasContextProviderPropscontext<B> as HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>>
-             <HasContextProviderPropscontext<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasContextProviderPropschildren<B> as HasProp<children, HasContextProviderPropschildren<B>>>
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckFooPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `HasFooPropsbar<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
            and $N others
 note: required for `HasFooPropsbar<AssertAllProps>` to implement `HasProp<baz, &dyn HasProp<baz, _>>`
   --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
