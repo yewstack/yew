@@ -27,7 +27,7 @@ log = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.43.1", features = ["full"] }
-warp = "0.3"
+warp = "0.4"
 clap = { version = "4", features = ["derive"] }
 
 [features]
