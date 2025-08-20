@@ -36,18 +36,18 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 6 |     html! { () };
   |             ^^ `()` cannot be formatted with the default formatter
   |
-  = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: From<()>`
+  = help: the trait `std::fmt::Display` is not implemented for `()`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = help: the following other types implement trait `From<T>`:
-            <VNode as From<yew::virtual_dom::VComp>>
-            <VNode as From<VChild<COMP>>>
-            <VNode as From<ChildrenRenderer<VNode>>>
-            <VNode as From<yew::virtual_dom::VList>>
-            <VNode as From<yew::virtual_dom::VPortal>>
-            <VNode as From<yew::virtual_dom::VSuspense>>
-            <VNode as From<yew::virtual_dom::VTag>>
-            <VNode as From<yew::virtual_dom::VText>>
-            <VNode as From<T>>
+            `VNode` implements `From<ChildrenRenderer<VNode>>`
+            `VNode` implements `From<T>`
+            `VNode` implements `From<VChild<COMP>>`
+            `VNode` implements `From<yew::virtual_dom::VComp>`
+            `VNode` implements `From<yew::virtual_dom::VList>`
+            `VNode` implements `From<yew::virtual_dom::VPortal>`
+            `VNode` implements `From<yew::virtual_dom::VSuspense>`
+            `VNode` implements `From<yew::virtual_dom::VTag>`
+            `VNode` implements `From<yew::virtual_dom::VText>`
   = note: required for `()` to implement `ToString`
   = note: required for `VNode` to implement `From<()>`
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
@@ -58,18 +58,18 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 17 |         not_node()
    |         ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: From<()>`
+   = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = help: the following other types implement trait `From<T>`:
-             <VNode as From<yew::virtual_dom::VComp>>
-             <VNode as From<VChild<COMP>>>
-             <VNode as From<ChildrenRenderer<VNode>>>
-             <VNode as From<yew::virtual_dom::VList>>
-             <VNode as From<yew::virtual_dom::VPortal>>
-             <VNode as From<yew::virtual_dom::VSuspense>>
-             <VNode as From<yew::virtual_dom::VTag>>
-             <VNode as From<yew::virtual_dom::VText>>
-             <VNode as From<T>>
+             `VNode` implements `From<ChildrenRenderer<VNode>>`
+             `VNode` implements `From<T>`
+             `VNode` implements `From<VChild<COMP>>`
+             `VNode` implements `From<yew::virtual_dom::VComp>`
+             `VNode` implements `From<yew::virtual_dom::VList>`
+             `VNode` implements `From<yew::virtual_dom::VPortal>`
+             `VNode` implements `From<yew::virtual_dom::VSuspense>`
+             `VNode` implements `From<yew::virtual_dom::VTag>`
+             `VNode` implements `From<yew::virtual_dom::VText>`
    = note: required for `()` to implement `ToString`
    = note: required for `VNode` to implement `From<()>`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
