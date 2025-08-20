@@ -133,9 +133,7 @@ fn main() {
 Yew 支持以单线程进行服务端渲染，通过 `yew::LocalServerRenderer`。这种模式适用于像 WASI 这样的单线程环境。
 
 ```rust
-// 在构建时使用 `wasm32-wasip1` 或 `wasm32-wasip2` 目标（在 rustc 1.78 之后）。
-// 如果您使用的是较旧版本的 rustc（1.84 之前），您仍然可以使用 `wasm32-wasi` 目标进行构建。
-// 有关更多信息，请参见 https://blog.rust-lang.org/2024/04/09/updates-to-rusts-wasi-targets.html。
+// 使用 `wasm32-wasip1` 或 `wasm32-wasip2` 目标构建。
 
 use yew::prelude::*;
 use yew::LocalServerRenderer;

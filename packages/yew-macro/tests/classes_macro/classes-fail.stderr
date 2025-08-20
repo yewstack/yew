@@ -14,17 +14,17 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
  --> tests/classes_macro/classes-fail.rs:4:14
   |
 4 |     classes!(42);
-  |              ^^ the trait `From<{integer}>` is not implemented for `Classes`, which is required by `{integer}: Into<Classes>`
+  |              ^^ the trait `From<{integer}>` is not implemented for `Classes`
   |
   = help: the following other types implement trait `From<T>`:
-            <Classes as From<implicit_clone::unsync::string::IString>>
-            <Classes as From<Cow<'static, str>>>
-            <Classes as From<Vec<T>>>
-            <Classes as From<String>>
-            <Classes as From<Option<T>>>
-            <Classes as From<[T; SIZE]>>
-            <Classes as From<&String>>
-            <Classes as From<&implicit_clone::unsync::string::IString>>
+            `Classes` implements `From<&Option<T>>`
+            `Classes` implements `From<&String>`
+            `Classes` implements `From<&[T]>`
+            `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+            `Classes` implements `From<&str>`
+            `Classes` implements `From<Cow<'_, str>>`
+            `Classes` implements `From<Option<T>>`
+            `Classes` implements `From<String>`
           and $N others
   = note: required for `{integer}` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
@@ -37,17 +37,17 @@ error[E0277]: the trait bound `Classes: From<{float}>` is not satisfied
  --> tests/classes_macro/classes-fail.rs:5:14
   |
 5 |     classes!(42.0);
-  |              ^^^^ the trait `From<{float}>` is not implemented for `Classes`, which is required by `{float}: Into<Classes>`
+  |              ^^^^ the trait `From<{float}>` is not implemented for `Classes`
   |
   = help: the following other types implement trait `From<T>`:
-            <Classes as From<implicit_clone::unsync::string::IString>>
-            <Classes as From<Cow<'static, str>>>
-            <Classes as From<Vec<T>>>
-            <Classes as From<String>>
-            <Classes as From<Option<T>>>
-            <Classes as From<[T; SIZE]>>
-            <Classes as From<&String>>
-            <Classes as From<&implicit_clone::unsync::string::IString>>
+            `Classes` implements `From<&Option<T>>`
+            `Classes` implements `From<&String>`
+            `Classes` implements `From<&[T]>`
+            `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+            `Classes` implements `From<&str>`
+            `Classes` implements `From<Cow<'_, str>>`
+            `Classes` implements `From<Option<T>>`
+            `Classes` implements `From<String>`
           and $N others
   = note: required for `{float}` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
@@ -62,18 +62,18 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
 9 |     classes!(vec![42]);
   |              ---^^^^^
   |              |
-  |              the trait `From<{integer}>` is not implemented for `Classes`, which is required by `Vec<{integer}>: Into<Classes>`
+  |              the trait `From<{integer}>` is not implemented for `Classes`
   |              required by a bound introduced by this call
   |
   = help: the following other types implement trait `From<T>`:
-            <Classes as From<implicit_clone::unsync::string::IString>>
-            <Classes as From<Cow<'static, str>>>
-            <Classes as From<Vec<T>>>
-            <Classes as From<String>>
-            <Classes as From<Option<T>>>
-            <Classes as From<[T; SIZE]>>
-            <Classes as From<&String>>
-            <Classes as From<&implicit_clone::unsync::string::IString>>
+            `Classes` implements `From<&Option<T>>`
+            `Classes` implements `From<&String>`
+            `Classes` implements `From<&[T]>`
+            `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+            `Classes` implements `From<&str>`
+            `Classes` implements `From<Cow<'_, str>>`
+            `Classes` implements `From<Option<T>>`
+            `Classes` implements `From<String>`
           and $N others
   = note: required for `{integer}` to implement `Into<Classes>`
   = note: required for `Classes` to implement `From<Vec<{integer}>>`
@@ -89,17 +89,17 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
   --> tests/classes_macro/classes-fail.rs:13:14
    |
 13 |     classes!(some);
-   |              ^^^^ the trait `From<{integer}>` is not implemented for `Classes`, which is required by `Option<{integer}>: Into<Classes>`
+   |              ^^^^ the trait `From<{integer}>` is not implemented for `Classes`
    |
    = help: the following other types implement trait `From<T>`:
-             <Classes as From<implicit_clone::unsync::string::IString>>
-             <Classes as From<Cow<'static, str>>>
-             <Classes as From<Vec<T>>>
-             <Classes as From<String>>
-             <Classes as From<Option<T>>>
-             <Classes as From<[T; SIZE]>>
-             <Classes as From<&String>>
-             <Classes as From<&implicit_clone::unsync::string::IString>>
+             `Classes` implements `From<&Option<T>>`
+             `Classes` implements `From<&String>`
+             `Classes` implements `From<&[T]>`
+             `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+             `Classes` implements `From<&str>`
+             `Classes` implements `From<Cow<'_, str>>`
+             `Classes` implements `From<Option<T>>`
+             `Classes` implements `From<String>`
            and $N others
    = note: required for `{integer}` to implement `Into<Classes>`
    = note: required for `Classes` to implement `From<Option<{integer}>>`
@@ -115,17 +115,17 @@ error[E0277]: the trait bound `Classes: From<u32>` is not satisfied
   --> tests/classes_macro/classes-fail.rs:14:14
    |
 14 |     classes!(none);
-   |              ^^^^ the trait `From<u32>` is not implemented for `Classes`, which is required by `Option<u32>: Into<Classes>`
+   |              ^^^^ the trait `From<u32>` is not implemented for `Classes`
    |
    = help: the following other types implement trait `From<T>`:
-             <Classes as From<implicit_clone::unsync::string::IString>>
-             <Classes as From<Cow<'static, str>>>
-             <Classes as From<Vec<T>>>
-             <Classes as From<String>>
-             <Classes as From<Option<T>>>
-             <Classes as From<[T; SIZE]>>
-             <Classes as From<&String>>
-             <Classes as From<&implicit_clone::unsync::string::IString>>
+             `Classes` implements `From<&Option<T>>`
+             `Classes` implements `From<&String>`
+             `Classes` implements `From<&[T]>`
+             `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+             `Classes` implements `From<&str>`
+             `Classes` implements `From<Cow<'_, str>>`
+             `Classes` implements `From<Option<T>>`
+             `Classes` implements `From<String>`
            and $N others
    = note: required for `u32` to implement `Into<Classes>`
    = note: required for `Classes` to implement `From<Option<u32>>`
@@ -141,17 +141,17 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
   --> tests/classes_macro/classes-fail.rs:16:21
    |
 16 |     classes!("one", 42);
-   |                     ^^ the trait `From<{integer}>` is not implemented for `Classes`, which is required by `{integer}: Into<Classes>`
+   |                     ^^ the trait `From<{integer}>` is not implemented for `Classes`
    |
    = help: the following other types implement trait `From<T>`:
-             <Classes as From<implicit_clone::unsync::string::IString>>
-             <Classes as From<Cow<'static, str>>>
-             <Classes as From<Vec<T>>>
-             <Classes as From<String>>
-             <Classes as From<Option<T>>>
-             <Classes as From<[T; SIZE]>>
-             <Classes as From<&String>>
-             <Classes as From<&implicit_clone::unsync::string::IString>>
+             `Classes` implements `From<&Option<T>>`
+             `Classes` implements `From<&String>`
+             `Classes` implements `From<&[T]>`
+             `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+             `Classes` implements `From<&str>`
+             `Classes` implements `From<Cow<'_, str>>`
+             `Classes` implements `From<Option<T>>`
+             `Classes` implements `From<String>`
            and $N others
    = note: required for `{integer}` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`

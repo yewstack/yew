@@ -14,12 +14,12 @@ keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for creating reliable and efficient web applications"
 readme = "../../README.md"
-rust-version = "1.78.0"
+rust-version = "1.84.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
 gloo = "0.11"
-indexmap = { version = "2", features = ["std"] }
+indexmap = { version = "2.10", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
