@@ -1,10 +1,8 @@
-use cell::Cellule;
 use gloo::timers::callback::Interval;
-use rand::Rng;
 use yew::html::Scope;
 use yew::{classes, html, Component, Context, Html};
 
-mod cell;
+mod conway;
 
 pub enum Msg {
     Random,
@@ -12,174 +10,98 @@ pub enum Msg {
     Step,
     Reset,
     Stop,
-    ToggleCellule(usize),
+    ToggleCellule((usize, usize)),
     Tick,
 }
 
 pub struct App {
     active: bool,
-    cellules: Vec<Cellule>,
-    cellules_width: usize,
-    cellules_height: usize,
+    conway: conway::Conway,
     _interval: Interval,
 }
 
 impl App {
-    pub fn random_mutate(&mut self) {
-        for cellule in self.cellules.iter_mut() {
-            if rand::rng().random() {
-                cellule.set_alive();
-            } else {
-                cellule.set_dead();
-            }
-        }
-    }
-
-    fn reset(&mut self) {
-        for cellule in self.cellules.iter_mut() {
-            cellule.set_dead();
-        }
-    }
-
-    fn step(&mut self) {
-        let mut to_dead = Vec::new();
-        let mut to_live = Vec::new();
-        for row in 0..self.cellules_height {
-            for col in 0..self.cellules_width {
-                let neighbors = self.neighbors(row as isize, col as isize);
-
-                let current_idx = self.row_col_as_idx(row as isize, col as isize);
-                if self.cellules[current_idx].is_alive() {
-                    if Cellule::alone(&neighbors) || Cellule::overpopulated(&neighbors) {
-                        to_dead.push(current_idx);
-                    }
-                } else if Cellule::can_be_revived(&neighbors) {
-                    to_live.push(current_idx);
-                }
-            }
-        }
-        to_dead
-            .iter()
-            .for_each(|idx| self.cellules[*idx].set_dead());
-        to_live
-            .iter()
-            .for_each(|idx| self.cellules[*idx].set_alive());
-    }
-
-    fn neighbors(&self, row: isize, col: isize) -> [Cellule; 8] {
-        [
-            self.cellules[self.row_col_as_idx(row + 1, col)],
-            self.cellules[self.row_col_as_idx(row + 1, col + 1)],
-            self.cellules[self.row_col_as_idx(row + 1, col - 1)],
-            self.cellules[self.row_col_as_idx(row - 1, col)],
-            self.cellules[self.row_col_as_idx(row - 1, col + 1)],
-            self.cellules[self.row_col_as_idx(row - 1, col - 1)],
-            self.cellules[self.row_col_as_idx(row, col - 1)],
-            self.cellules[self.row_col_as_idx(row, col + 1)],
-        ]
-    }
-
-    fn row_col_as_idx(&self, row: isize, col: isize) -> usize {
-        let row = wrap(row, self.cellules_height as isize);
-        let col = wrap(col, self.cellules_width as isize);
-
-        row * self.cellules_width + col
-    }
-
-    fn view_cellule(&self, idx: usize, cellule: &Cellule, link: &Scope<Self>) -> Html {
-        let cellule_status = {
-            if cellule.is_alive() {
-                "cellule-live"
-            } else {
-                "cellule-dead"
-            }
+    fn view_cellule(&self, row: usize, col: usize, link: &Scope<Self>) -> Html {
+        let status = if self.conway.alive(row, col) {
+            "cellule-live"
+        } else {
+            "cellule-dead"
         };
         html! {
-            <div key={idx} class={classes!("game-cellule", cellule_status)}
-                onclick={link.callback(move |_| Msg::ToggleCellule(idx))}>
+            <div class={classes!("game-cellule", status)}
+                onclick={link.callback(move |_| Msg::ToggleCellule((row,col)))}>
             </div>
         }
     }
 }
+
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
         let callback = ctx.link().callback(|_| Msg::Tick);
-        let interval = Interval::new(200, move || callback.emit(()));
-
-        let (cellules_width, cellules_height) = (53, 40);
 
         Self {
             active: false,
-            cellules: vec![Cellule::new_dead(); cellules_width * cellules_height],
-            cellules_width,
-            cellules_height,
-            _interval: interval,
+            conway: conway::Conway::new(53, 40),
+            _interval: Interval::new(200, move || callback.emit(())),
         }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        let mut render = true;
         match msg {
             Msg::Random => {
-                self.random_mutate();
+                self.conway.random_mutate();
                 log::info!("Random");
-                true
             }
             Msg::Start => {
                 self.active = true;
                 log::info!("Start");
-                false
+                render = false;
             }
             Msg::Step => {
-                self.step();
-                true
+                self.conway.step();
             }
             Msg::Reset => {
-                self.reset();
+                self.conway.reset();
                 log::info!("Reset");
-                true
             }
             Msg::Stop => {
                 self.active = false;
                 log::info!("Stop");
-                false
+                render = false;
             }
-            Msg::ToggleCellule(idx) => {
-                let cellule = self.cellules.get_mut(idx).unwrap();
-                cellule.toggle();
-                true
-            }
+            Msg::ToggleCellule((row, col)) => self.conway.toggle(row, col),
             Msg::Tick => {
                 if self.active {
-                    self.step();
-                    true
+                    self.conway.step();
                 } else {
-                    false
+                    render = false;
                 }
             }
         }
+        render
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let cell_rows =
-            self.cellules
-                .chunks(self.cellules_width)
-                .enumerate()
-                .map(|(y, cellules)| {
-                    let idx_offset = y * self.cellules_width;
-
-                    let cells = cellules
-                        .iter()
-                        .enumerate()
-                        .map(|(x, cell)| self.view_cellule(idx_offset + x, cell, ctx.link()));
-                    html! {
-                        <div key={y} class="game-row">
-                            { for cells }
-                        </div>
-                    }
-                });
+        let cell_rows = self
+            .conway
+            .cellules
+            .chunks(self.conway.width)
+            .enumerate()
+            .map(|(row, cellules)| {
+                let cells = cellules
+                    .iter()
+                    .enumerate()
+                    .map(|(col, _)| self.view_cellule(row, col, ctx.link()));
+                html! {
+                    <div class="game-row">
+                        { for cells }
+                    </div>
+                }
+            });
 
         html! {
             <div>
@@ -210,17 +132,6 @@ impl Component for App {
             </div>
         }
     }
-}
-
-fn wrap(coord: isize, range: isize) -> usize {
-    let result = if coord < 0 {
-        coord + range
-    } else if coord >= range {
-        coord - range
-    } else {
-        coord
-    };
-    result as usize
 }
 
 fn main() {
