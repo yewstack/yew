@@ -872,6 +872,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "function_delayed_input"
+version = "0.1.0"
+dependencies = [
+ "gloo-timers",
+ "web-sys",
+ "yew",
+]
+
+[[package]]
 name = "function_memory_game"
 version = "0.1.0"
 dependencies = [
