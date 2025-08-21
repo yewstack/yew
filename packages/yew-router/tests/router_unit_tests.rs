@@ -1,3 +1,6 @@
+// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
+#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
+
 use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 use yew_router::prelude::*;
 

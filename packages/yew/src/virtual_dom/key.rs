@@ -41,6 +41,12 @@ impl From<&'_ str> for Key {
     }
 }
 
+impl From<String> for Key {
+    fn from(key: String) -> Self {
+        Self::from(key.as_str())
+    }
+}
+
 impl ImplicitClone for Key {}
 
 macro_rules! key_impl_from_to_string {
@@ -53,7 +59,6 @@ macro_rules! key_impl_from_to_string {
     };
 }
 
-key_impl_from_to_string!(String);
 key_impl_from_to_string!(char);
 key_impl_from_to_string!(u8);
 key_impl_from_to_string!(u16);
@@ -68,16 +73,15 @@ key_impl_from_to_string!(i64);
 key_impl_from_to_string!(i128);
 key_impl_from_to_string!(isize);
 
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod test {
     use std::rc::Rc;
 
-    #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
 
-    #[cfg(target_arch = "wasm32")]
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[test]
@@ -92,7 +96,7 @@ mod test {
                     <p key=13_u16></p>
                     <p key=14_u32></p>
                     <p key=15_u64></p>
-                    <p key=15_u128></p>
+                    <p key=16_u128></p>
                     <p key=21_isize></p>
                     <p key=22_i8></p>
                     <p key=23_i16></p>

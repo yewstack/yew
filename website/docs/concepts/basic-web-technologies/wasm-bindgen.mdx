@@ -9,10 +9,10 @@ high-level interactions between Wasm modules and JavaScript; it is built with Ru
 
 Yew uses `wasm-bindgen` to interact with the browser through a number of crates:
 
--   [`js-sys`](https://crates.io/crates/js-sys)
--   [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
--   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
--   [`web-sys`](https://crates.io/crates/web-sys)
+- [`js-sys`](https://crates.io/crates/js-sys)
+- [`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)
+- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+- [`web-sys`](https://crates.io/crates/web-sys)
 
 This section will explore some of these crates at a high level, to make it easier to understand
 and use `wasm-bindgen` APIs with Yew. For a more in-depth guide to `wasm-bindgen` and its associated
@@ -50,7 +50,6 @@ use wasm_bindgen::prelude::*;
 // correctness of these annotations!
 #[wasm_bindgen]
 extern "C" {
-
     // Use `js_namespace` here to bind `console.log(..)` instead of just
     // `log(..)`
     #[wasm_bindgen(js_namespace = console)]
@@ -89,35 +88,35 @@ extends `A`.
 When importing these types the `#[wasm-bindgen]` macro will implement the `Deref` and `AsRef`
 traits in the following way:
 
--   `C` can `Deref` to `B`
--   `B` can `Deref` to `A`
--   `C` can be `AsRef` to `B`
--   Both `C` & `B` can be `AsRef` to `A`
+- `C` can `Deref` to `B`
+- `B` can `Deref` to `A`
+- `C` can be `AsRef` to `B`
+- Both `C` & `B` can be `AsRef` to `A`
 
 These implementations allow you to call a method from `A` on an instance of `C` and to use `C` as if
 it was `&B` or `&A`.
 
 It is important to note that every single type imported using `#[wasm-bindgen]` has the same root type,
-you can think of it as the `A` in the example above, this type is [`JsValue`](#jsvalue) which has
+you can think of it as the `A` in the example above, this type is [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) which has
 its section below.
 
 _[extends section in The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
 
-### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) {#jsvalue}
+### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 
 This is a representation of an object owned by JavaScript, this is a root catch-all type for `wasm-bindgen`.
-Any type that comes from `wasm-bindgen` is a `JsValue` and this is because JavaScript does not have
-a strong type system so any function that accepts a variable `x` does not define its type so `x` can be
-a valid JavaScript value; hence `JsValue`. If you are working with imported functions or types that
+Because JavaScript does not have a strong type system, any type that comes from `wasm-bindgen` is a `JsValue`.
+Functions in JavaScript do not define the type of any variables they take in or return; variables can be
+any valid JavaScript value, hence `JsValue`. If you are working with imported functions or types that
 accept a `JsValue`, then any imported value is _technically_ valid.
 
-`JsValue` can be accepted by a function but that function may still only accept certain types and this
-can lead to panics - so when using raw `wasm-bindgen` APIs check the documentation of the JavaScript
-being imported as to whether an exception (panic) will be raised if that value is not a certain type.
+Even though `JsValue` may be accepted by a JS function, that function may still only _actually_ accept certain types.
+Passing an incorrect `JsValue` can lead to an exception which triggers a panic - so when using raw `wasm-bindgen` APIs,
+check the your JavaScript's documentation for types of inputs that will cause an exception (and a panic).
 
 _[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)._
 
-### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html) {#JsCast}
+### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
 
 Rust has a strong type system and JavaScript...doesn't 😞. For Rust to maintain these
 strong types but still be convenient, the WebAssembly group came up with a pretty neat trait `JsCast`.
@@ -126,13 +125,13 @@ that if you have one type which you know is another, then you can use the functi
 to jump from one type to the other. It is a nice trait to get to know when working with `web-sys`,
 `wasm_bindgen`, `js-sys` - you will notice lots of types will implement `JsCast` from those crates.
 
-`JsCast` provides both checked and unchecked methods of casting - so that at runtime if you are
-unsure what type a certain object is you can try to cast it which returns possible failure types like
+`JsCast` provides both checked and unchecked methods of casting - so if at runtime if you are
+unsure what type a certain object is, you can try to cast it, which returns possible failure types like
 [`Option`](https://doc.rust-lang.org/std/option/enum.Option.html) and
 [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html).
 
 A common example of this in [`web-sys`](./web-sys.mdx) is when you are trying to get the
-target of an event. You might know what the target element is but the
+target of an event. You might know what the target element is, but the
 [`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API will always return an [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target).
 You will need to cast it to the element type so you can call its methods.
 
@@ -158,7 +157,7 @@ fn handle_event(event: Event) {
 ```
 
 The [`dyn_ref`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref)
-method is a checked cast that returns an `Option<&T>` which means the original type
+method is a checked cast that returns an `Option<&T>`, which means the original type
 can be used again if the cast failed and thus returned `None`. The
 [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 method will consume `self`, as per convention for `into` methods in Rust, and the type returned is
@@ -169,10 +168,10 @@ _[`JsCast` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindg
 
 ### [`Closure`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)
 
-The `Closure` type provides a way to transfer Rust closures to JavaScript, the closures passed to
+The `Closure` type provides a way to transfer Rust closures to JavaScript. The closures passed to
 JavaScript must have a `'static` lifetime for soundness reasons.
 
-This type is a "handle" in the sense that whenever it is dropped it will invalidate the JS
+This type is a "handle" in the sense that whenever it is dropped, it will invalidate the JS
 closure that it refers to. Any usage of the closure in JS after the Closure has been dropped will
 raise an exception.
 
@@ -188,7 +187,7 @@ _[`Closure` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bind
 The `js-sys` crate provides bindings/imports of JavaScript's standard, built-in objects, including
 their methods and properties.
 
-This does not include any web APIs as this is what [`web-sys`](./web-sys.mdx) is for!
+This does not include any web APIs; that's what [`web-sys`](./web-sys.mdx) is for!
 
 _[`js-sys` documentation](https://rustwasm.github.io/wasm-bindgen/api/js_sys/index.html)._
 

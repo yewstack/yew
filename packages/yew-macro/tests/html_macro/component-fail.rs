@@ -140,7 +140,7 @@ fn compile_fail() {
 pub struct HtmlInPropsProperties {
     pub header: ::yew::Html,
 }
-#[function_component]
+#[component]
 fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemented!() }
 
 fn not_expressions() {

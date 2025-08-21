@@ -406,7 +406,7 @@ error[E0308]: mismatched types
   --> tests/html_macro/component-fail.rs:53:22
    |
 53 |     html! { <Child ..p1 ..p2 /> };
-   |              -----   ^^^^^^^ expected struct `ChildProperties`, found struct `std::ops::Range`
+   |              -----   ^^^^^^^ expected `ChildProperties`, found `Range<_>`
    |              |
    |              expected due to this
    |
@@ -436,7 +436,10 @@ error[E0599]: no method named `r#type` found for struct `ChildPropertiesBuilder`
    |                 ---------- method `r#type` not found for this struct
 ...
 85 |     html! { <Child type=0 /> };
-   |                    ^^^^ method not found in `ChildPropertiesBuilder`
+   |                    ^^^^
+   |
+help: there is a method `type_id` with a similar name, but with different arguments
+  --> $RUST/core/src/any.rs
 
 error[E0609]: no field `unknown` on type `ChildProperties`
   --> tests/html_macro/component-fail.rs:88:20
@@ -463,7 +466,9 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
    |                          |
    |                          required by a bound introduced by this call
    |
-   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
+   = help: the trait `IntoPropValue<String>` is not implemented for `()`
+           but trait `IntoPropValue<VNode>` is implemented for it
+   = help: for that trait implementation, expected `VNode`, found `String`
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -471,7 +476,7 @@ note: required by a bound in `ChildPropertiesBuilder::string`
    |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::string`
 ...
 7  |     pub string: String,
-   |         ------ required by a bound in this
+   |         ------ required by a bound in this associated function
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
@@ -499,7 +504,7 @@ note: required by a bound in `ChildPropertiesBuilder::string`
    |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::string`
 ...
 7  |     pub string: String,
-   |         ------ required by a bound in this
+   |         ------ required by a bound in this associated function
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfied
@@ -527,7 +532,7 @@ note: required by a bound in `ChildPropertiesBuilder::string`
    |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::string`
 ...
 7  |     pub string: String,
-   |         ------ required by a bound in this
+   |         ------ required by a bound in this associated function
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `r#ref` on type `ChildProperties`
@@ -555,16 +560,9 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                    |
    |                    required by a bound introduced by this call
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             f32
-             f64
-             i128
-             i16
-             i32
-             i64
-             i8
-             isize
-           and $N others
+   = help: the trait `IntoPropValue<i32>` is not implemented for `u32`
+           but trait `IntoPropValue<VNode>` is implemented for it
+   = help: for that trait implementation, expected `VNode`, found `i32`
 note: required by a bound in `ChildPropertiesBuilder::int`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -572,36 +570,40 @@ note: required by a bound in `ChildPropertiesBuilder::int`
    |                 ^^^^^^^^^^ required by this bound in `ChildPropertiesBuilder::int`
 ...
 8  |     pub int: i32,
-   |         --- required by a bound in this
+   |         --- required by a bound in this associated function
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<int, _>` is not satisfied
+error[E0277]: not all required properties have been provided
   --> tests/html_macro/component-fail.rs:99:14
    |
 99 |     html! { <Child string="abc" /> };
-   |              ^^^^^ the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
+   |              ^^^^^ missing required properties for this component
    |
+   = help: the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
    = help: the following other types implement trait `HasProp<P, How>`:
-             <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckChildrenPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <CheckHtmlInPropsPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
-             <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
+             `CheckChildContainerPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckChildPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckHtmlInPropsPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasChildContainerPropertieschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasChildContainerPropertieschildren<B>` implements `HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>`
+             `HasChildPropertiesint<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
            and $N others
-note: required because of the requirements on the impl of `HasAllProps<ChildProperties, (_,)>` for `CheckChildPropertiesAll<AssertAllProps>`
+note: required for `CheckChildPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildProperties, (_,)>`
   --> tests/html_macro/component-fail.rs:4:17
    |
 4  | #[derive(Clone, Properties, PartialEq)]
-   |                 ^^^^^^^^^^
-   = note: required because of the requirements on the impl of `AllPropsFor<ChildPropertiesBuilder, (_,)>` for `AssertAllProps`
+   |                 ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+   = note: required for `AssertAllProps` to implement `AllPropsFor<ChildPropertiesBuilder, (_,)>`
 note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
    |
+   |         pub fn build<How>(self) -> B::Output
+   |                ----- required by a bound in this associated function
+   |         where
    |             Token: AllPropsFor<B, How>,
-   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `children` on type `ChildProperties`
@@ -610,7 +612,6 @@ error[E0609]: no field `children` on type `ChildProperties`
 103 |     html! { <Child>{ "Not allowed" }</Child> };
     |              ^^^^^ unknown field
     |
-    = note: available fields are: `string`, `int`
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
@@ -630,76 +631,85 @@ error[E0609]: no field `children` on type `ChildProperties`
 110 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
     |          ^^^^^ unknown field
     |
-    = note: available fields are: `string`, `int`
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
+error[E0277]: not all required properties have been provided
    --> tests/html_macro/component-fail.rs:115:14
     |
 115 |     html! { <ChildContainer /> };
-    |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
+    |              ^^^^^^^^^^^^^^ missing required properties for this component
     |
+    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
     = help: the following other types implement trait `HasProp<P, How>`:
-              <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildrenPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckHtmlInPropsPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
-              <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
+              `CheckChildContainerPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckHtmlInPropsPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>`
+              `HasChildPropertiesint<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
             and $N others
-note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
+note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildContainerProperties, (_,)>`
    --> tests/html_macro/component-fail.rs:24:17
     |
 24  | #[derive(Clone, Properties, PartialEq)]
-    |                 ^^^^^^^^^^
-    = note: required because of the requirements on the impl of `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
+    |                 ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+    = note: required for `AssertAllProps` to implement `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>`
 note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
    --> $WORKSPACE/packages/yew/src/html/component/properties.rs
     |
+    |         pub fn build<How>(self) -> B::Output
+    |                ----- required by a bound in this associated function
+    |         where
     |             Token: AllPropsFor<B, How>,
-    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<_ChildContainerProperties::children, _>` is not satisfied
+error[E0277]: not all required properties have been provided
    --> tests/html_macro/component-fail.rs:116:14
     |
 116 |     html! { <ChildContainer></ChildContainer> };
-    |              ^^^^^^^^^^^^^^ the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
+    |              ^^^^^^^^^^^^^^ missing required properties for this component
     |
+    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
     = help: the following other types implement trait `HasProp<P, How>`:
-              <CheckChildContainerPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckChildrenPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckContextProviderPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <CheckHtmlInPropsPropertiesAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<P, &dyn HasProp<P, How>>>
-              <HasChildContainerPropertieschildren<B> as HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>>
-              <HasChildPropertiesint<B> as HasProp<P, &dyn HasProp<P, How>>>
+              `CheckChildContainerPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckHtmlInPropsPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>`
+              `HasChildPropertiesint<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
             and $N others
-note: required because of the requirements on the impl of `HasAllProps<ChildContainerProperties, (_,)>` for `CheckChildContainerPropertiesAll<AssertAllProps>`
+note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildContainerProperties, (_,)>`
    --> tests/html_macro/component-fail.rs:24:17
     |
 24  | #[derive(Clone, Properties, PartialEq)]
-    |                 ^^^^^^^^^^
-    = note: required because of the requirements on the impl of `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>` for `AssertAllProps`
+    |                 ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+    = note: required for `AssertAllProps` to implement `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>`
 note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
    --> $WORKSPACE/packages/yew/src/html/component/properties.rs
     |
+    |         pub fn build<How>(self) -> B::Output
+    |                ----- required by a bound in this associated function
+    |         where
     |             Token: AllPropsFor<B, How>,
-    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
+    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
-   --> tests/html_macro/component-fail.rs:117:14
+   --> tests/html_macro/component-fail.rs:117:31
     |
 117 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
-    |              ^^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
+    |              --------------   ^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
+    |              |
+    |              required by a bound introduced by this call
     |
     = help: the following other types implement trait `IntoPropValue<T>`:
-              <yew::virtual_dom::VText as IntoPropValue<ChildrenRenderer<VNode>>>
-              <yew::virtual_dom::VText as IntoPropValue<VNode>>
+              `yew::virtual_dom::VText` implements `IntoPropValue<ChildrenRenderer<VNode>>`
+              `yew::virtual_dom::VText` implements `IntoPropValue<VNode>`
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -707,24 +717,28 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
     |                 ^^^^^^^^^^ required by this bound in `ChildContainerPropertiesBuilder::children`
 25  | pub struct ChildContainerProperties {
 26  |     pub children: ChildrenWithProps<Child>,
-    |         -------- required by a bound in this
-    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+    |         -------- required by a bound in this associated function
+    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `VChild<Child>: From<VNode>` is not satisfied
+error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VList>` is not satisfied
    --> tests/html_macro/component-fail.rs:118:29
     |
 118 |     html! { <ChildContainer><></></ChildContainer> };
-    |                             ^ the trait `From<VNode>` is not implemented for `VChild<Child>`
+    |                             ^ the trait `From<yew::virtual_dom::VList>` is not implemented for `VChild<Child>`
     |
-    = note: required because of the requirements on the impl of `Into<VChild<Child>>` for `VNode`
+    = note: required for `yew::virtual_dom::VList` to implement `Into<VChild<Child>>`
 
 error[E0277]: the trait bound `VNode: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
-   --> tests/html_macro/component-fail.rs:119:14
+   --> tests/html_macro/component-fail.rs:119:30
     |
 119 |     html! { <ChildContainer><other /></ChildContainer> };
-    |              ^^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
+    |              --------------  ^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
+    |              |
+    |              required by a bound introduced by this call
     |
-    = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `VNode`
+    = help: the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
+            but trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for it
+    = help: for that trait implementation, expected `VNode`, found `VChild<Child>`
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -732,5 +746,13 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
     |                 ^^^^^^^^^^ required by this bound in `ChildContainerPropertiesBuilder::children`
 25  | pub struct ChildContainerProperties {
 26  |     pub children: ChildrenWithProps<Child>,
-    |         -------- required by a bound in this
-    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+    |         -------- required by a bound in this associated function
+    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused variable: `props`
+   --> tests/html_macro/component-fail.rs:144:16
+    |
+144 | fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemented!() }
+    |                ^^^^^ help: if this is intentional, prefix it with an underscore: `_props`
+    |
+    = note: `#[warn(unused_variables)]` on by default

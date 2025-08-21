@@ -1,0 +1,210 @@
+---
+title: 'web-sys'
+description: 'web-sys クレートは Web API のバインディングを提供します。'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+[`web-sys` クレート](https://crates.io/crates/web-sys) は Web API のバインディングを提供します。これはブラウザの WebIDL から生成されるため、名前が長くなったり、型が曖昧になったりすることがあります。
+
+## `web-sys` の特性 (features)
+
+`web-sys` クレートで全ての特性を有効にすると、Wasm アプリケーションに多くの冗長性が追加される可能性があります。この問題を解決するために、ほとんどの型は特性を有効にすることで制御され、アプリケーションに必要な型だけを含めることができます。Yew は `web-sys` のいくつかの特性を有効にし、その公開 API でいくつかの型を公開しています。通常、`web-sys` を依存関係として追加する必要があります。
+
+## `web-sys` の継承
+
+[継承のシミュレーション](./wasm-bindgen.mdx#simulating-inheritance)のセクションでは、Rust が通常 JavaScript の継承をシミュレートする方法を提供していることがわかります。これは `web-sys` で非常に重要です。ある型にどのようなメソッドがあるかを理解するためには、その継承を理解する必要があります。
+
+このセクションでは、特定の要素を見て、Rust で [`Deref::deref`](https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref) を呼び出して、その値が [`JsValue`](./wasm-bindgen.mdx#jsvalue) になるまでの継承をリストします。
+
+```rust
+use std::ops::Deref;
+use web_sys::{
+    Element,
+    EventTarget,
+    HtmlElement,
+    HtmlTextAreaElement,
+    Node,
+};
+
+fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
+    // HtmlTextAreaElement は HTML の <textarea> です。
+    let html_element: &HtmlElement = text_area.deref();
+
+    let element: &Element = html_element.deref();
+
+    let node: &Node = element.deref();
+
+    let event_target: &EventTarget = node.deref();
+
+    // 注意: ここで web-sys タイプから js-sys クレート内の組み込み JavaScript タイプに移行しました。
+    let object: &js_sys::Object = event_target.deref();
+
+    // 注意: ここで js-sys タイプから wasm-bindgen クレートのルート JsValue に移行しました。
+    let js_value: &wasm_bindgen::JsValue = object.deref();
+
+    // このように deref を使用することで、継承ツリーを手動でたどる必要があります。
+    // しかし、HtmlTextAreaElement タイプで JsValue メソッドを呼び出すことができます。
+    assert!(!text_area.is_string());
+
+    // この空の関数は、HtmlTextAreaElement を &EventTarget として渡すことができることを示すためのものです。
+    fn this_function_only_takes_event_targets(targets: &EventTarget) {};
+
+    // コンパイラはここでタイプを一致させるために deref チェーンを下にたどります。
+    this_function_only_takes_event_targets(&text_area);
+
+    // AsRef 実装により、HtmlTextAreaElement を &EventTarget として扱うことができます。
+    let event_target: &EventTarget = text_area.as_ref();
+}
+```
+
+[`wasm-bindgen` ガイドの `web-sys` 継承](https://rustwasm.github.io/wasm-bindgen/web-sys/inheritance.html)
+
+## `NodeRef` の `Node`
+
+Yew は [`NodeRef`](concepts/function-components/node-refs.mdx) を使用して、[`html!`](concepts/html/introduction.mdx) マクロによって作成された `Node` の参照を保持する方法を提供します。`NodeRef` の `Node` は [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html) を指します。`NodeRef::get` メソッドは `Option<Node>` 値を返しますが、Yew ではほとんどの場合、この値を特定の要素に変換して、その特定のメソッドを使用することを望みます。存在する場合、[`JsCast`](./wasm-bindgen.mdx#JsCast) を使用して `Node` 値を変換できますが、Yew はこの変換を実行するための `NodeRef::cast` メソッドを提供しているため、`JsCast` 特性のために `wasm-bindgen` 依存関係を含める必要はありません。
+
+以下の2つのコードブロックは本質的に同じです。最初のものは `NodeRef::cast` を使用し、2 番目のものは `NodeRef::get` が返す `web_sys::Node` 上で [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) を使用しています。
+
+<Tabs>
+  <TabItem value="Using NodeRef::cast" label="Using NodeRef::cast">
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::NodeRef;
+
+fn with_node_ref_cast(node_ref: NodeRef) {
+    if let Some(input) = node_ref.cast::<HtmlInputElement>() {
+        // HtmlInputElement をここで処理します
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="Using NodeRef::get" label="Using NodeRef::get">
+
+```rust
+use wasm_bindgen::JsCast;
+use web_sys::HtmlInputElement;
+use yew::NodeRef;
+
+fn with_jscast(node_ref: NodeRef) {
+    if let Some(input) = node_ref
+        .get()
+        .and_then(|node| node.dyn_into::<HtmlInputElement>().ok()) {
+        // HtmlInputElement をここで処理します
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Rust にリファクタリングされた JavaScript の例
+
+このセクションでは、Web API と対話する JavaScript コードの例を Rust の `web-sys` にリファクタリングする方法を示します。
+
+### JavaScript の例
+
+```js
+document.getElementById('mousemoveme').onmousemove = (e) => {
+    // e はマウスイベントオブジェクトです
+    var rect = e.target.getBoundingClientRect()
+    var x = e.clientX - rect.left // 要素内の x 位置。
+    var y = e.clientY - rect.top // 要素内の y 位置。
+    console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
+}
+```
+
+### `web-sys` を使用して書き直した例
+
+`web-sys` のみを使用して、上記の JavaScript の例は次のように実装できます：
+
+```toml title=Cargo.toml
+[dependencies]
+wasm-bindgen = "0.2"
+
+[dependencies.web-sys]
+version = "0.3"
+# 使用したいすべての web-sys 機能を有効にする必要があります！
+features = [
+    "console",
+    "Document",
+    "HtmlElement",
+    "MouseEvent",
+    "DomRect",
+]
+```
+
+```rust ,no_run
+use wasm_bindgen::{prelude::Closure, JsCast};
+use web_sys::{console, Document, HtmlElement, MouseEvent};
+
+let mousemove = Closure::<dyn Fn(MouseEvent)>::wrap(Box::new(|e| {
+    let rect = e
+        .target()
+        .expect("mouse event doesn't have a target")
+        .dyn_into::<HtmlElement>()
+        .expect("event target should be of type HtmlElement")
+        .get_bounding_client_rect();
+    let x = (e.client_x() as f64) - rect.left();
+    let y = (e.client_y() as f64) - rect.top();
+    console::log_1(&format!("Left? : {} ; Top? : {}", x, y).into());
+}));
+
+Document::new()
+    .expect("global document not set")
+    .get_element_by_id("mousemoveme")
+    .expect("element with id `mousemoveme` not present")
+    .unchecked_into::<HtmlElement>()
+    .set_onmousemove(mousemove.as_ref().dyn_ref());
+
+// 現在、イベントが発生したときにクロージャがメモリに残るように、`mousemove` クロージャを保存する必要があります。
+```
+
+このバージョンはより冗長ですが、その一部は失敗した型が私たちにいくつかの関数呼び出しに保持しなければならない不変条件を思い出させるためです。これらの不変条件が守られないと、Rust ではパニックが発生します。もう一つの冗長な部分は、特定のメソッドを呼び出すために異なる型を特定の型に変換するための `JsCast` の呼び出しです。
+
+### Yew で書き直した例
+
+Yew では、主に [`Callback`](concepts/function-components/callbacks.mdx) を作成して [`html!`](concepts/html/introduction.mdx) マクロで使用するため、例はこの方法を使用します。上記の方法を完全にコピーするのではなく、この方法を使用します：
+
+```toml title=Cargo.toml
+[dependencies.web-sys]
+version = "0.3"
+# `get_bounding_client_rect` メソッドを使用するには、`DomRect` 特性を有効にする必要があります。
+features = [
+    "console",
+    "HtmlElement",
+    "MouseEvent",
+    "DomRect",
+]
+
+```
+
+```rust
+use web_sys::{console, HtmlElement, MouseEvent};
+use yew::{
+    html,
+    Callback, TargetCast,
+};
+
+let onmousemove = Callback::from(|e: MouseEvent| {
+    if let Some(target) = e.target_dyn_into::<HtmlElement>() {
+        let rect = target.get_bounding_client_rect();
+        let x = (e.client_x() as f64) - rect.left();
+        let y = (e.client_y() as f64) - rect.top();
+        console::log_1(&format!("Left? : {} ; Top? : {}", x, y).into());
+    }
+});
+
+html! {
+    <div id="mousemoveme" {onmousemove}></div>
+};
+```
+
+## 追加の依存ライブラリ
+
+`web-sys` は Web API の生のバインディングであるため、Rust で使用する際にはいくつかの困難が伴います。これは、`web-sys` が Rust や強い型システムのために設計されていないためです。そこで、コミュニティのクレートが `web-sys` に対する抽象化を提供し、Rust の慣習により適した API を提供しています。
+
+_[追加の依存ライブラリ一覧](/community/external-libs)_

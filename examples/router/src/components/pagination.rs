@@ -80,7 +80,11 @@ impl Pagination {
                 </>
             }
         } else {
-            html! { for pages.map(|page| self.render_link(page, props)) }
+            html! {
+                for page in pages {
+                    {self.render_link(page, props)}
+                }
+            }
         }
     }
 

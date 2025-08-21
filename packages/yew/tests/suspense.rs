@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
@@ -58,7 +58,7 @@ async fn suspense_works() {
         }
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -85,7 +85,7 @@ async fn suspense_works() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -207,7 +207,7 @@ async fn suspense_not_suspended_at_start() {
         }
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -227,7 +227,7 @@ async fn suspense_not_suspended_at_start() {
 
         Ok(html! {
             <div class="content-area">
-                <textarea value={value.to_string()} oninput={on_text_input}></textarea>
+                <textarea value={value.to_string()} oninput={on_text_input}/>
                 <div class="action-area">
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>
@@ -235,7 +235,7 @@ async fn suspense_not_suspended_at_start() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -319,7 +319,7 @@ async fn suspense_nested_suspense_works() {
         }
     }
 
-    #[function_component(InnerContent)]
+    #[component(InnerContent)]
     fn inner_content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -334,7 +334,7 @@ async fn suspense_nested_suspense_works() {
         })
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -354,7 +354,7 @@ async fn suspense_nested_suspense_works() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait...(outer)"}</div>};
 
@@ -465,7 +465,7 @@ async fn effects_not_run_when_suspended() {
         }
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content(props: &Props) -> HtmlResult {
         {
             let counter = props.counter.clone();
@@ -504,7 +504,7 @@ async fn effects_not_run_when_suspended() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app(props: &Props) -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -597,7 +597,7 @@ async fn effects_not_run_when_suspended() {
 
 #[wasm_bindgen_test]
 async fn use_suspending_future_works() {
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let _sleep_handle = use_future(|| async move {
             sleep(Duration::from_millis(50)).await;
@@ -610,7 +610,7 @@ async fn use_suspending_future_works() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -643,7 +643,7 @@ async fn use_suspending_future_with_deps_works() {
         delay_millis: u64,
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content(ContentProps { delay_millis }: &ContentProps) -> HtmlResult {
         let delayed_result = use_future_with(*delay_millis, |delay_millis| async move {
             sleep(Duration::from_millis(*delay_millis)).await;
@@ -657,7 +657,7 @@ async fn use_suspending_future_with_deps_works() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -687,14 +687,14 @@ async fn use_suspending_future_with_deps_works() {
 async fn test_suspend_forever() {
     /// A component that its suspension never resumes.
     /// We test that this can be used with to trigger a suspension and unsuspend upon unmount.
-    #[function_component]
+    #[component]
     fn SuspendForever() -> HtmlResult {
         let (s, handle) = Suspension::new();
         use_state(move || handle);
         Err(s.into())
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let page = use_state(|| 1);
 
@@ -737,7 +737,7 @@ async fn resume_after_unmount() {
         state: UseStateHandle<bool>,
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content(ContentProps { state }: &ContentProps) -> HtmlResult {
         let state = state.clone();
         let _sleep_handle = use_future(|| async move {
@@ -751,7 +751,7 @@ async fn resume_after_unmount() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
         let state = use_state(|| true);
@@ -785,7 +785,7 @@ async fn resume_after_unmount() {
 async fn test_duplicate_suspension() {
     use yew::html::ChildrenProps;
 
-    #[function_component]
+    #[component]
     fn FetchingProvider(props: &ChildrenProps) -> HtmlResult {
         use_future(|| async {
             sleep(Duration::ZERO).await;
@@ -793,12 +793,12 @@ async fn test_duplicate_suspension() {
         Ok(html! { <>{props.children.clone()}</> })
     }
 
-    #[function_component]
+    #[component]
     fn Child() -> Html {
         html! {<div id="result">{"hello!"}</div>}
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let fallback = Html::default();
         html! {
@@ -812,7 +812,6 @@ async fn test_duplicate_suspension() {
 
     yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .render();
-
     sleep(Duration::from_millis(50)).await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "hello!");

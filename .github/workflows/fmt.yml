@@ -22,4 +22,4 @@ jobs:
           components: rustfmt
 
       - name: Run fmt
-        run: cargo +nightly fmt --all -- --check --unstable-features
+        run: cargo +nightly fmt --all -- --check

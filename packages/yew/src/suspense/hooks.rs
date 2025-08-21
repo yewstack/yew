@@ -15,6 +15,14 @@ pub struct UseFutureHandle<O> {
     inner: UseStateHandle<Option<O>>,
 }
 
+impl<O> Clone for UseFutureHandle<O> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
 impl<O> Deref for UseFutureHandle<O> {
     type Target = O;
 
@@ -50,7 +58,7 @@ impl<T: fmt::Debug> fmt::Debug for UseFutureHandle<T> {
 ///                    action=query&origin=*&format=json&generator=search&\
 ///                    gsrnamespace=0&gsrlimit=5&gsrsearch='New_England_Patriots'";
 ///
-/// #[function_component]
+/// #[component]
 /// fn WikipediaSearch() -> HtmlResult {
 ///     let res = use_future(|| async { Request::get(URL).send().await?.text().await })?;
 ///     let result_html = match *res {
@@ -94,8 +102,7 @@ where
     let output = use_state(|| None);
     // We only commit a result if it comes from the latest spawned future. Otherwise, this
     // might trigger pointless updates or even override newer state.
-    let latest_id = use_state(|| Cell::new(0u32));
-
+    let latest_id = use_ref(|| Cell::new(0u32));
     let suspension = {
         let output = output.clone();
 

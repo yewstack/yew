@@ -33,11 +33,7 @@ impl Component for App {
 
     fn create(_ctx: &Context<Self>) -> Self {
         let entries = LocalStorage::get(KEY).unwrap_or_else(|_| Vec::new());
-        let state = State {
-            entries,
-            filter: Filter::All,
-            edit_value: "".into(),
-        };
+        let state = State::new(entries);
         let focus_ref = NodeRef::default();
         Self { state, focus_ref }
     }
@@ -73,16 +69,16 @@ impl Component for App {
                     .filter(|e| self.state.filter.fits(e))
                     .nth(idx)
                     .unwrap();
-                self.state.edit_value = entry.description.clone();
+                self.state.edit_value.clone_from(&entry.description);
                 self.state.clear_all_edit();
                 self.state.toggle_edit(idx);
             }
             Msg::ToggleAll => {
                 let status = !self.state.is_all_completed();
-                self.state.toggle_all(status);
+                self.state.set_completed(status);
             }
             Msg::Toggle(idx) => {
-                self.state.toggle(idx);
+                self.state.toggle_completed(idx);
             }
             Msg::ClearCompleted => {
                 self.state.clear_completed();
@@ -120,7 +116,14 @@ impl Component for App {
                         />
                         <label for="toggle-all" />
                         <ul class="todo-list">
-                            { for self.state.entries.iter().filter(|e| self.state.filter.fits(e)).enumerate().map(|e| self.view_entry(e, ctx.link())) }
+                            { for self
+                                .state
+                                .entries
+                                .iter()
+                                .enumerate()
+                                .filter(|(_, entry)| self.state.filter.fits(entry))
+                                .map(|(i, e)| self.view_entry((i, e), ctx.link()))
+                            }
                         </ul>
                     </section>
                     <footer class={classes!("footer", hidden_class)}>

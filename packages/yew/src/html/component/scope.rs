@@ -513,7 +513,7 @@ mod feat_csr {
     use crate::scheduler;
 
     impl AnyScope {
-        #[cfg(test)]
+        #[cfg(any(test, feature = "test"))]
         pub(crate) fn test() -> Self {
             Self {
                 type_id: TypeId::of::<()>(),
@@ -642,7 +642,7 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot, Fragment};
+    use crate::dom_bundle::{BSubtree, DynamicDomSlot, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -679,12 +679,6 @@ mod feat_hydration {
             let collectable = Collectable::for_component::<COMP>();
 
             let mut fragment = Fragment::collect_between(fragment, &collectable, &parent);
-            let next_sibling = if let Some(n) = fragment.front() {
-                Some(n.clone())
-            } else {
-                fragment.sibling_at_end().cloned()
-            };
-            internal_ref.reassign(DomSlot::create(next_sibling));
 
             let prepared_state = match fragment
                 .back()
