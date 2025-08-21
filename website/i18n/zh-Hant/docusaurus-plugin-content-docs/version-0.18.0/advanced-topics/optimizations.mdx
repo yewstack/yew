@@ -66,10 +66,10 @@ Yew 最大的缺點就是花太多時間在編譯上了。編譯時間似乎和 
 
 ## 編譯大小的優化 <a id="build-size-optimization"></a>
 
--   優化 Rust 的程式碼
-    -   `wee_alloc` （使用輕量的分配器）
-    -   `cargo.toml` （定義釋出的設定檔）
--   使用 `wasm-opt` 優化 wasm 程式碼
+- 優化 Rust 的程式碼
+    - `wee_alloc` （使用輕量的分配器）
+    - `cargo.toml` （定義釋出的設定檔）
+- 使用 `wasm-opt` 優化 wasm 程式碼
 
 更多關於程式碼大小的資訊，請參考： [rustwasm book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
 
@@ -113,8 +113,8 @@ wasm-opt 資訊： [binaryen project](https://github.com/WebAssembly/binaryen)
 
 Rust Wasm 中有一個關於減少 Wasm 二進位檔大小的章節：[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
--   使用`wasm-pack` 預設在發行版本編譯時優化 `wasm` 程式碼
--   直接在 wasm 檔案上使用 `wasm-opt` 。
+- 使用`wasm-pack` 預設在發行版本編譯時優化 `wasm` 程式碼
+- 直接在 wasm 檔案上使用 `wasm-opt` 。
 
 ```rust
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm

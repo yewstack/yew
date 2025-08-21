@@ -1,0 +1,26 @@
+---
+title: '状態'
+---
+
+## 状態を保存するための一般的なビュー
+
+この表は、どの状態保存タイプがあなたのユースケースに最適かを決定するためのガイドとして役立ちます：
+
+| フック             | タイプ                     | いつレンダリングされるか                   | スコープ                     |
+| ------------------ | -------------------------- | ------------------------------------------ | ---------------------------- |
+| [use_state]        | `T`                        | 値が設定されたとき                         | コンポーネントインスタンス内 |
+| [use_state_eq]     | `T: PartialEq`             | 異なる値が設定されたとき                   | コンポーネントインスタンス内 |
+| [use_reducer]      | `T: Reducible`             | リデューサーが呼び出されたとき             | コンポーネントインスタンス内 |
+| [use_reducer_eq]   | `T: Reducible + PartialEq` | リデューサーが呼び出され、結果が異なるとき | コンポーネントインスタンス内 |
+| [use_memo]         | `Deps -> T`                | 依存関係が変わったとき                     | コンポーネントインスタンス内 |
+| [use_callback]     | `Deps -> Callback<E>`      | 依存関係が変わったとき                     | コンポーネントインスタンス内 |
+| [use_mut_ref]      | `T`                        | -                                          | コンポーネントインスタンス内 |
+| グローバル静的定数 | `T`                        | -                                          | グローバル、どこでも使用可能 |
+
+[use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html
+[use_state_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html
+[use_reducer]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html
+[use_reducer_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer_eq.html
+[use_memo]: https://yew-rs-api.web.app/next/yew/functional/fn.use_memo.html
+[use_callback]: https://yew-rs-api.web.app/next/yew/functional/fn.use_callback.html
+[use_mut_ref]: https://yew-rs-api.web.app/next/yew/functional/fn.use_mut_ref.html

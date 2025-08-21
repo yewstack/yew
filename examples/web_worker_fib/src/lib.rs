@@ -29,7 +29,7 @@ fn Main() -> Html {
                 // start the worker
                 let output_value = fib_agent.run(input_value).await;
 
-                output.set(format!("Fibonacci value: {}", output_value));
+                output.set(format!("Fibonacci value: {output_value}"));
             });
         }
     };

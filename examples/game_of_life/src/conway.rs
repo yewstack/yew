@@ -25,8 +25,8 @@ impl Conway {
     }
 
     pub fn random_mutate(&mut self) {
-        let mut rng = rand::thread_rng();
-        self.cellules.iter_mut().for_each(|c| *c = rng.gen());
+        let mut rng = rand::rng();
+        self.cellules.iter_mut().for_each(|c| *c = rng.random());
     }
 
     pub fn reset(&mut self) {

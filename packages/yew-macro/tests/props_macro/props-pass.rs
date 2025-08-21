@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 
 // Shadow primitives
 #[allow(non_camel_case_types)]
@@ -54,6 +53,22 @@ pub struct RawIdentProps {
     r#true: ::std::primitive::usize,
     #[prop_or_default]
     r#pointless_raw_name: ::std::primitive::usize,
+}
+
+#[derive(::yew::Properties)]
+pub struct SelfRefProps<'a, T> {
+    x: ::std::boxed::Box<T>,
+    y: ::std::boxed::Box<Self>,
+    z: &'a Self,
+    a: ::std::marker::PhantomData<(&'a Self, Self)>,
+    b: ::std::marker::PhantomData<::std::boxed::Box<Self>>,
+    c: fn(&Self) -> Self,
+}
+
+impl<T> ::std::cmp::PartialEq for SelfRefProps<'_, T> {
+    fn eq(&self, _: &Self) -> ::std::primitive::bool {
+        ::std::unimplemented!()
+    }
 }
 
 fn pass_raw_idents() {

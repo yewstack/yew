@@ -1,5 +1,3 @@
-#![no_implicit_prelude]
-
 // Shadow primitives
 #[allow(non_camel_case_types)]
 pub struct bool;
@@ -153,7 +151,7 @@ pub struct RenderPropProps {
     pub children: ::yew::Callback<()>,
 }
 
-#[::yew::function_component]
+#[::yew::component]
 pub fn RenderPropComp(_props: &RenderPropProps) -> ::yew::Html {
     ::yew::html! {}
 }

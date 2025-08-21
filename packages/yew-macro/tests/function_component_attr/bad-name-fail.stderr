@@ -1,23 +1,23 @@
 error: expected identifier, found keyword `let`
- --> tests/function_component_attr/bad-name-fail.rs:8:22
+ --> tests/function_component_attr/bad-name-fail.rs:8:13
   |
-8 | #[function_component(let)]
-  |                      ^^^
+8 | #[component(let)]
+  |             ^^^
 
 error: unexpected token
-  --> tests/function_component_attr/bad-name-fail.rs:17:23
+  --> tests/function_component_attr/bad-name-fail.rs:17:14
    |
-17 | #[function_component(x, y, z)]
-   |                       ^
+17 | #[component(x, y, z)]
+   |              ^
 
 error: expected identifier
-  --> tests/function_component_attr/bad-name-fail.rs:26:22
+  --> tests/function_component_attr/bad-name-fail.rs:26:13
    |
-26 | #[function_component(124)]
-   |                      ^^^
+26 | #[component(124)]
+   |             ^^^
 
 error: the component must not have the same name as the function
-  --> tests/function_component_attr/bad-name-fail.rs:35:22
+  --> tests/function_component_attr/bad-name-fail.rs:35:13
    |
-35 | #[function_component(component)]
-   |                      ^^^^^^^^^
+35 | #[component(component)]
+   |             ^^^^^^^^^

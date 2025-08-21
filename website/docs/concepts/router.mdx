@@ -8,12 +8,10 @@ default behavior of requesting a different remote resource when a link is clicke
 locally to point to a valid route in your application. The router then detects this change and then decides what to
 render.
 
-Yew provides router support in the `yew-router` crate. To start using it, add the dependency to your `Cargo.toml`
+Yew provides router support in the `yew-router` crate. To start using it, add the dependency to your `Cargo.toml`:
 
-<!-- Reminder: fix this when we release a new version of yew -->
-
-```toml
-yew-router = { git = "https://github.com/yewstack/yew.git" }
+```sh
+cargo add yew-router
 ```
 
 The utilities needed are provided under `yew_router::prelude`,
@@ -68,7 +66,7 @@ enum Route {
     NotFound,
 }
 
-#[function_component(Secure)]
+#[component(Secure)]
 fn secure() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -91,7 +89,7 @@ fn switch(routes: Route) -> Html {
     }
 }
 
-#[function_component(Main)]
+#[component(Main)]
 fn app() -> Html {
     html! {
         <BrowserRouter>
@@ -190,7 +188,7 @@ routes. Except you supply a `to` attribute instead of a `href`. An example usage
 Struct variants work as expected too:
 
 ```rust ,ignore
-<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link<Route>>
+<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew!" }</Link<Route>>
 ```
 
 #### Navigator API
@@ -204,7 +202,7 @@ For function components, the `use_navigator` hook re-renders the component when 
 Here is how to implement a button that navigates to the `Home` route when clicked.
 
 ```rust ,ignore
-#[function_component(MyComponent)]
+#[component(MyComponent)]
 pub fn my_component() -> Html {
     let navigator = use_navigator().unwrap();
     let onclick = Callback::from(move |_| navigator.push(&Route::Home));
@@ -234,7 +232,7 @@ implements `Clone`, here is for example how to have multiple buttons for differe
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-#[function_component(NavItems)]
+#[component(NavItems)]
 pub fn nav_items() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -294,7 +292,7 @@ navigator API. The component accepts a
 Here is an example:
 
 ```rust ,ignore
-#[function_component(SomePage)]
+#[component(SomePage)]
 fn some_page() -> Html {
     // made-up hook `use_user`
     let user = match use_user() {
@@ -350,14 +348,12 @@ fn create(ctx: &Context<Self>) -> Self {
 #### Specifying query parameters when navigating
 
 In order to specify query parameters when navigating to a new route, use either `navigator.push_with_query` or
-the `navigator.replace_with_query` functions. It uses `serde` to serialize the parameters into a query string for the URL so
-any type that implements `Serialize` can be passed. In its simplest form, this is just a `HashMap` containing string
-pairs.
+the `navigator.replace_with_query` functions. It uses the `ToQuery` trait to serialize the parameters into a query string for the URL. The `ToQuery` trait is automatically implemented for `serde` so any type that implements `Serialize` can be passed. In its simplest form, this is just a `HashMap` containing string pairs. In more complex scenarios the `ToQuery` trait can be implemented manually for a custom query format.
 
 #### Obtaining query parameters for the current route
 
-`location.query` is used to obtain the query parameters. It uses `serde` to deserialize the parameters from the query string
-in the URL.
+`location.query` is used to obtain the query parameters. It uses the `FromQuery` trait to deserialize the parameters from the query string
+in the URL. The `FromQuery` trait is automatically implemented for `serde` so any type that implements `Deserialize` can be passed. If the URL is formatted in an custom way, a manual implementation of `FromQuery` can be used.
 
 ## Nested Router
 
@@ -475,7 +471,7 @@ fn switch_settings(route: SettingsRoute) -> Html {
     }
 }
 
-#[function_component(App)]
+#[component(App)]
 pub fn app() -> Html {
     html! {
         <BrowserRouter>
@@ -499,8 +495,8 @@ fallback to `/` if no `<base />` is present in the HTML file.
 
 ## Relevant examples
 
--   [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+- [Router](https://github.com/yewstack/yew/tree/master/examples/router)
 
 ## API Reference
 
--   [yew-router](https://docs.rs/yew-router/)
+- [yew-router](https://docs.rs/yew-router/)

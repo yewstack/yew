@@ -115,7 +115,7 @@ pub struct ListItemProps {
     value: String,
 }
 
-#[function_component]
+#[component]
 fn ListItem(props: &ListItemProps) -> Html {
     let ListItemProps { value } = props.clone();
     html! {
@@ -130,14 +130,14 @@ pub struct Props {
     pub children: ChildrenWithProps<ListItem>,
 }
 
-#[function_component]
+#[component]
 fn List(props: &Props) -> Html {
     let modified_children = props.children.iter().map(|mut item| {
             let mut props = Rc::make_mut(&mut item.props);
             props.value = format!("item-{}", props.value);
             item
     });
-    html! { for modified_children }
+    html! {{for modified_children}}
 }
 
 html! {
@@ -315,4 +315,4 @@ pub fn render_page(with_sidebar: bool) -> Html {
 
 ## Further Reading
 
--   For a real-world example of this pattern, check out the yew-router source code. For a more advanced example, check out the [nested-list example](https://github.com/yewstack/yew/tree/master/examples/nested_list) in the main yew repository.
+- For a real-world example of this pattern, check out the yew-router source code. For a more advanced example, check out the [nested-list example](https://github.com/yewstack/yew/tree/master/examples/nested_list) in the main yew repository.

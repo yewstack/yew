@@ -21,13 +21,13 @@ pub use feat_ssr::*;
 /// The component sees the same value on the server side and client side if the component is
 /// hydrated.
 ///
-/// It accepts a closure as the first argument and a dependency type as the second argument.
+/// It accepts a closure as the second argument and its dependency value as the first argument.
 /// It returns `SuspensionResult<Option<Rc<T>>>`.
 ///
 /// During hydration, it will only return `Ok(Some(Rc<T>))` if the component is hydrated from a
 /// server-side rendering artifact and its dependency value matches.
 ///
-/// `let state = use_prepared_state!(|deps| -> ReturnType { ... }, deps)?;`
+/// `let state = use_prepared_state!(deps, |deps| -> ReturnType { ... })?;`
 ///
 /// It has the following signature:
 ///
@@ -47,9 +47,9 @@ pub use feat_ssr::*;
 /// # { todo!() }
 /// ```
 ///
-/// The first argument can also be an [async closure](https://github.com/rust-lang/rust/issues/62290).
+/// The first argument can also be an async closure
 ///
-/// `let state = use_prepared_state!(async |deps| -> ReturnType { ... }, deps)?;`
+/// `let state = use_prepared_state!(deps, async |deps| -> ReturnType { ... })?;`
 ///
 /// When accepting an async closure, it has the following signature:
 ///
@@ -85,10 +85,6 @@ pub use feat_ssr::*;
 /// You MUST denote the return type of the closure with `|deps| -> ReturnType { ... }`. This
 /// type is used during client side rendering to deserialize the state prepared on the server
 /// side.
-///
-/// Whilst async closure is an unstable feature, the procedural macro will rewrite this to a
-/// closure that returns an async block automatically. You can use this hook with async closure
-/// in stable Rust.
 pub use use_prepared_state_macro as use_prepared_state;
 // With SSR.
 #[doc(hidden)]

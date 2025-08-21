@@ -23,7 +23,7 @@ struct Theme {
     background: String,
 }
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     let ctx = use_state(|| Theme {
         foreground: "#000000".to_owned(),
@@ -38,7 +38,7 @@ pub fn App() -> Html {
 }
 
 // highlight-start
-#[function_component]
+#[component]
 pub fn ThemedButtonHOC() -> Html {
     let theme = use_context::<Theme>().expect("no ctx found");
 

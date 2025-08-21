@@ -31,7 +31,7 @@ pub struct ModalProps {
     pub children: Html,
 }
 
-#[function_component]
+#[component]
 fn Modal(props: &ModalProps) -> Html {
     let modal_host = gloo::utils::document()
         .get_element_by_id("modal_host")
@@ -61,4 +61,4 @@ about it.
 
 ## Further reading
 
--   [Portals example](https://github.com/yewstack/yew/tree/master/examples/portals)
+- [Portals example](https://github.com/yewstack/yew/tree/master/examples/portals)

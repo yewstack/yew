@@ -1,0 +1,44 @@
+---
+title: 'ジェネリックコンポーネント'
+description: '関数コンポーネントの #[function_component] 属性'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`#[function_component]` 属性は、ジェネリックコンポーネントを作成するためのジェネリック関数にも適用されます。
+
+```rust
+use std::fmt::Display;
+use yew::{function_component, html, Properties, Html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props<T>
+where
+    T: PartialEq,
+{
+    data: T,
+}
+
+#[function_component]
+pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
+where
+    T: PartialEq + Clone + Into<Html>,
+{
+    html! {
+        <p>
+            { props.data.clone().into() }
+        </p>
+    }
+}
+
+// その後、このように使用できます
+html! {
+    <MyGenericComponent<i32> data=123 />
+};
+
+// または
+html! {
+    <MyGenericComponent<String> data={"foo".to_string()} />
+};
+```

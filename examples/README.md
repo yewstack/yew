@@ -15,6 +15,12 @@ cd examples/todomvc
 trunk serve --open
 ```
 
+Some examples using the `rand` crate require a special rust flag to be enabled:
+
+```bash
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --open
+```
+
 Some examples may perform better using the `release` profile. If something is slow, you can try running it with the `--release` argument.
 
 We're also publicly hosting the examples at `https://examples.yew.rs/<EXAMPLE>`.
@@ -60,6 +66,7 @@ As an example, check out the TodoMVC example here: <https://examples.yew.rs/todo
 | [web_worker_fib](web_worker_fib)                                                          | [F]  | Calculate Fibonacci numbers in a web worker thread using [`yew-agent`](https://docs.rs/yew-agent/latest/yew_agent/).              |
 | [web_worker_prime](web_worker_prime)                                                      | [F]  | Calculate Prime numbers in a web worker thread using [`yew-agent`](https://docs.rs/yew-agent/latest/yew_agent/).                  |
 | [webgl](webgl)                                                                            | [S]  | Controls a [WebGL canvas](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL) from Yew. |
+| [wasi_ssr_module](wasi_ssr_module)                                                        | [F]  | Demonstrates server-side rendering using WASI.                                                                                      |
 
 [CT]: ## "Component Type"
 [S]: ## "Struct Components"

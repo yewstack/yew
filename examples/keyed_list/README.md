@@ -23,5 +23,5 @@ Demonstrates how using keyed elements improves the performance of comparing chan
 Run this application with the trunk development server:
 
 ```bash
-trunk serve --open
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --open
 ```
