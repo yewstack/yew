@@ -28,3 +28,5 @@ unexpected_cfgs = { level = "warn", check-cfg = [
     "cfg(nightly_yew)",
     "cfg(wasm_bindgen_unstable_test_coverage)"
 ]}
+[workspace.dependencies]
+tokio = { version = "1.47.1" }
