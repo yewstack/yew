@@ -12,7 +12,7 @@ Yew 使用 `wasm-bindgen` 通过一些 crate 与浏览器进行交互：
 - [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
 - [`web-sys`](https://crates.io/crates/web-sys)
 
-本节将从更抽象的层次上探讨这些 crate，以便更容易地理解和使用 Yew 中的 `wasm-bindgen` API。要了解有关 `wasm-bindgen` 及其相关 crate 的更深入指南，请查看 [`wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/)。
+本节将从更抽象的层次上探讨这些 crate，以便更容易地理解和使用 Yew 中的 `wasm-bindgen` API。要了解有关 `wasm-bindgen` 及其相关 crate 的更深入指南，请查看 [`wasm-bindgen` 指引](https://wasm-bindgen.github.io/wasm-bindgen/)。
 
 有关上述 crate 的文档，请查看 [`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html)。
 
@@ -56,7 +56,7 @@ log_u32(42);
 log_many("Logging", "many values!");
 ```
 
-_这个示例是基于 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html) 改编的。_
+_这个示例是基于 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https://wasm-bindgen.github.io/wasm-bindgen/examples/console-log.html) 改编的。_
 
 ### 模拟继承
 
@@ -75,7 +75,7 @@ _这个示例是基于 [1.2 使用 console.log 的 `wasm-bindgen` 指引](https:
 
 需要注意的是，使用 `#[wasm-bindgen]` 导入的每种类型都有相同的根类型，您可以将其视为上面示例中的 `A`，这种类型是 [`JsValue`](#jsvalue)，下面有它的部分。
 
-_[`wasm-bindgen` 指引中的 extends 部分](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
+_[`wasm-bindgen` 指引中的 extends 部分](https://wasm-bindgen.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
 
 ### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 

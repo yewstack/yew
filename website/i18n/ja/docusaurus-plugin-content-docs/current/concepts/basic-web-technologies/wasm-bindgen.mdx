@@ -12,7 +12,7 @@ Yew は `wasm-bindgen` を使用して、いくつかのクレートを介して
 - [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
 - [`web-sys`](https://crates.io/crates/web-sys)
 
-このセクションでは、これらのクレートをより抽象的なレベルから探求し、Yew での `wasm-bindgen` API の理解と使用を容易にします。`wasm-bindgen` および関連するクレートに関する詳細なガイドについては、[`wasm-bindgen` ガイド](https://rustwasm.github.io/docs/wasm-bindgen/) を参照してください。
+このセクションでは、これらのクレートをより抽象的なレベルから探求し、Yew での `wasm-bindgen` API の理解と使用を容易にします。`wasm-bindgen` および関連するクレートに関する詳細なガイドについては、[`wasm-bindgen` ガイド](https://wasm-bindgen.github.io/wasm-bindgen/) を参照してください。
 
 上記のクレートのドキュメントについては、[`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) を参照してください。
 
@@ -56,7 +56,7 @@ log_u32(42);
 log_many("Logging", "many values!");
 ```
 
-_この例は、[1.2 `wasm-bindgen` ガイドの console.log を使用する](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html) に基づいています。_
+_この例は、[1.2 `wasm-bindgen` ガイドの console.log を使用する](https://wasm-bindgen.github.io/wasm-bindgen/examples/console-log.html) に基づいています。_
 
 ### 継承のシミュレーション
 
@@ -75,7 +75,7 @@ Rust では、この継承関係は [`Deref`](https://doc.rust-lang.org/std/ops/
 
 注意すべき点は、`#[wasm-bindgen]` を使用してインポートされたすべての型には同じルート型があり、それを上記の例の `A` と見なすことができるということです。この型は [`JsValue`](#jsvalue) であり、以下にそのセクションがあります。
 
-_[`wasm-bindgen` ガイドの extends セクション](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
+_[`wasm-bindgen` ガイドの extends セクション](https://wasm-bindgen.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
 
 ### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 
