@@ -23,7 +23,7 @@ be cheaply cloned when passed from component to component.
 Yew recommends using the following immutable types from the `implicit-clone` crate:
 
 - `IString` (aliased as `AttrValue` in Yew) - for strings instead of `String`
-- `IArray<T>` - for arrays/vectors instead of `Vec<T>` 
+- `IArray<T>` - for arrays/vectors instead of `Vec<T>`
 - `IMap<K, V>` - for maps instead of `HashMap<K, V>`
 
 These types are either reference-counted (`Rc`) or static references, making them very cheap to clone.
