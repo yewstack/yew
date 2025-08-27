@@ -465,16 +465,6 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-<<<<<<< HEAD
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::array::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::string::IString>>
-             <&ChildrenRenderer<VNode> as IntoPropValue<VNode>>
-=======
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
@@ -482,27 +472,13 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
              `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&String` implements `IntoPropValue<VNode>`
->>>>>>> origin/master
+             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:47:23
    |
 47 |     html! { <a media={Some(NotToString)} /> };
-<<<<<<< HEAD
-   |                       ^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<NotToString>`
-   |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
-             <Option<VNode> as IntoPropValue<VNode>>
-=======
    |                       ----^^^^^^^^^^^^^
    |                       |
    |                       the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<NotToString>`
@@ -517,25 +493,11 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
              `Option<VNode>` implements `IntoPropValue<VNode>`
->>>>>>> origin/master
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
    |
 48 |     html! { <a href={Some(5)} /> };
-<<<<<<< HEAD
-   |                      ^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<{integer}>`
-   |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
-             <Option<VNode> as IntoPropValue<VNode>>
-=======
    |                      ----^^^
    |                      |
    |                      the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `Option<{integer}>`
@@ -550,7 +512,6 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
              `Option<VNode>` implements `IntoPropValue<VNode>`
->>>>>>> origin/master
 
 error[E0277]: the trait bound `{integer}: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:51:28
@@ -660,17 +621,6 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    |                         required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-<<<<<<< HEAD
-             <Option<&'static str> as IntoPropValue<Option<String>>>
-             <Option<&'static str> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<Cow<'static, str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<F> as IntoPropValue<Option<yew::Callback<I, O>>>>
-             <Option<Rc<str>> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<String> as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <Option<VChild<T>> as IntoPropValue<Option<ChildrenRenderer<C>>>>
-             <Option<VNode> as IntoPropValue<VNode>>
-   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-=======
              `Option<&str>` implements `IntoPropValue<Option<String>>`
              `Option<&str>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<Cow<'_, str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
@@ -679,7 +629,6 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
              `Option<VNode>` implements `IntoPropValue<VNode>`
->>>>>>> origin/master
 
 error[E0277]: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:58:29
@@ -716,16 +665,6 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-<<<<<<< HEAD
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::array::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::string::IString>>
-             <&ChildrenRenderer<VNode> as IntoPropValue<VNode>>
-=======
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
@@ -733,8 +672,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
              `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&String` implements `IntoPropValue<VNode>`
->>>>>>> origin/master
+             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
@@ -751,20 +689,6 @@ error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
    = help: for that trait implementation, expected `VNode`, found `yew::NodeRef`
 
 error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{integer}>` is not satisfied
-<<<<<<< HEAD
-  --> tests/html_macro/element-fail.rs:77:16
-   |
-77 |     html! { <@{55}></@> };
-   |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::string::IString`
-   |
-   = help: the following other types implement trait `From<T>`:
-             <implicit_clone::unsync::string::IString as From<&'static str>>
-             <implicit_clone::unsync::string::IString as From<&implicit_clone::unsync::string::IString>>
-             <implicit_clone::unsync::string::IString as From<Cow<'static, str>>>
-             <implicit_clone::unsync::string::IString as From<Rc<str>>>
-             <implicit_clone::unsync::string::IString as From<String>>
-   = note: required because of the requirements on the impl of `Into<implicit_clone::unsync::string::IString>` for `{integer}`
-=======
   --> tests/html_macro/element-fail.rs:79:16
    |
 79 |     html! { <@{55}></@> };
@@ -778,4 +702,3 @@ error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{in
              `implicit_clone::unsync::string::IString` implements `From<Rc<str>>`
              `implicit_clone::unsync::string::IString` implements `From<String>`
    = note: required for `{integer}` to implement `Into<implicit_clone::unsync::string::IString>`
->>>>>>> origin/master

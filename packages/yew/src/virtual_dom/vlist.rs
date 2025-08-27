@@ -143,7 +143,11 @@ impl VList {
         fully_keyed: FullyKeyedState,
     ) -> Self {
         VList {
-            children: Some(Rc::new(children)),
+            children: if children.is_empty() {
+                None
+            } else {
+                Some(Rc::new(children))
+            },
             fully_keyed,
             key,
         }
