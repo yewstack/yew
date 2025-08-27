@@ -29,4 +29,5 @@ unexpected_cfgs = { level = "warn", check-cfg = [
     "cfg(wasm_bindgen_unstable_test_coverage)"
 ]}
 [workspace.dependencies]
+implicit-clone = "0.5.1"
 tokio = { version = "1.47.1" }
