@@ -40,7 +40,7 @@ listens for `click` events. See the end of this page for a [full list of availab
 
 Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase
 is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual
-DOM hierarchy. The distinction is important when working with [portals](../../advanced-topics/portals.mdx) and other
+DOM hierarchy. The distinction is important when working with [portals](../../advanced-topics/portals) and other
 more advanced techniques. The intuition for well-implemented components should be that events bubble from children
 to parents. In this way the hierarchy in your coded `html!` is the one observed by event handlers.
 
