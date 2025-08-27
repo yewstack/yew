@@ -1,29 +1,34 @@
 ---
-title: '不可變型別'
-description: 'Yew 的不可變資料結構'
+title: 'Immutable Types'
+description: 'Immutable data structures for Yew'
 ---
 
-## 什麼是不可變型別？
+## What are immutable types?
 
-這些類型是您可以實例化但永遠不會更改值的類型。為了更新值，您必須實例化一個新值。
+These are types that you can instantiate but never mutate the values. In order
+to update a value, you must instantiate a new value.
 
-## 為什麼使用不可變型別？
+## Why using immutable types?
 
-與 React 一樣，屬性是從祖先傳播到子代的。這意味著屬性在每個元件更新時必須存在。這就是為什麼屬性應該——理想情況下——很容易克隆。為了實現這一點，我們通常將事物包裝在 `Rc` 中。
+Properties, like in React, are propagated from ancestors to
+children. This means that the properties must live when each component is
+updated. This is why properties should —ideally— be cheap to clone. To
+achieve this we usually wrap things in `Rc`.
 
-不可變類型非常適合保存屬性的值，因為它們可以在從組件傳遞到組件時以很低的成本克隆。
+Immutable types are a great fit for holding property's values because they can
+be cheaply cloned when passed from component to component.
 
-## 常見的不可變型別
+## Common Immutable Types
 
-Yew 推薦使用來自 `implicit-clone` crate 的以下不可變型別：
+Yew recommends using the following immutable types from the `implicit-clone` crate:
 
-- `IString`（在 Yew 中別名為 `AttrValue`）- 用於字串而不是 `String`
-- `IArray<T>` - 用於陣列/向量而不是 `Vec<T>`
-- `IMap<K, V>` - 用於映射而不是 `HashMap<K, V>`
+- `IString` (aliased as `AttrValue` in Yew) - for strings instead of `String`
+- `IArray<T>` - for arrays/vectors instead of `Vec<T>`
+- `IMap<K, V>` - for maps instead of `HashMap<K, V>`
 
-這些型別是引用計數（`Rc`）或靜態引用，使它們的克隆成本非常低。
+These types are either reference-counted (`Rc`) or static references, making them very cheap to clone.
 
-## 進一步閱讀
+## Further reading
 
-- [不可變範例](https://github.com/yewstack/yew/tree/master/examples/immutable)
+- [Immutable example](https://github.com/yewstack/yew/tree/master/examples/immutable)
 - [Crate `implicit-clone`](https://docs.rs/implicit-clone/)

@@ -1,29 +1,34 @@
 ---
-title: 'イミュータブルタイプ'
-description: 'Yew のイミュータブルデータ構造'
+title: 'Immutable Types'
+description: 'Immutable data structures for Yew'
 ---
 
-## イミュータブルタイプとは？
+## What are immutable types?
 
-これらのタイプは、インスタンス化はできるが値を変更することはできないタイプです。値を更新するには、新しい値をインスタンス化する必要があります。
+These are types that you can instantiate but never mutate the values. In order
+to update a value, you must instantiate a new value.
 
-## なぜイミュータブルタイプを使用するのですか？
+## Why using immutable types?
 
-React と同様に、プロパティは祖先から子孫に伝播されます。これは、各コンポーネントが更新されるたびにプロパティが存在する必要があることを意味します。したがって、プロパティは理想的には簡単にクローンできるべきです。これを実現するために、通常は `Rc` にラップします。
+Properties, like in React, are propagated from ancestors to
+children. This means that the properties must live when each component is
+updated. This is why properties should —ideally— be cheap to clone. To
+achieve this we usually wrap things in `Rc`.
 
-イミュータブルタイプは、コンポーネント間でプロパティの値を低コストでクローンできるため、プロパティの値を保持するのに最適です。
+Immutable types are a great fit for holding property's values because they can
+be cheaply cloned when passed from component to component.
 
-## 一般的なイミュータブルタイプ
+## Common Immutable Types
 
-Yew は `implicit-clone` クレートから以下のイミュータブルタイプの使用を推奨しています：
+Yew recommends using the following immutable types from the `implicit-clone` crate:
 
-- `IString`（Yew では `AttrValue` としてエイリアス化）- `String` の代わりに文字列用
-- `IArray<T>` - `Vec<T>` の代わりに配列・ベクター用
-- `IMap<K, V>` - `HashMap<K, V>` の代わりにマップ用
+- `IString` (aliased as `AttrValue` in Yew) - for strings instead of `String`
+- `IArray<T>` - for arrays/vectors instead of `Vec<T>`
+- `IMap<K, V>` - for maps instead of `HashMap<K, V>`
 
-これらのタイプは参照カウント（`Rc`）または静的参照のいずれかであり、非常に安価にクローンできます。
+These types are either reference-counted (`Rc`) or static references, making them very cheap to clone.
 
-## さらに読む
+## Further reading
 
-- [イミュータブルの例](https://github.com/yewstack/yew/tree/master/examples/immutable)
+- [Immutable example](https://github.com/yewstack/yew/tree/master/examples/immutable)
 - [Crate `implicit-clone`](https://docs.rs/implicit-clone/)

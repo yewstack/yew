@@ -1,171 +1,163 @@
 ---
-title: Optimizations
-description: Make your app faster
+title: 'Optimizations & Best Practices'
+sidebar_label: Optimizations
+description: 'Make your app faster'
 ---
 
-# 最適化とベストプラクティス
+## Using smart pointers effectively
 
-## neq_assign
+**Note: if you're unsure about some of the terms used in this section, the Rust Book has a useful
+[chapter about smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html).**
 
-親コンポーネントから props を受け取った際、`change`メソッドが呼ばれます。
-これはコンポーネントの状態を更新することができるのに加え、コンポーネントが props が変わった際に再レンダリングするかどうかを決める
-`ShouldRender`という真偽値を返すことができます。
+To avoid cloning large amounts of data to create props when re-rendering, we can use
+smart pointers to only clone a reference to the data instead of the data itself. If you pass
+references to the relevant data in your props and child components instead of the actual data you
+can avoid cloning any data until you need to modify it in the child component, where you can
+use `Rc::make_mut` to clone and obtain a mutable reference to the data you want to alter.
 
-再レンダリングはコストがかかるもので、もし避けられるのであれば避けるべきです。
-一般的なルールとして props が実際に変化した際にのみ再レンダリングすれば良いでしょう。
-以下のコードブロックはこのルールを表しており、props が前と変わったときに`true`を返します。
+This brings further benefits in `Component::changed` when working out whether prop changes require
+the component to re-render. This is because instead of comparing the value of the data the
+underlying pointer addresses (i.e. the position in a machine's memory where the data is stored) can
+instead be compared; if two pointers point to the same data then the value of the data they point to
+must be the same. Note that the inverse might not be true! Even if two pointer addresses differ the
+underlying data might still be the same - in this case you should compare the underlying data.
 
-```rust
-use yew::ShouldRender;
+To do this comparison you'll need to use `Rc::ptr_eq` instead of just using `PartialEq` (which is
+automatically used when comparing data using the equality operator `==`). The Rust documentation
+has [more details about `Rc::ptr_eq`](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq).
 
-#[derive(PartialEq)]
-struct ExampleProps;
+This optimization is most useful for data types that don't implement `Copy`. If you can copy your
+data cheaply, then it isn't worth putting it behind a smart pointer. For structures that
+can be data-heavy like `Vec`s, `HashMap`s, and `String`s using smart pointers is likely to bring
+performance improvements.
 
-struct Example {
-    props: ExampleProps,
-};
+This optimization works best if the values are never updated by the children, and even better if
+they are rarely updated by parents. This makes `Rc<_>s` a good choice for wrapping property values
+in pure components.
 
-impl Example {
-    fn change(&mut self, props: ExampleProps) -> ShouldRender {
-        if self.props != props {
-            self.props = props;
-            true
-        } else {
-            false
-        }
-    }
-}
-```
+However, it must be noted that unless you need to clone the data yourself in the child component,
+this optimization is not only useless, but it also adds the unnecessary cost of reference counting. Props
+in Yew are already reference counted and no data clones occur internally.
 
-しかし我々は先に進んでいけます！
-この 6 行のボイラープレードは`PartialEq`を実装したものにトレイトとブランケットを用いることで 1 行のコードへと落とし込むことができます。
-[こちら](https://docs.rs/yewtil/*/yewtil/trait.NeqAssign.html)にて`yewtil`クレートの`NewAssign`トレイトを見てみてください。
+## View functions
 
-## 効果的にスマートポインタを使う
+For code readability reasons, it often makes sense to migrate sections of `html!` to their own
+functions. Not only does this make your code more readable because it reduces the amount of
+indentation present, it also encourages good design patterns – particularly around building
+composable applications because these functions can be called in multiple places which reduces the
+amount of code that has to be written.
 
-**注意: このセクションで使われている用語がわからなければ Rust book は
-[スマートポインタについての章](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
-があり、非常に有用です。**
+## Pure Components
 
-再レンダリングの際に props を作るデータを大量にコピーしないために、スマートポインタを用いてデータ自体ではなくデータへの参照だけを
-コピーできます。
-props や子コンポーネントで関連するデータに実データではなく参照を渡すと、子コンポーネントでデータを変更する必要がなければ
-データのコピーを避けることができます。
-その際、`Rc::make_mut`によって変更したいデータの変更可能な参照を得ることができます。
+Pure components are components that don't mutate their state, only displaying content and
+propagating messages up to normal, mutable components. They differ from view functions in that they
+can be used from within the `html!` macro using the component syntax \(`<SomePureComponent />`\)
+instead of expression syntax \(`{some_view_function()}`\), and that depending on their
+implementation, they can be memoized (this means that once a function is called its value is "saved"
+so that if it's called with the same arguments more than once it doesn't have to recompute its value
+and can just return the saved value from the first function call) - preventing re-renders for
+identical props. Yew compares the props internally and so the UI is only re-rendered if the props change.
 
-これにより、props が変更されたときにコンポーネントが再レンダリングされるかどうかを決めるかで`Component::change`に更なる恩恵があります。
-なぜなら、データの値を比較する代わりに元々のポインタのアドレス (つまりデータが保管されている機械のメモリの場所) を比較できるためです。
-2 つのポインターが同じデータを指す場合、それらのデータの値は同じでなければならないのです。
-ただし、その逆は必ずしも成り立たないことに注意してください!
-もし 2 つのポインタが異なるのであれば、そのデータは同じである可能性があります。
-この場合はデータを比較するべきでしょう。
+## Reducing compile time using workspaces
 
-この比較においては`PartialEq`ではなく`Rc::ptr_eq`を使う必要があります。
-`PartialEq`は等価演算子`==`を使う際に自動的に使われます。
-Rust のドキュメントには[`Rc::ptr_eq`についてより詳しく書いてあります](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq)。
+Arguably, the largest drawback to using Yew is the long time it takes to compile Yew apps. The time
+taken to compile a project seems to be related to the quantity of code passed to the `html!` macro.
+This tends to not be much of an issue for smaller projects, but for larger applications, it makes
+sense to split code across multiple crates to minimize the amount of work the compiler has to do for
+each change made to the application.
 
-この最適化は`Copy`を実装していないデータの型に対して極めて有効なものです。
-もしデータを簡単に変更できるのであれば、スマートポインタに取り換える必要はありません。
-しかし`Vec`や`HashMap`、`String`などのような重たいデータの構造体に対してはスマートポインタを使うことで
-パフォーマンスを改善することができるでしょう。
+One possible approach is to make your main crate handle routing/page selection, and then make a
+different crate for each page, where each page could be a different component or just a big
+function that produces `Html`. Code that is shared between the crates containing different parts of
+the application could be stored in a separate crate which the project depends on.
+In the best-case scenario, you go from rebuilding all of your code on each compile to rebuilding
+only the main crate, and one of your page crates. In the worst case, where you edit something in the
+"common" crate, you will be right back to where you started: compiling all code that depends on that
+commonly shared crate, which is probably everything else.
 
-この最適化は値がまだ一度も子によって更新されていない場合に極めて有効で、親からほとんど更新されない場合においてもかなり有効です。
-これにより、`Rc<_>s`が純粋なコンポーネントに対してプロパティの値をラップする良い一手となります。
+If your main crate is too heavyweight, or you want to rapidly iterate on a deeply nested page \(eg.
+a page that renders on top of another page\), you can use an example crate to create a simplified
+implementation of the main page and additionally render the component you are working on.
 
-## View 関数
+## Reducing binary sizes
 
-コードの可読性の理由から`html!`の部分を関数へと移植するのは意味があります。
-これは、インデントを減らすのでコードを読みやすくするだけでなく、良いデザインパターンを産むことにも繋がるのです。
-これらの関数は複数箇所で呼ばれて書くべきコード量を減らせるため、分解可能なアプリケーションを作ることができるのです。
+- optimize Rust code
+- `cargo.toml` \( defining release profile \)
+- optimize wasm code using `wasm-opt`
 
-## 純粋なコンポーネント
-
-純粋なコンポーネントは状態を変化せず、ただ中身を表示してメッセージを普通の変更可能なコンポーネントへ渡すコンポーネントのことです。
-View 関数との違いとして、純粋なコンポーネントは式の構文\(`{some_view_function()}`\)ではなく
-コンポーネントの構文\(`<SomePureComponent />`\)を使うことで`html!`マクロの中で呼ばれる点、
-そして実装次第で記憶され (つまり、一度関数が呼ばれれば値は"保存"され、
-同じ引数でもう一度呼ばれても値を再計算する必要がなく最初に関数が呼ばれたときの保存された値を返すことができる)、
-先述の`neq_assign`ロジックを使う別々の props で再レンダリングを避けられる点があります。
-
-Yew は純粋な関数やコンポーネントをサポートしていませんが、外部のクレートを用いることで実現できます。
-
-## 関数型コンポーネント (a.k.a フック)
-
-関数型コンポーネントはまだ開発中です！
-開発状況については[プロジェクトボード](https://github.com/yewstack/yew/projects/3)に詳しく書いてあります。
-
-## キー付き DOM ノード
-
-## ワークスペースでコンパイル時間を減らす
-
-間違いなく Yew を使う上での最大の欠点はコンパイルに時間がかかる点です。
-プロジェクトのコンパイルにかかる時間は`html!`マクロに渡されるコードの量に関係しています。
-これは小さなプロジェクトにはそこまで問題ないようですが、大きなアプリではコードを複数クレートに分割することでアプリに変更が加られた際に
-コンパイラの作業量を減らすのが有効です。
-
-一つ可能なやり方として、ルーティングとページ洗濯を担当するメインのクレートを作り、それぞれのページに対して別のクレートを作ることです。
-そうして各ページは異なるコンポーネントか、`Html`を生成する大きな関数となります。
-アプリの異なる部分を含むクレート同士で共有されるコードはプロジェクト全体で依存する分離したクレートに保存されます。
-理想的には 1 回のコンパイルでコード全てを再ビルドせずメインのクレートかどれかのページのクレートを再ビルドするだけにすることです。
-最悪なのは、"共通"のクレートを編集して、はじめに戻ってくることです:
-共有のクレートに依存している全てのコード、恐らく全てのコードをコンパイルすることです。
-
-もしメインのクレートが重たすぎる、もしくは深くネストしたページ (例えば別ページのトップでレンダリングされるページ)
-で速く繰り返したい場合、クレートの例を用いてメインページの実装をシンプルにしたりトップで動かしているコンポーネントをレンダリングできます。
-
-## バイナリサイズを小さくする
-
-- Rust のコードを最適化する
-- `cargo.toml` \( release profile を定義 \)
-- `wasm-opt`を用いて wasm のコードを最適化する
-
-**注意: バイナリサイズを小さくするのについては[Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)に詳しく書いてあります。**
+**Note: more information about reducing binary sizes can be found in the
+[Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size).**
 
 ### Cargo.toml
 
-`Cargo.toml`で`[profile.release]`のセクションに設定を書き込むことでリリースビルドを小さくすることが可能です。
+It is possible to configure release builds to be smaller using the available settings in the
+`[profile.release]` section of your `Cargo.toml`.
 
-```text
+```toml, title=Cargo.toml
 [profile.release]
-# バイナリに含むコードを少なくする
+# less code to include into binary
 panic = 'abort'
-# コードベース全体での最適化 ( 良い最適化だがビルドが遅くなる)
+# optimization over all codebase ( better optimization, slower build )
 codegen-units = 1
-# サイズの最適化( よりアグレッシブに )
+# optimization for size ( more aggressive )
 opt-level = 'z'
-# サイズの最適化
+# optimization for size
 # opt-level = 's'
-# プログラム全体の分析によるリンク時最適化
+# link time optimization using using whole-program analysis
 lto = true
 ```
 
+### Nightly Cargo configuration
+
+You can also gain additional benefits from experimental nightly features of rust and
+cargo. To use the nightly toolchain with `trunk`, set the `RUSTUP_TOOLCHAIN="nightly"` environment
+variable. Then, you can configure unstable rustc features in your `.cargo/config.toml`.
+Refer to the doc of [unstable features], specifically the section about [`build-std`] and
+[`build-std-features`], to understand the configuration.
+
+```toml, title=".cargo/config.toml"
+[unstable]
+# Requires the rust-src component. `rustup +nightly component add rust-src`
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
+```
+
+[unstable features]: https://doc.rust-lang.org/cargo/reference/unstable.html
+[`build-std`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std
+[`build-std-features`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std-features
+
+:::caution
+The nightly rust compiler can contain bugs, such as [this one](https://github.com/yewstack/yew/issues/2696),
+that require occasional attention and tweaking. Use these experimental options with care.
+:::
+
 ### wasm-opt
 
-更に`wasm`のコードのサイズを最適化することができます。
+Further, it is possible to optimize the size of `wasm` code.
 
-The Rust Wasm Book には Wasm バイナリのサイズを小さくすることについてのセクションがあります:
+The Rust Wasm Book has a section about reducing the size of Wasm binaries:
 [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
-- `wasm-pack`でデフォルトの`wasm`のコードをリリースビルド時に最適化する
-- `wasm-opt`によって直接`wasm`ファイルを最適化する
+- using `wasm-pack` which by default optimizes `wasm` code in release builds
+- using `wasm-opt` directly on `wasm` files.
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 ```
 
-#### yew/examples/にある例を小さなサイズでビルドする
+#### Build size of 'minimal' example in yew/examples/
 
-注意: `wasm-pack`は Rust と Wasm のコードへの最適化を組み合わせます。`wasm-bindgen`はこの例では Rust のサイズ最適化を用いていません。
+Note: `wasm-pack` combines optimization for Rust and Wasm code. `wasm-bindgen` is used in this example without any Rust size optimization.
 
-| 使用したツール              | サイズ |
-| :-------------------------- | :----- |
-| wasm-bindgen                | 158KB  |
-| wasm-bindgen + wasm-opt -Os | 116KB  |
-| wasm-pack                   | 99 KB  |
+| used tool                   | size  |
+| :-------------------------- | :---- |
+| wasm-bindgen                | 158KB |
+| wasm-bindgen + wasm-opt -Os | 116KB |
+| wasm-pack                   | 99 KB |
 
-## 参考文献:
+## Further reading:
 
-- [The Rust Book のスマートポインタに関する章](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
-- [the Rust Wasm Book でのバイナリサイズを小さくすることについて](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
-- [Rust profiles についてのドキュメント](https://doc.rust-lang.org/cargo/reference/profiles.html)
-- [binaryen プロジェクト](https://github.com/WebAssembly/binaryen)
+- [The Rust Book's chapter on smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Information from the Rust Wasm Book about reducing binary sizes](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Documentation about Rust profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen project](https://github.com/WebAssembly/binaryen)
