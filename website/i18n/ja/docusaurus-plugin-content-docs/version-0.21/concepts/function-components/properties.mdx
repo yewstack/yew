@@ -57,14 +57,14 @@ pub struct Props {
 }
 
 #[function_component]
-fn HelloWorld(&Props { is_loading }: &Props) -> Html {
-    html! { <>{"Am I loading? - "}{is_loading}</> }
+fn HelloWorld(props: &Props) -> Html {
+    html! { <>{"Am I loading? - "}{props.is_loading.clone()}</> }
 }
 
 // そしてプロパティを提供します
 #[function_component]
 fn App() -> Html {
-    html! { <HelloWorld is_loading=true /> }
+    html! {<HelloWorld is_loading={true} />}
 }
 
 ```
@@ -75,6 +75,10 @@ fn App() -> Html {
 ```rust
 use yew::{function_component, html, Html};
 
+
+
+
+
 #[function_component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
@@ -83,7 +87,7 @@ fn HelloWorld() -> Html {
 // 提供するプロパティはありません
 #[function_component]
 fn App() -> Html {
-    html! { <HelloWorld /> }
+    html! {<HelloWorld />}
 }
 
 ```
@@ -94,7 +98,6 @@ fn App() -> Html {
 ## 派生マクロフィールド属性
 
 `Properties` を派生する際、デフォルトではすべてのフィールドが必須です。
-
 以下の属性を使用すると、親コンポーネントがそれらを設定しなかった場合にデフォルト値を提供することができます。
 
 :::tip
@@ -118,8 +121,8 @@ pub struct Props {
 }
 
 #[function_component]
-fn HelloWorld(&Props { is_loading }: &Props) -> Html {
-    if is_loading {
+fn HelloWorld(props: &Props) -> Html {
+    if props.is_loading.clone() {
         html! { "Loading" }
     } else {
         html! { "Hello world" }
@@ -129,12 +132,12 @@ fn HelloWorld(&Props { is_loading }: &Props) -> Html {
 // デフォルト値を使用する
 #[function_component]
 fn Case1() -> Html {
-    html! { <HelloWorld /> }
+    html! {<HelloWorld />}
 }
 // またはデフォルト値を上書きしない
 #[function_component]
 fn Case2() -> Html {
-    html! { <HelloWorld is_loading=true /> }
+    html! {<HelloWorld is_loading={true} />}
 }
 ```
 
@@ -142,40 +145,33 @@ fn Case2() -> Html {
   <TabItem value="prop_or_value" label="#[prop_or(value)]">
 
 `value` を使用してプロパティ値を初期化します。`value` はフィールド型を返す任意の式である可能性があります。
-
 例えば、ブールプロパティをデフォルトで `true` にするには、属性 `#[prop_or(true)]` を使用します。プロパティが構築されるときに、式が評価され、明示的な値が与えられていない場合に適用されます。
 
 ```rust
-use yew::prelude::*;
+use yew::{function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    #[prop_or_default]
-    pub is_loading: bool,
     // highlight-start
-    #[prop_or(AttrValue::Static("Bob"))]
+    #[prop_or("Bob".to_string())]
     // highlight-end
-    pub name: AttrValue,
+    pub name: String,
 }
 
 #[function_component]
-fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
-    if is_loading {
-        html! { "Loading" }
-    } else {
-        html! { <>{"Hello "}{name} </>}
-    }
+fn HelloWorld(props: &Props) -> Html {
+    html! {<>{"Hello world"}{props.name.clone()}</>}
 }
 
 // デフォルト値を使用する
 #[function_component]
 fn Case1() -> Html {
-    html! { <Hello /> }
+    html! {<HelloWorld />}
 }
 // またはデフォルト値を上書きしない
 #[function_component]
 fn Case2() -> Html {
-    html! { <Hello name="Sam" /> }
+    html! {<HelloWorld name={"Sam".to_string()} />}
 }
 ```
 
@@ -183,43 +179,36 @@ fn Case2() -> Html {
   <TabItem value="prop_or_else_function" label="#[prop_or_else(function)]">
 
 属性値を初期化するために `function` を呼び出します。`function` は `FnMut() -> T` シグネチャを持つ必要があり、ここで `T` はフィールドの型です。このプロパティに明示的な値が与えられていない場合、その関数が呼び出されます。
-この関数はプロパティが構築されるときに呼び出されます。
 
 ```rust
-use yew::prelude::*;
+use yew::{function_component, html, Html, Properties};
 
-fn create_default_name() -> AttrValue {
-    AttrValue::Static("Bob")
+fn create_default_name() -> String {
+    "Bob".to_string()
 }
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    #[prop_or_default]
-    pub is_loading: bool,
     // highlight-start
     #[prop_or_else(create_default_name)]
     // highlight-end
-    pub name: AttrValue,
+    pub name: String,
 }
 
 #[function_component]
-fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
-    if is_loading {
-        html! { "Loading" }
-    } else {
-        html! { <>{"Hello "}{name}</> }
-    }
+fn HelloWorld(props: &Props) -> Html {
+    html! {<>{"Hello world"}{props.name.clone()}</>}
 }
 
 // デフォルト値を使用する
 #[function_component]
 fn Case1() -> Html {
-    html! { <Hello /> }
+    html! {<HelloWorld />}
 }
 // またはデフォルト値を上書きしない
 #[function_component]
 fn Case2() -> Html {
-    html! { <Hello name="Sam" /> }
+    html! {<HelloWorld name={"Sam".to_string()} />}
 }
 ```
 
@@ -241,65 +230,28 @@ fn Case2() -> Html {
 このマクロは構造体の式と同じ構文を使用しますが、プロパティや基本式 (`Foo { ..base }`) を使用することはできません。タイプパスはプロパティ (`path::to::Props`) に直接指すことも、コンポーネントの関連プロパティ (`MyComp::Properties`) に指すこともできます。
 
 ```rust
-use yew::prelude::*;
+use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrValue};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    #[prop_or_default]
-    pub is_loading: bool,
-    #[prop_or(AttrValue::Static("Bob"))]
+    #[prop_or(AttrValue::from("Bob"))]
     pub name: AttrValue,
 }
 
 #[function_component]
-fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
-    if is_loading {
-        html! { "Loading" }
-    } else {
-        html! { <>{"Hello "}{name}</> }
-    }
+fn HelloWorld(props: &Props) -> Html {
+    html! {<>{"Hello world"}{props.name.clone()}</>}
 }
 
 #[function_component]
 fn App() -> Html {
     // highlight-start
-    let pre_made_props = yew::props! {
+    let pre_made_props = props! {
         Props {} // 名前属性を指定する必要はありません
     };
     // highlight-end
-    html! { <Hello ..pre_made_props /> }
+    html! {<HelloWorld ..pre_made_props />}
 }
-```
-
-## 自動生成プロパティ (yew-autoprops)
-
-開発プロセスを簡素化するために、`#[autoprops]` マクロ（`yew-autoprops` パッケージから）を使用して `Properties` 構造体を自動生成することもできます。
-
-```rust
-use yew::prelude::*;
-use yew_autoprops::autoprops;
-
-// #[autoprops] マクロは #[function_component] の前に配置する必要があります。順序が重要です。
-#[autoprops]
-#[function_component]
-fn Greetings(
-    #[prop_or_default]
-    is_loading: bool,
-    #[prop_or(AttrValue::Static("Hello"))]
-    message: &AttrValue,
-    #[prop_or(AttrValue::Static("World"))]
-    name: &AttrValue,
-) -> Html {
-    if is_loading {
-        html! { "Loading" }
-    } else {
-        html! { <>{message}{" "}{name}</> }
-    }
-}
-
-// 構造体 "GreetingsProps" は自動的に生成されます。
-//
-// `is_loading` は値としてコンポーネントに渡され、`message` と `name` は定義に先行する `&` があるため参照として渡されます。
 ```
 
 ## 評価順序
@@ -331,7 +283,7 @@ fn main() {
    **なぜ悪いのか？** 内部可変性（例えば `RefCell`、`Mutex` など）は _通常_ 避けるべきです。これにより再レンダリングの問題が発生する可能性があり（Yewは状態が変更されたことを認識しません）、手動で再レンダリングを強制する必要があるかもしれません。すべてのものと同様に、適切な使用場所があります。慎重に使用してください。
 3. `Vec<T>` 型を `IArray<T>` の代わりに使用する。 <br />
    **なぜ悪いのか？** `Vec<T>` も `String` と同様にクローンのコストが高いです。`IArray<T>` は参照カウントされたスライス (`Rc<[T]>`) または `&'static [T]` であり、非常に安価にクローンできます。<br />
-   **注意**：`IArray` は [implicit-clone](https://crates.io/crates/implicit-clone) からインポートできます。詳細はそのパッケージを参照してください。
+   **注意**：`IArray<T>` は [implicit-clone](https://crates.io/crates/implicit-clone) からインポートできます。詳細はそのパッケージを参照してください。
 4. 新しい発見があるかもしれません。早く知っておきたかったエッジケースに遭遇しましたか？問題を作成するか、このドキュメントに修正のPRを提供してください。
 
 ## yew-autoprops
