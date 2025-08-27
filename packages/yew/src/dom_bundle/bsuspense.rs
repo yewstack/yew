@@ -224,7 +224,7 @@ impl Reconcilable for VSuspense {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
     use crate::virtual_dom::Collectable;
 
     impl Hydratable for VSuspense {
@@ -234,6 +234,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            previous_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let detached_parent = document()
                 .create_element("div")
@@ -250,9 +251,13 @@ mod feat_hydration {
 
             // Even if initially suspended, these children correspond to the first non-suspended
             // content Refer to VSuspense::render_to_string
-            let children_bundle =
-                self.children
-                    .hydrate(root, parent_scope, &detached_parent, &mut nodes);
+            let children_bundle = self.children.hydrate(
+                root,
+                parent_scope,
+                &detached_parent,
+                &mut nodes,
+                previous_next_sibling,
+            );
 
             // We trim all leading text nodes before checking as it's likely these are whitespaces.
             nodes.trim_start_text_nodes();

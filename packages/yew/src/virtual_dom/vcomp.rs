@@ -65,8 +65,7 @@ pub(crate) trait Mountable {
         parent_scope: &AnyScope,
         parent: Element,
         slot: DomSlot,
-        internal_ref: DynamicDomSlot,
-    ) -> Box<dyn Scoped>;
+    ) -> (Box<dyn Scoped>, DynamicDomSlot);
 
     #[cfg(feature = "csr")]
     fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomSlot);
@@ -86,9 +85,9 @@ pub(crate) trait Mountable {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
-    ) -> Box<dyn Scoped>;
+        prev_next_sibling: &mut Option<DynamicDomSlot>,
+    ) -> (Box<dyn Scoped>, DynamicDomSlot);
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -127,12 +126,11 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &AnyScope,
         parent: Element,
         slot: DomSlot,
-        internal_ref: DynamicDomSlot,
-    ) -> Box<dyn Scoped> {
+    ) -> (Box<dyn Scoped>, DynamicDomSlot) {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.mount_in_place(root.clone(), parent, slot, internal_ref, self.props);
+        let own_slot = scope.mount_in_place(root.clone(), parent, slot, self.props);
 
-        Box::new(scope)
+        (Box::new(scope), own_slot)
     }
 
     #[cfg(feature = "csr")]
@@ -165,13 +163,14 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         root: BSubtree,
         parent_scope: &AnyScope,
         parent: Element,
-        internal_ref: DynamicDomSlot,
         fragment: &mut Fragment,
-    ) -> Box<dyn Scoped> {
+        prev_next_sibling: &mut Option<DynamicDomSlot>,
+    ) -> (Box<dyn Scoped>, DynamicDomSlot) {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
-        scope.hydrate_in_place(root, parent, fragment, internal_ref, self.props);
+        let own_slot =
+            scope.hydrate_in_place(root, parent, fragment, self.props, prev_next_sibling);
 
-        Box::new(scope)
+        (Box::new(scope), own_slot)
     }
 }
 
