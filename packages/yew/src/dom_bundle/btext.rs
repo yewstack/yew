@@ -104,11 +104,11 @@ mod feat_hydration {
             previous_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let create_at = |next_sibling: Option<Node>, text: AttrValue| {
-                // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a
-                // single text node by browser, hence we need to add extra text nodes here
-                // if the next node is not a text node. Similarly, the value of the text
-                // node may be a combination of multiple VText vnodes. So we always need to
-                // override their values.
+                // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as
+                // a single text node by browser, hence we need to add extra text
+                // nodes here if the next node is not a text node. Similarly, the
+                // value of the text node may be a combination of multiple VText
+                // vnodes. So we always need to override their values.
                 let text_node = document().create_text_node(text.as_ref());
                 DomSlot::create(next_sibling).insert(parent, &text_node);
                 BText { text, text_node }

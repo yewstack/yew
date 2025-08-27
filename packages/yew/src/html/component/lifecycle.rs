@@ -26,11 +26,12 @@ pub(crate) enum ComponentRenderState {
         root: BSubtree,
         parent: Element,
         /// The dom position in front of the next sibling.
-        /// Gets updated when the bundle in which this component occurs gets re-rendered and is shared with the
-        /// children of this component.
+        /// Gets updated when the bundle in which this component occurs gets re-rendered and is
+        /// shared with the children of this component.
         sibling_slot: DynamicDomSlot,
         /// The dom position in front of this component.
-        /// Gets updated whenever this component re-renders and is shared with the bundle in which this component occurs.
+        /// Gets updated whenever this component re-renders and is shared with the bundle in which
+        /// this component occurs.
         own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "hydration")]
@@ -229,8 +230,8 @@ pub(crate) struct ComponentState {
     #[cfg(feature = "csr")]
     has_rendered: bool,
     /// This deals with an edge case. Usually, we want to update props as fast as possible.
-    /// But, when a component hydrates and suspends, we want to continue using the intially given props.
-    /// This is prop updates are ignored during SSR, too.
+    /// But, when a component hydrates and suspends, we want to continue using the intially given
+    /// props. This is prop updates are ignored during SSR, too.
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
 
@@ -527,7 +528,8 @@ impl ComponentState {
                 ref root,
             } => {
                 // We schedule a "first" render to run immediately after hydration.
-                // Most notably, only this render will trigger the "rendered" callback, hence we want to prioritize this.
+                // Most notably, only this render will trigger the "rendered" callback, hence we
+                // want to prioritize this.
                 scheduler::push_component_priority_render(
                     self.comp_id,
                     Box::new(RenderRunner {

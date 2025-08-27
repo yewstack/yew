@@ -173,7 +173,8 @@ impl DynamicDomSlot {
     }
 
     /// Move out of self, leaving behind a trapped slot. `self` should not be used afterwards.
-    /// Used during the transition from a hydrating to a rendered component to move state between enum variants.
+    /// Used during the transition from a hydrating to a rendered component to move state between
+    /// enum variants.
     #[cfg(feature = "hydration")]
     pub fn take(&mut self) -> Self {
         std::mem::replace(self, Self::new(DomSlot::new_debug_trapped()))

@@ -696,7 +696,8 @@ mod feat_hydration {
 
             // These two references need to be fixed before the component is used.
             // Our own slot gets fixed on the first render.
-            // The sibling slot gets shared with the caller to fix up when continuing through existing DOM.
+            // The sibling slot gets shared with the caller to fix up when continuing through
+            // existing DOM.
             let own_slot = DynamicDomSlot::new_debug_trapped();
             let shared_slot = own_slot.clone();
             let sibling_slot = DynamicDomSlot::new_debug_trapped();
