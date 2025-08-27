@@ -1,24 +1,22 @@
 ---
-title: 'Lifecycle'
-description: 'Components and their lifecycle hooks'
+title: 'ライフサイクル'
+description: 'コンポーネントとそのライフサイクルフック'
 ---
 
-The `Component` trait has a number of methods which need to be implemented; Yew will call these at different
-stages in the lifecycle of a component.
+`Component` トレイトには実装が必要なメソッドがいくつかあります。Yew はコンポーネントのライフサイクルの異なる段階でこれらを呼び出します。
 
-## Lifecycle
+## ライフサイクル
 
 :::important contribute
 `Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/yew/issues/1915)
 :::
 
-## Lifecycle Methods
+## ライフサイクルのメソッド
 
 ### Create
 
-When a component is created, it receives properties from its parent component and is stored within
-the `Context<Self>` that is passed down to the `create` method. The properties can be used to
-initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
+コンポーネントが作られると、親コンポーネントからプロパティを受け取り、`create` メソッドに渡される `Context<Self>` 内に格納されます。
+プロパティはコンポーネントの状態を初期化するのに使われ、"link"はコールバックを登録したりコンポーネントにメッセージを送るのに使われます。
 
 ```rust
 use yew::{Component, Context, html, Html, Properties};
@@ -48,12 +46,10 @@ impl Component for MyComponent {
 
 ### View
 
-The `view` method allows you to describe how a component should be rendered to the DOM. Writing
-HTML-like code using Rust functions can become quite messy, so Yew provides a macro called `html!`
-for declaring HTML and SVG nodes (as well as attaching attributes and event listeners to them) and a
-convenient way to render child components. The macro is somewhat similar to React's JSX (the
-differences in programming language aside).
-One difference is that Yew provides a shorthand syntax for properties, similar to Svelte, where instead of writing `onclick={onclick}`, you can just write `{onclick}`.
+コンポーネントは`view()`メソッドによってレイアウトを宣言します。
+Yew は`html!`マクロによって HTML と SVG ノード、リスナー、子コンポーネントを宣言できます。
+マクロは React の JSX のような動きをしますが、JavaScript の代わりに Rust の式を用います。
+Yew は Svelte のように、`onclick={onclick}` の代わりに `{onclick}` と書くことができる省略構文を提供しています。
 
 ```rust
 use yew::{Component, Context, html, Html, Properties};
@@ -88,15 +84,14 @@ impl Component for MyComponent {
 }
 ```
 
-For usage details, check out [the `html!` guide](concepts/html/introduction.mdx).
+使い方については[`html!`ガイド](concepts/html/introduction.mdx)をご確認ください。
 
 ### Rendered
 
-The `rendered` component lifecycle method is called once `view` has been called and Yew has rendered
-the results to the DOM, but before the browser refreshes the page. This method is useful when you
-want to perform actions that can only be completed after the component has rendered elements. There
-is also a parameter called `first_render` which can be used to determine whether this function is
-being called on the first render, or instead a subsequent one.
+`rendered()`コンポーネントのライフサイクルのメソッドは`view()`が処理されて Yew がコンポーネントをレンダリングした後、
+ブラウザがページを更新する前に呼ばれます。
+コンポーネントは、コンポーネントが要素をレンダリングした後にのみ実行できるアクションを実行するため、このメソッドを実装したい場合があります。
+コンポーネントが初めてレンダリングされたかどうかは `first_render` パラメータで確認できます。
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -137,17 +132,17 @@ impl Component for MyComponent {
 ```
 
 :::tip note
-Note that this lifecycle method does not require implementation and will do nothing by default.
+ライフサイクルメソッドは実装の必要がなく、デフォルトでは何もしません。
 :::
 
 ### Update
 
-Communication with components happens primarily through messages which are handled by the
-`update` lifecycle method. This allows the component to update itself
-based on what the message was, and determine if it needs to re-render itself. Messages can be sent
-by event listeners, child components, Agents, Services, or Futures.
+コンポーネントは動的で、非同期メッセージを受信するために登録することができます。
+ライフサイクルメソッド `update()` はメッセージごとに呼び出されます。
+これにより、コンポーネントはメッセージが何であったかに基づいて自身を更新し、自身を再レンダリングする必要があるかどうかを判断することができます。
+メッセージは、HTML 要素リスナーによってトリガーされたり、子コンポーネント、エージェント、サービス、または Futures によって送信されたりします。
 
-Here is an example of what an implementation of `update` could look like:
+`update()`がどのようなのかについての例は以下の通りです:
 
 ```rust
 use yew::{Component, Context, html, Html};
@@ -199,10 +194,10 @@ impl Component for MyComponent {
 
 ### Changed
 
-Components may be re-rendered by their parents. When this happens, they could receive new properties
-and need to re-render. This design facilitates parent-to-child component communication by just
-changing the values of a property. There is a default implementation that re-renders the component
-when props are changed.
+コンポーネントは親によって再レンダリングされることがあります。
+このような場合、新しいプロパティを受け取り、再レンダリングを選択する可能性があります。
+この設計では、プロパティを変更することで、親から子へのコンポーネントの通信が容易になります。
+props が変更されたときにコンポーネントを再レンダリングするデフォルト実装があります。
 
 ### Destroy
 

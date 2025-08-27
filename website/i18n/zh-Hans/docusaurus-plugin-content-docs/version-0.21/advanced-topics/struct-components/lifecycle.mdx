@@ -1,24 +1,22 @@
 ---
-title: 'Lifecycle'
-description: 'Components and their lifecycle hooks'
+title: '生命周期'
+description: '组件及其生命周期钩子'
 ---
 
-The `Component` trait has a number of methods which need to be implemented; Yew will call these at different
-stages in the lifecycle of a component.
+`Component` trait 有许多需要实现的方法；Yew 会在组件生命周期的不同阶段调用这些方法。
 
-## Lifecycle
+## 生命周期
 
 :::important contribute
 `Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/yew/issues/1915)
 :::
 
-## Lifecycle Methods
+## 生命周期方法
 
 ### Create
 
-When a component is created, it receives properties from its parent component and is stored within
-the `Context<Self>` that is passed down to the `create` method. The properties can be used to
-initialize the component's state and the "link" can be used to register callbacks or send messages to the component.
+当一个组件被创建时，它会从其父组件接收属性（properties）并存储在传递给 `create` 方法的 `Context<Self>` 中。
+属性（properties）可用于初始化组件的状态，"link"可用于注册回调或向组件发送消息。
 
 ```rust
 use yew::{Component, Context, html, Html, Properties};
@@ -48,12 +46,10 @@ impl Component for MyComponent {
 
 ### View
 
-The `view` method allows you to describe how a component should be rendered to the DOM. Writing
-HTML-like code using Rust functions can become quite messy, so Yew provides a macro called `html!`
-for declaring HTML and SVG nodes (as well as attaching attributes and event listeners to them) and a
-convenient way to render child components. The macro is somewhat similar to React's JSX (the
-differences in programming language aside).
-One difference is that Yew provides a shorthand syntax for properties, similar to Svelte, where instead of writing `onclick={onclick}`, you can just write `{onclick}`.
+`view` 方法允许你描述组件应该如何渲染到 DOM。使用 Rust 函数编写类似 HTML 的代码可能会变得相当混乱，
+因此 Yew 提供了一个叫做 `html!` 的宏用于声明 HTML 和 SVG 节点（以及附加属性和事件监听器），
+并提供了一种方便的方式来渲染子组件。这个宏在某种程度上类似于 React 的 JSX（撇开编程语言的差异不谈）。
+一个区别是 Yew 提供了类似 Svelte 的属性简写语法，你可以直接写 `{onclick}`，而不是写 `onclick={onclick}`。
 
 ```rust
 use yew::{Component, Context, html, Html, Properties};
@@ -88,15 +84,13 @@ impl Component for MyComponent {
 }
 ```
 
-For usage details, check out [the `html!` guide](concepts/html/introduction.mdx).
+有关用法的详细信息，请查看 [`html!` 宏指南](concepts/html/introduction.mdx)。
 
 ### Rendered
 
-The `rendered` component lifecycle method is called once `view` has been called and Yew has rendered
-the results to the DOM, but before the browser refreshes the page. This method is useful when you
-want to perform actions that can only be completed after the component has rendered elements. There
-is also a parameter called `first_render` which can be used to determine whether this function is
-being called on the first render, or instead a subsequent one.
+`rendered` 组件生命周期方法在 `view` 被调用并且 Yew 已将结果渲染到 DOM 之后，但在浏览器刷新页面之前被调用。
+当你想要执行只能在组件渲染元素之后才能完成的操作时，这个方法非常有用。
+还有一个名为 `first_render` 的参数，可用于确定此函数是在第一次渲染时被调用，还是在后续渲染时被调用。
 
 ```rust
 use web_sys::HtmlInputElement;
@@ -137,17 +131,16 @@ impl Component for MyComponent {
 ```
 
 :::tip note
-Note that this lifecycle method does not require implementation and will do nothing by default.
+注意，此生命周期方法不需要实现，默认情况下不会执行任何操作。
 :::
 
 ### Update
 
-Communication with components happens primarily through messages which are handled by the
-`update` lifecycle method. This allows the component to update itself
-based on what the message was, and determine if it needs to re-render itself. Messages can be sent
-by event listeners, child components, Agents, Services, or Futures.
+与组件的通信主要通过消息进行，这些消息由 `update` 生命周期方法处理。
+这允许组件根据消息的内容更新自身，并决定是否需要重新渲染。
+消息可以由事件监听器、子组件、Agents、Services 或 Futures 发送。
 
-Here is an example of what an implementation of `update` could look like:
+以下是 `update` 实现的示例：
 
 ```rust
 use yew::{Component, Context, html, Html};
@@ -199,23 +192,22 @@ impl Component for MyComponent {
 
 ### Changed
 
-Components may be re-rendered by their parents. When this happens, they could receive new properties
-and need to re-render. This design facilitates parent-to-child component communication by just
-changing the values of a property. There is a default implementation that re-renders the component
-when props are changed.
+组件可能会被其父组件重新渲染。当这种情况发生时，它们可能会收到新的属性并需要重新渲染。
+这种设计通过简单地改变属性值来促进父组件到子组件的通信。
+有一个默认实现会在属性发生变化时重新渲染组件。
 
 ### Destroy
 
-After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle method; this is
-necessary if you need to undertake operations to clean up after earlier actions of a component
-before it is destroyed. This method is optional and does nothing by default.
+组件从 DOM 卸载后，Yew 会调用 `destroy` 生命周期方法；
+如果你需要在组件销毁之前清理组件先前操作的内容，这是必要的。
+此方法是可选的，默认情况下不执行任何操作。
 
-### Infinite loops
+### 无限循环
 
-Infinite loops are possible with Yew's lifecycle methods but are only caused when trying to update
-the same component after every render, when that update also requests the component to be rendered.
+使用 Yew 的生命周期方法可能会出现无限循环，但只有在尝试在每次渲染后更新同一组件，
+并且该更新也请求组件重新渲染时才会发生。
 
-A simple example can be seen below:
+一个简单的示例如下：
 
 ```rust
 use yew::{Context, Component, Html};
@@ -247,24 +239,22 @@ impl Component for Comp {
 }
 ```
 
-Let's run through what happens here:
+让我们来看看这里发生了什么：
 
-1. Component is created using the `create` function.
-2. The `view` method is called so Yew knows what to render to the browser DOM.
-3. The `rendered` method is called, which schedules an update message using the `Context` link.
-4. Yew finishes the post-render phase.
-5. Yew checks for scheduled events and sees the update message queue is not empty so works through
-   the messages.
-6. The `update` method is called which returns `true` to indicate something has changed and the
-   component needs to re-render.
-7. Jump back to 2.
+1. 使用 `create` 函数创建组件。
+2. 调用 `view` 方法，以便 Yew 知道要渲染什么到浏览器 DOM。
+3. 调用 `rendered` 方法，它使用 `Context` 链接安排了一个更新消息。
+4. Yew 完成后渲染阶段。
+5. Yew 检查预定的事件，发现更新消息队列不为空，因此处理这些消息。
+6. 调用 `update` 方法，它返回 `true` 表示有内容已更改，组件需要重新渲染。
+7. 跳回步骤 2。
 
-You can still schedule updates in the `rendered` method and it is often useful to do so, but
-consider how your component will terminate this loop when you do.
+你仍然可以在 `rendered` 方法中安排更新，这通常很有用，
+但在这样做时要考虑你的组件将如何终止这个循环。
 
-## Associated Types
+## 关联类型
 
-The `Component` trait has two associated types: `Message` and `Properties`.
+`Component` trait 有两个关联类型：`Message` 和 `Properties`。
 
 ```rust ,ignore
 impl Component for MyComponent {
@@ -275,16 +265,15 @@ impl Component for MyComponent {
 }
 ```
 
-The `Message` type is used to send messages to a component after an event has taken place; for
-example, you might want to undertake some action when a user clicks a button or scrolls down the
-page. Because components tend to have to respond to more than one event, the `Message` type will
-normally be an enum, where each variant is an event to be handled.
+`Message` 类型用于在事件发生后向组件发送消息；
+例如，你可能希望在用户点击按钮或向下滚动页面时执行某些操作。
+由于组件通常需要响应多个事件，`Message` 类型通常是一个枚举，
+其中每个变体都是要处理的事件。
 
-When organizing your codebase, it is sensible to include the definition of the `Message` type in the
-same module in which your component is defined. You may find it helpful to adopt a consistent naming
-convention for message types. One option (though not the only one) is to name the types
-`ComponentNameMsg`, e.g. if your component was called `Homepage` then you might call the type
-`HomepageMsg`.
+在组织代码库时，明智的做法是将 `Message` 类型的定义包含在定义组件的同一模块中。
+你可能会发现采用一致的消息类型命名约定很有帮助。
+一种选择（尽管不是唯一的）是将类型命名为 `ComponentNameMsg`，
+例如，如果你的组件叫 `Homepage`，那么你可能会将类型命名为 `HomepageMsg`。
 
 ```rust
 enum Msg {
@@ -293,13 +282,13 @@ enum Msg {
 }
 ```
 
-`Properties` represents the information passed to a component from its parent. This type must implement the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
+`Properties` 表示从父组件传递给组件的信息。此类型必须实现 `Properties` trait（通常通过派生它）并可以指定某些属性是必需的还是可选的。此类型在创建和更新组件时使用。常见的做法是在组件模块中创建一个名为 `Props` 的结构体，并将其用作组件的 `Properties` 类型。通常将"properties"缩写为"props"。由于 props 是从父组件传递下来的，应用程序的根组件通常具有 `()` 类型的 `Properties`。如果你希望为根组件指定属性，请使用 `App::mount_with_props` 方法。
 
 :::info
-[Learn more about properties](./properties)
+[了解更多关于属性的信息](./properties)
 :::
 
-## Lifecycle Context
+## 生命周期上下文
 
-All component lifecycle methods take a context object. This object provides a reference to the component's scope, which
-allows sending messages to a component and the props passed to the component.
+所有组件生命周期方法都接受一个上下文对象。此对象提供了对组件作用域的引用，
+允许向组件发送消息以及访问传递给组件的 props。

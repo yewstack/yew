@@ -3,21 +3,20 @@ title: 'Properties'
 description: 'Parent to child communication'
 ---
 
-Properties enable child and parent components to communicate with each other.
-Every component has an associated properties type which describes what is passed down from the parent.
-In theory, this can be any type that implements the `Properties` trait, but in practice, there is no
-reason for it to be anything but a struct where each field represents a property.
+プロパティは、子コンポーネントと親コンポーネントが互いに通信できるようにします。
+各コンポーネントには、親から渡されるものを記述する関連付けられたプロパティタイプがあります。
+理論的には、これは `Properties` trait を実装する任意のタイプにすることができますが、実際には
+各フィールドがプロパティを表す構造体以外にする理由はありません。
 
-## Derive macro
+## マクロの継承
 
-Instead of implementing the `Properties` trait yourself, you should use `#[derive(Properties)]` to
-automatically generate the implementation instead.
-Types for which you derive `Properties` must also implement `PartialEq`.
+`Properties`を自分で実装しようとせず、代わりに`#[derive(Properties)]`を使ってください。
+`Properties`を継承した型は`PartialEq`も実装していなければいけません。
 
-### Field attributes
+### フィールド属性
 
-When deriving `Properties`, all fields are required by default.
-The following attributes allow you to give your props initial values which will be used unless they are set to another value.
+デフォルトでは、`Properties` を導出する構造体内のフィールドは必須です。
+以下の属性を使うと、props に初期値を与えることができ、他の値に設定されない限りこの値が使用されます。
 
 :::tip
 Attributes aren't visible in Rustdoc generated documentation.
@@ -39,13 +38,16 @@ Call `function` to initialize the prop value. `function` should have the signatu
 
 ## `PartialEq`
 
-`Properties` require `PartialEq` to be implemented. This is so that they can be compared by Yew to call the `changed` method
-only when they change.
+もし可能なら props で `PartialEq` を継承するのが良いかもしれません。
+`PartialEq`を使うことで、不必要な再レンダリングを避けることができます
+(これについては、**最適化とベストプラクティス**のセクションで説明しています)。
 
-## Memory/speed overhead of using Properties
+## プロパティを使用する際のメモリと速度のオーバーヘッド
 
-Internally properties are reference counted. This means that only a pointer is passed down the component tree for props.
-It saves us from the cost of having to clone the entire props, which might be expensive.
+`Component::view`ではコンポーネントの状態への参照を取り、それを使って `Html` を作成します。
+しかし、プロパティは自身の値です。
+つまり、それらを作成して子コンポーネントに渡すためには、`view` 関数で提供される参照を所有する必要があるのです。
+これは所有する値を取得するためにコンポーネントに渡される参照を暗黙のうちにクローンすることで行われます。
 
 :::tip
 Make use of `AttrValue` which is our custom type for attribute values instead of defining them as String or another similar type.

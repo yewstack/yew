@@ -1,13 +1,13 @@
 ---
-title: 'Callbacks'
+title: '回调（Callbacks）'
+description: 'ComponentLink 和 Callbacks'
 ---
 
 ## Callbacks
 
-Callbacks are used to communicate with services, agents, and parent components within Yew.
-Internally their type is just `Fn` wrapped in `Rc` to allow them to be cloned.
+Callbacks 用于与 Yew 中的 services，agents 和父组件进行通信。它们仅仅是个 `Fn`，并由 `Rc` 包裹以允许被克隆。
 
-They have an `emit` function that takes their `<IN>` type as an argument and converts that to a message expected by its destination. If a callback from a parent is provided in props to a child component, the child can call `emit` on the callback in its `update` lifecycle hook to send a message back to its parent. Closures or Functions provided as props inside the `html!` macro are automatically converted to Callbacks.
+它们有一个 `emit` 函数，该函数将它的 `<IN>` 类型作为参数并将其转换为目标所期望的消息。如果一个回调从父组件中通过 props 提供给子组件，则子组件可以在其 `update` 生命周期钩子中对该回调调用 `emit`，以将消息发送回父组件。在 `html!` 宏内被提供作为 props 的闭包或函数会自动转换为 Callbacks。
 
 A simple use of a callback might look something like this:
 

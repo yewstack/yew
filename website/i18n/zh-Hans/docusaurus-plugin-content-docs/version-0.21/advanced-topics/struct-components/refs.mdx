@@ -1,17 +1,15 @@
 ---
-title: 'Refs'
-description: 'Out-of-band DOM access'
+title: Refs
+description: 超出界限的 DOM 访问
 ---
 
-The `ref` keyword can be used inside of any HTML element or component to get the DOM `Element` that
-the item is attached to. This can be used to make changes to the DOM outside of the `view` lifecycle
-method.
+`ref` 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM 元素。这可被用于在 `view` 生命周期方法之外来对 DOM 进行更改。
 
-This is useful for getting ahold of canvas elements, or scrolling to different sections of a page.
+这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。
 For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to
 a canvas element after it has been rendered from `view`.
 
-The syntax is:
+语法如下：
 
 ```rust
 use web_sys::Element;

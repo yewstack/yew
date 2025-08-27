@@ -1,18 +1,17 @@
 ---
-title: 'Properties'
-description: 'Parent to child communication'
+title: '属性（Properties）'
+description: '父组件到子组件的通信'
 ---
 
-Properties enable child and parent components to communicate with each other.
-Every component has an associated properties type which describes what is passed down from the parent.
-In theory, this can be any type that implements the `Properties` trait, but in practice, there is no
-reason for it to be anything but a struct where each field represents a property.
+Properties 用于父级到子组件的通信。
+每个组件都有一个关联的属性类型，描述了从父级传递下来的内容。
+理论上，这可以是任何实现了 `Properties` trait 的类型，但实际上，
+没有理由不使用一个结构体，其中每个字段都代表一个属性。
 
-## Derive macro
+## 派生宏
 
-Instead of implementing the `Properties` trait yourself, you should use `#[derive(Properties)]` to
-automatically generate the implementation instead.
-Types for which you derive `Properties` must also implement `PartialEq`.
+不要尝试自己去实现 `Properties`，而是通过使用 `#[derive(Properties)]` 来派生它。
+派生 `Properties` 的类型还必须实现 `PartialEq`。
 
 ### Field attributes
 
