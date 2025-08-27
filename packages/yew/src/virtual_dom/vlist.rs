@@ -3,7 +3,6 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 use super::{Key, VNode};
-use crate::html::ImplicitClone;
 
 #[doc(hidden)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -27,7 +26,16 @@ pub struct VList {
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
-        self.key == other.key && self.children == other.children
+        if self.key != other.key {
+            return false;
+        }
+
+        match (self.children.as_ref(), other.children.as_ref()) {
+            (Some(a), Some(b)) => a == b,
+            (Some(a), None) => a.is_empty(),
+            (None, Some(b)) => b.is_empty(),
+            (None, None) => true,
+        }
     }
 }
 

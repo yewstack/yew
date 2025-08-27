@@ -30,3 +30,4 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 ]}
 [workspace.dependencies]
 tokio = { version = "1.47.1" }
+implicit-clone = { version = "0.5.1" }
