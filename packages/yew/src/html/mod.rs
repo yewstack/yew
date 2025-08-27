@@ -92,7 +92,7 @@ pub struct NodeRef(Rc<RefCell<NodeRefInner>>);
 
 impl PartialEq for NodeRef {
     fn eq(&self, other: &Self) -> bool {
-        self.0.as_ptr() == other.0.as_ptr()
+        std::ptr::eq(self.0.as_ptr(), other.0.as_ptr())
     }
 }
 

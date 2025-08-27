@@ -25,7 +25,9 @@ macro_rules! generate_callback_impls {
             }
         }
 
-        #[allow(clippy::vtable_address_comparisons)]
+        // We are okay with comparisons from different compilation units to result in false
+        // not-equal results. This should only lead in the worst-case to some unneeded re-renders.
+        #[allow(ambiguous_wide_pointer_comparisons)]
         impl<IN, OUT> PartialEq for $callback<IN, OUT> {
             fn eq(&self, other: &$callback<IN, OUT>) -> bool {
                 let ($callback { cb }, $callback { cb: rhs_cb }) = (self, other);

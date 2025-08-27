@@ -17,6 +17,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
   |              ^^ the trait `From<{integer}>` is not implemented for `Classes`
   |
   = help: the following other types implement trait `From<T>`:
+<<<<<<< HEAD
             <Classes as From<&'static str>>
             <Classes as From<&Option<T>>>
             <Classes as From<&String>>
@@ -25,8 +26,18 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
             <Classes as From<Cow<'static, str>>>
             <Classes as From<Option<T>>>
             <Classes as From<String>>
+=======
+            `Classes` implements `From<&Option<T>>`
+            `Classes` implements `From<&String>`
+            `Classes` implements `From<&[T]>`
+            `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+            `Classes` implements `From<&str>`
+            `Classes` implements `From<Cow<'_, str>>`
+            `Classes` implements `From<Option<T>>`
+            `Classes` implements `From<String>`
+>>>>>>> origin/master
           and $N others
-  = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
+  = note: required for `{integer}` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
  --> $WORKSPACE/packages/yew/src/html/classes.rs
   |
@@ -40,6 +51,7 @@ error[E0277]: the trait bound `Classes: From<{float}>` is not satisfied
   |              ^^^^ the trait `From<{float}>` is not implemented for `Classes`
   |
   = help: the following other types implement trait `From<T>`:
+<<<<<<< HEAD
             <Classes as From<&'static str>>
             <Classes as From<&Option<T>>>
             <Classes as From<&String>>
@@ -48,8 +60,18 @@ error[E0277]: the trait bound `Classes: From<{float}>` is not satisfied
             <Classes as From<Cow<'static, str>>>
             <Classes as From<Option<T>>>
             <Classes as From<String>>
+=======
+            `Classes` implements `From<&Option<T>>`
+            `Classes` implements `From<&String>`
+            `Classes` implements `From<&[T]>`
+            `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+            `Classes` implements `From<&str>`
+            `Classes` implements `From<Cow<'_, str>>`
+            `Classes` implements `From<Option<T>>`
+            `Classes` implements `From<String>`
+>>>>>>> origin/master
           and $N others
-  = note: required because of the requirements on the impl of `Into<Classes>` for `{float}`
+  = note: required for `{float}` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
  --> $WORKSPACE/packages/yew/src/html/classes.rs
   |
@@ -60,9 +82,13 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
  --> tests/classes_macro/classes-fail.rs:9:14
   |
 9 |     classes!(vec![42]);
-  |              ^^^ the trait `From<{integer}>` is not implemented for `Classes`
+  |              ---^^^^^
+  |              |
+  |              the trait `From<{integer}>` is not implemented for `Classes`
+  |              required by a bound introduced by this call
   |
   = help: the following other types implement trait `From<T>`:
+<<<<<<< HEAD
             <Classes as From<&'static str>>
             <Classes as From<&Option<T>>>
             <Classes as From<&String>>
@@ -71,11 +97,21 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
             <Classes as From<Cow<'static, str>>>
             <Classes as From<Option<T>>>
             <Classes as From<String>>
+=======
+            `Classes` implements `From<&Option<T>>`
+            `Classes` implements `From<&String>`
+            `Classes` implements `From<&[T]>`
+            `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+            `Classes` implements `From<&str>`
+            `Classes` implements `From<Cow<'_, str>>`
+            `Classes` implements `From<Option<T>>`
+            `Classes` implements `From<String>`
+>>>>>>> origin/master
           and $N others
-  = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
-  = note: required because of the requirements on the impl of `From<Vec<{integer}>>` for `Classes`
+  = note: required for `{integer}` to implement `Into<Classes>`
+  = note: required for `Classes` to implement `From<Vec<{integer}>>`
   = note: 1 redundant requirement hidden
-  = note: required because of the requirements on the impl of `Into<Classes>` for `Vec<{integer}>`
+  = note: required for `Vec<{integer}>` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
  --> $WORKSPACE/packages/yew/src/html/classes.rs
   |
@@ -89,6 +125,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
    |              ^^^^ the trait `From<{integer}>` is not implemented for `Classes`
    |
    = help: the following other types implement trait `From<T>`:
+<<<<<<< HEAD
              <Classes as From<&'static str>>
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
@@ -97,11 +134,21 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
              <Classes as From<Cow<'static, str>>>
              <Classes as From<Option<T>>>
              <Classes as From<String>>
+=======
+             `Classes` implements `From<&Option<T>>`
+             `Classes` implements `From<&String>`
+             `Classes` implements `From<&[T]>`
+             `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+             `Classes` implements `From<&str>`
+             `Classes` implements `From<Cow<'_, str>>`
+             `Classes` implements `From<Option<T>>`
+             `Classes` implements `From<String>`
+>>>>>>> origin/master
            and $N others
-   = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
-   = note: required because of the requirements on the impl of `From<Option<{integer}>>` for `Classes`
+   = note: required for `{integer}` to implement `Into<Classes>`
+   = note: required for `Classes` to implement `From<Option<{integer}>>`
    = note: 1 redundant requirement hidden
-   = note: required because of the requirements on the impl of `Into<Classes>` for `Option<{integer}>`
+   = note: required for `Option<{integer}>` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
   --> $WORKSPACE/packages/yew/src/html/classes.rs
    |
@@ -115,6 +162,7 @@ error[E0277]: the trait bound `Classes: From<u32>` is not satisfied
    |              ^^^^ the trait `From<u32>` is not implemented for `Classes`
    |
    = help: the following other types implement trait `From<T>`:
+<<<<<<< HEAD
              <Classes as From<&'static str>>
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
@@ -123,11 +171,21 @@ error[E0277]: the trait bound `Classes: From<u32>` is not satisfied
              <Classes as From<Cow<'static, str>>>
              <Classes as From<Option<T>>>
              <Classes as From<String>>
+=======
+             `Classes` implements `From<&Option<T>>`
+             `Classes` implements `From<&String>`
+             `Classes` implements `From<&[T]>`
+             `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+             `Classes` implements `From<&str>`
+             `Classes` implements `From<Cow<'_, str>>`
+             `Classes` implements `From<Option<T>>`
+             `Classes` implements `From<String>`
+>>>>>>> origin/master
            and $N others
-   = note: required because of the requirements on the impl of `Into<Classes>` for `u32`
-   = note: required because of the requirements on the impl of `From<Option<u32>>` for `Classes`
+   = note: required for `u32` to implement `Into<Classes>`
+   = note: required for `Classes` to implement `From<Option<u32>>`
    = note: 1 redundant requirement hidden
-   = note: required because of the requirements on the impl of `Into<Classes>` for `Option<u32>`
+   = note: required for `Option<u32>` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
   --> $WORKSPACE/packages/yew/src/html/classes.rs
    |
@@ -141,6 +199,7 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
    |                     ^^ the trait `From<{integer}>` is not implemented for `Classes`
    |
    = help: the following other types implement trait `From<T>`:
+<<<<<<< HEAD
              <Classes as From<&'static str>>
              <Classes as From<&Option<T>>>
              <Classes as From<&String>>
@@ -149,8 +208,18 @@ error[E0277]: the trait bound `Classes: From<{integer}>` is not satisfied
              <Classes as From<Cow<'static, str>>>
              <Classes as From<Option<T>>>
              <Classes as From<String>>
+=======
+             `Classes` implements `From<&Option<T>>`
+             `Classes` implements `From<&String>`
+             `Classes` implements `From<&[T]>`
+             `Classes` implements `From<&implicit_clone::unsync::string::IString>`
+             `Classes` implements `From<&str>`
+             `Classes` implements `From<Cow<'_, str>>`
+             `Classes` implements `From<Option<T>>`
+             `Classes` implements `From<String>`
+>>>>>>> origin/master
            and $N others
-   = note: required because of the requirements on the impl of `Into<Classes>` for `{integer}`
+   = note: required for `{integer}` to implement `Into<Classes>`
 note: required by a bound in `Classes::push`
   --> $WORKSPACE/packages/yew/src/html/classes.rs
    |

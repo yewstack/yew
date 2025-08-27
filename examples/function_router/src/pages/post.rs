@@ -118,7 +118,7 @@ pub fn Post(props: &Props) -> Html {
                 render_quote(quote)
             }
         });
-        html! { for parts }
+        html! {{for parts}}
     };
 
     let keywords = post

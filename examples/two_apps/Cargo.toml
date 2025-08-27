@@ -7,4 +7,4 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo = "0.10"
+gloo = "0.11"

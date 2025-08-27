@@ -12,6 +12,7 @@ use crate::props::{ElementProps, Prop};
 /// use `proc-macro-error` (and the `emit_warning!` macro) to produce a warning. At present, these
 /// are only emitted on nightly.
 pub trait Lint {
+    #[cfg_attr(not(yew_lints), allow(dead_code))]
     fn lint(element: &HtmlElement);
 }
 
@@ -26,6 +27,7 @@ pub fn lint<L>(tree: &HtmlTree)
 where
     L: Lint,
 {
+    let _ = L::lint;
     #[cfg(not(yew_lints))]
     let _ = tree;
     #[cfg(yew_lints)]

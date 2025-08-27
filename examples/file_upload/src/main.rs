@@ -4,20 +4,19 @@ use std::collections::HashMap;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use gloo::file::callbacks::FileReader;
-use gloo::file::File;
-use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
+use web_sys::{DragEvent, Event, HtmlInputElement};
 use yew::html::TargetCast;
 use yew::{html, Callback, Component, Context, Html};
 
-struct FileDetails {
+pub struct FileDetails {
     name: String,
     file_type: String,
     data: Vec<u8>,
 }
 
 pub enum Msg {
-    Loaded(String, String, Vec<u8>),
-    Files(Vec<File>),
+    Loaded(FileDetails),
+    Files(Option<web_sys::FileList>),
 }
 
 pub struct App {
@@ -38,33 +37,27 @@ impl Component for App {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Loaded(file_name, file_type, data) => {
-                self.files.push(FileDetails {
-                    data,
-                    file_type,
-                    name: file_name.clone(),
-                });
-                self.readers.remove(&file_name);
+            Msg::Loaded(file) => {
+                self.readers.remove(&file.name);
+                self.files.push(file);
                 true
             }
             Msg::Files(files) => {
-                for file in files.into_iter() {
-                    let file_name = file.name();
+                for file in gloo::file::FileList::from(files.expect("files")).iter() {
+                    let link = ctx.link().clone();
+                    let name = file.name().clone();
                     let file_type = file.raw_mime_type();
 
                     let task = {
-                        let link = ctx.link().clone();
-                        let file_name = file_name.clone();
-
-                        gloo::file::callbacks::read_as_bytes(&file, move |res| {
-                            link.send_message(Msg::Loaded(
-                                file_name,
+                        gloo::file::callbacks::read_as_bytes(file, move |res| {
+                            link.send_message(Msg::Loaded(FileDetails {
+                                data: res.expect("failed to read file"),
                                 file_type,
-                                res.expect("failed to read file"),
-                            ))
+                                name,
+                            }))
                         })
                     };
-                    self.readers.insert(file_name, task);
+                    self.readers.insert(file.name(), task);
                 }
                 true
             }
@@ -72,6 +65,10 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let noop_drag = Callback::from(|e: DragEvent| {
+            e.prevent_default();
+        });
+
         html! {
             <div id="wrapper">
                 <p id="title">{ "Upload Your Files To The Cloud" }</p>
@@ -80,15 +77,10 @@ impl Component for App {
                         id="drop-container"
                         ondrop={ctx.link().callback(|event: DragEvent| {
                             event.prevent_default();
-                            let files = event.data_transfer().unwrap().files();
-                            Self::upload_files(files)
+                            Msg::Files(event.data_transfer().unwrap().files())
                         })}
-                        ondragover={Callback::from(|event: DragEvent| {
-                            event.prevent_default();
-                        })}
-                        ondragenter={Callback::from(|event: DragEvent| {
-                            event.prevent_default();
-                        })}
+                        ondragover={&noop_drag}
+                        ondragenter={&noop_drag}
                     >
                         <i class="fa fa-cloud-upload"></i>
                         <p>{"Drop your images here or click to select"}</p>
@@ -101,7 +93,7 @@ impl Component for App {
                     multiple={true}
                     onchange={ctx.link().callback(move |e: Event| {
                         let input: HtmlInputElement = e.target_unchecked_into();
-                        Self::upload_files(input.files())
+                        Msg::Files(input.files())
                     })}
                 />
                 <div id="preview-area">
@@ -114,37 +106,24 @@ impl Component for App {
 
 impl App {
     fn view_file(file: &FileDetails) -> Html {
+        let file_type = file.file_type.to_string();
+        let src = format!("data:{};base64,{}", file_type, STANDARD.encode(&file.data));
         html! {
             <div class="preview-tile">
-                <p class="preview-name">{ format!("{}", file.name) }</p>
+                <p class="preview-name">{ &file.name }</p>
                 <div class="preview-media">
                     if file.file_type.contains("image") {
-                        <img src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} />
+                        <img src={src} />
                     } else if file.file_type.contains("video") {
                         <video controls={true}>
-                            <source src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} type={file.file_type.clone()}/>
+                            <source src={src} type={ file_type }/>
                         </video>
                     }
                 </div>
             </div>
         }
     }
-
-    fn upload_files(files: Option<FileList>) -> Msg {
-        let mut result = Vec::new();
-
-        if let Some(files) = files {
-            let files = js_sys::try_iter(&files)
-                .unwrap()
-                .unwrap()
-                .map(|v| web_sys::File::from(v.unwrap()))
-                .map(File::from);
-            result.extend(files);
-        }
-        Msg::Files(result)
-    }
 }
-
 fn main() {
     yew::Renderer::<App>::new().render();
 }

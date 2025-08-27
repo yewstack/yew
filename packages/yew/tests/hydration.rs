@@ -1,5 +1,5 @@
 #![cfg(feature = "hydration")]
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 use std::ops::Range;
 use std::rc::Rc;
@@ -16,7 +16,7 @@ use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, Suspension, SuspensionResult};
 use yew::virtual_dom::VNode;
-use yew::{function_component, Renderer, ServerRenderer};
+use yew::{component, Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -25,7 +25,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn hydration_works() {
-    #[function_component]
+    #[component]
     fn Comp() -> Html {
         let ctr = use_state_eq(|| 0);
 
@@ -45,7 +45,7 @@ async fn hydration_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {
             <div>
@@ -97,7 +97,7 @@ async fn hydration_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_with_raw() {
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> Html {
         let vnode = VNode::from_html_unchecked("<div><p>Hello World</p></div>".into());
 
@@ -108,7 +108,7 @@ async fn hydration_with_raw() {
         }
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         html! {
             <div id="result">
@@ -189,7 +189,7 @@ async fn hydration_with_suspense() {
         }
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -216,7 +216,7 @@ async fn hydration_with_suspense() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -344,7 +344,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
         }
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -364,7 +364,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
 
         Ok(html! {
             <div class="content-area">
-                <textarea value={value.to_string()} oninput={on_text_input}></textarea>
+                <textarea value={value.to_string()} oninput={on_text_input}/>
                 <div class="action-area">
                     <button class="take-a-break" onclick={on_take_a_break}>{"Take a break!"}</button>
                 </div>
@@ -372,7 +372,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait..."}</div>};
 
@@ -468,7 +468,7 @@ async fn hydration_nested_suspense_works() {
         }
     }
 
-    #[function_component(InnerContent)]
+    #[component(InnerContent)]
     fn inner_content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -483,7 +483,7 @@ async fn hydration_nested_suspense_works() {
         })
     }
 
-    #[function_component(Content)]
+    #[component(Content)]
     fn content() -> HtmlResult {
         let resleep = use_sleep()?;
 
@@ -503,7 +503,7 @@ async fn hydration_nested_suspense_works() {
         })
     }
 
-    #[function_component(App)]
+    #[component(App)]
     fn app() -> Html {
         let fallback = html! {<div>{"wait...(outer)"}</div>};
 
@@ -602,7 +602,7 @@ async fn hydration_nested_suspense_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_node_ref_works() {
-    #[function_component(App)]
+    #[component(App)]
     pub fn app() -> Html {
         let size = use_state(|| 4);
 
@@ -625,20 +625,20 @@ async fn hydration_node_ref_works() {
         size: u32,
     }
 
-    #[function_component(Test1)]
+    #[component(Test1)]
     fn test1() -> Html {
         html! {
             <span>{"test"}</span>
         }
     }
-    #[function_component(Test2)]
+    #[component(Test2)]
     fn test2() -> Html {
         html! {
             <Test1/>
         }
     }
 
-    #[function_component(List)]
+    #[component(List)]
     fn list(props: &ListProps) -> Html {
         let elems = 0..props.size;
 
@@ -693,7 +693,7 @@ async fn hydration_node_ref_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_list_order_works() {
-    #[function_component(App)]
+    #[component(App)]
     pub fn app() -> Html {
         let elems = 0..10;
 
@@ -713,20 +713,20 @@ async fn hydration_list_order_works() {
         number: u32,
     }
 
-    #[function_component(Number)]
+    #[component(Number)]
     fn number(props: &NumberProps) -> Html {
         html! {
             <div>{props.number.to_string()}</div>
         }
     }
-    #[function_component(SuspendedNumber)]
+    #[component(SuspendedNumber)]
     fn suspended_number(props: &NumberProps) -> HtmlResult {
         use_suspend()?;
         Ok(html! {
             <div>{props.number.to_string()}</div>
         })
     }
-    #[function_component(ToSuspendOrNot)]
+    #[component(ToSuspendOrNot)]
     fn suspend_or_not(props: &NumberProps) -> Html {
         let number = props.number;
         html! {
@@ -776,7 +776,7 @@ async fn hydration_list_order_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_suspense_no_flickering() {
-    #[function_component(App)]
+    #[component(App)]
     pub fn app() -> Html {
         let fallback = html! { <h1>{"Loading..."}</h1> };
         html! {
@@ -791,7 +791,7 @@ async fn hydration_suspense_no_flickering() {
         number: u32,
     }
 
-    #[function_component(SuspendedNumber)]
+    #[component(SuspendedNumber)]
     fn suspended_number(props: &NumberProps) -> HtmlResult {
         use_suspend()?;
 
@@ -799,7 +799,7 @@ async fn hydration_suspense_no_flickering() {
             <Number ..{props.clone()}/>
         })
     }
-    #[function_component(Number)]
+    #[component(Number)]
     fn number(props: &NumberProps) -> Html {
         html! {
             <div>
@@ -808,7 +808,7 @@ async fn hydration_suspense_no_flickering() {
         }
     }
 
-    #[function_component(Suspended)]
+    #[component(Suspended)]
     fn suspended() -> HtmlResult {
         use_suspend()?;
 
@@ -886,7 +886,7 @@ async fn hydration_suspense_no_flickering() {
 
 #[wasm_bindgen_test]
 async fn hydration_order_issue_nested_suspense() {
-    #[function_component(App)]
+    #[component(App)]
     pub fn app() -> Html {
         let elems = (0..10).map(|number: u32| {
             html! {
@@ -906,14 +906,14 @@ async fn hydration_order_issue_nested_suspense() {
         number: u32,
     }
 
-    #[function_component(Number)]
+    #[component(Number)]
     fn number(props: &NumberProps) -> Html {
         html! {
             <div>{props.number.to_string()}</div>
         }
     }
 
-    #[function_component(SuspendedNumber)]
+    #[component(SuspendedNumber)]
     fn suspended_number(props: &NumberProps) -> HtmlResult {
         use_suspend()?;
         Ok(html! {
@@ -921,7 +921,7 @@ async fn hydration_order_issue_nested_suspense() {
         })
     }
 
-    #[function_component(ToSuspendOrNot)]
+    #[component(ToSuspendOrNot)]
     fn suspend_or_not(props: &NumberProps) -> HtmlResult {
         let number = props.number;
         Ok(html! {
@@ -972,7 +972,7 @@ async fn hydration_order_issue_nested_suspense() {
 
 #[wasm_bindgen_test]
 async fn hydration_props_blocked_until_hydrated() {
-    #[function_component(App)]
+    #[component(App)]
     pub fn app() -> Html {
         let range = use_state(|| 0u32..2);
         {
@@ -995,7 +995,7 @@ async fn hydration_props_blocked_until_hydrated() {
         range: Range<u32>,
     }
 
-    #[function_component(ToSuspend)]
+    #[component(ToSuspend)]
     fn to_suspend(ToSuspendProps { range }: &ToSuspendProps) -> HtmlResult {
         use_suspend(Duration::from_millis(100))?;
         Ok(html! {
@@ -1032,7 +1032,7 @@ async fn hydration_props_blocked_until_hydrated() {
 
 #[wasm_bindgen_test]
 async fn hydrate_empty() {
-    #[function_component]
+    #[component]
     fn Updating() -> Html {
         let trigger = use_state(|| false);
         {
@@ -1048,11 +1048,11 @@ async fn hydrate_empty() {
             html! { <div>{"before"}</div> }
         }
     }
-    #[function_component]
+    #[component]
     fn Empty() -> Html {
         html! { <></> }
     }
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {
             <>
@@ -1076,4 +1076,101 @@ async fn hydrate_empty() {
 
     let result = obtain_result_by_id("output");
     assert_eq!(result.as_str(), r#"<div>after</div><div>after</div>"#);
+}
+
+#[wasm_bindgen_test]
+async fn hydration_with_camelcase_svg_elements() {
+    #[function_component]
+    fn SvgWithCamelCase() -> Html {
+        html! {
+            <svg width="100" height="100">
+                <defs>
+                    <@{"linearGradient"} id="gradient1">
+                        <stop offset="0%" stop-color="red" />
+                        <stop offset="100%" stop-color="blue" />
+                    </@>
+                    <@{"radialGradient"} id="gradient2">
+                        <stop offset="0%" stop-color="yellow" />
+                        <stop offset="100%" stop-color="green" />
+                    </@>
+                    <@{"clipPath"} id="clip1">
+                        <circle cx="50" cy="50" r="40" />
+                    </@>
+                </defs>
+                <rect x="10" y="10" width="80" height="80" fill="url(#gradient1)" />
+                <circle cx="50" cy="50" r="30" fill="url(#gradient2)" clip-path="url(#clip1)" />
+                <@{"feDropShadow"} dx="2" dy="2" stdDeviation="2" />
+            </svg>
+        }
+    }
+
+    #[function_component]
+    fn App() -> Html {
+        let counter = use_state(|| 0);
+        let onclick = {
+            let counter = counter.clone();
+            Callback::from(move |_| counter.set(*counter + 1))
+        };
+
+        html! {
+            <div id="result">
+                <div class="counter">{"Count: "}{*counter}</div>
+                <button {onclick} class="increment">{"Increment"}</button>
+                <SvgWithCamelCase />
+            </div>
+        }
+    }
+
+    // Server render
+    let s = ServerRenderer::<App>::new().render().await;
+
+    // Set HTML
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    sleep(Duration::ZERO).await;
+
+    // Hydrate - this should not panic
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    sleep(Duration::from_millis(10)).await;
+
+    // Verify the SVG elements are present and properly cased
+    let svg = gloo::utils::document()
+        .query_selector("svg")
+        .unwrap()
+        .unwrap();
+
+    let linear_gradient = svg.query_selector("linearGradient").unwrap().unwrap();
+    assert_eq!(linear_gradient.tag_name(), "linearGradient");
+
+    let radial_gradient = svg.query_selector("radialGradient").unwrap().unwrap();
+    assert_eq!(radial_gradient.tag_name(), "radialGradient");
+
+    let clip_path = svg.query_selector("clipPath").unwrap().unwrap();
+    assert_eq!(clip_path.tag_name(), "clipPath");
+
+    // Test interactivity still works after hydration
+    gloo::utils::document()
+        .query_selector(".increment")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<HtmlElement>()
+        .unwrap()
+        .click();
+
+    sleep(Duration::from_millis(10)).await;
+
+    let counter_text = gloo::utils::document()
+        .query_selector(".counter")
+        .unwrap()
+        .unwrap()
+        .text_content()
+        .unwrap();
+
+    assert_eq!(counter_text, "Count: 1");
 }

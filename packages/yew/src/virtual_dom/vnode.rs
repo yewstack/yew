@@ -73,8 +73,8 @@ impl VNode {
     ///
     /// # Behavior in browser
     ///
-    /// In the browser, this function creates an element, sets the passed HTML to its `innerHTML`
-    /// and inserts the contents of it into the DOM.
+    /// In the browser, this function creates an element with the same XML namespace as the parent,
+    /// sets the passed HTML to its `innerHTML` and inserts the contents of it into the DOM.
     ///
     /// # Behavior on server
     ///

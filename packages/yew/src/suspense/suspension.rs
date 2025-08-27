@@ -105,7 +105,7 @@ impl Future for Suspension {
 
         let waker = cx.waker().clone();
         self.listen(Callback::from(move |_| {
-            waker.clone().wake();
+            waker.wake_by_ref();
         }));
 
         Poll::Pending

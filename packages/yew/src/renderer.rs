@@ -1,5 +1,5 @@
 use std::cell::Cell;
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo as PanicInfo;
 use std::rc::Rc;
 
 use web_sys::Element;
@@ -8,19 +8,24 @@ use crate::app_handle::AppHandle;
 use crate::html::BaseComponent;
 
 thread_local! {
-    static PANIC_HOOK_IS_SET: Cell<bool> = Cell::new(false);
+    static PANIC_HOOK_IS_SET: Cell<bool> = const { Cell::new(false) };
 }
 
 /// Set a custom panic hook.
 /// Unless a panic hook is set through this function, Yew will
 /// overwrite any existing panic hook when an application is rendered with [Renderer].
 #[cfg(feature = "csr")]
+#[allow(clippy::incompatible_msrv)]
 pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
     std::panic::set_hook(hook);
     PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));
 }
 
 fn set_default_panic_hook() {
+    if std::thread::panicking() {
+        // very unlikely, but avoid hitting this when running parallel tests.
+        return;
+    }
     if !PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.replace(true)) {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     }

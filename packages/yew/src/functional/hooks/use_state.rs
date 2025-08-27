@@ -2,6 +2,8 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use implicit_clone::ImplicitClone;
+
 use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
 use crate::functional::hook;
 use crate::html::IntoPropValue;
@@ -40,7 +42,7 @@ where
 /// use yew::prelude::*;
 /// # use std::rc::Rc;
 ///
-/// #[function_component(UseState)]
+/// #[component(UseState)]
 /// fn state() -> Html {
 ///     let counter = use_state(|| 0);
 ///     let onclick = {
@@ -63,8 +65,8 @@ where
 /// # Caution
 ///
 /// The value held in the handle will reflect the value of at the time the
-/// handle is returned by the `use_reducer`. It is possible that the handle does
-/// not dereference to an up to date value if you are moving it into a
+/// handle is returned by the `use_state()` call. It is possible that the handle does
+/// not dereference to an up to date value, for example if you are moving it into a
 /// `use_effect_with` hook. You can register the
 /// state to the dependents so the hook can be updated when the value changes.
 ///
@@ -151,6 +153,8 @@ where
     }
 }
 
+impl<T> ImplicitClone for UseStateHandle<T> {}
+
 /// Setter handle for [`use_state`] and [`use_state_eq`] hook
 pub struct UseStateSetter<T> {
     inner: UseReducerDispatcher<UseStateReducer<T>>,
@@ -190,6 +194,8 @@ impl<T> PartialEq for UseStateSetter<T> {
         self.inner == rhs.inner
     }
 }
+
+impl<T> ImplicitClone for UseStateSetter<T> {}
 
 impl<T> UseStateSetter<T> {
     /// Replaces the value

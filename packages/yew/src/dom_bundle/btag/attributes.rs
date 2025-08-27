@@ -8,7 +8,7 @@ use yew::AttrValue;
 
 use super::Apply;
 use crate::dom_bundle::BSubtree;
-use crate::virtual_dom::vtag::{InputFields, Value};
+use crate::virtual_dom::vtag::{InputFields, TextareaFields, Value};
 use crate::virtual_dom::{AttributeOrProperty, Attributes};
 
 impl<T: AccessValue> Apply for Value<T> {
@@ -85,6 +85,22 @@ impl Apply for InputFields {
         }
 
         self.value.apply_diff(root, el, &mut bundle.value);
+    }
+}
+
+impl Apply for TextareaFields {
+    type Bundle = Value<TextAreaElement>;
+    type Element = TextAreaElement;
+
+    fn apply(self, root: &BSubtree, el: &Self::Element) -> Self::Bundle {
+        if let Some(def) = self.defaultvalue {
+            _ = el.set_default_value(def.as_str());
+        }
+        self.value.apply(root, el)
+    }
+
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self::Bundle) {
+        self.value.apply_diff(root, el, bundle)
     }
 }
 
@@ -272,7 +288,7 @@ impl Apply for Attributes {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
@@ -283,7 +299,7 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::{function_component, html, Html};
+    use crate::{component, html, Html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -357,7 +373,7 @@ mod tests {
 
     #[test]
     async fn macro_syntax_works() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <a href="https://example.com/" ~alt={"abc"} ~data-bool={JsValue::from_bool(true)} /> }
         }

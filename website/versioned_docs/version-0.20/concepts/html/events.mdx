@@ -59,11 +59,11 @@ It can be surprising that event listeners are _not_ directly registered on the e
 are delegated from the subtree root of the Yew app. Still, events are delivered in their native form, and no synthetic
 form is created. This can lead to mismatches between the event you'd expect in html listeners and those showing up in Yew.
 
--   [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
-    [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
--   [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
-    phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
-    the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners are not supported by Yew.
+- [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
+  [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
+- [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
+  phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
+  the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners are not supported by Yew.
 
     This also means that events registered by Yew will usually fire before other event listeners.
 

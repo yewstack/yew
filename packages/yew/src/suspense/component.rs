@@ -20,7 +20,7 @@ mod feat_csr_ssr {
     #[cfg(feature = "hydration")]
     use crate::suspense::SuspensionHandle;
     use crate::virtual_dom::{VNode, VSuspense};
-    use crate::{function_component, html};
+    use crate::{component, html};
 
     #[derive(Properties, PartialEq, Debug, Clone)]
     pub(crate) struct BaseSuspenseProps {
@@ -147,7 +147,7 @@ mod feat_csr_ssr {
     }
 
     /// Suspend rendering and show a fallback UI until the underlying task completes.
-    #[function_component]
+    #[component]
     pub fn Suspense(props: &SuspenseProps) -> Html {
         let SuspenseProps { children, fallback } = props.clone();
 
@@ -171,10 +171,10 @@ pub use feat_csr_ssr::*;
 #[cfg(not(any(feature = "ssr", feature = "csr")))]
 mod feat_no_csr_ssr {
     use super::*;
-    use crate::function_component;
+    use crate::component;
 
     /// Suspend rendering and show a fallback UI until the underlying task completes.
-    #[function_component]
+    #[component]
     pub fn Suspense(_props: &SuspenseProps) -> Html {
         Html::default()
     }

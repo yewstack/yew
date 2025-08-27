@@ -36,7 +36,7 @@ pub struct u8;
 #[allow(non_camel_case_types)]
 pub struct usize;
 
-#[::yew::function_component(Comp)]
+#[::yew::component(Comp)]
 fn comp() -> ::yew::Html {
     ::yew::html! {
         <p>

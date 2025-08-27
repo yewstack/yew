@@ -39,7 +39,7 @@
 //! #   }
 //! # }
 //! use my_worker_mod::MyWorker; // note that <MyWorker as yew_agent::Worker>::Output == WorkerResponseType
-//! #[function_component(UseWorkerBridge)]
+//! #[component(UseWorkerBridge)]
 //! fn bridge() -> Html {
 //!     let counter = use_state(|| 0);
 //!
@@ -63,15 +63,35 @@
 //! # }
 //! ```
 
+mod bridge;
+mod handler_id;
 mod hooks;
+mod lifecycle;
+mod messages;
+mod native_worker;
 mod provider;
+mod registrar;
+mod scope;
+mod spawner;
+mod traits;
 
-#[doc(inline)]
-pub use gloo_worker::{
-    HandlerId, Worker, WorkerBridge, WorkerDestroyHandle, WorkerRegistrar, WorkerScope,
-};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+pub use bridge::WorkerBridge;
+pub use handler_id::HandlerId;
 pub use hooks::{
     use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
 };
 pub(crate) use provider::WorkerProviderState;
 pub use provider::{WorkerProvider, WorkerProviderProps};
+pub use registrar::WorkerRegistrar;
+pub use scope::{WorkerDestroyHandle, WorkerScope};
+pub use spawner::WorkerSpawner;
+pub use traits::Worker;
+
+/// Alias for `Rc<RefCell<T>>`
+type Shared<T> = Rc<RefCell<T>>;
+
+/// Alias for `Rc<dyn Fn(IN)>`
+type Callback<IN> = Rc<dyn Fn(IN)>;

@@ -58,8 +58,8 @@ impl Parse for PreparedState {
 }
 
 impl PreparedState {
-    // Async closure is not stable, so we rewrite it to closure + async block
-    #[cfg(not(nightly_yew))]
+    // Async closure was not stable, so we rewrite it to closure + async block
+    #[rustversion::before(1.85)]
     pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
         use proc_macro2::Span;
         use syn::parse_quote;
@@ -95,7 +95,7 @@ impl PreparedState {
         closure
     }
 
-    #[cfg(nightly_yew)]
+    #[rustversion::since(1.85)]
     pub fn rewrite_to_closure_with_async_block(&self) -> ExprClosure {
         self.closure.clone()
     }

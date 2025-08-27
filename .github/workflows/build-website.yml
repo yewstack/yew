@@ -17,8 +17,6 @@ jobs:
   build:
     name: Build Website
     runs-on: ubuntu-latest
-    env:
-      PR_INFO_FILE: ".PR_INFO"
     steps:
       - uses: actions/checkout@v4
 
@@ -30,12 +28,23 @@ jobs:
       - name: Install dependencies
         run: |
           cd website
-          npm install
+          npm ci
+
 
       - name: Run prettier
+        id: fmt
+        continue-on-error: true
         run: |
           cd website
           npm run fmt
+
+      - if: steps.fmt.outcome == 'failure'
+        run: |
+          cd website
+          npm run fmt:write
+          git diff
+          exit 1
+
 
       - name: Check Translations
         run: |
@@ -48,7 +57,7 @@ jobs:
           npm run build
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: website
           path: website/build/
@@ -57,12 +66,13 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Build pr info
         run: |
-          echo "${{ github.event.number }}" > $PR_INFO_FILE
+          echo "${{ github.event.number }}" > .PR_INFO
 
       - if: github.event_name == 'pull_request'
         name: Upload pr info
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pr-info
-          path: "${{ env.PR_INFO_FILE }}"
+          include-hidden-files: true
+          path: .PR_INFO
           retention-days: 1

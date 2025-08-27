@@ -10,9 +10,9 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 log = "0.4"
-rand = "0.8"
+rand = "0.9"
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo = "0.10"
+gloo = "0.11"

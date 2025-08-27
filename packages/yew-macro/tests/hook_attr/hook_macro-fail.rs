@@ -14,7 +14,7 @@ macro_rules! use_some_macro {
     };
 }
 
-#[function_component]
+#[component]
 fn Comp() -> Html {
     let content = if true {
         use_some_macro!()

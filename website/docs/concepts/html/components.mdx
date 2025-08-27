@@ -10,7 +10,7 @@ Components can be used in the `html!` macro:
 ```rust
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     html! {
         { "This component has no properties!" }
@@ -23,7 +23,7 @@ struct Props {
     user_last_name: String,
 }
 
-#[function_component]
+#[component]
 fn MyComponentWithProps(props: &Props) -> Html {
     let Props { user_first_name, user_last_name } = props;
     html! {
@@ -66,7 +66,7 @@ struct Props {
     children: Html,
 }
 
-#[function_component]
+#[component]
 fn Container(props: &Props) -> Html {
     html! {
         <div id={props.id.clone()}>
@@ -97,7 +97,7 @@ struct Props {
     children: Html,
 }
 
-#[function_component]
+#[component]
 fn Container(props: &Props) -> Html {
     html! {
         <div id={props.id.clone()}>
@@ -121,5 +121,5 @@ html! {
 
 ## Relevant examples
 
--   [Function Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
--   [Function Router](https://github.com/yewstack/yew/tree/master/examples/function_router)
+- [Function Todo MVC](https://github.com/yewstack/yew/tree/master/examples/function_todomvc)
+- [Function Router](https://github.com/yewstack/yew/tree/master/examples/function_router)

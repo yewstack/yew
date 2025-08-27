@@ -15,7 +15,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_transitive_state_works() {
-    #[function_component]
+    #[component]
     fn Comp() -> HtmlResult {
         let ctr = use_transitive_state!((), |_| -> u32 { 12345 })?.unwrap_or_default();
 
@@ -26,7 +26,7 @@ async fn use_transitive_state_works() {
         })
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {
             <Suspense fallback={Html::default()}>
@@ -42,7 +42,7 @@ async fn use_transitive_state_works() {
     assert_eq!(
         s,
         // div text content should be 0 but state should be 12345.
-        r#"<!--<[use_transitive_state::use_transitive_state_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_transitive_state::use_transitive_state_works::{{closure}}::Comp]>--><div>0</div><script type="application/x-yew-comp-state">ATkwAAAB</script><!--</[use_transitive_state::use_transitive_state_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_transitive_state::use_transitive_state_works::{{closure}}::App]>-->"#
+        r#"<!--<[use_transitive_state::use_transitive_state_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_transitive_state::use_transitive_state_works::{{closure}}::Comp]>--><div>0</div><script type="application/x-yew-comp-state">Afs5MAE=</script><!--</[use_transitive_state::use_transitive_state_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_transitive_state::use_transitive_state_works::{{closure}}::App]>-->"#
     );
 
     gloo::utils::document()

@@ -19,14 +19,14 @@ Using a different editor? Feel free to add instructions for your editor of choic
 
 For function components, use the following template.
 
--   (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
+- (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
 
 ```rust ,ignore
 #[derive(PartialEq, Properties)]
 pub struct $Name$Props {
 }
 
-#[function_component]
+#[component]
 pub fn $Name$(props: &$Name$Props) -> Html {
     html! {
         <$tag$>$END$</$tag$>
@@ -72,7 +72,7 @@ impl Component for $NAME$ {
             "#[derive(PartialEq, Properties)]",
             "pub struct ${1:ComponentName}Props {}",
             "",
-            "#[function_component]",
+            "#[component]",
             "pub fn $1(props: &${1}Props) -> Html {",
             "    let ${1}Props {} = props;",
             "    html! {",
@@ -130,7 +130,7 @@ Utilities like Rename, Go to Declaration, Find Usages will work inside the macro
 
 Rust-Yew extension is [available on VSC Marketplace](https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew), providing syntax highlight, renames, hover, and more.
 
-Emmet support should work out of the box, if not please fall back to edditing the `settings.json` file:
+Emmet support should work out of the box, if not please fall back to editing the `settings.json` file:
 
 ```json
 "emmet.includeLanguages": {

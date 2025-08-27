@@ -12,7 +12,7 @@ use crate::derive_props::generics::push_type_param;
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
-enum PropAttr {
+pub enum PropAttr {
     Required { wrapped_name: Ident },
     PropOr(Expr),
     PropOrElse(Expr),
@@ -21,9 +21,9 @@ enum PropAttr {
 
 #[derive(Eq)]
 pub struct PropField {
-    ty: Type,
+    pub ty: Type,
     name: Ident,
-    attr: PropAttr,
+    pub attr: PropAttr,
     extra_attrs: Vec<Attribute>,
 }
 
@@ -57,7 +57,7 @@ impl PropField {
         props_name: &'a Ident,
         vis: &'a Visibility,
         token: &'a GenericParam,
-    ) -> PropFieldCheck<'_> {
+    ) -> PropFieldCheck<'a> {
         let check_struct = self.to_check_name(props_name);
         let check_arg = self.to_check_arg_name(props_name);
         PropFieldCheck {
@@ -200,7 +200,7 @@ pub struct PropFieldCheck<'a> {
     check_arg: GenericParam,
 }
 
-impl<'a> PropFieldCheck<'a> {
+impl PropFieldCheck<'_> {
     pub fn to_fake_prop_decl(&self) -> proc_macro2::TokenStream {
         let Self { this, .. } = self;
         if !this.is_required() {
@@ -245,9 +245,12 @@ impl<'a> PropFieldCheck<'a> {
             #vis struct #check_struct<How>(::std::marker::PhantomData<How>);
 
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B> ::yew::html::HasProp< #prop_name_mod :: #prop_check_name, #check_struct<B>>
                 for #check_struct<B> {}
+
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B, P, How> ::yew::html::HasProp<P, &dyn ::yew::html::HasProp<P, How>>
                 for #check_struct<B>
                 where B: ::yew::html::HasProp<P, How> {}

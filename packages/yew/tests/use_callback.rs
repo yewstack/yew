@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -20,7 +20,7 @@ async fn use_callback_works() {
         callback: Callback<String, String>,
     }
 
-    #[function_component(MyComponent)]
+    #[component(MyComponent)]
     fn my_component(props: &Props) -> Html {
         let greeting = props.callback.emit("Yew".to_string());
 
@@ -39,7 +39,7 @@ async fn use_callback_works() {
         }
     }
 
-    #[function_component(UseCallbackComponent)]
+    #[component(UseCallbackComponent)]
     fn use_callback_comp() -> Html {
         let state = use_state(|| 0);
 
