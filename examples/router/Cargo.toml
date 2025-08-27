@@ -9,7 +9,7 @@ instant = { version = "0.1", features = ["wasm-bindgen"] }
 lipsum = "0.9.1"
 log = "0.4"
 getrandom = { version = "0.2", features = ["js"] }
-rand = { version = "0.8", features = ["small_rng"] }
+rand = { version = "0.9", features = ["small_rng"] }
 wasm-logger = "0.2"
 yew = { path = "../../packages/yew", features = ["csr"] }
 yew-router = { path = "../../packages/yew-router" }
