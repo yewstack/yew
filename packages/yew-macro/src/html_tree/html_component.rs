@@ -11,7 +11,7 @@ use crate::props::ComponentProps;
 
 pub struct HtmlComponent {
     ty: Type,
-    props: ComponentProps,
+    pub props: ComponentProps,
     children: HtmlChildrenTree,
     close: Option<HtmlComponentClose>,
 }

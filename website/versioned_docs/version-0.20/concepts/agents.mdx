@@ -30,15 +30,15 @@ The code can be found in the <desc> tag of the svgs.
 
 ### Reaches
 
--   Public - There will exist at most one instance of a Public Agent at any given time. Bridges will
-    spawn or connect to an already spawned agent in a web worker.
-    When no bridges are connected to this agent, the agent will disappear.
+- Public - There will exist at most one instance of a Public Agent at any given time. Bridges will
+  spawn or connect to an already spawned agent in a web worker.
+  When no bridges are connected to this agent, the agent will disappear.
 
--   Private - Spawn a new agent in a web worker for every new bridge. This is good for moving shared but
-    independent behavior that communicates with the browser out of components. When
-    the the connected bridge is dropped, the agent will disappear.
+- Private - Spawn a new agent in a web worker for every new bridge. This is good for moving shared but
+  independent behavior that communicates with the browser out of components. When
+  the connected bridge is dropped, the agent will disappear.
 
--   Global \(WIP\)
+- Global \(WIP\)
 
 ## Communication between Agents and Components
 
@@ -60,5 +60,5 @@ with other threads, so the cost is substantially higher than just calling a func
 
 ## Further reading
 
--   The [web_worker_fib](https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/web_worker_fib) example shows how
-    components can send message to and receive message from agents.
+- The [web_worker_fib](https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/web_worker_fib) example shows how
+  components can send message to and receive message from agents.

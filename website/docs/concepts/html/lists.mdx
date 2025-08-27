@@ -7,12 +7,47 @@ import TabItem from '@theme/TabItem'
 
 ## Iterators
 
-Yew supports two different syntaxes for building HTML from an iterator.
+There are 3 ways to build HTML from iterators:
 
 <Tabs>
-  <TabItem value="Syntax type 1" label="Syntax type 1">
+  <TabItem value="`for` loops" label="`for` loops">
+The main approach is to use for loops, the same for loops that already exist in Rust, but with 2 key differences:
+1. Unlike standard for loops which can't return anything, for loops in `html!` are converted to a list of nodes;
+2. Diverging expressions, i.e. `break`, `continue` are not allowed in the body of for loops in `html!`.
 
-The first is to call `collect::<Html>()` on the final transform in your iterator, which returns a
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0 .. 10 {
+        <span>{i}</span>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="`for` block" label="`for` block">
+An alternative is to use the `for` keyword, which is not native Rust syntax and instead is used by
+the HTML macro to output the needed code to display the iterator.
+This approach is better than the first one when the iterator is already computed and the only thing left to do
+is to pass it to the macro.
+
+```rust
+use yew::prelude::*;
+
+let items = (1..=10).collect::<Vec<_>>();
+
+html! {
+    <ul class="item-list">
+        { for items.iter() }
+    </ul>
+};
+```
+
+  </TabItem>
+  <TabItem value="`collect` method" label="`collect` method">
+
+The last is to call `collect::<Html>()` on the final transform in your iterator, which returns a
 list that Yew can display.
 
 ```rust
@@ -23,24 +58,6 @@ let items = (1..=10).collect::<Vec<_>>();
 html! {
     <ul class="item-list">
         { items.iter().collect::<Html>() }
-    </ul>
-};
-```
-
-  </TabItem>
-  <TabItem value="Syntax type 2" label="Syntax type 2">
-
-The alternative is to use the `for` keyword, which is not native Rust syntax and instead is used by
-the HTML macro to output the needed code to display the iterator.
-
-```rust
-use yew::prelude::*;
-
-let items = (1..=10).collect::<Vec<_>>();
-
-html! {
-    <ul class="item-list">
-        { for items.iter() }
     </ul>
 };
 ```
@@ -83,7 +100,7 @@ html! {
 
 We have [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) example that lets you test the performance improvements, but here is a rough rundown:
 
-1. Go to [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list) hosted demo
+1. Go to [Keyed list hosted demo](https://examples.yew.rs/keyed_list)
 2. Add 500 elements.
 3. Disable keys.
 4. Reverse the list.
@@ -120,6 +137,6 @@ If you need that div to be recreated instead of reused, then you can add differe
 
 ## Further reading
 
--   [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
--   [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
--   [Router](https://github.com/yewstack/yew/tree/master/examples/router)
+- [TodoMVC](https://github.com/yewstack/yew/tree/master/examples/todomvc)
+- [Keyed list](https://github.com/yewstack/yew/tree/master/examples/keyed_list)
+- [Router](https://github.com/yewstack/yew/tree/master/examples/router)

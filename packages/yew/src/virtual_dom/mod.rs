@@ -33,6 +33,8 @@ pub use self::key::Key;
 pub use self::listeners::*;
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
+#[doc(hidden)]
+pub use self::vlist::FullyKeyedState;
 #[doc(inline)]
 pub use self::vlist::VList;
 #[doc(inline)]

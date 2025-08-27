@@ -58,4 +58,8 @@ impl ToNodeIterator for HtmlIterable {
             ::yew::utils::into_node_iter(#expr)
         })
     }
+
+    fn is_singular(&self) -> bool {
+        false
+    }
 }

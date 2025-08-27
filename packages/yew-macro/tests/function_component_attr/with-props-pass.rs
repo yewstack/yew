@@ -1,5 +1,3 @@
-#![no_implicit_prelude]
-
 // Shadow primitives
 #[allow(non_camel_case_types)]
 pub struct bool;
@@ -41,7 +39,7 @@ struct Props {
     a: ::std::primitive::usize,
 }
 
-#[::yew::function_component(Comp)]
+#[::yew::component(Comp)]
 fn comp(props: &Props) -> ::yew::Html {
     ::yew::html! {
         <p>

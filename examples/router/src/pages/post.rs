@@ -137,6 +137,6 @@ impl Post {
                 self.render_quote(quote)
             }
         });
-        html! { for parts }
+        html! {{for parts}}
     }
 }

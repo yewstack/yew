@@ -5,8 +5,9 @@ use std::rc::Rc;
 use super::{Key, VNode};
 use crate::html::ImplicitClone;
 
-#[derive(Clone, ImplicitClone, Copy, Debug, PartialEq)]
-enum FullyKeyedState {
+#[doc(hidden)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum FullyKeyedState {
     KnownFullyKeyed,
     KnownMissingKeys,
     Unknown,
@@ -43,10 +44,9 @@ impl Deref for VList {
         match self.children {
             Some(ref m) => m,
             None => {
-                // This is mutable because the Vec<VNode> is not Sync
-                static mut EMPTY: Vec<VNode> = Vec::new();
-                // SAFETY: The EMPTY value is always read-only
-                unsafe { &EMPTY }
+                // This can be replaced with `const { &Vec::new() }` in Rust 1.79.
+                const EMPTY: &Vec<VNode> = &Vec::new();
+                EMPTY
             }
         }
     }
@@ -133,6 +133,20 @@ impl VList {
         let mut vlist = VList::from(children);
         vlist.key = key;
         vlist
+    }
+
+    #[doc(hidden)]
+    /// Used by `html!` to avoid calling `.recheck_fully_keyed()` when possible.
+    pub fn __macro_new(
+        children: Vec<VNode>,
+        key: Option<Key>,
+        fully_keyed: FullyKeyedState,
+    ) -> Self {
+        VList {
+            children: Some(Rc::new(children)),
+            fully_keyed,
+            key,
+        }
     }
 
     // Returns a mutable reference to children, allocates the children if it hasn't been done.
@@ -328,18 +342,19 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::ServerRenderer;
+    use crate::LocalServerRenderer as ServerRenderer;
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_text_back_to_back() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let s = "world";
 
@@ -354,19 +369,20 @@ mod ssr_tests {
         assert_eq!(s, "<div>Hello world!</div>");
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_fragment() {
         #[derive(PartialEq, Properties, Debug)]
         struct ChildProps {
             name: String,
         }
 
-        #[function_component]
+        #[component]
         fn Child(props: &ChildProps) -> Html {
             html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
         }
 
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! {
                 <>

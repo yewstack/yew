@@ -142,11 +142,13 @@ impl PropsBuilder<'_> {
             #vis struct #check_all_props_name<How>(::std::marker::PhantomData<How>);
 
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B, P, How> ::yew::html::HasProp<P, &dyn ::yew::html::HasProp<P, How>>
                 for #check_all_props_name<B>
                 where B: ::yew::html::HasProp<P, How> {}
 
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl #check_impl_generics ::yew::html::HasAllProps<
                 #props_name #ty_generics ,
                 ( #( #check_args , )* ),

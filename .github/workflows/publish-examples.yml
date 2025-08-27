@@ -3,7 +3,7 @@ on:
   push:
     branches: [master]
     paths:
-      - 'ci/**'
+      - 'tools/build-examples/**'
       - 'examples/**'
 
 jobs:
@@ -25,13 +25,15 @@ jobs:
           components: rust-src
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: publish-examples
 
-      - uses: jetli/trunk-action@v0.4.0
+      - uses: jetli/trunk-action@v0.5.1
         with:
           version: 'latest'
 
       - name: Build examples
-        run: ./ci/build-examples.sh
+        run: cargo run -p build-examples --bin build-examples
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v1

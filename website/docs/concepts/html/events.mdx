@@ -59,11 +59,11 @@ It can be surprising that event listeners are _not_ directly registered on the e
 are delegated from the subtree root of the Yew app. Still, events are delivered in their native form, and no synthetic
 form is created. This can lead to mismatches between the event you would expect in HTML listeners and those showing up in Yew.
 
--   [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
-    [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
--   [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
-    phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
-    the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners is not supported by Yew.
+- [`Event::current_target`] points to the Yew subtree root instead of the element the listener is added on. Use
+  [`NodeRef`](../function-components/node-refs.mdx) if you want access to the underlying `HtmlElement`.
+- [`Event::event_phase`] is always [`Event::CAPTURING_PHASE`]. Internally, the event will behave as if it was in the bubbling
+  phase, the event propagation is replayed and the event [bubbles _up_](#event-bubbling), i.e. event listeners higher up in
+  the virtual DOM will trigger _after_ event listeners below them. Currently, capturing listeners is not supported by Yew.
 
     This also means that events registered by Yew will usually fire before other event listeners.
 
@@ -107,7 +107,7 @@ pub enum Msg {
 ### Using `JsCast`
 
 The [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate has
-a useful trait; [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+a useful trait: [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html),
 which allows us to hop and skip our way to the type we want, as long as it implements `JsCast`. We can
 do this cautiously, which involves some runtime checks and failure types like `Option` and `Result`,
 or we can do it dangerously.
@@ -126,7 +126,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let input_value_handle = use_state(String::default);
     let input_value = (*input_value_handle).clone();
@@ -220,7 +220,7 @@ but it works in a very similar way to `JsCast`.
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let input_value_handle = use_state(String::default);
     let input_value = (*input_value_handle).clone();
@@ -280,7 +280,7 @@ does the cast on the target of the event. `TargetCast::target_unchecked_into` is
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     //highlight-next-line
     let input_node_ref = use_node_ref();
@@ -328,7 +328,7 @@ You might also see by using `NodeRef` we don't have to send the `String` back in
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let input_node_ref = use_node_ref();
 
@@ -390,7 +390,7 @@ use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::HtmlElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
@@ -457,7 +457,7 @@ use yew::prelude::*;
 
 use gloo::events::EventListener;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 

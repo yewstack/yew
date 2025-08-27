@@ -1,8 +1,7 @@
 use std::borrow::Cow;
 
-use serde::Serialize;
-
 use crate::history::{AnyHistory, History, HistoryError, HistoryResult};
+use crate::query::ToQuery;
 use crate::routable::Routable;
 
 pub type NavigationError = HistoryError;
@@ -93,20 +92,20 @@ impl Navigator {
     }
 
     /// Same as `.push()` but affix the queries to the end of the route.
-    pub fn push_with_query<R, Q>(&self, route: &R, query: &Q) -> NavigationResult<()>
+    pub fn push_with_query<R, Q>(&self, route: &R, query: Q) -> Result<(), Q::Error>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
     {
         self.inner
             .push_with_query(self.prefix_basename(&route.to_path()), query)
     }
 
     /// Same as `.replace()` but affix the queries to the end of the route.
-    pub fn replace_with_query<R, Q>(&self, route: &R, query: &Q) -> NavigationResult<()>
+    pub fn replace_with_query<R, Q>(&self, route: &R, query: Q) -> Result<(), Q::Error>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
     {
         self.inner
             .replace_with_query(self.prefix_basename(&route.to_path()), query)
@@ -116,12 +115,12 @@ impl Navigator {
     pub fn push_with_query_and_state<R, Q, T>(
         &self,
         route: &R,
-        query: &Q,
+        query: Q,
         state: T,
-    ) -> NavigationResult<()>
+    ) -> Result<(), Q::Error>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
         T: 'static,
     {
         self.inner
@@ -132,12 +131,12 @@ impl Navigator {
     pub fn replace_with_query_and_state<R, Q, T>(
         &self,
         route: &R,
-        query: &Q,
+        query: Q,
         state: T,
-    ) -> NavigationResult<()>
+    ) -> Result<(), Q::Error>
     where
         R: Routable,
-        Q: Serialize,
+        Q: ToQuery,
         T: 'static,
     {
         self.inner.replace_with_query_and_state(
@@ -159,7 +158,7 @@ impl Navigator {
     pub(crate) fn prefix_basename<'a>(&self, route_s: &'a str) -> Cow<'a, str> {
         match self.basename() {
             Some(base) => {
-                if route_s.is_empty() && route_s.is_empty() {
+                if base.is_empty() && route_s.is_empty() {
                     Cow::from("/")
                 } else {
                     Cow::from(format!("{base}{route_s}"))

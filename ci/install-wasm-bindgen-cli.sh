@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 if [ ! -f "Cargo.lock" ]; then
   cargo fetch
 fi
@@ -9,4 +10,6 @@ if [ "$VERSION" = "" ]; then
   VERSION=$(cargo pkgid --frozen wasm-bindgen | cut -d "@" -f 2)
 fi
 
-cargo +stable install --version $VERSION wasm-bindgen-cli
+if [ "$(wasm-bindgen --version)" != "wasm-bindgen $VERSION" ]; then
+  cargo +stable install --version "$VERSION" wasm-bindgen-cli --force
+fi
