@@ -1,89 +1,163 @@
 ---
+title: '性能优化与最佳实践'
+sidebar_label: Optimizations
 description: 加速你的应用程序
 ---
 
-# 性能优化与最佳实践
+## Using smart pointers effectively
 
-## neq_assign
+**Note: if you're unsure about some of the terms used in this section, the Rust Book has a useful
+[chapter about smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html).**
 
-当组件从它的父组件接收 props 时，`change` 方法将被调用。除了允许你更新组件的状态，还允许你返回一个布尔类型的值 `ShouldRender` 来指示组件是否应该响应 props 的更改而重新渲染自身。
+To avoid cloning large amounts of data to create props when re-rendering, we can use
+smart pointers to only clone a reference to the data instead of the data itself. If you pass
+references to the relevant data in your props and child components instead of the actual data you
+can avoid cloning any data until you need to modify it in the child component, where you can
+use `Rc::make_mut` to clone and obtain a mutable reference to the data you want to alter.
 
-重新渲染的开销很大，你应该尽量避免。一个通用的法则是，你只应该在 props 实际更改时重新渲染。以下代码块展示了此法则，如果 props 和先前的 props 不同，则返回 `true`：
+This brings further benefits in `Component::changed` when working out whether prop changes require
+the component to re-render. This is because instead of comparing the value of the data the
+underlying pointer addresses (i.e. the position in a machine's memory where the data is stored) can
+instead be compared; if two pointers point to the same data then the value of the data they point to
+must be the same. Note that the inverse might not be true! Even if two pointer addresses differ the
+underlying data might still be the same - in this case you should compare the underlying data.
 
-```rust
-fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    if self.props != &props {
-        *self.props = props;
-        true
-    } else {
-        false
-    }
-}
+To do this comparison you'll need to use `Rc::ptr_eq` instead of just using `PartialEq` (which is
+automatically used when comparing data using the equality operator `==`). The Rust documentation
+has [more details about `Rc::ptr_eq`](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq).
+
+This optimization is most useful for data types that don't implement `Copy`. If you can copy your
+data cheaply, then it isn't worth putting it behind a smart pointer. For structures that
+can be data-heavy like `Vec`s, `HashMap`s, and `String`s using smart pointers is likely to bring
+performance improvements.
+
+This optimization works best if the values are never updated by the children, and even better if
+they are rarely updated by parents. This makes `Rc<_>s` a good choice for wrapping property values
+in pure components.
+
+However, it must be noted that unless you need to clone the data yourself in the child component,
+this optimization is not only useless, but it also adds the unnecessary cost of reference counting. Props
+in Yew are already reference counted and no data clones occur internally.
+
+## View functions
+
+For code readability reasons, it often makes sense to migrate sections of `html!` to their own
+functions. Not only does this make your code more readable because it reduces the amount of
+indentation present, it also encourages good design patterns – particularly around building
+composable applications because these functions can be called in multiple places which reduces the
+amount of code that has to be written.
+
+## Pure Components
+
+Pure components are components that don't mutate their state, only displaying content and
+propagating messages up to normal, mutable components. They differ from view functions in that they
+can be used from within the `html!` macro using the component syntax \(`<SomePureComponent />`\)
+instead of expression syntax \(`{some_view_function()}`\), and that depending on their
+implementation, they can be memoized (this means that once a function is called its value is "saved"
+so that if it's called with the same arguments more than once it doesn't have to recompute its value
+and can just return the saved value from the first function call) - preventing re-renders for
+identical props. Yew compares the props internally and so the UI is only re-rendered if the props change.
+
+## Reducing compile time using workspaces
+
+Arguably, the largest drawback to using Yew is the long time it takes to compile Yew apps. The time
+taken to compile a project seems to be related to the quantity of code passed to the `html!` macro.
+This tends to not be much of an issue for smaller projects, but for larger applications, it makes
+sense to split code across multiple crates to minimize the amount of work the compiler has to do for
+each change made to the application.
+
+One possible approach is to make your main crate handle routing/page selection, and then make a
+different crate for each page, where each page could be a different component or just a big
+function that produces `Html`. Code that is shared between the crates containing different parts of
+the application could be stored in a separate crate which the project depends on.
+In the best-case scenario, you go from rebuilding all of your code on each compile to rebuilding
+only the main crate, and one of your page crates. In the worst case, where you edit something in the
+"common" crate, you will be right back to where you started: compiling all code that depends on that
+commonly shared crate, which is probably everything else.
+
+If your main crate is too heavyweight, or you want to rapidly iterate on a deeply nested page \(eg.
+a page that renders on top of another page\), you can use an example crate to create a simplified
+implementation of the main page and additionally render the component you are working on.
+
+## Reducing binary sizes
+
+- optimize Rust code
+- `cargo.toml` \( defining release profile \)
+- optimize wasm code using `wasm-opt`
+
+**Note: more information about reducing binary sizes can be found in the
+[Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size).**
+
+### Cargo.toml
+
+It is possible to configure release builds to be smaller using the available settings in the
+`[profile.release]` section of your `Cargo.toml`.
+
+```toml, title=Cargo.toml
+[profile.release]
+# less code to include into binary
+panic = 'abort'
+# optimization over all codebase ( better optimization, slower build )
+codegen-units = 1
+# optimization for size ( more aggressive )
+opt-level = 'z'
+# optimization for size
+# opt-level = 's'
+# link time optimization using using whole-program analysis
+lto = true
 ```
 
-但是我们可以更进一步！对于任何实现了 `PartialEq` 的项，可以使用一个 trait 和一个 blanket implementation 将这六行样板代码减少到一行。
+### Nightly Cargo configuration
 
-```rust title="neq_assign.rs"
-pub trait NeqAssign {
-    fn neq_assign(&mut self, new: Self) -> ShouldRender;
-}
-impl<T: PartialEq> NeqAssign for T {
-    fn neq_assign(&mut self, new: T) -> ShouldRender {
-        if self != &new {
-            *self = new;
-            true
-        } else {
-            false
-        }
-    }
-}
+You can also gain additional benefits from experimental nightly features of rust and
+cargo. To use the nightly toolchain with `trunk`, set the `RUSTUP_TOOLCHAIN="nightly"` environment
+variable. Then, you can configure unstable rustc features in your `.cargo/config.toml`.
+Refer to the doc of [unstable features], specifically the section about [`build-std`] and
+[`build-std-features`], to understand the configuration.
 
-// ...
-fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    self.props.neq_assign(props)
-}
+```toml, title=".cargo/config.toml"
+[unstable]
+# Requires the rust-src component. `rustup +nightly component add rust-src`
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
 ```
 
-该 trait 称为 `NeqAssign` 是因为如果目标值和新值不相等，它将赋为新值。
+[unstable features]: https://doc.rust-lang.org/cargo/reference/unstable.html
+[`build-std`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std
+[`build-std-features`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std-features
 
-这比简单的实现还要短：
+:::caution
+The nightly rust compiler can contain bugs, such as [this one](https://github.com/yewstack/yew/issues/2696),
+that require occasional attention and tweaking. Use these experimental options with care.
+:::
 
-```rust
-// 不要这样做，除非你无法避免。
-fn change(&mut self, props: Self::Properties) -> ShouldRender {
-    self.props = props;
-    true
-}
+### wasm-opt
+
+Further, it is possible to optimize the size of `wasm` code.
+
+The Rust Wasm Book has a section about reducing the size of Wasm binaries:
+[Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
+
+- using `wasm-pack` which by default optimizes `wasm` code in release builds
+- using `wasm-opt` directly on `wasm` files.
+
+```text
+wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 ```
 
-你不仅限在 `change` 函数中使用它。通常，在 `update` 函数中执行此操作也是有意义的，尽管性能提升在那里不太明显。
+#### Build size of 'minimal' example in yew/examples/
 
-## RC
+Note: `wasm-pack` combines optimization for Rust and Wasm code. `wasm-bindgen` is used in this example without any Rust size optimization.
 
-为了避免在重新渲染时为了创建 props 而克隆大块数据，我们可以使用智能指针来只克隆指针。如果在 props 和子组件中使用 `Rc<_>` 而不是普通未装箱的值，则可以延迟克隆直到需要修改子组件中的数据为止，在该组件中可以使用 `Rc::make_mut` 来对要更改数据进行克隆和获取可变引用。通过在要修改前不进行克隆，子组件可以在几乎没有性能成本的情况下拒绝与它们在 `Component::change` 中拥有状态的 props 相同的 props，这与数据本身需要先复制到父级 props 结构体中，然后在子级中进行比较和拒绝的情况相反。
+| used tool                   | size  |
+| :-------------------------- | :---- |
+| wasm-bindgen                | 158KB |
+| wasm-bindgen + wasm-opt -Os | 116KB |
+| wasm-pack                   | 99 KB |
 
-对于不是 `Copy` 类型的数据，这种优化是最有用的。如果你能轻松地拷贝数据，那么将其放入智能指针中可能是不值得的。对于可以包含大量数据的结构，例如 `Vec`，`HashMap` 和 `String`，这种优化应该是值得的。
+## Further reading:
 
-如果子组件从不更新组件的值，则这种优化效果最好，如果父组件很少更新组件的值，则效果更好。这使得 `Rc<_>s` 是包装纯组件属性值的不错选择。
-
-## 视图函数
-
-出于代码可读性的原因，将 `html!` 各个部分的代码迁移到他们自己的函数中通常是有意义的，这样就可以避免在深层嵌套的 HTML 中出现代码块向右偏移。
-
-## 纯组件 / 函数式组件
-
-纯组件是不会修改它们状态的组件，它们仅展示内容和向普通可变组件传递消息。它们与视图函数不同之处在于他们可以使用组件语法（`<SomePureComponent />`）而不是表达式语法（`{some_view_function()}`）来在 `html!` 宏中使用，并且根据它们的实现，它们可以被记忆化 - 使用前面提到的 `neq_assign` 逻辑来防止因为相同的 props 而重新渲染。
-
-Yew 没有原生支持纯组件或者函数式组件，但是可以通过外部库获取它们。
-
-函数式组件尚不存在，但是从理论上来讲，可以通过使用 proc 宏和标注函数生成纯组件。
-
-## Keyed DOM nodes when they arrive
-
-## 使用 Cargo Workspaces 进行编译速度优化
-
-可以说，使用 Yew 的最大缺点是编译时间长。编译时间似乎与 `html!` 宏块中的代码量相关。对于较小的项目，这通常不是什么大问题，但是对于跨多个页面的 web 应用程序，将代码拆分为多个 crates 以最大程度地减少编译器要做的工作通常是有意义的。
-
-你应该尝试让主 crate 处理路由和页面选择，将所有公用的代码移动到另一个 crate，然后为每一个页面创建一个不同的 crate，其中每个页面可能是一个不同的组件，或者只是一个产生 `Html` 的大函数。在最好的情况下，你将从重新构建所有代码到只重新构建主 crate 和一个页面的 crate。在最糟糕的情况下，当你在“公共” crate 中编辑内容时，你将回到起点：编译所有依赖此公用 crate 的代码，这可能就是除此之外的所有代码。
-
-如果你的主 crate 过于庞大，或者你想在深层嵌套的页面（例如，在另一个页面顶部渲染的页面）中快速迭代，则可以使用一个示例 crate 创建一个更简单的主页面实现并在之上渲染你正在开发的组件。
+- [The Rust Book's chapter on smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Information from the Rust Wasm Book about reducing binary sizes](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Documentation about Rust profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen project](https://github.com/WebAssembly/binaryen)

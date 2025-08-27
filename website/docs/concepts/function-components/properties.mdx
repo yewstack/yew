@@ -341,9 +341,9 @@ These include, but are not limited to:
    **Why is this bad?** Interior mutability (such as with `RefCell`, `Mutex`, etc.) should
    _generally_ be avoided. It can cause problems with re-renders (Yew doesn't know when the state has changed)
    so you may have to manually force a render. Like all things, it has its place. Use it with caution.
-3. Using `Vec` type instead of `IArray`. <br />
-   **Why is this bad?** `Vec`, just like `String`, can also be expensive to clone. `IArray` is either
-   a reference-counted slice (`Rc<T>`) or a `&'static [T]`, thus very cheap to clone.<br />
+3. Using `Vec<T>` type instead of `IArray<T>`. <br />
+   **Why is this bad?** `Vec<T>`, just like `String`, can also be expensive to clone. `IArray<T>` is either
+   a reference-counted slice (`Rc<[T]>`) or a `&'static [T]`, thus very cheap to clone.<br />
    **Note**: `IArray` can be imported from [implicit-clone](https://crates.io/crates/implicit-clone)
    See that crate to learn more.
 4. You tell us. Did you run into an edge-case you wish you knew about earlier? Feel free to create an issue

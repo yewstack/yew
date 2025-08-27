@@ -472,7 +472,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
              `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&String` implements `IntoPropValue<VNode>`
+             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
@@ -672,7 +672,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
              `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&String` implements `IntoPropValue<VNode>`
+             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied

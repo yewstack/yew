@@ -6,10 +6,9 @@ use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
 use crate::callback::Callback;
-use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
+use crate::html::{BaseComponent, ChildrenRenderer, Component, Scope};
 use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
 
-impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 
@@ -126,7 +125,7 @@ where
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<R> {
-        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect())
+        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect::<Vec<_>>())
     }
 }
 
@@ -167,6 +166,13 @@ impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
     }
 }
 
+impl IntoPropValue<VNode> for &ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(Rc::new(VList::from(self.children.clone())))
+    }
+}
+
 impl IntoPropValue<ChildrenRenderer<VNode>> for VNode {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
@@ -184,14 +190,14 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
 impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
     #[inline]
     fn into_prop_value(self) -> VList {
-        VList::with_children(self.children, None)
+        VList::from(self.children)
     }
 }
 
 impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
     #[inline]
     fn into_prop_value(self) -> VList {
-        VList::with_children(vec![self.into()], None)
+        VList::from(VNode::from(self))
     }
 }
 
@@ -204,7 +210,7 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
 impl IntoPropValue<VNode> for Vec<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        VNode::VList(Rc::new(VList::with_children(self, None)))
+        VNode::VList(Rc::new(VList::from(self)))
     }
 }
 
@@ -326,6 +332,7 @@ impl_into_prop_value_via_display!(f64);
 
 impl_into_prop_value_via_attr_value!(String);
 impl_into_prop_value_via_attr_value!(AttrValue);
+impl_into_prop_value_via_attr_value!(&AttrValue);
 impl_into_prop_value_via_attr_value!(Rc<str>);
 impl_into_prop_value_via_attr_value!(Cow<'static, str>);
 

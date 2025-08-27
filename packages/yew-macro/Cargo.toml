@@ -28,6 +28,7 @@ rustversion = "1"
 [dev-dependencies]
 trybuild = "1"
 yew = { path = "../yew" }
+implicit-clone = { workspace = true }
 
 [lints]
 workspace = true

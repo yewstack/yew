@@ -27,7 +27,7 @@ yew-macro = { version = "^0.21.0", path = "../yew-macro" }
 thiserror = "2.0"
 futures = { version = "0.3", default-features = false, features = ["std"] }
 html-escape = { version = "0.2.13", optional = true }
-implicit-clone = { version = "0.5", features = ["map"] }
+implicit-clone = { workspace = true, features = ["map"] }
 base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { version = "2.0.0-rc.3", optional = true, features = ["serde"] }
 serde = { version = "1", features = ["derive"] }

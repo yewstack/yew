@@ -13,7 +13,7 @@ use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, ImplicitClone, PartialEq)]
 #[must_use = "html does not do anything unless returned to Yew for rendering."]
 pub enum VNode {
     /// A bind between `VTag` and `Element`.
@@ -35,8 +35,6 @@ pub enum VNode {
     /// Also see: [`VNode::from_html_unchecked`]
     VRaw(VRaw),
 }
-
-impl ImplicitClone for VNode {}
 
 impl VNode {
     pub fn key(&self) -> Option<&Key> {
@@ -65,8 +63,7 @@ impl VNode {
             match *self {
                 Self::VList(ref mut m) => return Rc::make_mut(m),
                 _ => {
-                    *self =
-                        VNode::VList(Rc::new(VList::with_children(vec![mem::take(self)], None)));
+                    *self = VNode::VList(Rc::new(VList::from(mem::take(self))));
                 }
             }
         }
@@ -172,9 +169,8 @@ impl<T: ToString> From<T> for VNode {
 
 impl<A: Into<VNode>> FromIterator<A> for VNode {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        VNode::VList(Rc::new(VList::with_children(
-            iter.into_iter().map(|n| n.into()).collect(),
-            None,
+        VNode::VList(Rc::new(VList::from_iter(
+            iter.into_iter().map(|n| n.into()),
         )))
     }
 }

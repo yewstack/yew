@@ -160,17 +160,16 @@ gen_listener_kinds! {
 }
 
 /// A list of event listeners
-#[derive(Debug)]
+#[derive(Debug, Clone, ImplicitClone, Default)]
 pub enum Listeners {
     /// No listeners registered or pending.
     /// Distinct from `Pending` with an empty slice to avoid an allocation.
+    #[default]
     None,
 
     /// Not yet added to the element or registry
     Pending(Box<[Option<Rc<dyn Listener>>]>),
 }
-
-impl ImplicitClone for Listeners {}
 
 impl PartialEq for Listeners {
     fn eq(&self, rhs: &Self) -> bool {
@@ -201,20 +200,5 @@ impl PartialEq for Listeners {
             }
             (None, Pending(pending)) | (Pending(pending), None) => pending.is_empty(),
         }
-    }
-}
-
-impl Clone for Listeners {
-    fn clone(&self) -> Self {
-        match self {
-            Self::None => Self::None,
-            Self::Pending(v) => Self::Pending(v.clone()),
-        }
-    }
-}
-
-impl Default for Listeners {
-    fn default() -> Self {
-        Self::None
     }
 }
