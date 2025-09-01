@@ -59,13 +59,13 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 }
 ```
 
-[`wasm-bindgen` ガイドの `web-sys` 継承](https://rustwasm.github.io/wasm-bindgen/web-sys/inheritance.html)
+[`wasm-bindgen` ガイドの `web-sys` 継承](https://wasm-bindgen.github.io/wasm-bindgen/web-sys/inheritance.html)
 
 ## `NodeRef` の `Node`
 
-Yew は [`NodeRef`](concepts/function-components/node-refs.mdx) を使用して、[`html!`](concepts/html/introduction.mdx) マクロによって作成された `Node` の参照を保持する方法を提供します。`NodeRef` の `Node` は [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html) を指します。`NodeRef::get` メソッドは `Option<Node>` 値を返しますが、Yew ではほとんどの場合、この値を特定の要素に変換して、その特定のメソッドを使用することを望みます。存在する場合、[`JsCast`](./wasm-bindgen.mdx#JsCast) を使用して `Node` 値を変換できますが、Yew はこの変換を実行するための `NodeRef::cast` メソッドを提供しているため、`JsCast` 特性のために `wasm-bindgen` 依存関係を含める必要はありません。
+Yew は [`NodeRef`](concepts/function-components/node-refs.mdx) を使用して、[`html!`](concepts/html/introduction.mdx) マクロによって作成された `Node` の参照を保持する方法を提供します。`NodeRef` の `Node` は [`web_sys::Node`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Node.html) を指します。`NodeRef::get` メソッドは `Option<Node>` 値を返しますが、Yew ではほとんどの場合、この値を特定の要素に変換して、その特定のメソッドを使用することを望みます。存在する場合、[`JsCast`](./wasm-bindgen.mdx#JsCast) を使用して `Node` 値を変換できますが、Yew はこの変換を実行するための `NodeRef::cast` メソッドを提供しているため、`JsCast` 特性のために `wasm-bindgen` 依存関係を含める必要はありません。
 
-以下の2つのコードブロックは本質的に同じです。最初のものは `NodeRef::cast` を使用し、2 番目のものは `NodeRef::get` が返す `web_sys::Node` 上で [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) を使用しています。
+以下の2つのコードブロックは本質的に同じです。最初のものは `NodeRef::cast` を使用し、2 番目のものは `NodeRef::get` が返す `web_sys::Node` 上で [`JsCast::dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) を使用しています。
 
 <Tabs>
   <TabItem value="Using NodeRef::cast" label="Using NodeRef::cast">

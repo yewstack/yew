@@ -41,7 +41,7 @@ pub enum FetchState<T> {
 /// Fetches markdown from Yew's README.md.
 ///
 /// Consult the following for an example of the fetch api by the team behind web_sys:
-/// https://rustwasm.github.io/wasm-bindgen/examples/fetch.html
+/// https://wasm-bindgen.github.io/wasm-bindgen/examples/fetch.html
 async fn fetch_markdown(url: &'static str) -> Result<String, FetchError> {
     let opts = RequestInit::new();
     opts.set_method("GET");
