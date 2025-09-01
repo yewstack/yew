@@ -19,14 +19,14 @@ jobs:
 
     steps:
       - name: Checkout master
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: "yewstack/yew"
           ref: master
           path: yew-master
 
       - name: Checkout pull request
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: current-pr
 
