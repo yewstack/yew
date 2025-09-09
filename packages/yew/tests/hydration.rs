@@ -1083,6 +1083,14 @@ async fn hydrate_flicker() {
     // This components renders the same on the server and client during the first render,
     // but then immediately changes the order of keyed elements in the next render.
     // This should not lead to any hydration failures
+    #[derive(Properties, PartialEq)]
+    struct InnerCompProps {
+        text: String,
+    }
+    #[component]
+    fn InnerComp(InnerCompProps { text }: &InnerCompProps) -> Html {
+        html! { <p>{text.clone()}</p> }
+    }
     #[component]
     fn Flickering() -> Html {
         let trigger = use_state(|| false);
@@ -1091,15 +1099,15 @@ async fn hydrate_flicker() {
             trigger.set(true);
             html! {
                 <>
-                    <p key="1">{"1"}</p>
-                    <p key="2">{"2"}</p>
+                    <InnerComp key="1" text="1" />
+                    <InnerComp key="2" text="2" />
                 </>
             }
         } else {
             html! {
                 <>
-                    <p key="2">{"2"}</p>
-                    <p key="1">{"1"}</p>
+                    <InnerComp key="2" text="2" />
+                    <InnerComp key="1" text="1" />
                 </>
             }
         }
