@@ -267,7 +267,7 @@ impl fmt::Debug for BNode {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
 
     impl Hydratable for VNode {
         fn hydrate(
@@ -276,17 +276,20 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             match self {
                 VNode::VTag(vtag) => RcExt::unwrap_or_clone(vtag)
-                    .hydrate(root, parent_scope, parent, fragment)
+                    .hydrate(root, parent_scope, parent, fragment, prev_next_sibling)
                     .into(),
-                VNode::VText(vtext) => vtext.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VText(vtext) => vtext
+                    .hydrate(root, parent_scope, parent, fragment, prev_next_sibling)
+                    .into(),
                 VNode::VComp(vcomp) => RcExt::unwrap_or_clone(vcomp)
-                    .hydrate(root, parent_scope, parent, fragment)
+                    .hydrate(root, parent_scope, parent, fragment, prev_next_sibling)
                     .into(),
                 VNode::VList(vlist) => RcExt::unwrap_or_clone(vlist)
-                    .hydrate(root, parent_scope, parent, fragment)
+                    .hydrate(root, parent_scope, parent, fragment, prev_next_sibling)
                     .into(),
                 // You cannot hydrate a VRef.
                 VNode::VRef(_) => {
@@ -303,9 +306,11 @@ mod feat_hydration {
                     )
                 }
                 VNode::VSuspense(vsuspense) => RcExt::unwrap_or_clone(vsuspense)
-                    .hydrate(root, parent_scope, parent, fragment)
+                    .hydrate(root, parent_scope, parent, fragment, prev_next_sibling)
                     .into(),
-                VNode::VRaw(vraw) => vraw.hydrate(root, parent_scope, parent, fragment).into(),
+                VNode::VRaw(vraw) => vraw
+                    .hydrate(root, parent_scope, parent, fragment, prev_next_sibling)
+                    .into(),
             }
         }
     }

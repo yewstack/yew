@@ -142,7 +142,7 @@ impl Reconcilable for VRaw {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
     use crate::virtual_dom::Collectable;
 
     impl Hydratable for VRaw {
@@ -152,15 +152,24 @@ mod feat_hydration {
             _parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let collectable = Collectable::Raw;
             let fallback_fragment = Fragment::collect_between(fragment, &collectable, parent);
+            let first_child = fallback_fragment.iter().next().cloned();
+
+            if let (Some(first_child), prev_next_sibling) = (&first_child, prev_next_sibling) {
+                if let Some(prev_next_sibling) = prev_next_sibling {
+                    prev_next_sibling.reassign(DomSlot::at(first_child.clone()));
+                }
+                *prev_next_sibling = None;
+            }
 
             let Self { html } = self;
 
             BRaw {
                 children_count: fallback_fragment.len(),
-                reference: fallback_fragment.iter().next().cloned(),
+                reference: first_child,
                 html,
             }
         }

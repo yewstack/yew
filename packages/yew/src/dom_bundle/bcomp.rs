@@ -63,23 +63,16 @@ impl Reconcilable for VComp {
             key,
             ..
         } = self;
-        let internal_ref = DynamicDomSlot::new_debug_trapped();
 
-        let scope = mountable.mount(
-            root,
-            parent_scope,
-            parent.to_owned(),
-            slot,
-            internal_ref.clone(),
-        );
+        let (scope, internal_ref) = mountable.mount(root, parent_scope, parent.to_owned(), slot);
 
         (
             internal_ref.to_position(),
             BComp {
                 type_id,
+                scope,
                 own_position: internal_ref,
                 key,
-                scope,
             },
         )
     }
@@ -131,6 +124,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let VComp {
                 type_id,
@@ -138,20 +132,19 @@ mod feat_hydration {
                 key,
                 ..
             } = self;
-            let internal_ref = DynamicDomSlot::new_debug_trapped();
 
-            let scoped = mountable.hydrate(
+            let (scope, own_slot) = mountable.hydrate(
                 root.clone(),
                 parent_scope,
                 parent.clone(),
-                internal_ref.clone(),
                 fragment,
+                prev_next_sibling,
             );
 
             BComp {
                 type_id,
-                scope: scoped,
-                own_position: internal_ref,
+                scope,
+                own_position: own_slot,
                 key,
             }
         }

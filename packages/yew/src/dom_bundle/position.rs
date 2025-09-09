@@ -54,6 +54,7 @@ mod trap_impl {
         static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
     }
     /// Get a "trap" node, or None if compiled without debug_assertions
+    #[cfg(feature = "hydration")]
     pub fn get_trap_node() -> Option<Node> {
         #[cfg(debug_assertions)]
         {
@@ -98,6 +99,7 @@ impl DomSlot {
 
     /// A new "placeholder" [DomSlot] that should not be used to insert nodes
     #[inline]
+    #[cfg(feature = "hydration")]
     pub fn new_debug_trapped() -> Self {
         Self::create(trap_impl::get_trap_node())
     }
@@ -165,8 +167,17 @@ impl DynamicDomSlot {
         }
     }
 
+    #[cfg(feature = "hydration")]
     pub fn new_debug_trapped() -> Self {
         Self::new(DomSlot::new_debug_trapped())
+    }
+
+    /// Move out of self, leaving behind a trapped slot. `self` should not be used afterwards.
+    /// Used during the transition from a hydrating to a rendered component to move state between
+    /// enum variants.
+    #[cfg(feature = "hydration")]
+    pub fn take(&mut self) -> Self {
+        std::mem::replace(self, Self::new(DomSlot::new_debug_trapped()))
     }
 
     /// Change the [`DomSlot`] that is targeted. Subsequently, this will behave as if `self` was
