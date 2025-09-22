@@ -1983,11 +1983,10 @@ checksum = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
 [[package]]
 name = "lipsum"
 version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "636860251af8963cc40f6b4baadee105f02e21b28131d76eba8e40ce84ab8064"
+source = "git+https://github.com/mgeisler/lipsum.git?branch=master#35060ef81aea4523dff34717436fc32d264d84f1"
 dependencies = [
- "rand 0.8.5",
- "rand_chacha 0.3.1",
+ "rand 0.9.2",
+ "rand_chacha 0.9.0",
 ]
 
 [[package]]

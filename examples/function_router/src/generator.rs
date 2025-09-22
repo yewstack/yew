@@ -1,6 +1,6 @@
 use lipsum::MarkovChain;
 use once_cell::sync::Lazy;
-use rand::distributions::Bernoulli;
+use rand::distr::Bernoulli;
 use rand::rngs::StdRng;
 use rand::seq::IteratorRandom;
 use rand::{Rng, SeedableRng};
@@ -28,12 +28,12 @@ impl Generator {
 }
 impl Generator {
     pub fn new_seed(&mut self) -> u32 {
-        self.rng.gen()
+        self.rng.random()
     }
 
     /// [low, high)
     pub fn range(&mut self, low: u32, high: u32) -> u32 {
-        self.rng.gen_range(low..high)
+        self.rng.random_range(low..high)
     }
 
     /// `n / d` chance
@@ -42,7 +42,7 @@ impl Generator {
     }
 
     pub fn image_url(&mut self, dimension: (u32, u32), keywords: &[String]) -> String {
-        let cache_buster = self.rng.gen::<u16>();
+        let cache_buster = self.rng.random::<u16>();
         let (width, height) = dimension;
         format!(
             "https://source.unsplash.com/random/{}x{}?{}&sig={}",
@@ -61,13 +61,13 @@ impl Generator {
         const SYLLABLES_MIN: u32 = 1;
         const SYLLABLES_MAX: u32 = 5;
 
-        let n_syllables = self.rng.gen_range(SYLLABLES_MIN..SYLLABLES_MAX);
+        let n_syllables = self.rng.random_range(SYLLABLES_MIN..SYLLABLES_MAX);
         let first_name = SYLLABLES
             .split_whitespace()
             .choose_multiple(&mut self.rng, n_syllables as usize)
             .join("");
 
-        let n_syllables = self.rng.gen_range(SYLLABLES_MIN..SYLLABLES_MAX);
+        let n_syllables = self.rng.random_range(SYLLABLES_MIN..SYLLABLES_MAX);
         let last_name = SYLLABLES
             .split_whitespace()
             .choose_multiple(&mut self.rng, n_syllables as usize)
@@ -80,7 +80,7 @@ impl Generator {
         const KEYWORDS_MIN: u32 = 1;
         const KEYWORDS_MAX: u32 = 4;
 
-        let n_keywords = self.rng.gen_range(KEYWORDS_MIN..KEYWORDS_MAX);
+        let n_keywords = self.rng.random_range(KEYWORDS_MIN..KEYWORDS_MAX);
         KEYWORDS
             .split_whitespace()
             .map(ToOwned::to_owned)
@@ -92,7 +92,7 @@ impl Generator {
         const WORDS_MAX: u32 = 8;
         const SMALL_WORD_LEN: u32 = 3;
 
-        let n_words = self.rng.gen_range(WORDS_MIN..WORDS_MAX);
+        let n_words = self.rng.random_range(WORDS_MIN..WORDS_MAX);
 
         let mut title = String::new();
 
@@ -121,7 +121,7 @@ impl Generator {
         const WORDS_MIN: u32 = 7;
         const WORDS_MAX: u32 = 25;
 
-        let n_words = self.rng.gen_range(WORDS_MIN..WORDS_MAX);
+        let n_words = self.rng.random_range(WORDS_MIN..WORDS_MAX);
         YEW_CHAIN.generate_with_rng(&mut self.rng, n_words as usize)
     }
 
@@ -129,7 +129,7 @@ impl Generator {
         const SENTENCES_MIN: u32 = 3;
         const SENTENCES_MAX: u32 = 20;
 
-        let n_sentences = self.rng.gen_range(SENTENCES_MIN..SENTENCES_MAX);
+        let n_sentences = self.rng.random_range(SENTENCES_MIN..SENTENCES_MAX);
         let mut paragraph = String::new();
         for i in 0..n_sentences {
             if i > 0 {

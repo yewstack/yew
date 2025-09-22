@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-lipsum = "0.9.1"
+lipsum = { version = "0.9.1", git = "https://github.com/mgeisler/lipsum.git", branch = "master" }
 log = "0.4"
 rand = { version = "0.9", features = ["small_rng"] }
 yew = { path = "../../packages/yew" }
