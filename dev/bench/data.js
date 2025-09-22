@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1757414118509,
+  "lastUpdate": 1758584174539,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -40637,6 +40637,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 405.6,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "e5352140af0e7269f5482a9edbc6beae52570806",
+          "message": "Bump the cargo-deps group across 1 directory with 21 updates (#3923)\n\n* Bump the cargo-deps group across 1 directory with 21 updates\n\nBumps the cargo-deps group with 19 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [indexmap](https://github.com/indexmap-rs/indexmap) | `2.10.0` | `2.11.4` |\n| [thiserror](https://github.com/dtolnay/thiserror) | `1.0.69` | `2.0.16` |\n| [wasm-bindgen-test](https://github.com/wasm-bindgen/wasm-bindgen) | `0.3.50` | `0.3.53` |\n| [trybuild](https://github.com/dtolnay/trybuild) | `1.0.110` | `1.0.111` |\n| [rand](https://github.com/rust-random/rand) | `0.8.5` | `0.9.2` |\n| [average](https://github.com/vks/average) | `0.15.1` | `0.16.0` |\n| [tabled](https://github.com/zhiburt/tabled) | `0.18.0` | `0.20.0` |\n| [indicatif](https://github.com/console-rs/indicatif) | `0.17.11` | `0.18.0` |\n| [serde_json](https://github.com/serde-rs/json) | `1.0.143` | `1.0.145` |\n| [clap](https://github.com/clap-rs/clap) | `4.5.45` | `4.5.47` |\n| [regex](https://github.com/rust-lang/regex) | `1.11.1` | `1.11.2` |\n| [toml](https://github.com/toml-rs/toml) | `0.8.23` | `0.9.5` |\n| [chrono](https://github.com/chronotope/chrono) | `0.4.41` | `0.4.42` |\n| [semver](https://github.com/dtolnay/semver) | `1.0.26` | `1.0.27` |\n| [log](https://github.com/rust-lang/log) | `0.4.27` | `0.4.28` |\n| [time](https://github.com/time-rs/time) | `0.3.41` | `0.3.43` |\n| [uuid](https://github.com/uuid-rs/uuid) | `1.18.0` | `1.18.1` |\n| [warp](https://github.com/seanmonstar/warp) | `0.3.7` | `0.4.2` |\n| [hyper-util](https://github.com/hyperium/hyper-util) | `0.1.16` | `0.1.17` |\n\n\n\nUpdates `indexmap` from 2.10.0 to 2.11.4\n- [Changelog](https://github.com/indexmap-rs/indexmap/blob/main/RELEASES.md)\n- [Commits](https://github.com/indexmap-rs/indexmap/compare/2.10.0...2.11.4)\n\nUpdates `thiserror` from 1.0.69 to 2.0.16\n- [Release notes](https://github.com/dtolnay/thiserror/releases)\n- [Commits](https://github.com/dtolnay/thiserror/compare/1.0.69...2.0.16)\n\nUpdates `serde` from 1.0.219 to 1.0.225\n- [Release notes](https://github.com/serde-rs/serde/releases)\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.219...v1.0.225)\n\nUpdates `wasm-bindgen-test` from 0.3.50 to 0.3.53\n- [Release notes](https://github.com/wasm-bindgen/wasm-bindgen/releases)\n- [Changelog](https://github.com/wasm-bindgen/wasm-bindgen/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/wasm-bindgen/wasm-bindgen/commits)\n\nUpdates `trybuild` from 1.0.110 to 1.0.111\n- [Release notes](https://github.com/dtolnay/trybuild/releases)\n- [Commits](https://github.com/dtolnay/trybuild/compare/1.0.110...1.0.111)\n\nUpdates `rand` from 0.8.5 to 0.9.2\n- [Release notes](https://github.com/rust-random/rand/releases)\n- [Changelog](https://github.com/rust-random/rand/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-random/rand/compare/0.8.5...rand_core-0.9.2)\n\nUpdates `average` from 0.15.1 to 0.16.0\n- [Commits](https://github.com/vks/average/commits)\n\nUpdates `tabled` from 0.18.0 to 0.20.0\n- [Changelog](https://github.com/zhiburt/tabled/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/zhiburt/tabled/commits)\n\nUpdates `indicatif` from 0.17.11 to 0.18.0\n- [Release notes](https://github.com/console-rs/indicatif/releases)\n- [Commits](https://github.com/console-rs/indicatif/compare/0.17.11...0.18.0)\n\nUpdates `serde_json` from 1.0.143 to 1.0.145\n- [Release notes](https://github.com/serde-rs/json/releases)\n- [Commits](https://github.com/serde-rs/json/compare/v1.0.143...v1.0.145)\n\nUpdates `clap` from 4.5.45 to 4.5.47\n- [Release notes](https://github.com/clap-rs/clap/releases)\n- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.5.45...clap_complete-v4.5.47)\n\nUpdates `regex` from 1.11.1 to 1.11.2\n- [Release notes](https://github.com/rust-lang/regex/releases)\n- [Changelog](https://github.com/rust-lang/regex/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/regex/compare/1.11.1...1.11.2)\n\nUpdates `toml` from 0.8.23 to 0.9.5\n- [Commits](https://github.com/toml-rs/toml/compare/toml-v0.8.23...toml-v0.9.5)\n\nUpdates `chrono` from 0.4.41 to 0.4.42\n- [Release notes](https://github.com/chronotope/chrono/releases)\n- [Changelog](https://github.com/chronotope/chrono/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/chronotope/chrono/compare/v0.4.41...v0.4.42)\n\nUpdates `semver` from 1.0.26 to 1.0.27\n- [Release notes](https://github.com/dtolnay/semver/releases)\n- [Commits](https://github.com/dtolnay/semver/compare/1.0.26...1.0.27)\n\nUpdates `log` from 0.4.27 to 0.4.28\n- [Release notes](https://github.com/rust-lang/log/releases)\n- [Changelog](https://github.com/rust-lang/log/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/log/compare/0.4.27...0.4.28)\n\nUpdates `time` from 0.3.41 to 0.3.43\n- [Release notes](https://github.com/time-rs/time/releases)\n- [Changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/time-rs/time/compare/v0.3.41...v0.3.43)\n\nUpdates `uuid` from 1.18.0 to 1.18.1\n- [Release notes](https://github.com/uuid-rs/uuid/releases)\n- [Commits](https://github.com/uuid-rs/uuid/compare/v1.18.0...v1.18.1)\n\nUpdates `warp` from 0.3.7 to 0.4.2\n- [Release notes](https://github.com/seanmonstar/warp/releases)\n- [Changelog](https://github.com/seanmonstar/warp/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/seanmonstar/warp/compare/v0.3.7...v0.4.2)\n\nUpdates `hyper-util` from 0.1.16 to 0.1.17\n- [Release notes](https://github.com/hyperium/hyper-util/releases)\n- [Changelog](https://github.com/hyperium/hyper-util/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/hyperium/hyper-util/compare/v0.1.16...v0.1.17)\n\nUpdates `serde_derive` from 1.0.219 to 1.0.225\n- [Release notes](https://github.com/serde-rs/serde/releases)\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.219...v1.0.225)\n\n---\nupdated-dependencies:\n- dependency-name: indexmap\n  dependency-version: 2.11.4\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: thiserror\n  dependency-version: 2.0.16\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: cargo-deps\n- dependency-name: serde\n  dependency-version: 1.0.225\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: wasm-bindgen-test\n  dependency-version: 0.3.53\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: trybuild\n  dependency-version: 1.0.111\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: rand\n  dependency-version: 0.9.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: average\n  dependency-version: 0.16.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: tabled\n  dependency-version: 0.20.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: indicatif\n  dependency-version: 0.18.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: serde_json\n  dependency-version: 1.0.145\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: clap\n  dependency-version: 4.5.47\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: regex\n  dependency-version: 1.11.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: toml\n  dependency-version: 0.9.5\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: chrono\n  dependency-version: 0.4.42\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: semver\n  dependency-version: 1.0.27\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: log\n  dependency-version: 0.4.28\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: time\n  dependency-version: 0.3.43\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: uuid\n  dependency-version: 1.18.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: warp\n  dependency-version: 0.4.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: hyper-util\n  dependency-version: 0.1.17\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: serde_derive\n  dependency-version: 1.0.225\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\n* fix lipsum dependency\n\nlipsum hasn't publish a version for rand 0.9 yet, but that exists on master\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Martin Molzer <WorldSEnder@users.noreply.github.com>",
+          "timestamp": "2025-09-22T23:17:57Z",
+          "url": "https://github.com/yewstack/yew/commit/e5352140af0e7269f5482a9edbc6beae52570806"
+        },
+        "date": 1758584172009,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 205,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 237.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 129.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 71.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 142.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 98.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 2372.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 236.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 105,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.24490737915039,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.564814567565918,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.8762922286987305,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.379331588745117,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 43.31092357635498,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 163.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 435.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 206.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 240,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 100.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 37.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 110.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 91.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 2347.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 232.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 100.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.2476844787597656,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.501246452331543,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.503124237060547,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.253450393676758,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.1852912902832,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 161.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 54,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 409.5,
             "unit": ""
           }
         ]
