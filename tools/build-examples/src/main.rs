@@ -56,12 +56,13 @@ fn main() -> ExitCode {
 
         println!("::group::Building {example}");
 
-        if !build_example(&path, &output_dir, &example) {
+        let sample_success = build_example(&path, &output_dir, &example);
+
+        println!("::endgroup::");
+        if !sample_success {
             eprintln!("::error ::{example}  failed to build");
             failure = true;
         }
-
-        println!("::endgroup::");
     }
 
     // Emit warning if any examples have outdated wasm_opt
