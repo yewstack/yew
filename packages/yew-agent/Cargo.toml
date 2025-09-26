@@ -37,4 +37,4 @@ features = [
 ]
 
 [dev-dependencies]
-serde = "1.0.218"
+serde = "1.0.227"
