@@ -68,6 +68,26 @@ impl<COMP: BaseComponent> Context<COMP> {
 
         state
     }
+
+    pub(crate) fn narrow_scope<D: BaseComponent<Properties = COMP::Properties>>(
+        &self,
+        inner: &Scope<D>,
+    ) -> Context<D> {
+        let mut ctx = Context {
+            scope: inner.clone(),
+            props: self.props.clone(),
+            #[cfg(feature = "hydration")]
+            creation_mode: self.creation_mode,
+            #[cfg(feature = "hydration")]
+            prepared_state: None,
+        };
+        let _ = &mut ctx; // silence warning due to feature conditional branch below
+        #[cfg(feature = "hydration")]
+        {
+            ctx.prepared_state = self.prepared_state.clone();
+        }
+        ctx
+    }
 }
 
 /// The common base of both function components and struct components.

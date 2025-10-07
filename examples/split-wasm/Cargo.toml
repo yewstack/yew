@@ -1,0 +1,16 @@
+[package]
+name = "split-wasm"
+version = "0.1.0"
+authors = []
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+yew = { path = "../../packages/yew", features = ["csr"] }
+wasm_split = { git = "https://github.com/WorldSEnder/wasm-split-prototype.git", version = "0.1", rev = "9b4876034a3be928a634c55be9c55085a9395f46" }
+wasm-bindgen = "*"
+wasm-bindgen-futures = "*"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["HtmlInputElement"]
