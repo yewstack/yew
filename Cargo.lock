@@ -3046,9 +3046,10 @@ dependencies = [
 name = "split-wasm"
 version = "0.1.0"
 dependencies = [
+ "async-once-cell",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm_split",
+ "wasm_split_helpers",
  "web-sys",
  "yew",
 ]
@@ -3944,9 +3945,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasm_split"
-version = "0.1.0"
-source = "git+https://github.com/WorldSEnder/wasm-split-prototype.git?rev=9b4876034a3be928a634c55be9c55085a9395f46#9b4876034a3be928a634c55be9c55085a9395f46"
+name = "wasm_split_helpers"
+version = "0.2.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67a63f86bb241fa35d6e87c50311e1abb9e403c5db690f3637525d6fa2876b8e"
 dependencies = [
  "async-once-cell",
  "wasm_split_macros",
@@ -3954,8 +3956,9 @@ dependencies = [
 
 [[package]]
 name = "wasm_split_macros"
-version = "0.1.0"
-source = "git+https://github.com/WorldSEnder/wasm-split-prototype.git?rev=9b4876034a3be928a634c55be9c55085a9395f46#9b4876034a3be928a634c55be9c55085a9395f46"
+version = "0.2.0-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cee3692283763ee89e2eb075c51fff63c6385d6a31bcb1931262dc44180e58fb"
 dependencies = [
  "base16",
  "quote",

@@ -38,6 +38,13 @@ impl<C: BaseComponent> std::fmt::Debug for LazyVTable<C> {
             .finish()
     }
 }
+impl<C: BaseComponent> Clone for LazyVTable<C> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+impl<C: BaseComponent> Copy for LazyVTable<C> {}
+
 impl<C: BaseComponent> LazyVTable<C> {
     /// Returns the singleton vtable for a component.
     ///
@@ -58,12 +65,14 @@ impl<C: BaseComponent> LazyVTable<C> {
         }
     }
 }
-/// Implement this trait to support lazily loading your component.
+/// Implement this trait to support lazily loading a component.
 ///
 /// Used in conjunction with the [`Lazy`] component.
-pub trait LazyComponent: BaseComponent {
-    /// Start fetching your component
-    fn fetch() -> impl Future<Output = LazyVTable<Self>> + Send;
+pub trait LazyComponent: 'static {
+    /// The component that is lazily being fetched
+    type Underlying: BaseComponent;
+    /// Fetch the component's impl
+    fn fetch() -> impl Future<Output = LazyVTable<Self::Underlying>> + Send;
 }
 
 #[derive(Debug)]
@@ -76,9 +85,9 @@ enum LazyState<C: BaseComponent> {
 /// This component suspends as long as the underlying component is still being fetched,
 /// then behaves as the underlying component itself.
 #[derive(Debug)]
-pub struct Lazy<C: BaseComponent> {
-    inner_scope: Scope<C>,
-    state: LazyState<C>,
+pub struct Lazy<C: LazyComponent> {
+    inner_scope: Scope<C::Underlying>,
+    state: LazyState<C::Underlying>,
 }
 
 /// Message to send to a lazy component
@@ -91,15 +100,14 @@ pub enum LazyMessage<C: BaseComponent> {
 }
 
 impl<C: LazyComponent> BaseComponent for Lazy<C> {
-    type Message = LazyMessage<C>;
-    type Properties = C::Properties;
+    type Message = LazyMessage<C::Underlying>;
+    type Properties = <C::Underlying as BaseComponent>::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {
         let inner_scope = Scope::new(Some(ctx.link().to_any()));
         let creation_ctx = ctx.narrow_scope(&inner_scope);
 
         let link = ctx.link().clone();
-        // TODO: fetch once per component type not instance?
         let suspension = Suspension::from_future(async move {
             // Ignore error in case receiver was dropped
             let vtable = C::fetch().await;
