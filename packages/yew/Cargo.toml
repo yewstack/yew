@@ -34,6 +34,7 @@ serde = { version = "1", features = ["derive"] }
 tracing = "0.1.40"
 tokise = "0.2.0"
 rustversion = "1"
+async-once-cell = "0.5.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"

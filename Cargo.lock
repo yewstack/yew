@@ -4323,6 +4323,7 @@ checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
 name = "yew"
 version = "0.21.0"
 dependencies = [
+ "async-once-cell",
  "base64ct",
  "bincode 2.0.0-rc.3",
  "console_error_panic_hook",

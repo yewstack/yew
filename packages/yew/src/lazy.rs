@@ -179,3 +179,53 @@ impl<C: LazyComponent> BaseComponent for Lazy<C> {
         }
     }
 }
+
+/// Make a component accessible as a lazily loaded component in a separate wasm module
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __declare_lazy_component {
+    ($comp:ty as $lazy_name:ident in $module:ident) => {
+        struct Proxy;
+        impl ::yew::lazy::LazyComponent for Proxy {
+            type Underlying = $comp;
+
+            async fn fetch() -> ::yew::lazy::LazyVTable<Self::Underlying> {
+                #[split($module)]
+                fn split_fetch() -> ::yew::lazy::LazyVTable<$comp> {
+                    ::yew::lazy::LazyVTable::<$comp>::vtable()
+                }
+                struct F(
+                    ::std::option::Option<
+                        ::std::pin::Pin<
+                            ::std::boxed::Box<
+                                dyn ::std::future::Future<Output = ::yew::lazy::LazyVTable<$comp>>
+                                    + ::std::marker::Send,
+                            >,
+                        >,
+                    >,
+                );
+                impl Future for F {
+                    type Output = ::yew::lazy::LazyVTable<$comp>;
+
+                    fn poll(
+                        mut self: ::std::pin::Pin<&mut Self>,
+                        cx: &mut ::std::task::Context<'_>,
+                    ) -> ::std::task::Poll<Self::Output> {
+                        self.0
+                            .get_or_insert_with(|| ::std::boxed::Box::pin(split_fetch()))
+                            .as_mut()
+                            .poll(cx)
+                    }
+                }
+                static CACHE: ::yew::lazy::LazyCell<::yew::lazy::LazyVTable<$comp>, F> =
+                    ::yew::lazy::LazyCell::new(F(None));
+                *::std::pin::Pin::static_ref(&CACHE).await.get_ref()
+            }
+        }
+        type $lazy_name = ::yew::lazy::Lazy<Proxy>;
+    };
+}
+#[doc(hidden)]
+pub use ::async_once_cell::Lazy as LazyCell;
+
+pub use crate::__declare_lazy_component as declare_lazy_component;
