@@ -1,6 +1,5 @@
 use std::future::{pending, Future};
 
-use wasm_split_helpers::wasm_split as split;
 use web_sys::HtmlInputElement;
 use yew::lazy::declare_lazy_component;
 use yew::prelude::*;

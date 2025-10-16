@@ -190,7 +190,7 @@ macro_rules! __declare_lazy_component {
             type Underlying = $comp;
 
             async fn fetch() -> ::yew::lazy::LazyVTable<Self::Underlying> {
-                #[split($module)]
+                #[$crate::lazy::wasm_split::wasm_split($module, wasm_split_path = $crate::lazy::wasm_split)]
                 fn split_fetch() -> ::yew::lazy::LazyVTable<$comp> {
                     ::yew::lazy::LazyVTable::<$comp>::vtable()
                 }
@@ -227,5 +227,7 @@ macro_rules! __declare_lazy_component {
 }
 #[doc(hidden)]
 pub use ::async_once_cell::Lazy as LazyCell;
+#[doc(hidden)]
+pub use ::wasm_split_helpers as wasm_split;
 
 pub use crate::__declare_lazy_component as declare_lazy_component;
