@@ -5,7 +5,7 @@
 
 use std::future::Future;
 
-use crate::html::{Scope, Scoped};
+use crate::html::Scope;
 use crate::suspense::Suspension;
 use crate::{BaseComponent, Context, HtmlResult};
 
@@ -104,7 +104,17 @@ impl<C: LazyComponent> BaseComponent for Lazy<C> {
     type Properties = <C::Underlying as BaseComponent>::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let inner_scope = Scope::new(Some(ctx.link().to_any()));
+        #[cfg(not(any(feature = "ssr", feature = "csr")))]
+        {
+            let _ = ctx;
+            todo!("Component shouldn't render without any rendering mode enabled");
+        }
+        #[allow(unreachable_code)]
+        let inner_scope;
+        #[cfg(any(feature = "ssr", feature = "csr"))]
+        {
+            inner_scope = Scope::new(Some(ctx.link().clone().into()));
+        }
         let creation_ctx = ctx.narrow_scope(&inner_scope);
 
         let link = ctx.link().clone();
