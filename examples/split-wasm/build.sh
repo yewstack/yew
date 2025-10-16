@@ -20,8 +20,7 @@ GLOBIGNORE=".:.."
 rm -rf dist/*
 mkdir dist/.stage
 (
-  cd ~/recreational/src/wasm-split-prototype/
-  cargo run --features="build-binary" -- --verbose "$TARGET_DIR/wasm32-unknown-unknown/${PROFILE}/split-wasm.wasm" "$THIS_DIR"/dist/.stage/ \
+  wasm_split_cli --verbose "$TARGET_DIR/wasm32-unknown-unknown/${PROFILE}/split-wasm.wasm" "$THIS_DIR"/dist/.stage/ \
     > "$THIS_DIR"/dist/.stage/split.log
 )
 echo "running wasm-bindgen"
