@@ -33,7 +33,7 @@ fn main() -> ExitCode {
         let path = entry.path();
 
         // Skip if not a directory
-        if !path.is_dir() {
+        if should_skip_path(&path) {
             continue;
         }
 
@@ -79,6 +79,10 @@ fn main() -> ExitCode {
     } else {
         ExitCode::from(0)
     }
+}
+
+fn should_skip_path(path: &Path) -> bool {
+    !path.is_dir() || !path.join("Cargo.toml").exists()
 }
 
 fn build_example(path: &Path, output_dir: &Path, example: &str) -> bool {
