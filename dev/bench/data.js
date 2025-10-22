@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761147011017,
+  "lastUpdate": 1761150885707,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -41789,6 +41789,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 379.7,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "b4634008810797589a8d9f50ccf986c77a11aefc",
+          "message": "Bump the website-deps group across 1 directory with 14 updates (#3928)\n\n* Bump the website-deps group across 1 directory with 14 updates\n\nBumps the website-deps group with 12 updates in the /website directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [@docusaurus/core](https://github.com/facebook/docusaurus/tree/HEAD/packages/docusaurus) | `3.8.1` | `3.9.1` |\n| [@docusaurus/plugin-client-redirects](https://github.com/facebook/docusaurus/tree/HEAD/packages/docusaurus-plugin-client-redirects) | `3.8.1` | `3.9.1` |\n| [@docusaurus/preset-classic](https://github.com/facebook/docusaurus/tree/HEAD/packages/docusaurus-preset-classic) | `3.8.1` | `3.9.1` |\n| [@mdx-js/react](https://github.com/mdx-js/mdx/tree/HEAD/packages/react) | `3.1.0` | `3.1.1` |\n| [react](https://github.com/facebook/react/tree/HEAD/packages/react) | `19.0.0` | `19.1.1` |\n| [@types/react](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/react) | `19.0.8` | `19.1.16` |\n| [react-dom](https://github.com/facebook/react/tree/HEAD/packages/react-dom) | `19.0.0` | `19.1.1` |\n| [sass](https://github.com/sass/dart-sass) | `1.83.4` | `1.93.2` |\n| [@docusaurus/tsconfig](https://github.com/facebook/docusaurus/tree/HEAD/packages/docusaurus-tsconfig) | `3.8.1` | `3.9.1` |\n| [@typescript-eslint/eslint-plugin](https://github.com/typescript-eslint/typescript-eslint/tree/HEAD/packages/eslint-plugin) | `8.22.0` | `8.45.0` |\n| [prettier](https://github.com/prettier/prettier) | `3.5.1` | `3.6.2` |\n| [typescript](https://github.com/microsoft/TypeScript) | `5.7.3` | `5.9.3` |\n\n\n\nUpdates `@docusaurus/core` from 3.8.1 to 3.9.1\n- [Release notes](https://github.com/facebook/docusaurus/releases)\n- [Changelog](https://github.com/facebook/docusaurus/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/docusaurus/commits/v3.9.1/packages/docusaurus)\n\nUpdates `@docusaurus/plugin-client-redirects` from 3.8.1 to 3.9.1\n- [Release notes](https://github.com/facebook/docusaurus/releases)\n- [Changelog](https://github.com/facebook/docusaurus/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/docusaurus/commits/v3.9.1/packages/docusaurus-plugin-client-redirects)\n\nUpdates `@docusaurus/preset-classic` from 3.8.1 to 3.9.1\n- [Release notes](https://github.com/facebook/docusaurus/releases)\n- [Changelog](https://github.com/facebook/docusaurus/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/docusaurus/commits/v3.9.1/packages/docusaurus-preset-classic)\n\nUpdates `@mdx-js/react` from 3.1.0 to 3.1.1\n- [Release notes](https://github.com/mdx-js/mdx/releases)\n- [Changelog](https://github.com/mdx-js/mdx/blob/main/changelog.md)\n- [Commits](https://github.com/mdx-js/mdx/commits/3.1.1/packages/react)\n\nUpdates `react` from 19.0.0 to 19.1.1\n- [Release notes](https://github.com/facebook/react/releases)\n- [Changelog](https://github.com/facebook/react/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/react/commits/v19.1.1/packages/react)\n\nUpdates `@types/react` from 19.0.8 to 19.1.16\n- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)\n- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/react)\n\nUpdates `react-dom` from 19.0.0 to 19.1.1\n- [Release notes](https://github.com/facebook/react/releases)\n- [Changelog](https://github.com/facebook/react/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/react/commits/v19.1.1/packages/react-dom)\n\nUpdates `sass` from 1.83.4 to 1.93.2\n- [Release notes](https://github.com/sass/dart-sass/releases)\n- [Changelog](https://github.com/sass/dart-sass/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/sass/dart-sass/compare/1.83.4...1.93.2)\n\nUpdates `@docusaurus/module-type-aliases` from 3.8.1 to 3.9.1\n- [Release notes](https://github.com/facebook/docusaurus/releases)\n- [Changelog](https://github.com/facebook/docusaurus/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/docusaurus/commits/v3.9.1/packages/docusaurus-module-type-aliases)\n\nUpdates `@docusaurus/tsconfig` from 3.8.1 to 3.9.1\n- [Release notes](https://github.com/facebook/docusaurus/releases)\n- [Changelog](https://github.com/facebook/docusaurus/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/facebook/docusaurus/commits/v3.9.1/packages/docusaurus-tsconfig)\n\nUpdates `@types/react` from 19.0.8 to 19.1.16\n- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)\n- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/react)\n\nUpdates `@typescript-eslint/eslint-plugin` from 8.22.0 to 8.45.0\n- [Release notes](https://github.com/typescript-eslint/typescript-eslint/releases)\n- [Changelog](https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/CHANGELOG.md)\n- [Commits](https://github.com/typescript-eslint/typescript-eslint/commits/v8.45.0/packages/eslint-plugin)\n\nUpdates `@typescript-eslint/parser` from 8.22.0 to 8.45.0\n- [Release notes](https://github.com/typescript-eslint/typescript-eslint/releases)\n- [Changelog](https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/parser/CHANGELOG.md)\n- [Commits](https://github.com/typescript-eslint/typescript-eslint/commits/v8.45.0/packages/parser)\n\nUpdates `prettier` from 3.5.1 to 3.6.2\n- [Release notes](https://github.com/prettier/prettier/releases)\n- [Changelog](https://github.com/prettier/prettier/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/prettier/prettier/compare/3.5.1...3.6.2)\n\nUpdates `typescript` from 5.7.3 to 5.9.3\n- [Release notes](https://github.com/microsoft/TypeScript/releases)\n- [Changelog](https://github.com/microsoft/TypeScript/blob/main/azure-pipelines.release-publish.yml)\n- [Commits](https://github.com/microsoft/TypeScript/compare/v5.7.3...v5.9.3)\n\n---\nupdated-dependencies:\n- dependency-name: \"@docusaurus/core\"\n  dependency-version: 3.9.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@docusaurus/plugin-client-redirects\"\n  dependency-version: 3.9.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@docusaurus/preset-classic\"\n  dependency-version: 3.9.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@mdx-js/react\"\n  dependency-version: 3.1.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: website-deps\n- dependency-name: react\n  dependency-version: 19.1.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@types/react\"\n  dependency-version: 19.1.16\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: react-dom\n  dependency-version: 19.1.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: sass\n  dependency-version: 1.93.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@docusaurus/module-type-aliases\"\n  dependency-version: 3.9.1\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@docusaurus/tsconfig\"\n  dependency-version: 3.9.1\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@types/react\"\n  dependency-version: 19.1.16\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@typescript-eslint/eslint-plugin\"\n  dependency-version: 8.45.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: \"@typescript-eslint/parser\"\n  dependency-version: 8.45.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: prettier\n  dependency-version: 3.6.2\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n- dependency-name: typescript\n  dependency-version: 5.9.3\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n  dependency-group: website-deps\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\n* dump node version used in ci\n\n* follow migration advice\n\n* update translations\n\nAI mode is mentioned a bunch in the docusaurus translations, but not enabled by default.\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Martin Molzer <WorldSEnder@users.noreply.github.com>",
+          "timestamp": "2025-10-22T16:20:00Z",
+          "url": "https://github.com/yewstack/yew/commit/b4634008810797589a8d9f50ccf986c77a11aefc"
+        },
+        "date": 1761150883251,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 111.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 127.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 78.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 42.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 88.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 54.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 1343.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 134.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 65.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.2659120559692383,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.521326065063477,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.668280601501465,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.221622467041016,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.65167999267578,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 164,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 389.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 113.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 126.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 62.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 23.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 66.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 41.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 1254,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 131.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 65.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.2806386947631836,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.424379348754883,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.52197265625,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.10067081451416,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 41.526123046875,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 161.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 53.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 363.9,
             "unit": ""
           }
         ]
