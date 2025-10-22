@@ -695,6 +695,7 @@ error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<{in
    |                ^^ the trait `From<{integer}>` is not implemented for `implicit_clone::unsync::string::IString`
    |
    = help: the following other types implement trait `From<T>`:
+             `implicit_clone::unsync::string::IString` implements `From<&Classes>`
              `implicit_clone::unsync::string::IString` implements `From<&implicit_clone::unsync::string::IString>`
              `implicit_clone::unsync::string::IString` implements `From<&str>`
              `implicit_clone::unsync::string::IString` implements `From<Arguments<'_>>`

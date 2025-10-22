@@ -277,6 +277,18 @@ impl<T: Into<Classes>, const SIZE: usize> From<[T; SIZE]> for Classes {
     }
 }
 
+impl From<&Classes> for Classes {
+    fn from(c: &Classes) -> Self {
+        c.clone()
+    }
+}
+
+impl From<&Classes> for AttrValue {
+    fn from(c: &Classes) -> Self {
+        c.clone().into_prop_value()
+    }
+}
+
 impl PartialEq for Classes {
     fn eq(&self, other: &Self) -> bool {
         self.set.len() == other.set.len() && self.set.iter().eq(other.set.iter())
