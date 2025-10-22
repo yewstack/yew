@@ -1,6 +1,7 @@
 //! This module contains useful utilities to get information about the current document.
 
 use std::marker::PhantomData;
+use std::rc::Rc;
 
 use implicit_clone::unsync::IArray;
 use implicit_clone::ImplicitClone;
@@ -15,20 +16,24 @@ where
     it.into_iter().map(|n| n.into())
 }
 
+fn array_single<T: ImplicitClone + 'static>(singl: T) -> IArray<T> {
+    IArray::Rc(Rc::new([singl]))
+}
+
 /// A special type necessary for flattening components returned from nested html macros.
 #[derive(Debug)]
 pub struct NodeSeq<IN, OUT: ImplicitClone + 'static>(IArray<OUT>, PhantomData<IN>);
 
 impl<IN: Into<OUT>, OUT: ImplicitClone + 'static> From<IN> for NodeSeq<IN, OUT> {
     fn from(val: IN) -> Self {
-        Self(IArray::Single([val.into()]), PhantomData)
+        Self(array_single(val.into()), PhantomData)
     }
 }
 
 impl<IN: Into<OUT>, OUT: ImplicitClone + 'static> From<Option<IN>> for NodeSeq<IN, OUT> {
     fn from(val: Option<IN>) -> Self {
         Self(
-            val.map(|s| IArray::Single([s.into()])).unwrap_or_default(),
+            val.map(|s| array_single(s.into())).unwrap_or_default(),
             PhantomData,
         )
     }
@@ -38,7 +43,7 @@ impl<IN: Into<OUT>, OUT: ImplicitClone + 'static> From<Vec<IN>> for NodeSeq<IN, 
     fn from(mut val: Vec<IN>) -> Self {
         if val.len() == 1 {
             let item = val.pop().unwrap();
-            Self(IArray::Single([item.into()]), PhantomData)
+            Self(array_single(item.into()), PhantomData)
         } else {
             Self(val.into_iter().map(|x| x.into()).collect(), PhantomData)
         }
@@ -49,7 +54,7 @@ impl<IN: Into<OUT> + ImplicitClone, OUT: ImplicitClone + 'static> From<IArray<IN
     for NodeSeq<IN, OUT>
 {
     fn from(val: IArray<IN>) -> Self {
-        Self(val.iter().map(|x| x.into()).collect(), PhantomData)
+        Self(val.into_iter().map(|x| x.into()).collect(), PhantomData)
     }
 }
 
@@ -57,7 +62,10 @@ impl<IN: Into<OUT> + ImplicitClone, OUT: ImplicitClone + 'static> From<&IArray<I
     for NodeSeq<IN, OUT>
 {
     fn from(val: &IArray<IN>) -> Self {
-        Self(val.iter().map(|x| x.into()).collect(), PhantomData)
+        Self(
+            val.clone().into_iter().map(|x| x.into()).collect(),
+            PhantomData,
+        )
     }
 }
 
@@ -70,11 +78,11 @@ impl<IN: Into<OUT> + Clone, OUT: ImplicitClone + 'static> From<&ChildrenRenderer
 }
 
 impl<IN, OUT: ImplicitClone + 'static> IntoIterator for NodeSeq<IN, OUT> {
-    type IntoIter = implicit_clone::unsync::Iter<Self::Item>;
+    type IntoIter = implicit_clone::unsync::IArrayIntoIter<Self::Item>;
     type Item = OUT;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
+        self.0.into_iter()
     }
 }
 

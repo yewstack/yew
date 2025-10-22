@@ -45,6 +45,7 @@ impl Component for MapExample {
                 self.values = self
                     .values
                     .iter()
+                    .map(|(&k, v)| (k, v.clone()))
                     .chain(std::iter::once((
                         self.values.len() as u32,
                         IString::from(name),

@@ -36,6 +36,7 @@ pub fn array_example() -> Html {
                 folks.set(
                     folks
                         .iter()
+                        .cloned()
                         .chain(std::iter::once(IString::from(name)))
                         .collect(),
                 );
