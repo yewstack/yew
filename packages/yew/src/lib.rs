@@ -1,7 +1,6 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc(html_logo_url = "https://yew.rs/img/logo.png")]
 #![cfg_attr(documenting, feature(doc_cfg))]
-#![cfg_attr(documenting, feature(doc_auto_cfg))]
 #![cfg_attr(nightly_yew, feature(fn_traits, unboxed_closures))]
 
 //! # Yew Framework - API Documentation
