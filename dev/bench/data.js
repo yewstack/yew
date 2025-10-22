@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761150885707,
+  "lastUpdate": 1761155509209,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -41981,6 +41981,198 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 363.9,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "71e24b7e811cde10974f6f35f9743df93f173459",
+          "message": "Bump the cargo-deps group across 1 directory with 18 updates (#3933)\n\n* Bump the cargo-deps group across 1 directory with 18 updates\n\nBumps the cargo-deps group with 17 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [tokio](https://github.com/tokio-rs/tokio) | `1.47.1` | `1.48.0` |\n| [implicit-clone](https://github.com/yewstack/implicit-clone) | `0.5.1` | `0.6.0` |\n| [thiserror](https://github.com/dtolnay/thiserror) | `2.0.16` | `2.0.17` |\n| [serde](https://github.com/serde-rs/serde) | `1.0.225` | `1.0.228` |\n| [wasm-bindgen-test](https://github.com/wasm-bindgen/wasm-bindgen) | `0.3.53` | `0.3.54` |\n| [trybuild](https://github.com/dtolnay/trybuild) | `1.0.111` | `1.0.112` |\n| [quote](https://github.com/dtolnay/quote) | `1.0.40` | `1.0.41` |\n| [getrandom](https://github.com/rust-random/getrandom) | `0.3.3` | `0.3.4` |\n| [clap](https://github.com/clap-rs/clap) | `4.5.47` | `4.5.49` |\n| [reqwest](https://github.com/seanmonstar/reqwest) | `0.12.23` | `0.12.24` |\n| [regex](https://github.com/rust-lang/regex) | `1.11.2` | `1.12.2` |\n| [toml](https://github.com/toml-rs/toml) | `0.9.5` | `0.9.8` |\n| [anyhow](https://github.com/dtolnay/anyhow) | `1.0.99` | `1.0.100` |\n| [lipsum](https://github.com/mgeisler/lipsum) | ``35060ef`` | ``e1ab664`` |\n| [time](https://github.com/time-rs/time) | `0.3.43` | `0.3.44` |\n| [warp](https://github.com/seanmonstar/warp) | `0.3.7` | `0.4.2` |\n| [axum](https://github.com/tokio-rs/axum) | `0.8.4` | `0.8.6` |\n\n\n\nUpdates `tokio` from 1.47.1 to 1.48.0\n- [Release notes](https://github.com/tokio-rs/tokio/releases)\n- [Commits](https://github.com/tokio-rs/tokio/compare/tokio-1.47.1...tokio-1.48.0)\n\nUpdates `implicit-clone` from 0.5.1 to 0.6.0\n- [Commits](https://github.com/yewstack/implicit-clone/compare/v0.5.1...v0.6.0)\n\nUpdates `thiserror` from 2.0.16 to 2.0.17\n- [Release notes](https://github.com/dtolnay/thiserror/releases)\n- [Commits](https://github.com/dtolnay/thiserror/compare/2.0.16...2.0.17)\n\nUpdates `serde` from 1.0.225 to 1.0.228\n- [Release notes](https://github.com/serde-rs/serde/releases)\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.225...v1.0.228)\n\nUpdates `wasm-bindgen-test` from 0.3.53 to 0.3.54\n- [Release notes](https://github.com/wasm-bindgen/wasm-bindgen/releases)\n- [Changelog](https://github.com/wasm-bindgen/wasm-bindgen/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/wasm-bindgen/wasm-bindgen/commits)\n\nUpdates `trybuild` from 1.0.111 to 1.0.112\n- [Release notes](https://github.com/dtolnay/trybuild/releases)\n- [Commits](https://github.com/dtolnay/trybuild/compare/1.0.111...1.0.112)\n\nUpdates `quote` from 1.0.40 to 1.0.41\n- [Release notes](https://github.com/dtolnay/quote/releases)\n- [Commits](https://github.com/dtolnay/quote/compare/1.0.40...1.0.41)\n\nUpdates `getrandom` from 0.3.3 to 0.3.4\n- [Release notes](https://github.com/rust-random/getrandom/releases)\n- [Changelog](https://github.com/rust-random/getrandom/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-random/getrandom/compare/v0.3.3...v0.3.4)\n\nUpdates `clap` from 4.5.47 to 4.5.49\n- [Release notes](https://github.com/clap-rs/clap/releases)\n- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.5.47...clap_complete-v4.5.49)\n\nUpdates `reqwest` from 0.12.23 to 0.12.24\n- [Release notes](https://github.com/seanmonstar/reqwest/releases)\n- [Changelog](https://github.com/seanmonstar/reqwest/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/seanmonstar/reqwest/compare/v0.12.23...v0.12.24)\n\nUpdates `regex` from 1.11.2 to 1.12.2\n- [Release notes](https://github.com/rust-lang/regex/releases)\n- [Changelog](https://github.com/rust-lang/regex/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/regex/compare/1.11.2...1.12.2)\n\nUpdates `toml` from 0.9.5 to 0.9.8\n- [Commits](https://github.com/toml-rs/toml/compare/toml-v0.9.5...toml-v0.9.8)\n\nUpdates `anyhow` from 1.0.99 to 1.0.100\n- [Release notes](https://github.com/dtolnay/anyhow/releases)\n- [Commits](https://github.com/dtolnay/anyhow/compare/1.0.99...1.0.100)\n\nUpdates `lipsum` from `35060ef` to `e1ab664`\n- [Release notes](https://github.com/mgeisler/lipsum/releases)\n- [Commits](https://github.com/mgeisler/lipsum/compare/35060ef81aea4523dff34717436fc32d264d84f1...e1ab6646e65fa7fdc201f97919b82d7f44fb6ae5)\n\nUpdates `time` from 0.3.43 to 0.3.44\n- [Release notes](https://github.com/time-rs/time/releases)\n- [Changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/time-rs/time/compare/v0.3.43...v0.3.44)\n\nUpdates `warp` from 0.3.7 to 0.4.2\n- [Release notes](https://github.com/seanmonstar/warp/releases)\n- [Changelog](https://github.com/seanmonstar/warp/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/seanmonstar/warp/compare/v0.3.7...v0.4.2)\n\nUpdates `axum` from 0.8.4 to 0.8.6\n- [Release notes](https://github.com/tokio-rs/axum/releases)\n- [Changelog](https://github.com/tokio-rs/axum/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/tokio-rs/axum/compare/axum-v0.8.4...axum-v0.8.6)\n\nUpdates `serde_derive` from 1.0.225 to 1.0.228\n- [Release notes](https://github.com/serde-rs/serde/releases)\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.225...v1.0.228)\n\n---\nupdated-dependencies:\n- dependency-name: tokio\n  dependency-version: 1.48.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: implicit-clone\n  dependency-version: 0.6.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: thiserror\n  dependency-version: 2.0.17\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: serde\n  dependency-version: 1.0.228\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: wasm-bindgen-test\n  dependency-version: 0.3.54\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: trybuild\n  dependency-version: 1.0.112\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: quote\n  dependency-version: 1.0.41\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: getrandom\n  dependency-version: 0.3.4\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: clap\n  dependency-version: 4.5.49\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: reqwest\n  dependency-version: 0.12.24\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: regex\n  dependency-version: 1.12.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: toml\n  dependency-version: 0.9.8\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: anyhow\n  dependency-version: 1.0.100\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: lipsum\n  dependency-version: e1ab6646e65fa7fdc201f97919b82d7f44fb6ae5\n  dependency-type: direct:production\n  dependency-group: cargo-deps\n- dependency-name: time\n  dependency-version: 0.3.44\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: warp\n  dependency-version: 0.4.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: axum\n  dependency-version: 0.8.6\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: serde_derive\n  dependency-version: 1.0.228\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\n* downgrade warp\n\n* fix implicit_clone upgrade\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Martin Molzer <WorldSEnder@users.noreply.github.com>",
+          "timestamp": "2025-10-22T17:36:23Z",
+          "url": "https://github.com/yewstack/yew/commit/71e24b7e811cde10974f6f35f9743df93f173459"
+        },
+        "date": 1761155506945,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 116.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 135.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 94.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 47.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 98.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 59.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 1329.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 135.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 68.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.3114051818847656,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 6.520793914794922,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 23_update5-memory",
+            "value": 6.715885162353516,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.180021286010742,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 26_run-10k-memory",
+            "value": 42.651068687438965,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 163.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 54.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 380.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 110.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 135.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 71.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 24.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 70,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 48.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 1291.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 131.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 68.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.291065216064453,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.394481658935547,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 23_update5-memory",
+            "value": 6.508726119995117,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.099085807800293,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 26_run-10k-memory",
+            "value": 41.55116558074951,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 161.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 53.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 382.1,
             "unit": ""
           }
         ]
