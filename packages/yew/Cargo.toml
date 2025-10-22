@@ -34,7 +34,7 @@ serde = { workspace = true, features = ["derive"] }
 tracing = "0.1.44"
 tokise = "0.2.0"
 rustversion.workspace = true
-wasm_split_helpers = "0.2.0-rc.2"
+wasm_split_helpers = "0.2.0"
 async-once-cell = "0.5.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
