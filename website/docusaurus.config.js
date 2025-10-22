@@ -10,7 +10,6 @@ module.exports = {
     url: 'https://yew.rs',
     baseUrl: '/',
     onBrokenLinks: 'throw',
-    onBrokenMarkdownLinks: 'warn',
     favicon: 'img/logo.svg',
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
@@ -134,6 +133,12 @@ module.exports = {
     i18n: {
         defaultLocale: 'en',
         locales: ['en', 'ja', 'zh-Hans', 'zh-Hant'],
+    },
+    markdown: {
+        hooks: {
+            onBrokenMarkdownLinks: 'warn',
+            onBrokenMarkdownImages: 'throw',
+        },
     },
     presets: [
         [

@@ -42,9 +42,9 @@ jobs:
         uses: jetli/wasm-pack-action@v0.4.0
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: ">=18"
+          node-version: "lts/Jod"
           cache: "npm"
           cache-dependency-path: js-framework-benchmark/package-lock.json
 
