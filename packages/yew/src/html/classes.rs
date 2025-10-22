@@ -276,6 +276,7 @@ impl<T: Into<Classes>, const SIZE: usize> From<[T; SIZE]> for Classes {
         t.into_iter().collect()
     }
 }
+
 impl From<&Classes> for Classes {
     fn from(c: &Classes) -> Self {
         c.clone()
