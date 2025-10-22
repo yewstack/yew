@@ -217,12 +217,30 @@ pub(crate) fn start_now() {
     not(feature = "not_browser_env")
 ))]
 mod arch {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
     use crate::platform::spawn_local;
+    // Really only used as a `Cell<bool>` that is also `Sync`
+    static IS_SCHEDULED: AtomicBool = AtomicBool::new(false);
+    fn check_scheduled() -> bool {
+        // Since we can tolerate starting too many times, and we don't need to "see" any stores
+        // done in the scheduler, Relaxed ordering is fine
+        IS_SCHEDULED.load(Ordering::Relaxed)
+    }
+    fn set_scheduled(is: bool) {
+        // See comment in check_scheduled why Relaxed ordering is fine
+        IS_SCHEDULED.store(is, Ordering::Relaxed)
+    }
 
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
+        if check_scheduled() {
+            return;
+        }
+        set_scheduled(true);
         spawn_local(async {
+            set_scheduled(false);
             super::start_now();
         });
     }
