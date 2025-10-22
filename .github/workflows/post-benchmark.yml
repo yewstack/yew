@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download result artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           run-id: ${{ github.event.workflow_run.id }}
