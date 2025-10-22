@@ -32,7 +32,15 @@ jobs:
 
       - name: Write Optimisation Flags
         run: |
-          cat examples/.cargo/min-size-config.toml >> examples/.cargo/dummy-min-size-config.toml
+          if [ -x ci/write-min-size-flags.sh ] ; then
+            ci/write-min-size-flags.sh
+          else
+            # this branch is a fallback used only for compatibility with earlier commits
+            # in the repository and other branches and can be removed in the future.
+            echo 'build-std = ["std", "panic_abort"]' >> .cargo/config.toml
+            echo '[build]' >> .cargo/config.toml
+            echo 'rustflags = ["-Cpanic=abort"]' >> .cargo/config.toml
+          fi
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
