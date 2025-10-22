@@ -1,0 +1,16 @@
+[package]
+name = "split-wasm"
+version = "0.1.0"
+authors = []
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+async-once-cell = "0.5.3"
+yew = { path = "../../packages/yew", features = ["csr"] }
+wasm-bindgen = "*"
+wasm-bindgen-futures = "*"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["HtmlInputElement"]
