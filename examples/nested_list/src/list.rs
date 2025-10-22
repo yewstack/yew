@@ -70,6 +70,7 @@ impl List {
         children
             .iter()
             .filter(|c| !c.props.hide)
+            .cloned()
             .enumerate()
             .map(|(i, mut c)| {
                 let props = c.get_mut();
