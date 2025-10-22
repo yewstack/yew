@@ -466,7 +466,8 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
    |                          |
    |                          required by a bound introduced by this call
    |
-   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
+   = help: the trait `IntoPropValue<String>` is not implemented for `()`
+           but trait `IntoPropValue<VNode>` is implemented for it
    = help: for that trait implementation, expected `VNode`, found `String`
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -487,14 +488,14 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             isize
-             i8
+             f32
+             f64
+             i128
              i16
              i32
              i64
-             i128
-             usize
-             u8
+             i8
+             isize
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -515,14 +516,14 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             isize
-             i8
+             f32
+             f64
+             i128
              i16
              i32
              i64
-             i128
-             usize
-             u8
+             i8
+             isize
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -559,7 +560,8 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                    |
    |                    required by a bound introduced by this call
    |
-   = help: the trait `IntoPropValue<VNode>` is implemented for `u32`
+   = help: the trait `IntoPropValue<i32>` is not implemented for `u32`
+           but trait `IntoPropValue<VNode>` is implemented for it
    = help: for that trait implementation, expected `VNode`, found `i32`
 note: required by a bound in `ChildPropertiesBuilder::int`
   --> tests/html_macro/component-fail.rs:4:17
@@ -577,7 +579,17 @@ error[E0277]: not all required properties have been provided
 99 |     html! { <Child string="abc" /> };
    |              ^^^^^ missing required properties for this component
    |
-   = help: the trait `HasProp<int, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<ChildPropertiesBuilder, _>`
+   = help: the trait `HasProp<int, _>` is not implemented for `AssertAllProps`
+   = help: the following other types implement trait `HasProp<P, How>`:
+             `CheckChildContainerPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckChildPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckHtmlInPropsPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasChildContainerPropertieschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasChildContainerPropertieschildren<B>` implements `HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>`
+             `HasChildPropertiesint<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+           and $N others
 note: required for `CheckChildPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildProperties, (_,)>`
   --> tests/html_macro/component-fail.rs:4:17
    |
@@ -627,7 +639,17 @@ error[E0277]: not all required properties have been provided
 115 |     html! { <ChildContainer /> };
     |              ^^^^^^^^^^^^^^ missing required properties for this component
     |
-    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<ChildContainerPropertiesBuilder, _>`
+    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
+    = help: the following other types implement trait `HasProp<P, How>`:
+              `CheckChildContainerPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckHtmlInPropsPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>`
+              `HasChildPropertiesint<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+            and $N others
 note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildContainerProperties, (_,)>`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -650,7 +672,17 @@ error[E0277]: not all required properties have been provided
 116 |     html! { <ChildContainer></ChildContainer> };
     |              ^^^^^^^^^^^^^^ missing required properties for this component
     |
-    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`, which is required by `AssertAllProps: AllPropsFor<ChildContainerPropertiesBuilder, _>`
+    = help: the trait `HasProp<_ChildContainerProperties::children, _>` is not implemented for `AssertAllProps`
+    = help: the following other types implement trait `HasProp<P, How>`:
+              `CheckChildContainerPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `CheckHtmlInPropsPropertiesAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+              `HasChildContainerPropertieschildren<B>` implements `HasProp<_ChildContainerProperties::children, HasChildContainerPropertieschildren<B>>`
+              `HasChildPropertiesint<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+            and $N others
 note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to implement `HasAllProps<ChildContainerProperties, (_,)>`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -676,8 +708,8 @@ error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRe
     |              required by a bound introduced by this call
     |
     = help: the following other types implement trait `IntoPropValue<T>`:
-              <yew::virtual_dom::VText as IntoPropValue<ChildrenRenderer<VNode>>>
-              <yew::virtual_dom::VText as IntoPropValue<VNode>>
+              `yew::virtual_dom::VText` implements `IntoPropValue<ChildrenRenderer<VNode>>`
+              `yew::virtual_dom::VText` implements `IntoPropValue<VNode>`
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17
     |
@@ -692,7 +724,7 @@ error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VList>` is 
    --> tests/html_macro/component-fail.rs:118:29
     |
 118 |     html! { <ChildContainer><></></ChildContainer> };
-    |                             ^ the trait `From<yew::virtual_dom::VList>` is not implemented for `VChild<Child>`, which is required by `yew::virtual_dom::VList: Into<_>`
+    |                             ^ the trait `From<yew::virtual_dom::VList>` is not implemented for `VChild<Child>`
     |
     = note: required for `yew::virtual_dom::VList` to implement `Into<VChild<Child>>`
 
@@ -704,7 +736,8 @@ error[E0277]: the trait bound `VNode: IntoPropValue<ChildrenRenderer<VChild<Chil
     |              |
     |              required by a bound introduced by this call
     |
-    = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `VNode`
+    = help: the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
+            but trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for it
     = help: for that trait implementation, expected `VNode`, found `VChild<Child>`
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:24:17

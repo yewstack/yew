@@ -329,8 +329,8 @@ fn main() {
    **注意**：`AttrValue` 在內部是來自 [implicit-clone](https://crates.io/crates/implicit-clone) 的 `IString`。查看該包以了解更多資訊。
 2. 使用內部可變性。 <br />
    **為什麼不好？ ** 內部可變性（例如 `RefCell`、`Mutex` 等）應該 _通常_ 避免使用。它可能會導致重新渲染問題（Yew 不知道狀態何時發生了變化），因此您可能需要手動強制重新渲染。就像所有事物一樣，它有其用武之地。請謹慎使用。
-3. 使用 `Vec` 型別而不是 `IArray`。 <br />
-   **為什麼不好？ ** `Vec`，就像 `String` 一樣，克隆成本也很高。 `IArray` 是一個引用計數的切片 (`Rc<T>`) 或一個 `&'static [T]`，因此非常便宜克隆。 <br />
+3. 使用 `Vec<T>` 型別而不是 `IArray<T>`。 <br />
+   **為什麼不好？ ** `Vec<T>`，就像 `String` 一樣，克隆成本也很高。 `IArray<T>` 是一個引用計數的切片 (`Rc<[T]>`) 或一個 `&'static [T]`，因此非常便宜克隆。 <br />
    **注意**：`IArray` 可以從 [implicit-clone](https://crates.io/crates/implicit-clone) 匯入。查看該包以了解更多資訊。
 4. 您發覺可能的新內容。您是否遇到了一個希望早點了解清楚的邊緣情況？請隨時建立一個問題或向本文檔提供修復的 PR。
 

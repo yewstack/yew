@@ -4,7 +4,7 @@ title: 'Events'
 
 ## Introduction
 
-Yew integrates with the [`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/) crate and
+Yew integrates with the [`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/) crate and
 uses the events from that crate. The [table below](#event-types) lists all of the `web-sys`
 events that are accepted in the `html!` macro.
 
@@ -219,7 +219,7 @@ fn view(&self) -> Html {
 If you want to get the value as a number (`f64`) then `InputData` does have the `event` field which is the
 `web_sys::InputEvent` that you can use with the information provided in the
 [Typed event target](#typed-event-target) section and then you can call
-[`value_as_number`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html#method.value_as_number)
+[`value_as_number`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html#method.value_as_number)
 method on the target.
 
 ### `onchange` using ChangeData
@@ -338,8 +338,8 @@ In event `Callback`s you may want to get the target of that event. For example, 
 `input` event you may want to update some internal state.
 
 In Yew getting the target element in the correct type can be done in a couple of ways and we will go through
-them here. Calling [`web_sys::Event::target`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
-on an event returns an optional [`web_sys::EventTarget`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html)
+them here. Calling [`web_sys::Event::target`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target)
+on an event returns an optional [`web_sys::EventTarget`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.EventTarget.html)
 type, which might not seem very useful when you want to know the value of your input element.
 
 In all the approaches below we are going to tackle the same problem, so it's clear where the approach
@@ -361,8 +361,8 @@ pub enum Msg {
 
 ### Using `JsCast`
 
-The [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate has
-a useful trait; [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+The [`wasm-bindgen`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) crate has
+a useful trait; [`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
 which allows us to hop and skip our way to the type we want, as long as it implements `JsCast`. We can
 do this cautiously, which involves some runtime checks and failure types like `Option` and `Result`,
 or we can do it dangerously.
@@ -470,13 +470,13 @@ impl Component for Comp {
 Use `batch_callback` when you want to conditionally return a value from a `Callback`.
 :::
 
-The methods from `JsCast` are [`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
-and [`unchecked_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)
+The methods from `JsCast` are [`dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+and [`unchecked_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.unchecked_into)
 and you can probably see, they allowed
-us to go from `EventTarget` to [`HtmlInputElement`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html).
+us to go from `EventTarget` to [`HtmlInputElement`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.HtmlInputElement.html).
 The `dyn_into` method is cautious because at
 runtime it will check whether the type is actually a `HtmlInputElement` and if not return an
-`Err(JsValue)`, the [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+`Err(JsValue)`, the [`JsValue`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 is a catch-all type and is essentially giving you back the object to try again.
 
 At this point you might be thinking... when is the dangerous version ok to use? In the case above it
@@ -633,16 +633,16 @@ You may want to listen to an event that is not supported by Yew's `html` macro, 
 
 In order to add an event listener to one of elements manually we need the help of
 [`NodeRef`](../components/refs) so that in the `rendered` method we can add a listener using the
-[`web-sys`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/index.html) and
-[wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
+[`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/index.html) and
+[wasm-bindgen](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 We do this in `rendered` as this is the only time we can guarantee that the element exists in
 the browser, Yew needs some time to create them after `view` is called.
 
 The examples below are going to show adding listeners for the made-up `custard` event. All events
 either unsupported by yew or custom can be represented as a
-[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html). If you
+[`web_sys::Event`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html). If you
 need to access a specific method or field on a custom / unsupported event then you can use the
-methods of [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+methods of [`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
 in order to convert to the type required.
 
 ### Using `Closure` (verbose)
@@ -747,7 +747,7 @@ impl Component for Comp {
 ```
 
 For more information on `Closures`, see
-[The `wasm-bindgen` Guide](https://rustwasm.github.io/wasm-bindgen/examples/closures.html).
+[The `wasm-bindgen` Guide](https://wasm-bindgen.github.io/wasm-bindgen/examples/closures.html).
 
 ### Using `gloo` (concise)
 

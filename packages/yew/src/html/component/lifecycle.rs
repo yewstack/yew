@@ -25,10 +25,13 @@ pub(crate) enum ComponentRenderState {
         bundle: Bundle,
         root: BSubtree,
         parent: Element,
-        /// The dom position in front of the next sibling
+        /// The dom position in front of the next sibling.
+        /// Gets updated when the bundle in which this component occurs gets re-rendered and is
+        /// shared with the children of this component.
         sibling_slot: DynamicDomSlot,
-        /// The dom position in front of this component. Adjusted whenever this component
-        /// re-renders.
+        /// The dom position in front of this component.
+        /// Gets updated whenever this component re-renders and is shared with the bundle in which
+        /// this component occurs.
         own_slot: DynamicDomSlot,
     },
     #[cfg(feature = "hydration")]
@@ -106,10 +109,9 @@ impl ComponentRenderState {
                 sibling_slot,
                 ..
             } => {
-                bundle.shift(&next_parent, next_slot.clone());
-
                 *parent = next_parent;
                 sibling_slot.reassign(next_slot);
+                bundle.shift(parent, sibling_slot.to_position());
             }
             #[cfg(feature = "hydration")]
             Self::Hydration {
@@ -118,10 +120,9 @@ impl ComponentRenderState {
                 sibling_slot,
                 ..
             } => {
-                fragment.shift(&next_parent, next_slot.clone());
-
                 *parent = next_parent;
                 sibling_slot.reassign(next_slot);
+                fragment.shift(parent, sibling_slot.to_position());
             }
 
             #[cfg(feature = "ssr")]
@@ -228,6 +229,9 @@ pub(crate) struct ComponentState {
 
     #[cfg(feature = "csr")]
     has_rendered: bool,
+    /// This deals with an edge case. Usually, we want to update props as fast as possible.
+    /// But, when a component hydrates and suspends, we want to continue using the intially given
+    /// props. This is prop updates are ignored during SSR, too.
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
 
@@ -481,7 +485,7 @@ impl ComponentState {
         }
     }
 
-    fn commit_render(&mut self, shared_state: &Shared<Option<ComponentState>>, new_root: Html) {
+    fn commit_render(&mut self, shared_state: &Shared<Option<ComponentState>>, new_vdom: Html) {
         // Currently not suspended, we remove any previous suspension and update
         // normally.
         self.resume_existing_suspension();
@@ -499,7 +503,7 @@ impl ComponentState {
                 let scope = self.inner.any_scope();
 
                 let new_node_ref =
-                    bundle.reconcile(root, &scope, parent, sibling_slot.to_position(), new_root);
+                    bundle.reconcile(root, &scope, parent, sibling_slot.to_position(), new_vdom);
                 own_slot.reassign(new_node_ref);
 
                 let first_render = !self.has_rendered;
@@ -523,8 +527,9 @@ impl ComponentState {
                 ref mut sibling_slot,
                 ref root,
             } => {
-                // We schedule a "first" render to run immediately after hydration,
-                // to fix NodeRefs (first_node and slot).
+                // We schedule a "first" render to run immediately after hydration.
+                // Most notably, only this render will trigger the "rendered" callback, hence we
+                // want to prioritize this.
                 scheduler::push_component_priority_render(
                     self.comp_id,
                     Box::new(RenderRunner {
@@ -533,26 +538,25 @@ impl ComponentState {
                 );
 
                 let scope = self.inner.any_scope();
-
-                // This first node is not guaranteed to be correct here.
-                // As it may be a comment node that is removed afterwards.
-                // but we link it anyways.
-                let bundle = Bundle::hydrate(root, &scope, parent, fragment, new_root);
+                let bundle = Bundle::hydrate(
+                    root,
+                    &scope,
+                    parent,
+                    fragment,
+                    new_vdom,
+                    &mut Some(own_slot.clone()),
+                );
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.
                 fragment.trim_start_text_nodes();
-
                 assert!(fragment.is_empty(), "expected end of component, found node");
 
                 self.render_state = ComponentRenderState::Render {
                     root: root.clone(),
                     bundle,
                     parent: parent.clone(),
-                    own_slot: std::mem::replace(own_slot, DynamicDomSlot::new_debug_trapped()),
-                    sibling_slot: std::mem::replace(
-                        sibling_slot,
-                        DynamicDomSlot::new_debug_trapped(),
-                    ),
+                    own_slot: own_slot.take(),
+                    sibling_slot: sibling_slot.take(),
                 };
             }
 
@@ -560,7 +564,7 @@ impl ComponentState {
             ComponentRenderState::Ssr { ref mut sender } => {
                 let _ = shared_state;
                 if let Some(tx) = sender.take() {
-                    tx.send(new_root).unwrap();
+                    tx.send(new_vdom).unwrap();
                 }
             }
         };
@@ -875,13 +879,7 @@ mod tests {
         let lifecycle = props.lifecycle.clone();
 
         lifecycle.borrow_mut().clear();
-        scope.mount_in_place(
-            root,
-            parent,
-            DomSlot::at_end(),
-            DynamicDomSlot::new_debug_trapped(),
-            Rc::new(props),
-        );
+        let _ = scope.mount_in_place(root, parent, DomSlot::at_end(), Rc::new(props));
         crate::scheduler::start_now();
 
         assert_eq!(&lifecycle.borrow_mut().deref()[..], expected);

@@ -1079,6 +1079,55 @@ async fn hydrate_empty() {
 }
 
 #[wasm_bindgen_test]
+async fn hydrate_flicker() {
+    // This components renders the same on the server and client during the first render,
+    // but then immediately changes the order of keyed elements in the next render.
+    // This should not lead to any hydration failures
+    #[derive(Properties, PartialEq)]
+    struct InnerCompProps {
+        text: String,
+    }
+    #[component]
+    fn InnerComp(InnerCompProps { text }: &InnerCompProps) -> Html {
+        html! { <p>{text.clone()}</p> }
+    }
+    #[component]
+    fn Flickering() -> Html {
+        let trigger = use_state(|| false);
+        let is_first = !*trigger;
+        if is_first {
+            trigger.set(true);
+            html! {
+                <>
+                    <InnerComp key="1" text="1" />
+                    <InnerComp key="2" text="2" />
+                </>
+            }
+        } else {
+            html! {
+                <>
+                    <InnerComp key="2" text="2" />
+                    <InnerComp key="1" text="1" />
+                </>
+            }
+        }
+    }
+    let s = ServerRenderer::<Flickering>::new().render().await;
+    let output_element = gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap();
+
+    output_element.set_inner_html(&s);
+
+    Renderer::<Flickering>::with_root(output_element).hydrate();
+    sleep(Duration::from_millis(50)).await;
+
+    let result = obtain_result_by_id("output");
+    assert_eq!(result.as_str(), r#"<p>2</p><p>1</p>"#);
+}
+
+#[wasm_bindgen_test]
 async fn hydration_with_camelcase_svg_elements() {
     #[function_component]
     fn SvgWithCamelCase() -> Html {

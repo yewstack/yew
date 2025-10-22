@@ -42,7 +42,7 @@ async fn use_prepared_state_works() {
 
     assert_eq!(
         s,
-        r#"<!--<[use_prepared_state::use_prepared_state_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">ATkwAAAB</script><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::App]>-->"#
+        r#"<!--<[use_prepared_state::use_prepared_state_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">Afs5MAE=</script><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::App]>-->"#
     );
 
     gloo::utils::document()
@@ -92,7 +92,7 @@ async fn use_prepared_state_with_suspension_works() {
 
     assert_eq!(
         s,
-        r#"<!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">ATkwAAAB</script><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>-->"#
+        r#"<!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">Afs5MAE=</script><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>-->"#
     );
 
     gloo::utils::document()

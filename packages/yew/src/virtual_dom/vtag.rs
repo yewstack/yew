@@ -63,7 +63,7 @@ impl<T> Deref for Value<T> {
 
 /// Fields specific to
 /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag](crate::virtual_dom::VTag)s
-#[derive(Debug, Clone, Default, Eq, PartialEq)]
+#[derive(Debug, Clone, ImplicitClone, Default, Eq, PartialEq)]
 pub(crate) struct InputFields {
     /// Contains a value of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
@@ -75,8 +75,6 @@ pub(crate) struct InputFields {
     /// frameworks it's more useful to control `checked` value of an `InputElement`.
     pub(crate) checked: Option<bool>,
 }
-
-impl ImplicitClone for InputFields {}
 
 impl Deref for InputFields {
     type Target = Value<InputElement>;
@@ -115,7 +113,7 @@ pub(crate) struct TextareaFields {
 
 /// [VTag] fields that are specific to different [VTag] kinds.
 /// Decreases the memory footprint of [VTag] by avoiding impossible field and value combinations.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, ImplicitClone)]
 pub(crate) enum VTagInner {
     /// Fields specific to
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
@@ -134,12 +132,10 @@ pub(crate) enum VTagInner {
     },
 }
 
-impl ImplicitClone for VTagInner {}
-
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, ImplicitClone)]
 pub struct VTag {
     /// [VTag] fields that are specific to different [VTag] kinds.
     pub(crate) inner: VTagInner,
@@ -151,8 +147,6 @@ pub struct VTag {
     pub attributes: Attributes,
     pub key: Option<Key>,
 }
-
-impl ImplicitClone for VTag {}
 
 impl VTag {
     /// Creates a new [VTag] instance with `tag` name (cannot be changed later in DOM).

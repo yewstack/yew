@@ -123,10 +123,15 @@ impl Reconcilable for VTag {
             key,
             ..
         } = self;
-        slot.insert(parent, &el);
 
+        // Apply attributes BEFORE inserting the element into the DOM
+        // This is crucial for SVG animation elements where the animation
+        // starts immediately upon DOM insertion
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
+
+        // Now insert the element with attributes already set
+        slot.insert(parent, &el);
 
         let inner = match self.inner {
             VTagInner::Input(f) => {
@@ -332,7 +337,7 @@ mod feat_hydration {
     use web_sys::Node;
 
     use super::*;
-    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
+    use crate::dom_bundle::{node_type_str, DynamicDomSlot, Fragment, Hydratable};
 
     impl Hydratable for VTag {
         fn hydrate(
@@ -341,6 +346,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             _parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let tag_name = self.tag().to_owned();
 
@@ -407,7 +413,12 @@ mod feat_hydration {
                 }
                 VTagInner::Other { children, tag } => {
                     let mut nodes = Fragment::collect_children(&el);
-                    let child_bundle = children.hydrate(root, parent_scope, &el, &mut nodes);
+                    let mut prev_next_child = None;
+                    let child_bundle =
+                        children.hydrate(root, parent_scope, &el, &mut nodes, &mut prev_next_child);
+                    if let Some(prev_next_child) = prev_next_child {
+                        prev_next_child.reassign(DomSlot::at_end());
+                    }
 
                     nodes.trim_start_text_nodes();
 
@@ -418,6 +429,10 @@ mod feat_hydration {
             };
 
             node_ref.set(Some((*el).clone()));
+            if let Some(prev_next_sibling) = prev_next_sibling {
+                prev_next_sibling.reassign(DomSlot::at((*el).clone()));
+            }
+            *prev_next_sibling = None;
 
             BTag {
                 inner,

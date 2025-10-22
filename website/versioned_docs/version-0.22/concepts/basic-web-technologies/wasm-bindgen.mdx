@@ -16,9 +16,9 @@ Yew uses `wasm-bindgen` to interact with the browser through a number of crates:
 
 This section will explore some of these crates at a high level, to make it easier to understand
 and use `wasm-bindgen` APIs with Yew. For a more in-depth guide to `wasm-bindgen` and its associated
-crates then check out [The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/).
+crates then check out [The `wasm-bindgen` Guide](https://wasm-bindgen.github.io/wasm-bindgen/).
 
-For documentation on the above crates check out [`wasm-bindgen docs.rs`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/index.html).
+For documentation on the above crates check out [`wasm-bindgen docs.rs`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html).
 
 :::tip
 Use the `wasm-bindgen` doc.rs search to find browser APIs and JavaScript types that have been imported
@@ -72,7 +72,7 @@ log_u32(42);
 log_many("Logging", "many values!");
 ```
 
-_This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/examples/console-log.html)_.
+_This example was adapted from [1.2 Using console.log of The `wasm-bindgen` Guide](https://wasm-bindgen.github.io/wasm-bindgen/examples/console-log.html)_.
 
 ### Simulating inheritance
 
@@ -97,12 +97,12 @@ These implementations allow you to call a method from `A` on an instance of `C` 
 it was `&B` or `&A`.
 
 It is important to note that every single type imported using `#[wasm-bindgen]` has the same root type,
-you can think of it as the `A` in the example above, this type is [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) which has
+you can think of it as the `A` in the example above, this type is [`JsValue`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html) which has
 its section below.
 
-_[extends section in The `wasm-bindgen` Guide](https://rustwasm.github.io/docs/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
+_[extends section in The `wasm-bindgen` Guide](https://wasm-bindgen.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html)_
 
-### [`JsValue`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
+### [`JsValue`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)
 
 This is a representation of an object owned by JavaScript, this is a root catch-all type for `wasm-bindgen`.
 Any type that comes from `wasm-bindgen` is a `JsValue` and this is because JavaScript does not have
@@ -114,9 +114,9 @@ accept a `JsValue`, then any imported value is _technically_ valid.
 can lead to panics - so when using raw `wasm-bindgen` APIs check the documentation of the JavaScript
 being imported as to whether an exception (panic) will be raised if that value is not a certain type.
 
-_[`JsValue` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)._
+_[`JsValue` documentation](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)._
 
-### [`JsCast`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
+### [`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)
 
 Rust has a strong type system and JavaScript...doesn't 😞. For Rust to maintain these
 strong types but still be convenient, the WebAssembly group came up with a pretty neat trait `JsCast`.
@@ -132,7 +132,7 @@ unsure what type a certain object is you can try to cast it which returns possib
 
 A common example of this in [`web-sys`](./web-sys.mdx) is when you are trying to get the
 target of an event. You might know what the target element is but the
-[`web_sys::Event`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API will always return an [`Option<web_sys::EventTarget>`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target).
+[`web_sys::Event`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html) API will always return an [`Option<web_sys::EventTarget>`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target).
 You will need to cast it to the element type so you can call its methods.
 
 ```rust
@@ -156,17 +156,17 @@ fn handle_event(event: Event) {
 }
 ```
 
-The [`dyn_ref`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref)
+The [`dyn_ref`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref)
 method is a checked cast that returns an `Option<&T>` which means the original type
 can be used again if the cast failed and thus returned `None`. The
-[`dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
+[`dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into)
 method will consume `self`, as per convention for `into` methods in Rust, and the type returned is
 `Result<T, Self>`. If the casting fails, the original `Self` value is returned in `Err`. You can try again
 or do something else with the original type.
 
-_[`JsCast` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)._
+_[`JsCast` documentation](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)._
 
-### [`Closure`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)
+### [`Closure`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)
 
 The `Closure` type provides a way to transfer Rust closures to JavaScript, the closures passed to
 JavaScript must have a `'static` lifetime for soundness reasons.
@@ -176,11 +176,11 @@ closure that it refers to. Any usage of the closure in JS after the Closure has 
 raise an exception.
 
 `Closure` is often used when you are working with a `js-sys` or `web-sys` API that accepts a type
-[`&js_sys::Function`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Function.html).
+[`&js_sys::Function`](https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Function.html).
 An example of using a `Closure` in Yew can be found in the [Using `Closure` section](../html/events.mdx#using-closure-verbose)
 on the [Events](../html/events.mdx) page.
 
-_[`Closure` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)._
+_[`Closure` documentation](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)._
 
 ## [`js-sys`](https://crates.io/crates/js-sys)
 
@@ -189,7 +189,7 @@ their methods and properties.
 
 This does not include any web APIs as this is what [`web-sys`](./web-sys.mdx) is for!
 
-_[`js-sys` documentation](https://rustwasm.github.io/wasm-bindgen/api/js_sys/index.html)._
+_[`js-sys` documentation](https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/index.html)._
 
 ## [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
 
@@ -201,24 +201,24 @@ with JavaScript events and JavaScript I/O primitives.
 
 There are three main interfaces in this crate currently:
 
-1. [`JsFuture`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
-   A type that is constructed with a [`Promise`](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
+1. [`JsFuture`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html) -
+   A type that is constructed with a [`Promise`](https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Promise.html)
    and can then be used as a `Future<Output=Result<JsValue, JsValue>>`. This `Future` will resolve to `Ok` if
    the `Promise` is resolved and `Err` if the `Promise` is rejected, containing the resolved or rejected
    value from the `Promise` respectively.
 
-2. [`future_to_promise`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
+2. [`future_to_promise`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html) -
    Converts a Rust `Future<Output=Result<JsValue, JsValue>>` into a
    JavaScript `Promise`. The future’s result will translate to either a resolved or rejected
    `Promise` in JavaScript.
 
-3. [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
+3. [`spawn_local`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html) -
    Spawns a `Future<Output = ()>` on the current thread. This is the best way
    to run a Future in Rust without sending it to JavaScript.
 
-_[`wasm-bindgen-futures` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
+_[`wasm-bindgen-futures` documentation](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html)._
 
-### [`spawn_local`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)
+### [`spawn_local`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)
 
 `spawn_local` is going to be the most commonly used part of the `wasm-bindgen-futures` crate in Yew
 as this helps when using libraries that have async APIs.
@@ -240,4 +240,4 @@ spawn_local(async {
 Yew has also added support for futures in certain APIs, most notably you can create a
 `callback_future` which accepts an `async` block - this uses `spawn_local` internally.
 
-_[`spawn_local` documentation](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)._
+_[`spawn_local` documentation](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)._

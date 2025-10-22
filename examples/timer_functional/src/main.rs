@@ -18,9 +18,32 @@ enum TimerAction {
 
 #[derive(Clone, Debug)]
 struct TimerState {
-    messages: Vec<&'static str>,
+    messages: Messages,
     interval_handle: Option<Rc<Interval>>,
     timeout_handle: Option<Rc<Timeout>>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct Messages(Vec<AttrValue>);
+
+impl Messages {
+    fn log(&mut self, message: impl Into<AttrValue>) {
+        self.0.push(message.into());
+    }
+}
+
+impl std::ops::Deref for Messages {
+    type Target = Vec<AttrValue>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl FromIterator<&'static str> for Messages {
+    fn from_iter<T: IntoIterator<Item = &'static str>>(it: T) -> Self {
+        Messages(it.into_iter().map(Into::into).collect())
+    }
 }
 
 impl PartialEq for TimerState {
@@ -37,7 +60,7 @@ impl Reducible for TimerState {
         match action {
             TimerAction::Add(message) => {
                 let mut messages = self.messages.clone();
-                messages.push(message);
+                messages.log(message);
                 Rc::new(TimerState {
                     messages,
                     interval_handle: self.interval_handle.clone(),
@@ -45,18 +68,18 @@ impl Reducible for TimerState {
                 })
             }
             TimerAction::SetInterval(t) => Rc::new(TimerState {
-                messages: vec!["Interval started!"],
+                messages: ["Interval started!"].into_iter().collect(),
                 interval_handle: Some(Rc::from(t)),
                 timeout_handle: self.timeout_handle.clone(),
             }),
             TimerAction::SetTimeout(t) => Rc::new(TimerState {
-                messages: vec!["Timer started!!"],
+                messages: ["Timer started!!"].into_iter().collect(),
                 interval_handle: self.interval_handle.clone(),
                 timeout_handle: Some(Rc::from(t)),
             }),
             TimerAction::TimeoutDone => {
                 let mut messages = self.messages.clone();
-                messages.push("Done!");
+                messages.log("Done!");
                 Rc::new(TimerState {
                     messages,
                     interval_handle: self.interval_handle.clone(),
@@ -65,7 +88,7 @@ impl Reducible for TimerState {
             }
             TimerAction::Cancel => {
                 let mut messages = self.messages.clone();
-                messages.push("Canceled!");
+                messages.log("Canceled!");
                 Rc::new(TimerState {
                     messages,
                     interval_handle: None,
@@ -94,7 +117,7 @@ fn clock() -> Html {
 #[function_component]
 fn App() -> Html {
     let state = use_reducer(|| TimerState {
-        messages: Vec::new(),
+        messages: Default::default(),
         interval_handle: None,
         timeout_handle: None,
     });
@@ -105,7 +128,7 @@ fn App() -> Html {
         .iter()
         .map(|message| {
             key += 1;
-            html! { <p key={ key }>{ *message }</p> }
+            html! { <p {key}>{ message }</p> }
         })
         .collect();
 
