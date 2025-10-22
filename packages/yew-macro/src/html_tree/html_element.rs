@@ -376,8 +376,9 @@ impl ToTokens for HtmlElement {
                     emit_warning!(
                         name_span.clone(),
                         format!(
-                            "The tag '{dashedname}' is not matching its normalized form '{lowercase_name}'. If you want \
-                             to keep this form, change this to a dynamic tag `@{{\"{dashedname}\"}}`."
+                            "The tag '{dashedname}' is not matching its normalized form '{lowercase_name}' \
+                             and is not a recognized SVG or MathML element. If you want to keep this name, \
+                             you can use the dynamic tag `@{{\"{dashedname}\"}}` to silence this warning."
                         )
                     )
                 }
