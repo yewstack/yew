@@ -13,7 +13,7 @@ jobs:
 
     steps:
       # Checkout repo for the github-action-benchmark action
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download result artifacts
         uses: actions/download-artifact@v4
