@@ -2,7 +2,7 @@ personal_ws-1.1 en 0 utf-8
 alloc
 ALLOC
 allocator
-analagous
+analogous
 Angular's
 asmjs
 binaryen
