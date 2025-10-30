@@ -190,7 +190,7 @@ Example: [ssr_router](https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/
 
 :::caution
 
-Server-side rendering is currently experiemental. If you find a bug, please file
+Server-side rendering is currently experimental. If you find a bug, please file
 an issue on [GitHub](https://github.com/yewstack/yew/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 
 :::
