@@ -19,7 +19,7 @@ rust-version = "1.84.0"
 [dependencies]
 console_error_panic_hook = "0.1"
 gloo = "0.11"
-indexmap = { version = "2.11", features = ["std"] }
+indexmap = { version = "2.12", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
