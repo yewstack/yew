@@ -2,7 +2,7 @@
 name = "yew-app"
 version = "0.1.0"
 authors = ["Bikathi Martin <martbikathi@gmail.com>"]
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 gloo = "0.11.0"
