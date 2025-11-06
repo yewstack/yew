@@ -1,5 +1,5 @@
-use gloo::file::File;
 use gloo::file::callbacks::FileReader;
+use gloo::file::File;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
 use yew::prelude::*;
