@@ -1,4 +1,5 @@
-use gloo::file::{File, callbacks::FileReader};
+use gloo::file::File;
+use gloo::file::callbacks::FileReader;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
 use yew::prelude::*;
@@ -41,7 +42,8 @@ impl Component for FileInput {
                 false
             }
             ComponentMsg::FileLoaded(filename, content) => {
-                // modify the content to replace all whitespace characters (e.g tabs and newline) with a simple space
+                // modify the content to replace all whitespace characters (e.g tabs and newline)
+                // with a simple space
                 let modified_content = regex::Regex::new(r"\s+")
                     .unwrap()
                     .replace_all(&content, " ");

@@ -1,6 +1,7 @@
-use crate::utils::AppUtils;
 use gloo::timers::callback::Interval;
 use yew::prelude::*;
+
+use crate::utils::AppUtils;
 
 #[derive(Properties, PartialEq)]
 pub struct FileInputProps {

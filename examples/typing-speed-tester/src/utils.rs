@@ -2,8 +2,13 @@ use gloo::timers::callback::Interval;
 
 pub(crate) const MAX_FONT_SIZE: i32 = 50i32;
 pub(crate) const MIN_FONT_SIZE: i32 = 10i32;
-pub(crate) const DEFAULT_TEXT: &str = "Hi! Welcome to this simple and free typing speed test tool. Click on this paragraph to start typing, the timer will start by itself. When you type something wrong, it lights up red, else it lights up white. Click on the '+/-' buttons to increase available minutes or if you feel \"pressured\", you can pause the timer. Reset progress by clicking the button below this paragraph. Feel free to upload your own text too! Happy typing:)";
-// pub(crate) const DEFAULT_TEXT: &str = "this is a sample text!";
+pub(crate) const DEFAULT_TEXT: &str =
+    "Hi! Welcome to this simple and free typing speed test tool. Click on this paragraph to start \
+     typing, the timer will start by itself. When you type something wrong, it lights up red, \
+     else it lights up white. Click on the '+/-' buttons to increase available minutes or if you \
+     feel \"pressured\", you can pause the timer. Reset progress by clicking the button below \
+     this paragraph. Feel free to upload your own text too! Happy typing:)";
+
 pub(crate) const INITIAL_TIME_MINUTES: u32 = 5_u32;
 pub(crate) const ADJUSTMENT_TIME_MINUTES: i32 = 1_i32;
 pub(crate) const SPECIAL_KEYS: [&str; 9] = [

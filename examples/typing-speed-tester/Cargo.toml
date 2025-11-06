@@ -1,6 +1,7 @@
 [package]
 name = "yew-app"
 version = "0.1.0"
+authors = ["Bikathi Martin <martbikathi@gmail.com>"]
 edition = "2024"
 
 [dependencies]
@@ -9,6 +10,6 @@ log = "0.4.28"
 regex = "1.12.2"
 wasm-bindgen = "0.2.105"
 wasm-logger = "0.2.0"
-web-sys = { version = "0.3.82", features = ["KeyboardEvent"]}
+web-sys = { version = "0.3.82", features = ["KeyboardEvent"] }
 # this is the development version of Yew
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
