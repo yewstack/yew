@@ -42,8 +42,12 @@ impl Component for FileInput {
             }
             ComponentMsg::FileLoaded(filename, content) => {
                 // modify the content to replace all whitespace characters (e.g tabs and newline) with a simple space
-                let modified_content = regex::Regex::new(r"\s+").unwrap().replace_all(&content, " ");
-                ctx.props().on_file_contents_load.emit((filename, modified_content.to_string()));
+                let modified_content = regex::Regex::new(r"\s+")
+                    .unwrap()
+                    .replace_all(&content, " ");
+                ctx.props()
+                    .on_file_contents_load
+                    .emit((filename, modified_content.to_string()));
                 false
             }
         }

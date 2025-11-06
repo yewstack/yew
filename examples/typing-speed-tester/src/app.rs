@@ -150,7 +150,7 @@ impl Component for App {
                                         if !self.user_input.is_empty() {
                                             match self.user_input.get(index) {
                                                 Some(user_input) => {
-                                                    if user_input.to_owned() == c {
+                                                    if *user_input == c {
                                                         "text-slate-100"
                                                     } else {
                                                         "underline underline-offset-2 text-red-500 decoration-red-500"
@@ -164,7 +164,7 @@ impl Component for App {
                                     };
 
                                     let animated_cursor_pre = {
-                                        if (index == 0 && self.user_input.len() == 0) || (index == self.user_input.len()) {
+                                        if (index == 0 && self.user_input.is_empty()) || (index == self.user_input.len()) {
                                             "current"
                                         } else {
                                             ""
@@ -257,7 +257,7 @@ impl Component for App {
                 if crate::utils::SPECIAL_KEYS.contains(&key.as_str()) {
                     return false;
                 } else if key.eq(&("Backspace".to_string())) {
-                    if self.user_input.len() > 0 {
+                    if !self.user_input.is_empty() {
                         self.user_input.remove(self.user_input.len() - 1);
                     }
                 } else if !key.eq(&("Backspace".to_string())) {

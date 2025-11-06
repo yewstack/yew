@@ -1,7 +1,7 @@
 mod app;
 mod file_input;
-mod utils;
 mod results;
+mod utils;
 
 fn main() {
     // init logger
