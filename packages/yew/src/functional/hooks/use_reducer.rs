@@ -274,7 +274,12 @@ where
                             let should_render_fn = should_render_fn.clone();
                             let mut val = val.borrow_mut();
                             let next_val = (*val).clone().reduce(action);
-                            let should_render = should_render_fn(&next_val, &val);
+
+                            // Check if the reduce action just returned the same `Rc` again
+                            // instead of producing a new one.
+                            let rc_was_reused = Rc::ptr_eq(&val, &next_val);
+
+                            let should_render = !rc_was_reused && should_render_fn(&next_val, &val);
                             *val = next_val;
 
                             should_render
