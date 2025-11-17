@@ -1007,7 +1007,7 @@ mod tests {
 
         let test_ref = NodeRef::default();
 
-        // We want to test appy_diff with Attributes::IndexMap, so we
+        // We want to test apply_diff with Attributes::IndexMap, so we
         // need to create the VTag manually
 
         // Create <div disabled="disabled" tabindex="0">
