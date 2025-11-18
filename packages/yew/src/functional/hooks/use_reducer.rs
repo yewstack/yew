@@ -275,8 +275,14 @@ where
                             let mut val = val.borrow_mut();
                             let next_val = (*val).clone().reduce(action);
 
-                            // Check if the reduce action just returned the same `Rc` again
-                            // instead of producing a new one.
+                            // Check if the reduce action just returned the same `Rc` again instead of producing
+                            // a new one.
+                            // NOTE: here we make the assumption that an unchanged address implies that the
+                            // "identity" of the `Rc` is unchanged. This assumption is valid here because we
+                            // still keep the old Rc around. But if we were to instead move the old Rc into
+                            // the `reduce` function, then the address could be reused and the object inside
+                            // the Rc might be different. The `rc_was_reused` variable is thus only meaningful
+                            // as long as we use a `clone` before `reduce`.
                             let rc_was_reused = Rc::ptr_eq(&val, &next_val);
 
                             let should_render = !rc_was_reused && should_render_fn(&next_val, &val);
