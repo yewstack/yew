@@ -274,18 +274,7 @@ where
                             let should_render_fn = should_render_fn.clone();
                             let mut val = val.borrow_mut();
                             let next_val = (*val).clone().reduce(action);
-
-                            // Check if the reduce action just returned the same `Rc` again instead of producing
-                            // a new one.
-                            // NOTE: here we make the assumption that an unchanged address implies that the
-                            // "identity" of the `Rc` is unchanged. This assumption is valid here because we
-                            // still keep the old Rc around. But if we were to instead move the old Rc into
-                            // the `reduce` function, then the address could be reused and the object inside
-                            // the Rc might be different. The `rc_was_reused` variable is thus only meaningful
-                            // as long as we use a `clone` before `reduce`.
-                            let rc_was_reused = Rc::ptr_eq(&val, &next_val);
-
-                            let should_render = !rc_was_reused && should_render_fn(&next_val, &val);
+                            let should_render = should_render_fn(&next_val, &val);
                             *val = next_val;
 
                             should_render
@@ -332,8 +321,8 @@ where
 ///
 /// This hook will trigger a re-render whenever the reducer function produces a new `Rc` value upon
 /// receiving an action. If the reducer function simply returns the original `Rc` then the component
-/// will not re-render. See [`use_reducer_eq`] if you want the component to first compare the old and
-/// new state and only re-render when the state actually changes.
+/// will not re-render. See [`use_reducer_eq`] if you want the component to first compare the old
+/// and new state and only re-render when the state actually changes.
 ///
 /// To cause a re-render even if the reducer function returns the same `Rc`, take a look at
 /// [`use_force_update`].
@@ -421,7 +410,7 @@ where
     T: Reducible + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, |_, _| true)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b))
 }
 
 /// [`use_reducer`] but only re-renders when `prev_state != next_state`.
@@ -434,5 +423,10 @@ where
     T: Reducible + PartialEq + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, T::ne)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b) && a != b)
+}
+
+/// Check if two references point to the same address.
+fn address_eq<T>(a: &T, b: &T) -> bool {
+    std::ptr::eq(a as *const T, b as *const T)
 }
