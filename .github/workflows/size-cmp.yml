@@ -59,8 +59,18 @@ jobs:
         with:
           version: "latest"
 
+      - name: Get latest wasm-opt version
+        id: wasm-opt
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: WebAssembly/binaryen
+          excludes: prerelease, draft
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build examples
         run: cargo run -p build-examples --bin build-examples
+        env:
+          LATEST_WASM_OPT_VERSION: ${{ steps.wasm-opt.outputs.release }}
 
       - name: Collect size information
         run: python3 ci/collect_sizes.py
