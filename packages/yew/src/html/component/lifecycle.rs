@@ -230,7 +230,7 @@ pub(crate) struct ComponentState {
     #[cfg(feature = "csr")]
     has_rendered: bool,
     /// This deals with an edge case. Usually, we want to update props as fast as possible.
-    /// But, when a component hydrates and suspends, we want to continue using the intially given
+    /// But, when a component hydrates and suspends, we want to continue using the initially given
     /// props. This is prop updates are ignored during SSR, too.
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,

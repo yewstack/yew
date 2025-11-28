@@ -242,7 +242,7 @@ where
 /// fn HelloWorld() -> Html {
 ///     use_effect_with((), move |_| {
 ///         || {
-///             log!("Noo dont kill me, ahhh!");
+///             log!("Nooo dont kill me, ahhh!");
 ///         }
 ///     });
 ///

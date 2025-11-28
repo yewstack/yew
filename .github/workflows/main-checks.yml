@@ -18,9 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check spelling
-        run: |
-          sudo apt-get install aspell
-          ci/spellcheck.sh list
+        uses: crate-ci/typos@v1.39.2
 
   doc_tests:
     name: Documentation Tests
