@@ -23,11 +23,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: "yew"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: krausest/js-framework-benchmark
           path: "js-framework-benchmark"

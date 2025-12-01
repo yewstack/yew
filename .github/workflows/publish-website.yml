@@ -12,7 +12,7 @@ jobs:
 
     steps:
       # need to checkout to get "firebase.json", ".firebaserc"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download build artifact
         uses: actions/download-artifact@v4
