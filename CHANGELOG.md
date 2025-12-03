@@ -4,25 +4,13 @@
 
 #### Changelog
 
-## 🛠 Fixes
+## 🚨 Breaking changes
 
- - Fix panic when hydrating components with unstable render order. [[@WorldSEnder](https://github.com/WorldSEnder), [#3914](https://github.com/yewstack/yew/pull/3914)]
- - Fix hydration panic on camelCased elements. [[@WorldSEnder](https://github.com/WorldSEnder), [#3876](https://github.com/yewstack/yew/pull/3876)]
- - Fix autocompletion in html macro for rust-analyzer. [[@Moritz Hedtke](https://github.com/mohe2015), [#3829](https://github.com/yewstack/yew/pull/3829)]
- - Fix empty lists hydration failure when they were placed next to suspensions and other components. [[@WorldSEnder](https://github.com/WorldSEnder), [#3630](https://github.com/yewstack/yew/pull/3630)]
- - Silenced non-normalised element name warnings for SVG elements. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3769](https://github.com/yewstack/yew/pull/3769)]
- - Fixed inconsistent clone() requirement when passing Classes to HTML elements vs. components. [[@Siddhant Shekhar](https://github.com/sshekhar563), [#3931](https://github.com/yewstack/yew/pull/3931)]
- - Fix svg animation always starting immediately. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3892](https://github.com/yewstack/yew/pull/3892)]
- - Better diagnostics for byte literals in `html!`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3441](https://github.com/yewstack/yew/pull/3441)]
- - Concise diagnostics for missing props. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3873](https://github.com/yewstack/yew/pull/3873)]
- - Use the namespace when xmlns attributes are specified. [[@JasonCG](https://github.com/jasoncg), [#3629](https://github.com/yewstack/yew/pull/3629)]
- - Fix generic type missing erros in hooks. [[@Michael Meyer](https://github.com/Ichmed), [#3633](https://github.com/yewstack/yew/pull/3633)]
- - Better duplicate key diagnostics. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3785](https://github.com/yewstack/yew/pull/3785)]
-
-## ⚙️ Improvements
-
- - Avoid unnecessary scheduling. [[@WorldSEnder](https://github.com/WorldSEnder), [#3935](https://github.com/yewstack/yew/pull/3935)]
- - Remove the dependency on `boolinator`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3420](https://github.com/yewstack/yew/pull/3420)]
+ - **MSRV raised to 1.84.0.** [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3900](https://github.com/yewstack/yew/pull/3900)]
+ - Allow setting JsValue as properties. [[@Elina](https://github.com/ranile), [#3458](https://github.com/yewstack/yew/pull/3458)]
+ - Remove deprecated `class=(...)` syntax. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3497](https://github.com/yewstack/yew/pull/3497)]
+ - Remove ToHtml trait. [[@Elina](https://github.com/ranile), [#3453](https://github.com/yewstack/yew/pull/3453)]
+ - Make `<textarea>` a void element (no children allowed anymore). [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3465](https://github.com/yewstack/yew/pull/3465)]
 
 ## ⚡️ Features
 
@@ -43,13 +31,42 @@
  - Allow `Self` in prop fields. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3569](https://github.com/yewstack/yew/pull/3569)]
  - Allow boolean in `html!`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3441](https://github.com/yewstack/yew/pull/3441)]
 
-## 🚨 Breaking changes
+## 🛠 Fixes
 
- - **MSRV raised to 1.84.0.** [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3900](https://github.com/yewstack/yew/pull/3900)]
- - Allow setting JsValue as properties. [[@Elina](https://github.com/ranile), [#3458](https://github.com/yewstack/yew/pull/3458)]
- - Remove deprecated `class=(...)` syntax. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3497](https://github.com/yewstack/yew/pull/3497)]
- - Remove ToHtml trait. [[@Elina](https://github.com/ranile), [#3453](https://github.com/yewstack/yew/pull/3453)]
- - Make `<textarea>` a void element (no children allowed anymore). [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3465](https://github.com/yewstack/yew/pull/3465)]
+ - Fix panic when hydrating components with unstable render order. [[@WorldSEnder](https://github.com/WorldSEnder), [#3914](https://github.com/yewstack/yew/pull/3914)]
+ - Fix hydration panic on camelCased elements. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3876](https://github.com/yewstack/yew/pull/3876)]
+ - Fix autocompletion in html macro for rust-analyzer. [[@Moritz Hedtke](https://github.com/mohe2015), [#3829](https://github.com/yewstack/yew/pull/3829)]
+ - Fix empty lists hydration failure when they were placed next to suspensions and other components. [[@WorldSEnder](https://github.com/WorldSEnder), [#3630](https://github.com/yewstack/yew/pull/3630)]
+ - Silenced non-normalised element name warnings for SVG elements. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3769](https://github.com/yewstack/yew/pull/3769)]
+ - Fixed inconsistent clone() requirement when passing Classes to HTML elements vs. components. [[@Siddhant Shekhar](https://github.com/sshekhar563), [#3931](https://github.com/yewstack/yew/pull/3931)]
+ - Fix svg animation always starting immediately. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3892](https://github.com/yewstack/yew/pull/3892)]
+ - Better diagnostics for byte literals in `html!`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3441](https://github.com/yewstack/yew/pull/3441)]
+ - Concise diagnostics for missing props. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3873](https://github.com/yewstack/yew/pull/3873)]
+ - Use the namespace when xmlns attributes are specified. [[@JasonCG](https://github.com/jasoncg), [#3629](https://github.com/yewstack/yew/pull/3629)]
+ - Fix generic type missing erros in hooks. [[@Michael Meyer](https://github.com/Ichmed), [#3633](https://github.com/yewstack/yew/pull/3633)]
+ - Better duplicate key diagnostics. [[@WorldSEnder](https://github.com/WorldSEnder), [#3785](https://github.com/yewstack/yew/pull/3785)]
+ - Fix autocompletion in html macro for rust-analyzer. [[@Moritz Hedtke](https://github.com/mohe2015), [#3829](https://github.com/yewstack/yew/pull/3829)]
+ - `#[hook]`: `clippy::multiple_bound_locations` lint no longer triggered. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3803](https://github.com/yewstack/yew/pull/3803)]
+
+## ⚙️ Improvements
+
+ - Avoid unnecessary scheduling. [[@WorldSEnder](https://github.com/WorldSEnder), [#3935](https://github.com/yewstack/yew/pull/3935)]
+ - Remove the dependency on `boolinator`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3420](https://github.com/yewstack/yew/pull/3420)]
+ - Avoid string copy for Key: From<String> implementation. [[@flumm](https://github.com/flumm), [#3858](https://github.com/yewstack/yew/pull/3858)]
+ - Switch to tokise from tokio [[@Elina](https://github.com/ranile), [#3776](https://github.com/yewstack/yew/pull/3776)]
+ - use_future_with: simplify code a bit by using read-only use_memo rather than use_state. [[@Léo Gaspard](https://github.com/Ekleog), [#3610](https://github.com/yewstack/yew/pull/3610)]
+
+## 📝 Documentation
+
+ - website: modernise the Yew usage in the tutorial. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3882](https://github.com/yewstack/yew/pull/3882)]
+ - website: make tutorial testable. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3879](https://github.com/yewstack/yew/pull/3879)]
+ - fix the docs of use_prepared_state. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3881](https://github.com/yewstack/yew/pull/3881)]
+ - Update tutorial placeholder image generator. [[@Nashwan Azhari](https://github.com/aznashwan), [#3830](https://github.com/yewstack/yew/pull/3830)]
+ - Refactor(NavbarItem): improve readability and maintainability. [[@Brilliantkid](https://github.com/brilliantkid87), [#3763](https://github.com/yewstack/yew/pull/3763)]
+ - Fix website search. [[@Muhammad Hamza](https://github.com/ranile), [#3522](https://github.com/yewstack/yew/pull/3522)]
+ - Addition and improvements to example crates. [[@Oliver Bilbie](https://github.com/Oliver-Bilbie), [#3587](https://github.com/yewstack/yew/pull/3587)] [[@Astariul](https://github.com/astariul), [#3631](https://github.com/yewstack/yew/pull/3631)] [[@Yann Dirson](https://github.com/ydirson), [#3570](https://github.com/yewstack/yew/pull/3570)] [[@Cecile Tonglet](https://github.com/cecton), [#3505](https://github.com/yewstack/yew/pull/3505)] [[@Kaede Hoshikawa](https://github.com/futursolo), [#3436](https://github.com/yewstack/yew/pull/3436)] 
+ - Wording and typo fixes. [[@Waldir Pimenta](https://github.com/waldyrious), [#3754](https://github.com/yewstack/yew/pull/3754)] [[@Jupp56](https://github.com/Jupp56), [#3429](https://github.com/yewstack/yew/pull/3429)] [[@Flavio Moreira](https://github.com/fdvmoreira), [#3418](https://github.com/yewstack/yew/pull/3418)] [[@ronanM](https://github.com/ronanM), [#3413](https://github.com/yewstack/yew/pull/3413)] [[@Waldir Pimenta](https://github.com/waldyrious), [#3754](https://github.com/yewstack/yew/pull/3754)] [[@Damien Lachaume](https://github.com/dlachaume), [#3790](https://github.com/yewstack/yew/pull/3790)] [[@Edwin Amsler](https://github.com/RandomInsano), [#3788](https://github.com/yewstack/yew/pull/3788)] [[@Tushar GH](https://github.com/Tushar12222), [#3585](https://github.com/yewstack/yew/pull/3585)] [[@zhengwu](https://github.com/rockyzhengwu), [#3574](https://github.com/yewstack/yew/pull/3574)] [[@Raahim Fareed](https://github.com/raahimfareed), [#3539](https://github.com/yewstack/yew/pull/3539)] [[@gcmutator](https://github.com/gcmutator), [#3628](https://github.com/yewstack/yew/pull/3628)] [[@Raphael Martin Schindler](https://github.com/rmschindler), [#3605](https://github.com/yewstack/yew/pull/3605)] [[@Jonathan Picques](https://github.com/JonathanPicques), [#3448](https://github.com/yewstack/yew/pull/3448)] [[@Ikko Eltociear Ashimine](https://github.com/eltociear), [#3432](https://github.com/yewstack/yew/pull/3432)] [[@Daniel Sousa](https://github.com/moyeah), [#3425](https://github.com/yewstack/yew/pull/3425)]
+
 
 ## ✨ yew-router **0.19.0** *(2025-11-29)*
 
