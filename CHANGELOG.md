@@ -1,6 +1,6 @@
 # Changelog
 
-## ✨ yew **0.22.0** *(2025-11-29)*
+## ✨ yew **0.22.0** *(2025-12-08)*
 
 #### Changelog
 
@@ -68,7 +68,7 @@
  - Wording and typo fixes. [[@Waldir Pimenta](https://github.com/waldyrious), [#3754](https://github.com/yewstack/yew/pull/3754)] [[@Jupp56](https://github.com/Jupp56), [#3429](https://github.com/yewstack/yew/pull/3429)] [[@Flavio Moreira](https://github.com/fdvmoreira), [#3418](https://github.com/yewstack/yew/pull/3418)] [[@ronanM](https://github.com/ronanM), [#3413](https://github.com/yewstack/yew/pull/3413)] [[@Waldir Pimenta](https://github.com/waldyrious), [#3754](https://github.com/yewstack/yew/pull/3754)] [[@Damien Lachaume](https://github.com/dlachaume), [#3790](https://github.com/yewstack/yew/pull/3790)] [[@Edwin Amsler](https://github.com/RandomInsano), [#3788](https://github.com/yewstack/yew/pull/3788)] [[@Tushar GH](https://github.com/Tushar12222), [#3585](https://github.com/yewstack/yew/pull/3585)] [[@zhengwu](https://github.com/rockyzhengwu), [#3574](https://github.com/yewstack/yew/pull/3574)] [[@Raahim Fareed](https://github.com/raahimfareed), [#3539](https://github.com/yewstack/yew/pull/3539)] [[@gcmutator](https://github.com/gcmutator), [#3628](https://github.com/yewstack/yew/pull/3628)] [[@Raphael Martin Schindler](https://github.com/rmschindler), [#3605](https://github.com/yewstack/yew/pull/3605)] [[@Jonathan Picques](https://github.com/JonathanPicques), [#3448](https://github.com/yewstack/yew/pull/3448)] [[@Ikko Eltociear Ashimine](https://github.com/eltociear), [#3432](https://github.com/yewstack/yew/pull/3432)] [[@Daniel Sousa](https://github.com/moyeah), [#3425](https://github.com/yewstack/yew/pull/3425)]
 
 
-## ✨ yew-router **0.19.0** *(2025-11-29)*
+## ✨ yew-router **0.19.0** *(2025-12-08)*
 
 #### Changelog
 
@@ -81,7 +81,7 @@
 
  - **MSRV raised to 1.84.0.** [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3900](https://github.com/yewstack/yew/pull/3900)]
 
-## ✨ yew-agent **0.4.0** *(2025-11-29)*
+## ✨ yew-agent **0.4.0** *(2025-12-08)*
 
 #### Changelog
 
