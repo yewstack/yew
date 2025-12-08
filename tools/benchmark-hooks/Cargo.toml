@@ -12,7 +12,7 @@ rand = { version = "0.9.2", features = ["small_rng"] }
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
 wasm-bindgen = "0.2.92"
 web-sys = { version = "0.3.70", features = ["Window"]}
-yew = { version = "0.21.0", features = ["csr"], path = "../../packages/yew" }
+yew = { version = "0.22.0", features = ["csr"], path = "../../packages/yew" }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ['-O4']
