@@ -1,0 +1,169 @@
+---
+title: 'From 0.21.0 to 0.22.0'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## MSRV raised to 1.84.0
+
+The minimum supported Rust version is now **1.84.0**. Update your toolchain:
+
+```bash
+rustup update stable
+```
+
+## `#[function_component]` renamed to `#[component]`
+
+The `#[function_component]` attribute has been renamed to `#[component]` for brevity. The old name is deprecated but still works.
+
+### Automated refactor
+
+```bash
+# Using sed (simple but also replaces in comments/strings)
+find . -name "*.rs" -exec sed -i 's/#\[function_component\]/#[component]/g' {} +
+find . -name "*.rs" -exec sed -i 's/#\[function_component(/#[component(/g' {} +
+
+# Or using ast-grep (recommended - AST-aware, preserves comments/strings)
+# Important: Run the named pattern FIRST to preserve component names
+ast-grep run -p '#[function_component($$$ARGS)]' -r '#[component($$$ARGS)]' -l rust --update-all .
+ast-grep run -p '#[function_component]' -r '#[component]' -l rust --update-all .
+```
+
+:::note
+The sed commands will also replace occurrences in comments and strings. Use ast-grep for more precise refactoring.
+:::
+
+<Tabs>
+  <TabItem value="before" label="Before" default>
+
+```rust ,ignore
+#[function_component]
+fn MyComponent() -> Html {
+    html! { <div>{"Hello"}</div> }
+}
+
+#[function_component(Named)]
+fn AnotherComponent() -> Html {
+    html! { <div>{"World"}</div> }
+}
+```
+
+  </TabItem>
+  <TabItem value="after" label="After">
+
+```rust ,ignore
+#[component]
+fn MyComponent() -> Html {
+    html! { <div>{"Hello"}</div> }
+}
+
+#[component(Named)]
+fn AnotherComponent() -> Html {
+    html! { <div>{"World"}</div> }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## `class=(...)` syntax removed
+
+The deprecated `class=(expr)` syntax has been removed. Use `class={classes!(...)}` instead.
+
+### Finding occurrences
+
+```bash
+# Find all files using the old class=(...) syntax
+grep -rn "class=(" --include="*.rs" .
+```
+
+### Manual refactor
+
+The transformation is straightforward: wrap the tuple contents with `classes!()` and change parentheses to braces:
+
+- `class=(a, b)` → `class={classes!(a, b)}`
+- `class=(expr)` → `class={classes!(expr)}`
+
+<Tabs>
+  <TabItem value="before" label="Before" default>
+
+```rust ,ignore
+html! {
+    <div class=(some_class, other_class)>{"Content"}</div>
+}
+```
+
+  </TabItem>
+  <TabItem value="after" label="After">
+
+```rust ,ignore
+html! {
+    <div class={classes!(some_class, other_class)}>{"Content"}</div>
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## `ToHtml` trait removed
+
+The `ToHtml` trait has been removed. Use `IntoPropValue` for custom type conversions.
+
+## For-loops in `html!` macro
+
+You can now use for-loops directly in the `html!` macro. This is optional but provides cleaner syntax:
+
+<Tabs>
+  <TabItem value="before" label="Before (still works)" default>
+
+```rust ,ignore
+html! {
+    <ul>
+        { for items.iter().map(|item| html! { <li key={item.id}>{ &item.name }</li> }) }
+    </ul>
+}
+```
+
+  </TabItem>
+  <TabItem value="after" label="After (new syntax)">
+
+```rust ,ignore
+html! {
+    <ul>
+        for item in items {
+            <li key={item.id}>{ &item.name }</li>
+        }
+    </ul>
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## `use_effect_with` no longer requires `|| ()` return
+
+Effect hooks no longer require returning `|| ()` when there's no cleanup:
+
+<Tabs>
+  <TabItem value="before" label="Before" default>
+
+```rust ,ignore
+use_effect_with(deps, |deps| {
+    // do something
+    || ()  // had to return this
+});
+```
+
+  </TabItem>
+  <TabItem value="after" label="After">
+
+```rust ,ignore
+use_effect_with(deps, |deps| {
+    // do something
+    // no return needed!
+});
+```
+
+  </TabItem>
+</Tabs>

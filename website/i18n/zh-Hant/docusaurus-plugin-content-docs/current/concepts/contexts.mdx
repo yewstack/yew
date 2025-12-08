@@ -19,7 +19,7 @@ description: '使用上下文傳遞深度嵌套資料'
 考慮以下範例，它透過 props 傳遞主題：
 
 ```rust
-use yew::{html, Component, Context, Html, Properties, function_component};
+use yew::{html, Component, Context, Html, Properties, component};
 
 #[derive(Clone, PartialEq)]
 pub struct Theme {
@@ -32,7 +32,7 @@ pub struct NavbarProps {
     theme: Theme,
 }
 
-#[function_component]
+#[component]
 fn Navbar(props: &NavbarProps) -> Html {
     html! {
         <div>
@@ -52,14 +52,14 @@ pub struct ThemeProps {
     children: Html,
 }
 
-#[function_component]
+#[component]
 fn Title(_props: &ThemeProps) -> Html {
     html! {
         // impl
     }
 }
 
-#[function_component]
+#[component]
 fn NavButton(_props: &ThemeProps) -> Html {
     html! {
         // impl
@@ -67,7 +67,7 @@ fn NavButton(_props: &ThemeProps) -> Html {
 }
 
 /// App 根節點
-#[function_component]
+#[component]
 fn App() -> Html {
     let theme = Theme {
         foreground: "yellow".to_owned(),
@@ -103,7 +103,7 @@ struct Theme {
 }
 
 /// 主組件
-#[function_component]
+#[component]
 pub fn App() -> Html {
     let ctx = use_state(|| Theme {
         foreground: "#000000".to_owned(),
@@ -122,7 +122,7 @@ pub fn App() -> Html {
 
 /// 工具栏
 /// 此组件可以访问上下文。
-#[function_component]
+#[component]
 pub fn Toolbar() -> Html {
     html! {
         <div>
@@ -133,7 +133,7 @@ pub fn Toolbar() -> Html {
 
 /// 放置在 `Toolbar` 中的按鈕
 /// 由於此元件是元件樹中 `ThemeContextProvider` 的子元件，它也可以存取上下文。
-#[function_component]
+#[component]
 pub fn ThemedButton() -> Html {
     let theme = use_context::<Theme>().expect("no ctx found");
 

@@ -21,7 +21,7 @@ This situation is called "Prop Drilling".
 Consider the following example which passes down the theme using props:
 
 ```rust
-use yew::{html, Component, Context, Html, Properties, function_component};
+use yew::{html, Component, Context, Html, Properties, component};
 
 #[derive(Clone, PartialEq)]
 pub struct Theme {
@@ -34,7 +34,7 @@ pub struct NavbarProps {
     theme: Theme,
 }
 
-#[function_component]
+#[component]
 fn Navbar(props: &NavbarProps) -> Html {
     html! {
         <div>
@@ -54,14 +54,14 @@ pub struct ThemeProps {
     children: Html,
 }
 
-#[function_component]
+#[component]
 fn Title(_props: &ThemeProps) -> Html {
     html! {
         // impl
     }
 }
 
-#[function_component]
+#[component]
 fn NavButton(_props: &ThemeProps) -> Html {
     html! {
         // impl
@@ -69,7 +69,7 @@ fn NavButton(_props: &ThemeProps) -> Html {
 }
 
 /// App root
-#[function_component]
+#[component]
 fn App() -> Html {
     let theme = Theme {
         foreground: "yellow".to_owned(),
@@ -107,7 +107,7 @@ struct Theme {
 }
 
 /// Main component
-#[function_component]
+#[component]
 pub fn App() -> Html {
     let ctx = use_state(|| Theme {
         foreground: "#000000".to_owned(),
@@ -127,7 +127,7 @@ pub fn App() -> Html {
 
 /// The toolbar.
 /// This component has access to the context
-#[function_component]
+#[component]
 pub fn Toolbar() -> Html {
     html! {
         <div>
@@ -139,7 +139,7 @@ pub fn Toolbar() -> Html {
 /// Button placed in `Toolbar`.
 /// As this component is a child of `ThemeContextProvider` in the component tree, it also has access
 /// to the context.
-#[function_component]
+#[component]
 pub fn ThemedButton() -> Html {
     let theme = use_context::<Theme>().expect("no ctx found");
 
