@@ -1,7 +1,7 @@
 {
   "version.label": {
     "message": "Next",
-    "description": "The label for version current"
+    "description": "The label for version 0.22"
   },
   "sidebar.docs.category.Getting Started": {
     "message": "从零开始",

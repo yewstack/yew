@@ -24,7 +24,7 @@ Yewコンポーネントをサーバーサイドでレンダリングするに�
 use yew::prelude::*;
 use yew::ServerRenderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
@@ -112,7 +112,7 @@ SSR出力（静的HTML）をブラウザが初期レンダリングした後、�
 use yew::prelude::*;
 use yew::Renderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
@@ -138,7 +138,7 @@ Yewは `yew::LocalServerRenderer` を使用してシングルスレッドでの�
 use yew::prelude::*;
 use yew::LocalServerRenderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     use yew_router::prelude::*;
 

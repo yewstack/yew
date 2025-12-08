@@ -27,18 +27,18 @@ slug: /concepts/function-components
 
 ## 関数コンポーネントの作成
 
-関数コンポーネントを作成するには、関数に `#[function_component]` 属性を追加します。慣例として、関数の名前は PascalCase を使用し、`html!` マクロ内の通常の html 要素と対比させます。
+関数コンポーネントを作成するには、関数に `#[component]` 属性を追加します。慣例として、関数の名前は PascalCase を使用し、`html!` マクロ内の通常の html 要素と対比させます。
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // そして他の場所で、`html!` 内でコンポーネントを使用できます
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld /> }
 }

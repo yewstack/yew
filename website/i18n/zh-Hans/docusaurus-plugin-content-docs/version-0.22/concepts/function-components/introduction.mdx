@@ -27,18 +27,18 @@ slug: /concepts/function-components
 
 ## 创建函数组件
 
-要创建一个函数组件，请将 `#[function_component]` 属性添加到一个函数中。按照惯例，函数的名称采用 PascalCase，与 `html!` 宏中的普通 html 元素形成对比。
+要创建一个函数组件，请将 `#[component]` 属性添加到一个函数中。按照惯例，函数的名称采用 PascalCase，与 `html!` 宏中的普通 html 元素形成对比。
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // 然后在其他地方，您可以在 `html!` 中使用组件
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld /> }
 }

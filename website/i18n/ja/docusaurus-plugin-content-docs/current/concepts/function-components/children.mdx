@@ -5,9 +5,9 @@ title: '子要素 (Children)'
 `Children` は特別なプロパティタイプで、HTMLの子要素のようにネストされた `Html` を受け取ることができます。
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {
         // highlight-start
@@ -25,7 +25,7 @@ pub struct Props {
     pub children: Html, // `children` キーは重要です！
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! {
         <div class="very-stylized-container">
