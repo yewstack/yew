@@ -18,7 +18,7 @@ jobs:
     name: Build Website
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup node
         uses: actions/setup-node@v6
