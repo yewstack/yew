@@ -11,7 +11,7 @@ function_router = { path = "../../examples/function_router" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 average = "0.16.0"
 tabled = "0.20.0"
-indicatif = "0.18.0"
+indicatif = "0.18.3"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 clap = { version = "4", features = ["derive"] }
