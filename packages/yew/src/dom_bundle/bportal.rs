@@ -118,10 +118,12 @@ impl BPortal {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
+
+    use std::rc::Rc;
 
     use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
@@ -151,10 +153,10 @@ mod layout_tests {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
-                    {VNode::VPortal(VPortal::new(
+                    {VNode::VPortal(Rc::new(VPortal::new(
                         html! { {"PORTAL"} },
                         first_target.clone(),
-                    ))}
+                    )))}
                     {"AFTER"}
                 </div>
             },
@@ -166,10 +168,10 @@ mod layout_tests {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
-                    {VNode::VPortal(VPortal::new(
+                    {VNode::VPortal(Rc::new(VPortal::new(
                         html! { {"PORTAL"} },
                         second_target.clone(),
-                    ))}
+                    )))}
                     {"AFTER"}
                 </div>
             },
@@ -181,10 +183,10 @@ mod layout_tests {
                 <div>
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
-                    {VNode::VPortal(VPortal::new(
+                    {VNode::VPortal(Rc::new(VPortal::new(
                         html! { <> {"PORTAL"} <b /> </> },
                         second_target.clone(),
-                    ))}
+                    )))}
                     {"AFTER"}
                 </div>
             },
@@ -207,11 +209,11 @@ mod layout_tests {
             node: html! {
                 <div>
                     {VNode::VRef(target_with_child.clone().into())}
-                    {VNode::VPortal(VPortal::new_before(
+                    {VNode::VPortal(Rc::new(VPortal::new_before(
                         html! { {"PORTAL"} },
                         target_with_child.clone(),
                         Some(target_child.clone().into()),
-                    ))}
+                    )))}
                 </div>
             },
             expected: "<div><i>PORTAL<s></s></i></div>",

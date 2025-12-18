@@ -1,0 +1,2 @@
+[tools]
+wasm_opt = "version_122"

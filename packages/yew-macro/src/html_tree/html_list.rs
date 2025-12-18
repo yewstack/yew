@@ -1,4 +1,3 @@
-use boolinator::Boolinator;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
@@ -11,7 +10,7 @@ use crate::props::Prop;
 use crate::{Peek, PeekValue};
 
 pub struct HtmlList {
-    open: HtmlListOpen,
+    pub open: HtmlListOpen,
     pub children: HtmlChildrenTree,
     close: HtmlListClose,
 }
@@ -72,23 +71,30 @@ impl ToTokens for HtmlList {
             quote! { ::std::option::Option::None }
         };
 
-        let spanned = {
+        let span = {
             let open = open.to_spanned();
             let close = close.to_spanned();
             quote! { #open #close }
-        };
+        }
+        .span();
 
-        tokens.extend(quote_spanned! {spanned.span()=>
-            ::yew::virtual_dom::VNode::VList(
+        tokens.extend(match children.fully_keyed() {
+            Some(true) => quote_spanned!{span=>
+                ::yew::virtual_dom::VList::__macro_new(#children, #key, ::yew::virtual_dom::FullyKeyedState::KnownFullyKeyed)
+            },
+            Some(false) => quote_spanned!{span=>
+                ::yew::virtual_dom::VList::__macro_new(#children, #key, ::yew::virtual_dom::FullyKeyedState::KnownMissingKeys)
+            },
+            None => quote_spanned!{span=>
                 ::yew::virtual_dom::VList::with_children(#children, #key)
-            )
+            }
         });
     }
 }
 
-struct HtmlListOpen {
+pub struct HtmlListOpen {
     tag: TagTokens,
-    props: HtmlListProps,
+    pub props: HtmlListProps,
 }
 impl HtmlListOpen {
     fn to_spanned(&self) -> impl ToTokens {
@@ -99,14 +105,16 @@ impl HtmlListOpen {
 impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
+        if punct.as_char() != '<' {
+            return None;
+        }
         // make sure it's either a property (key=value) or it's immediately closed
         if let Some((_, cursor)) = HtmlDashedName::peek(cursor) {
             let (punct, _) = cursor.punct()?;
-            (punct.as_char() == '=' || punct.as_char() == '?').as_option()
+            (punct.as_char() == '=' || punct.as_char() == '?').then_some(())
         } else {
             let (punct, _) = cursor.punct()?;
-            (punct.as_char() == '>').as_option()
+            (punct.as_char() == '>').then_some(())
         }
     }
 }
@@ -120,8 +128,8 @@ impl Parse for HtmlListOpen {
     }
 }
 
-struct HtmlListProps {
-    key: Option<Expr>,
+pub struct HtmlListProps {
+    pub key: Option<Expr>,
 }
 impl Parse for HtmlListProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -156,12 +164,16 @@ impl HtmlListClose {
 impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '<').as_option()?;
+        if punct.as_char() != '<' {
+            return None;
+        }
         let (punct, cursor) = cursor.punct()?;
-        (punct.as_char() == '/').as_option()?;
+        if punct.as_char() != '/' {
+            return None;
+        }
 
         let (punct, _) = cursor.punct()?;
-        (punct.as_char() == '>').as_option()
+        (punct.as_char() == '>').then_some(())
     }
 }
 impl Parse for HtmlListClose {

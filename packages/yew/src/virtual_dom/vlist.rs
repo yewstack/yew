@@ -4,8 +4,9 @@ use std::rc::Rc;
 
 use super::{Key, VNode};
 
+#[doc(hidden)]
 #[derive(Clone, Copy, Debug, PartialEq)]
-enum FullyKeyedState {
+pub enum FullyKeyedState {
     KnownFullyKeyed,
     KnownMissingKeys,
     Unknown,
@@ -25,7 +26,16 @@ pub struct VList {
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {
-        self.key == other.key && self.children == other.children
+        if self.key != other.key {
+            return false;
+        }
+
+        match (self.children.as_ref(), other.children.as_ref()) {
+            (Some(a), Some(b)) => a == b,
+            (Some(a), None) => a.is_empty(),
+            (None, Some(b)) => b.is_empty(),
+            (None, None) => true,
+        }
     }
 }
 
@@ -42,10 +52,9 @@ impl Deref for VList {
         match self.children {
             Some(ref m) => m,
             None => {
-                // This is mutable because the Vec<VNode> is not Sync
-                static mut EMPTY: Vec<VNode> = Vec::new();
-                // SAFETY: The EMPTY value is always read-only
-                unsafe { &EMPTY }
+                // This can be replaced with `const { &Vec::new() }` in Rust 1.79.
+                const EMPTY: &Vec<VNode> = &Vec::new();
+                EMPTY
             }
         }
     }
@@ -55,6 +64,65 @@ impl DerefMut for VList {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.fully_keyed = FullyKeyedState::Unknown;
         self.children_mut()
+    }
+}
+
+impl<A: Into<VNode>> FromIterator<A> for VList {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+        let children = iter.into_iter().map(|n| n.into()).collect::<Vec<_>>();
+        if children.is_empty() {
+            VList::new()
+        } else {
+            VList {
+                children: Some(Rc::new(children)),
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            }
+        }
+    }
+}
+
+impl From<Option<Rc<Vec<VNode>>>> for VList {
+    fn from(children: Option<Rc<Vec<VNode>>>) -> Self {
+        if children.as_ref().map(|x| x.is_empty()).unwrap_or(true) {
+            VList::new()
+        } else {
+            let mut vlist = VList {
+                children,
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
+    }
+}
+
+impl From<Vec<VNode>> for VList {
+    fn from(children: Vec<VNode>) -> Self {
+        if children.is_empty() {
+            VList::new()
+        } else {
+            let mut vlist = VList {
+                children: Some(Rc::new(children)),
+                fully_keyed: FullyKeyedState::Unknown,
+                key: None,
+            };
+            vlist.recheck_fully_keyed();
+            vlist
+        }
+    }
+}
+
+impl From<VNode> for VList {
+    fn from(child: VNode) -> Self {
+        let mut vlist = VList {
+            children: Some(Rc::new(vec![child])),
+            fully_keyed: FullyKeyedState::Unknown,
+            key: None,
+        };
+        vlist.recheck_fully_keyed();
+        vlist
     }
 }
 
@@ -70,13 +138,23 @@ impl VList {
 
     /// Creates a new [VList] instance with children.
     pub fn with_children(children: Vec<VNode>, key: Option<Key>) -> Self {
-        let mut vlist = VList {
-            fully_keyed: FullyKeyedState::Unknown,
-            children: Some(Rc::new(children)),
-            key,
-        };
-        vlist.recheck_fully_keyed();
+        let mut vlist = VList::from(children);
+        vlist.key = key;
         vlist
+    }
+
+    #[doc(hidden)]
+    /// Used by `html!` to avoid calling `.recheck_fully_keyed()` when possible.
+    pub fn __macro_new(
+        children: Vec<VNode>,
+        key: Option<Key>,
+        fully_keyed: FullyKeyedState,
+    ) -> Self {
+        VList {
+            children: Some(Rc::new(children)),
+            fully_keyed,
+            key,
+        }
     }
 
     // Returns a mutable reference to children, allocates the children if it hasn't been done.
@@ -272,18 +350,19 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::ServerRenderer;
+    use crate::LocalServerRenderer as ServerRenderer;
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_text_back_to_back() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let s = "world";
 
@@ -298,19 +377,20 @@ mod ssr_tests {
         assert_eq!(s, "<div>Hello world!</div>");
     }
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_fragment() {
         #[derive(PartialEq, Properties, Debug)]
         struct ChildProps {
             name: String,
         }
 
-        #[function_component]
+        #[component]
         fn Child(props: &ChildProps) -> Html {
             html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
         }
 
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! {
                 <>

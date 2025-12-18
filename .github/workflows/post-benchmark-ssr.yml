@@ -1,4 +1,3 @@
----
 name: Post Comment for Benchmark - SSR
 
 on:
@@ -9,37 +8,30 @@ on:
 
 jobs:
   post-benchmark-ssr:
-    if: github.event.workflow_run.event == 'pull_request'
     name: Post Comment on Pull Request
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Artifact
-        uses: Legit-Labs/action-download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: benchmark-ssr.yml
-          run_id: ${{ github.event.workflow_run.id }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          run-id: ${{ github.event.workflow_run.id }}
           name: benchmark-ssr
-          path: "benchmark-ssr/"
+          path: benchmark-ssr/
 
       - name: Make pull request comment
         run: python3 ci/make_benchmark_ssr_cmt.py
 
       - name: Read Pull Request ID
-        run: |
-          PR_NUMBER=$(cat "benchmark-ssr/.PR_NUMBER")
-          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "pr number invalid"
-            exit 1
-          fi
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+        run: echo "PR_NUMBER=$(cat benchmark-ssr/.PR_NUMBER)" >> $GITHUB_ENV
 
       - name: Post Comment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const commentInfo = {

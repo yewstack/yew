@@ -1,7 +1,10 @@
 //! This module contains useful utilities to get information about the current document.
 
 use std::marker::PhantomData;
+use std::rc::Rc;
 
+use implicit_clone::unsync::IArray;
+use implicit_clone::ImplicitClone;
 use yew::html::ChildrenRenderer;
 
 /// Map `IntoIterator<Item = Into<T>>` to `Iterator<Item = T>`
@@ -13,36 +16,69 @@ where
     it.into_iter().map(|n| n.into())
 }
 
+fn array_single<T: ImplicitClone + 'static>(singl: T) -> IArray<T> {
+    IArray::Rc(Rc::new([singl]))
+}
+
 /// A special type necessary for flattening components returned from nested html macros.
 #[derive(Debug)]
-pub struct NodeSeq<IN, OUT>(Vec<OUT>, PhantomData<IN>);
+pub struct NodeSeq<IN, OUT: ImplicitClone + 'static>(IArray<OUT>, PhantomData<IN>);
 
-impl<IN: Into<OUT>, OUT> From<IN> for NodeSeq<IN, OUT> {
+impl<IN: Into<OUT>, OUT: ImplicitClone + 'static> From<IN> for NodeSeq<IN, OUT> {
     fn from(val: IN) -> Self {
-        Self(vec![val.into()], PhantomData)
+        Self(array_single(val.into()), PhantomData)
     }
 }
 
-impl<IN: Into<OUT>, OUT> From<Option<IN>> for NodeSeq<IN, OUT> {
+impl<IN: Into<OUT>, OUT: ImplicitClone + 'static> From<Option<IN>> for NodeSeq<IN, OUT> {
     fn from(val: Option<IN>) -> Self {
-        Self(val.map(|s| vec![s.into()]).unwrap_or_default(), PhantomData)
+        Self(
+            val.map(|s| array_single(s.into())).unwrap_or_default(),
+            PhantomData,
+        )
     }
 }
 
-impl<IN: Into<OUT>, OUT> From<Vec<IN>> for NodeSeq<IN, OUT> {
-    fn from(val: Vec<IN>) -> Self {
+impl<IN: Into<OUT>, OUT: ImplicitClone + 'static> From<Vec<IN>> for NodeSeq<IN, OUT> {
+    fn from(mut val: Vec<IN>) -> Self {
+        if val.len() == 1 {
+            let item = val.pop().unwrap();
+            Self(array_single(item.into()), PhantomData)
+        } else {
+            Self(val.into_iter().map(|x| x.into()).collect(), PhantomData)
+        }
+    }
+}
+
+impl<IN: Into<OUT> + ImplicitClone, OUT: ImplicitClone + 'static> From<IArray<IN>>
+    for NodeSeq<IN, OUT>
+{
+    fn from(val: IArray<IN>) -> Self {
         Self(val.into_iter().map(|x| x.into()).collect(), PhantomData)
     }
 }
 
-impl<IN: Into<OUT> + Clone, OUT> From<&ChildrenRenderer<IN>> for NodeSeq<IN, OUT> {
+impl<IN: Into<OUT> + ImplicitClone, OUT: ImplicitClone + 'static> From<&IArray<IN>>
+    for NodeSeq<IN, OUT>
+{
+    fn from(val: &IArray<IN>) -> Self {
+        Self(
+            val.clone().into_iter().map(|x| x.into()).collect(),
+            PhantomData,
+        )
+    }
+}
+
+impl<IN: Into<OUT> + Clone, OUT: ImplicitClone + 'static> From<&ChildrenRenderer<IN>>
+    for NodeSeq<IN, OUT>
+{
     fn from(val: &ChildrenRenderer<IN>) -> Self {
         Self(val.iter().map(|x| x.into()).collect(), PhantomData)
     }
 }
 
-impl<IN, OUT> IntoIterator for NodeSeq<IN, OUT> {
-    type IntoIter = std::vec::IntoIter<Self::Item>;
+impl<IN, OUT: ImplicitClone + 'static> IntoIterator for NodeSeq<IN, OUT> {
+    type IntoIter = implicit_clone::unsync::IArrayIntoIter<Self::Item>;
     type Item = OUT;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -62,5 +98,16 @@ pub fn print_node(n: &web_sys::Node) -> String {
     match n.dyn_ref::<web_sys::Element>() {
         Some(el) => el.outer_html(),
         None => n.text_content().unwrap_or_default(),
+    }
+}
+
+// NOTE: replace this by Rc::unwrap_or_clone() when it becomes stable
+pub(crate) trait RcExt<T: Clone> {
+    fn unwrap_or_clone(this: Self) -> T;
+}
+
+impl<T: Clone> RcExt<T> for std::rc::Rc<T> {
+    fn unwrap_or_clone(this: Self) -> T {
+        std::rc::Rc::try_unwrap(this).unwrap_or_else(|rc| (*rc).clone())
     }
 }

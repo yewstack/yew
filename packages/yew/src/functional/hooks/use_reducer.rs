@@ -4,7 +4,11 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use implicit_clone::ImplicitClone;
+
 use crate::functional::{hook, Hook, HookContext};
+use crate::html::IntoPropValue;
+use crate::Callback;
 
 type DispatchFn<T> = Rc<dyn Fn(<T as Reducible>::Action)>;
 
@@ -95,6 +99,8 @@ where
     }
 }
 
+impl<T> ImplicitClone for UseReducerHandle<T> where T: Reducible {}
+
 /// Dispatcher handle for [`use_reducer`] and [`use_reducer_eq`] hook
 pub struct UseReducerDispatcher<T>
 where
@@ -128,8 +134,31 @@ where
     T: Reducible,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        #[allow(clippy::vtable_address_comparisons)]
+        // We are okay with comparisons from different compilation units to result in false
+        // not-equal results. This should only lead in the worst-case to some unneeded
+        // re-renders.
+        #[allow(ambiguous_wide_pointer_comparisons)]
         Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
+    }
+}
+
+impl<T> ImplicitClone for UseReducerDispatcher<T> where T: Reducible {}
+
+impl<T> From<UseReducerDispatcher<T>> for Callback<<T as Reducible>::Action>
+where
+    T: Reducible,
+{
+    fn from(val: UseReducerDispatcher<T>) -> Self {
+        Callback { cb: val.dispatch }
+    }
+}
+
+impl<T> IntoPropValue<Callback<<T as Reducible>::Action>> for UseReducerDispatcher<T>
+where
+    T: Reducible,
+{
+    fn into_prop_value(self) -> Callback<<T as Reducible>::Action> {
+        Callback { cb: self.dispatch }
     }
 }
 
@@ -140,6 +169,14 @@ where
     /// Dispatch the given action to the reducer.
     pub fn dispatch(&self, value: T::Action) {
         (self.dispatch)(value)
+    }
+
+    /// Get a callback, invoking which is equivalent to calling `dispatch()`
+    /// on this same dispatcher.
+    pub fn to_callback(&self) -> Callback<<T as Reducible>::Action> {
+        Callback {
+            cb: self.dispatch.clone(),
+        }
     }
 }
 
@@ -268,7 +305,7 @@ where
 ///     }
 /// }
 ///
-/// #[function_component(UseReducer)]
+/// #[component(UseReducer)]
 /// fn reducer() -> Html {
 ///     // The use_reducer hook takes an initialization function which will be called only once.
 ///     let counter = use_reducer(CounterState::default);

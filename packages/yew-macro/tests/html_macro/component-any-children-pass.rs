@@ -1,5 +1,3 @@
-#![no_implicit_prelude]
-
 // Shadow primitives
 #[allow(non_camel_case_types)]
 pub struct bool;
@@ -83,12 +81,12 @@ impl ::std::convert::From<::yew::virtual_dom::VChild<AltChild>> for ChildrenVari
 impl ::std::convert::Into<::yew::virtual_dom::VNode> for ChildrenVariants {
     fn into(self) -> ::yew::virtual_dom::VNode {
         match self {
-            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+            Self::Child(comp) => ::yew::virtual_dom::VNode::VComp(::std::rc::Rc::new(::std::convert::Into::<
                 ::yew::virtual_dom::VComp,
-            >::into(comp)),
-            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::convert::Into::<
+            >::into(comp))),
+            Self::AltChild(comp) => ::yew::virtual_dom::VNode::VComp(::std::rc::Rc::new(::std::convert::Into::<
                 ::yew::virtual_dom::VComp,
-            >::into(comp)),
+            >::into(comp))),
         }
     }
 }
@@ -153,16 +151,16 @@ pub struct RenderPropProps {
     pub children: ::yew::Callback<()>,
 }
 
-#[::yew::function_component]
+#[::yew::component]
 pub fn RenderPropComp(_props: &RenderPropProps) -> ::yew::Html {
     ::yew::html! {}
 }
 
 fn compile_pass() {
-    ::yew::html! { <Child int=1 /> };
-    ::yew::html! { <Child int=1 r#fn=1 /> };
+    _ = ::yew::html! { <Child int=1 /> };
+    _ = ::yew::html! { <Child int=1 r#fn=1 /> };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 />
             <scoped::Child int=1 />
@@ -171,7 +169,7 @@ fn compile_pass() {
 
     let props = <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child ..::std::clone::Clone::clone(&props) />
             <Child int={1} ..props />
@@ -183,7 +181,7 @@ fn compile_pass() {
         </>
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 string="child" />
             <Child int=1 />
@@ -199,17 +197,17 @@ fn compile_pass() {
     };
 
     let name_expr = "child";
-    ::yew::html! {
+    _ = ::yew::html! {
         <Child int=1 string={name_expr} />
     };
 
     let string = "child";
     let int = 1;
-    ::yew::html! {
+    _ = ::yew::html! {
         <Child {int} {string} />
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 />
             <Child int=1 optional_callback={::std::option::Option::Some(<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ()))} />
@@ -219,7 +217,7 @@ fn compile_pass() {
     };
 
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child int=1 r#ref={node_ref} />
         </>
@@ -227,7 +225,7 @@ fn compile_pass() {
 
     let int = 1;
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Child {int} r#ref={node_ref} />
         </>
@@ -236,7 +234,7 @@ fn compile_pass() {
     let props = <<Container as ::yew::Component>::Properties as ::std::default::Default>::default();
     let child_props =
         <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             <Container int=1 />
             <Container int=1></Container>
@@ -292,7 +290,7 @@ fn compile_pass() {
         ]
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <>
             {
                 ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
@@ -321,9 +319,9 @@ fn compile_pass() {
         </>
     };
 
-    ::yew::html_nested! { 1 };
+    _ = ::yew::html_nested! { 1 };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <RenderPropComp>
             {|_arg| {}}
         </RenderPropComp>

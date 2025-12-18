@@ -8,7 +8,7 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use yew::html::{ImplicitClone, Scope};
+use yew::html::{ImplicitClone, IntoPropValue, Scope};
 use yew::prelude::*;
 
 pub struct WeakComponentLink<COMP: Component>(Rc<RefCell<Option<Scope<COMP>>>>);
@@ -40,10 +40,10 @@ impl<COMP: Component> PartialEq for WeakComponentLink<COMP> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, ImplicitClone, PartialEq, Eq, Hash)]
 pub enum Hovered {
     Header,
-    Item(String),
+    Item(AttrValue),
     List,
     None,
 }
@@ -63,8 +63,8 @@ impl fmt::Display for Hovered {
     }
 }
 
-impl ToHtml for Hovered {
-    fn to_html(&self) -> yew::Html {
+impl IntoPropValue<Html> for &Hovered {
+    fn into_prop_value(self) -> Html {
         html! {<>{self.to_string()}</>}
     }
 }

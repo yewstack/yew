@@ -1,4 +1,3 @@
----
 name: Benchmark - SSR
 
 on:
@@ -20,14 +19,14 @@ jobs:
 
     steps:
       - name: Checkout master
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: "yewstack/yew"
           ref: master
           path: yew-master
 
       - name: Checkout pull request
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: current-pr
 
@@ -37,34 +36,31 @@ jobs:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: Restore Rust cache for master
+      - name: Restore Rust cache for yew packages
         uses: Swatinem/rust-cache@v2
         with:
-          working-directory: yew-master
-          key: master
-
-      - name: Restore Rust cache for current pull request
-        uses: Swatinem/rust-cache@v2
-        with:
-          working-directory: current-pr
-          key: pr
+          shared-key: yew-packages
+          workspaces: |
+            yew-master
+            current-pr
 
       - name: Run pull request benchmark
-        run: cargo run --profile=bench -- --output-path ../output.json
         working-directory: current-pr/tools/benchmark-ssr
+        run: cargo run --profile=bench -- --output-path ../output.json
 
       - name: Run master benchmark
-        run: cargo run --profile=bench -- --output-path ../output.json
         working-directory: yew-master/tools/benchmark-ssr
+        run: cargo run --profile=bench -- --output-path ../output.json
 
       - name: Write Pull Request ID
         run: |
           echo "${{ github.event.number }}" > .PR_NUMBER
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-ssr
+          include-hidden-files: true
           path: |
             .PR_NUMBER
             yew-master/tools/output.json

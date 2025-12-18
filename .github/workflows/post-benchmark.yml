@@ -8,18 +8,18 @@ on:
 
 jobs:
   post-benchmark-results:
-    runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
 
     steps:
       # Checkout repo for the github-action-benchmark action
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download result artifacts
-        uses: Legit-Labs/action-download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          workflow: benchmark.yml
-          run_id: ${{ github.event.workflow_run.id }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          run-id: ${{ github.event.workflow_run.id }}
           name: results
           path: ./artifacts
 
@@ -27,7 +27,7 @@ jobs:
         uses: mathiasvr/command-output@v1
         id: test-pr
         with:
-          run: cat artifacts/PR_INFO
+          run: cat artifacts/.PR_INFO
 
       # gh-pages branch is updated and pushed automatically with extracted benchmark data
       - name: Store benchmark result
@@ -45,3 +45,7 @@ jobs:
           # Only push when this is a non-pr commit that has been benchmarked, i.e. master
           auto-push: ${{ fromJSON(steps.test-pr.outputs.stdout).number == '' }}
           save-data-file: ${{ fromJSON(steps.test-pr.outputs.stdout).number == '' }}
+          # Enable job summary
+          summary-always: true
+          comment-always: true
+          ref: ${{ github.event.workflow_run.head_sha }}

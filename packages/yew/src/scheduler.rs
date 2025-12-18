@@ -46,15 +46,6 @@ impl TopologicalQueue {
     }
 
     /// Take a single entry, preferring parents over children
-    #[rustversion::before(1.66)]
-    fn pop_topmost(&mut self) -> Option<QueueEntry> {
-        // BTreeMap::pop_first is available after 1.66.
-        let key = *self.inner.keys().next()?;
-        self.inner.remove(&key)
-    }
-
-    /// Take a single entry, preferring parents over children
-    #[rustversion::since(1.66)]
     #[inline]
     fn pop_topmost(&mut self) -> Option<QueueEntry> {
         self.inner.pop_first().map(|(_, v)| v)
@@ -220,20 +211,46 @@ pub(crate) fn start_now() {
     });
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(
+    target_arch = "wasm32",
+    not(target_os = "wasi"),
+    not(feature = "not_browser_env")
+))]
 mod arch {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
     use crate::platform::spawn_local;
+    // Really only used as a `Cell<bool>` that is also `Sync`
+    static IS_SCHEDULED: AtomicBool = AtomicBool::new(false);
+    fn check_scheduled() -> bool {
+        // Since we can tolerate starting too many times, and we don't need to "see" any stores
+        // done in the scheduler, Relaxed ordering is fine
+        IS_SCHEDULED.load(Ordering::Relaxed)
+    }
+    fn set_scheduled(is: bool) {
+        // See comment in check_scheduled why Relaxed ordering is fine
+        IS_SCHEDULED.store(is, Ordering::Relaxed)
+    }
 
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
     pub(crate) fn start() {
+        if check_scheduled() {
+            return;
+        }
+        set_scheduled(true);
         spawn_local(async {
+            set_scheduled(false);
             super::start_now();
         });
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    target_os = "wasi",
+    feature = "not_browser_env"
+))]
 mod arch {
     // Delayed rendering is not very useful in the context of server-side rendering.
     // There are no event listeners or other high priority events that need to be
@@ -281,7 +298,7 @@ impl Scheduler {
 
         // Priority rendering
         //
-        // This is needed for hydration susequent render to fix node refs.
+        // This is needed for hydration subsequent render to fix node refs.
         if let Some(r) = self.render_priority.pop_topmost() {
             to_run.push(r);
             return;

@@ -16,6 +16,9 @@ jobs:
   feature-soundness:
     name: Feature Soundness
     runs-on: ubuntu-latest
+    # if normal clippy doesn't succeed, do not try to lint feature soundness
+    needs: clippy
+
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +26,7 @@ jobs:
           - dev
           - release
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -32,27 +35,16 @@ jobs:
           components: clippy
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: clippy
 
       - name: Lint feature soundness
         if: matrix.profile == 'dev'
-        run: bash ../../ci/feature-soundness.sh
-        working-directory: packages/yew
+        run: bash ./ci/feature-soundness.sh
 
       - name: Lint feature soundness
         if: matrix.profile == 'release'
-        run: bash ../../ci/feature-soundness-release.sh
-        working-directory: packages/yew
-
-      - name: Run release clippy
-        if: matrix.profile == 'release'
-        run: |
-          ls packages | xargs -I {} \
-            cargo clippy \
-            -p {} \
-            --all-targets \
-            --all-features \
-            --workspace \
-            -- -D warnings
+        run: bash ./ci/feature-soundness-release.sh
 
   clippy:
     name: Clippy Workspace
@@ -64,7 +56,7 @@ jobs:
           - stable
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -73,6 +65,8 @@ jobs:
           components: clippy
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: clippy
 
       - name: Run clippy
         run: |

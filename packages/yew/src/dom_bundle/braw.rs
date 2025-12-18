@@ -3,6 +3,7 @@ use web_sys::{Element, Node};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
+use crate::virtual_dom::vtag::{MATHML_NAMESPACE, SVG_NAMESPACE};
 use crate::virtual_dom::VRaw;
 use crate::AttrValue;
 
@@ -14,8 +15,10 @@ pub struct BRaw {
 }
 
 impl BRaw {
-    fn create_elements(html: &str) -> Vec<Node> {
-        let div = gloo::utils::document().create_element("div").unwrap();
+    fn create_elements(html: &str, parent_namespace: Option<&str>) -> Vec<Node> {
+        let div = gloo::utils::document()
+            .create_element_ns(parent_namespace, "div")
+            .unwrap();
         div.set_inner_html(html);
         let children = div.child_nodes();
         let children = js_sys::Array::from(&children);
@@ -71,7 +74,18 @@ impl Reconcilable for VRaw {
         parent: &Element,
         slot: DomSlot,
     ) -> (DomSlot, Self::Bundle) {
-        let elements = BRaw::create_elements(&self.html);
+        let namespace = if parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
+            Some(SVG_NAMESPACE)
+        } else if parent
+            .namespace_uri()
+            .is_some_and(|ns| ns == MATHML_NAMESPACE)
+        {
+            Some(MATHML_NAMESPACE)
+        } else {
+            None
+        };
+
+        let elements = BRaw::create_elements(&self.html, namespace);
         let count = elements.len();
         let mut iter = elements.into_iter();
         let reference = iter.next();
@@ -128,7 +142,7 @@ impl Reconcilable for VRaw {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
     use crate::virtual_dom::Collectable;
 
     impl Hydratable for VRaw {
@@ -138,29 +152,40 @@ mod feat_hydration {
             _parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let collectable = Collectable::Raw;
             let fallback_fragment = Fragment::collect_between(fragment, &collectable, parent);
+            let first_child = fallback_fragment.iter().next().cloned();
+
+            if let (Some(first_child), prev_next_sibling) = (&first_child, prev_next_sibling) {
+                if let Some(prev_next_sibling) = prev_next_sibling {
+                    prev_next_sibling.reassign(DomSlot::at(first_child.clone()));
+                }
+                *prev_next_sibling = None;
+            }
 
             let Self { html } = self;
 
             BRaw {
                 children_count: fallback_fragment.len(),
-                reference: fallback_fragment.iter().next().cloned(),
+                reference: first_child,
                 html,
             }
         }
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
     use gloo::utils::document;
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::dom_bundle::utils::{setup_parent, setup_parent_and_sibling, SIBLING_CONTENT};
+    use crate::dom_bundle::utils::{
+        setup_parent, setup_parent_and_sibling, setup_parent_svg, SIBLING_CONTENT,
+    };
     use crate::virtual_dom::VNode;
 
     wasm_bindgen_test_configure!(run_in_browser);
@@ -173,7 +198,26 @@ mod tests {
         let elem = VNode::from_html_unchecked(HTML.into());
         let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
         assert_braw(&mut elem);
-        assert_eq!(parent.inner_html(), HTML)
+        assert_eq!(parent.inner_html(), HTML);
+    }
+
+    #[test]
+    fn braw_works_svg() {
+        let (root, scope, parent) = setup_parent_svg();
+
+        const HTML: &str = r#"<circle cx="50" cy="50" r="40"></circle>"#;
+        let elem = VNode::from_html_unchecked(HTML.into());
+        let (_, mut elem) = elem.attach(&root, &scope, &parent, DomSlot::at_end());
+        assert_braw(&mut elem);
+        assert_eq!(parent.inner_html(), HTML);
+        assert_eq!(
+            parent
+                .first_child()
+                .unwrap()
+                .unchecked_into::<Element>()
+                .namespace_uri(),
+            Some(SVG_NAMESPACE.to_owned())
+        );
     }
 
     #[test]

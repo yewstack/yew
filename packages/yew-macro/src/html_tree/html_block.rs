@@ -59,4 +59,11 @@ impl ToNodeIterator for HtmlBlock {
 
         Some(quote_spanned! {brace.span=> #new_tokens})
     }
+
+    fn is_singular(&self) -> bool {
+        match &self.content {
+            BlockContent::Node(node) => node.is_singular(),
+            BlockContent::Iterable(_) => false,
+        }
+    }
 }

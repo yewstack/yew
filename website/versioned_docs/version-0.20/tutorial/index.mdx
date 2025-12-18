@@ -105,7 +105,7 @@ fn main() {
 Now, let's create an `index.html` at the root of the project.
 
 ```html title="index.html"
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head></head>
     <body></body>
@@ -172,7 +172,7 @@ We want to build a layout that looks something like this in raw HTML:
 <div>
     <h3>John Doe: Building and breaking things</h3>
     <img
-        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        src="https://placehold.co/640x360.png?text=Video+Player+Placeholder"
         alt="video thumbnail"
     />
 </div>
@@ -194,7 +194,7 @@ html! {
         </div>
         <div>
             <h3>{ "John Doe: Building and breaking things" }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     </>
 }
@@ -427,7 +427,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
             <h3>{ video.title.clone() }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     }
 }
@@ -463,7 +463,7 @@ fn app() -> Html {
 +            { for details }
 -            <div>
 -                <h3>{ "John Doe: Building and breaking things" }</h3>
--                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-                <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
 -            </div>
         </>
     }
@@ -490,12 +490,12 @@ Struct components act differently. See [the documentation](advanced-topics/struc
 In a real world application, data will usually come from an API instead of being hardcoded. Let's fetch our
 videos list from external source. For this we will need to add the following crates:
 
--   [`gloo-net`](https://crates.io/crates/gloo-net)
-    For making the fetch call.
--   [`serde`](https://serde.rs) with derive features
-    For de-serializing the JSON response
--   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-    For executing Rust Future as a Promise
+- [`gloo-net`](https://crates.io/crates/gloo-net)
+  For making the fetch call.
+- [`serde`](https://serde.rs) with derive features
+  For de-serializing the JSON response
+- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+  For executing Rust Future as a Promise
 
 Let's update the dependencies in `Cargo.toml` file:
 

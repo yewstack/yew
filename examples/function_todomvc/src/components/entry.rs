@@ -19,7 +19,7 @@ pub fn entry(props: &EntryProps) -> Html {
     let mut class = Classes::from("todo");
 
     // We use the `use_bool_toggle` hook and set the default value to `false`
-    // as the default we are not editing the the entry. When we want to edit the
+    // as the default we are not editing the entry. When we want to edit the
     // entry we can call the toggle method on the `UseBoolToggleHandle`
     // which will trigger a re-render with the toggle value being `true` for that
     // render and after that render the value of toggle will be flipped back to
@@ -85,40 +85,40 @@ pub struct EntryEditProps {
 
 #[function_component(EntryEdit)]
 pub fn entry_edit(props: &EntryEditProps) -> Html {
-    let id = props.entry.id;
+    if props.editing {
+        let id = props.entry.id;
 
-    let target_input_value = |e: &Event| {
-        let input: HtmlInputElement = e.target_unchecked_into();
-        input.value()
-    };
+        let target_input_value = |e: &Event| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            input.value()
+        };
 
-    let onblur = {
-        let edit = props.onedit.clone();
+        let onblur = {
+            let edit = props.onedit.clone();
 
-        move |e: FocusEvent| {
-            let value = target_input_value(&e);
-            edit.emit((id, value))
-        }
-    };
-
-    let onkeypress = {
-        let edit = props.onedit.clone();
-
-        move |e: KeyboardEvent| {
-            if e.key() == "Enter" {
+            move |e: FocusEvent| {
                 let value = target_input_value(&e);
                 edit.emit((id, value))
             }
-        }
-    };
+        };
 
-    let onmouseover = |e: MouseEvent| {
-        e.target_unchecked_into::<HtmlInputElement>()
-            .focus()
-            .unwrap_or_default();
-    };
+        let onkeypress = {
+            let edit = props.onedit.clone();
 
-    if props.editing {
+            move |e: KeyboardEvent| {
+                if e.key() == "Enter" {
+                    let value = target_input_value(&e);
+                    edit.emit((id, value))
+                }
+            }
+        };
+
+        let onmouseover = |e: MouseEvent| {
+            e.target_unchecked_into::<HtmlInputElement>()
+                .focus()
+                .unwrap_or_default();
+        };
+
         html! {
             <input
                 class="edit"

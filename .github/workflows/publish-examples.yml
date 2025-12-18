@@ -3,7 +3,7 @@ on:
   push:
     branches: [master]
     paths:
-      - 'ci/**'
+      - 'tools/build-examples/**'
       - 'examples/**'
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       RUSTUP_TOOLCHAIN: nightly
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -25,13 +25,25 @@ jobs:
           components: rust-src
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: publish-examples
 
-      - uses: jetli/trunk-action@v0.4.0
+      - uses: jetli/trunk-action@v0.5.1
         with:
           version: 'latest'
 
+      - name: Get latest wasm-opt version
+        id: wasm-opt
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: WebAssembly/binaryen
+          excludes: prerelease, draft
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build examples
-        run: ./ci/build-examples.sh
+        run: cargo run -p build-examples --bin build-examples
+        env:
+          LATEST_WASM_OPT_VERSION: ${{ steps.wasm-opt.outputs.release }}
 
       - name: Deploy to Firebase
         uses: siku2/action-hosting-deploy@v1

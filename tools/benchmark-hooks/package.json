@@ -20,7 +20,10 @@
     "url": "https://github.com/krausest/js-framework-benchmark.git"
   },
   "devDependencies": {
-    "rimraf": "^2.6.3",
-    "cpr": "^3.0.1"
+    "cpr": "^3.0.1",
+    "rimraf": "^2.6.3"
+  },
+  "dependencies": {
+    "js-framework-benchmark-keyed-yew-hooks": "file:"
   }
 }

@@ -1,4 +1,3 @@
----
 name: Post Comment for Size Comparison
 
 on:
@@ -9,30 +8,27 @@ on:
 
 jobs:
   post-size-cmp:
-    name: Post Comment on Pull Request
+    name: Post Size Comment on Pull Request
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - if: github.event.workflow_run.event == 'pull_request'
-        name: Download Artifact (master)
-        uses: Legit-Labs/action-download-artifact@v2
+      - name: Download Artifact (master)
+        uses: actions/download-artifact@v4
         with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: size-cmp.yml
-          run_id: ${{ github.event.workflow_run.id }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          run-id: ${{ github.event.workflow_run.id }}
           name: size-cmp-master-info
           path: "size-cmp-master-info/"
 
-      - if: github.event.workflow_run.event == 'pull_request'
-        name: Download Artifact (PR)
-        uses: Legit-Labs/action-download-artifact@v2
+      - name: Download Artifact (PR)
+        uses: actions/download-artifact@v4
         with:
-          github_token: "${{ secrets.GITHUB_TOKEN }}"
-          workflow: size-cmp.yml
-          run_id: ${{ github.event.workflow_run.id }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          run-id: ${{ github.event.workflow_run.id }}
           name: size-cmp-pr-info
           path: "size-cmp-pr-info/"
 
@@ -40,7 +36,7 @@ jobs:
         run: python3 ci/make_example_size_cmt.py
 
       - name: Post Comment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const commentInfo = {

@@ -1,7 +1,8 @@
+use crate::html::ImplicitClone;
 use crate::AttrValue;
 
 /// A raw HTML string to be used in VDOM.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, ImplicitClone, Debug, PartialEq, Eq)]
 pub struct VRaw {
     pub html: AttrValue,
 }

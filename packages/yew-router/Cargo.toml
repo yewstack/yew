@@ -1,6 +1,6 @@
 [package]
 name = "yew-router"
-version = "0.17.0"
+version = "0.19.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -9,19 +9,19 @@ keywords = ["web", "yew", "router"]
 categories = ["gui", "web-programming"]
 description = "A router implementation for the Yew framework"
 repository = "https://github.com/yewstack/yew"
-rust-version = "1.64.0"
+rust-version = "1.84.0"
 
 [dependencies]
-yew = { version = "0.20.0", path = "../yew", default-features= false }
-yew-router-macro = { version = "0.17.0", path = "../yew-router-macro" }
+yew = { version = "0.22.0", path = "../yew", default-features= false }
+yew-router-macro = { version = "0.19.0", path = "../yew-router-macro" }
 
 wasm-bindgen = "0.2"
 js-sys = "0.3"
-gloo = { version = "0.10", features = ["futures"] }
+gloo = { version = "0.11", features = ["futures"] }
 route-recognizer = "0.3"
 serde = "1"
 serde_urlencoded = "0.7.1"
-tracing = "0.1.37"
+tracing = "0.1.40"
 urlencoding = "2.1.3"
 
 [dependencies.web-sys]
@@ -35,10 +35,13 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 serde = { version = "1", features = ["derive"] }
-yew = { version = "0.20.0", path = "../yew", features = ["csr"] }
+yew = { version = "0.22.0", path = "../yew", features = ["csr"] }
 
 [dev-dependencies.web-sys]
 version = "0.3"
 features = [
     "HtmlHeadElement",
 ]
+
+[lints]
+workspace = true

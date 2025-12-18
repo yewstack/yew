@@ -36,18 +36,26 @@
 //! }
 //! ```
 
+mod bridge;
 mod hooks;
+mod messages;
 mod provider;
+mod registrar;
+mod scope;
+mod spawner;
+mod traits;
+mod worker;
 
-#[doc(inline)]
-pub use gloo_worker::reactor::{
-    Reactor, ReactorBridge, ReactorRegistrar, ReactorScope, ReactorScoped, ReactorSpawner,
-};
+pub use bridge::{ReactorBridge, ReactorBridgeSinkError};
 pub use hooks::{
     use_reactor_bridge, use_reactor_subscription, ReactorEvent, UseReactorBridgeHandle,
     UseReactorSubscriptionHandle,
 };
 pub use provider::ReactorProvider;
 pub(crate) use provider::ReactorProviderState;
+pub use registrar::ReactorRegistrar;
+pub use scope::{ReactorScope, ReactorScoped};
+pub use spawner::ReactorSpawner;
+pub use traits::Reactor;
 /// A procedural macro to create reactor agents.
 pub use yew_agent_macro::reactor;

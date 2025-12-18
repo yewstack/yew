@@ -1,15 +1,14 @@
 use std::borrow::Cow;
 use std::rc::Rc;
+use std::sync::Arc;
 
 use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
 
-use super::ToHtml;
 use crate::callback::Callback;
-use crate::html::{BaseComponent, ChildrenRenderer, Component, NodeRef, Scope};
-use crate::virtual_dom::{AttrValue, VChild, VNode, VText};
+use crate::html::{BaseComponent, ChildrenRenderer, Component, Scope};
+use crate::virtual_dom::{AttrValue, VChild, VList, VNode, VText};
 
-impl ImplicitClone for NodeRef {}
 impl<Comp: Component> ImplicitClone for Scope<Comp> {}
 // TODO there are still a few missing
 
@@ -126,17 +125,51 @@ where
 {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<R> {
-        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect())
+        ChildrenRenderer::new(self.into_iter().map(|m| m.into()).collect::<Vec<_>>())
     }
 }
 
-impl<T> IntoPropValue<VNode> for T
+impl<T> IntoPropValue<VNode> for VChild<T>
 where
-    T: ToHtml,
+    T: BaseComponent,
 {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        self.into_html()
+        VNode::from(self)
+    }
+}
+
+impl IntoPropValue<VNode> for VList {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(Rc::new(self))
+    }
+}
+impl IntoPropValue<VNode> for VText {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VText(self)
+    }
+}
+
+impl IntoPropValue<VNode> for () {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::default()
+    }
+}
+
+impl IntoPropValue<VNode> for ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(Rc::new(self.into()))
+    }
+}
+
+impl IntoPropValue<VNode> for &ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(Rc::new(VList::from(self.children.clone())))
     }
 }
 
@@ -151,6 +184,40 @@ impl IntoPropValue<ChildrenRenderer<VNode>> for VText {
     #[inline]
     fn into_prop_value(self) -> ChildrenRenderer<VNode> {
         ChildrenRenderer::new(vec![self.into()])
+    }
+}
+
+impl IntoPropValue<VList> for ChildrenRenderer<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::from(self.children)
+    }
+}
+
+impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
+    #[inline]
+    fn into_prop_value(self) -> VList {
+        VList::from(VNode::from(self))
+    }
+}
+
+impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
+    fn into_prop_value(self) -> ChildrenRenderer<VNode> {
+        ChildrenRenderer::new(vec![VNode::VText(VText::new(self))])
+    }
+}
+
+impl IntoPropValue<VNode> for Vec<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        VNode::VList(Rc::new(VList::from(self)))
+    }
+}
+
+impl IntoPropValue<VNode> for Option<VNode> {
+    #[inline]
+    fn into_prop_value(self) -> VNode {
+        self.unwrap_or_default()
     }
 }
 
@@ -217,6 +284,58 @@ impl<K: Eq + std::hash::Hash + ImplicitClone + 'static, V: PartialEq + ImplicitC
     }
 }
 
+macro_rules! impl_into_prop_value_via_display {
+    ($from_ty: ty) => {
+        impl IntoPropValue<VNode> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> VNode {
+                VText::from(self).into()
+            }
+        }
+    };
+}
+
+// go through AttrValue::from where possible
+macro_rules! impl_into_prop_value_via_attr_value {
+    ($from_ty: ty) => {
+        impl IntoPropValue<VNode> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> VNode {
+                VText::new(self).into()
+            }
+        }
+    };
+}
+
+// These are a selection of types implemented via display.
+impl_into_prop_value_via_display!(bool);
+impl_into_prop_value_via_display!(char);
+impl_into_prop_value_via_display!(&String);
+impl_into_prop_value_via_display!(&str);
+impl_into_prop_value_via_display!(Arc<str>);
+impl_into_prop_value_via_display!(Arc<String>);
+impl_into_prop_value_via_display!(Rc<String>);
+impl_into_prop_value_via_display!(u8);
+impl_into_prop_value_via_display!(u16);
+impl_into_prop_value_via_display!(u32);
+impl_into_prop_value_via_display!(u64);
+impl_into_prop_value_via_display!(u128);
+impl_into_prop_value_via_display!(usize);
+impl_into_prop_value_via_display!(i8);
+impl_into_prop_value_via_display!(i16);
+impl_into_prop_value_via_display!(i32);
+impl_into_prop_value_via_display!(i64);
+impl_into_prop_value_via_display!(i128);
+impl_into_prop_value_via_display!(isize);
+impl_into_prop_value_via_display!(f32);
+impl_into_prop_value_via_display!(f64);
+
+impl_into_prop_value_via_attr_value!(String);
+impl_into_prop_value_via_attr_value!(AttrValue);
+impl_into_prop_value_via_attr_value!(&AttrValue);
+impl_into_prop_value_via_attr_value!(Rc<str>);
+impl_into_prop_value_via_attr_value!(Cow<'static, str>);
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -255,7 +374,7 @@ mod test {
             pub footer: Children,
         }
 
-        #[function_component]
+        #[component]
         pub fn App(props: &Props) -> Html {
             let Props {
                 header,
@@ -293,7 +412,7 @@ mod test {
     fn test_vchild_to_children_with_props_compiles() {
         use crate::prelude::*;
 
-        #[function_component]
+        #[component]
         pub fn Comp() -> Html {
             Html::default()
         }
@@ -308,7 +427,7 @@ mod test {
             pub footer: ChildrenWithProps<Comp>,
         }
 
-        #[function_component]
+        #[component]
         pub fn App(props: &Props) -> Html {
             let Props {
                 header,
@@ -340,5 +459,84 @@ mod test {
                 {children}
             </App>
         };
+    }
+
+    #[test]
+    fn test_vlist_to_children_compiles() {
+        use crate::prelude::*;
+        use crate::virtual_dom::VList;
+
+        #[component]
+        fn Foo() -> Html {
+            todo!()
+        }
+
+        #[derive(PartialEq, Properties)]
+        pub struct ChildProps {
+            #[prop_or_default]
+            pub children: Html,
+        }
+
+        #[component]
+        fn Child(_props: &ChildProps) -> Html {
+            html!()
+        }
+
+        #[derive(PartialEq, Properties)]
+        pub struct ParentProps {
+            pub children: VList,
+        }
+
+        #[component]
+        fn Parent(_props: &ParentProps) -> Html {
+            todo!()
+        }
+
+        let _ = html! {
+            <Parent>
+                <Child></Child>
+            </Parent>
+        };
+
+        let _ = html! {
+            <Parent>
+                <Child />
+                <Child />
+            </Parent>
+        };
+
+        let _ = html! {
+            <Parent>
+                <Child>
+                    <Foo />
+                </Child>
+            </Parent>
+        };
+    }
+
+    #[test]
+    fn attr_value_children() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct ChildProps {
+            #[prop_or_default]
+            pub children: AttrValue,
+        }
+
+        #[component]
+        fn Child(_props: &ChildProps) -> Html {
+            html!()
+        }
+        {
+            let attr_value = AttrValue::from("foo");
+
+            let _ = html! { <Child>{attr_value}</Child> };
+        }
+        {
+            let attr_value = AttrValue::from("foo");
+
+            let _ = html! { <Child>{&attr_value}</Child> };
+        }
     }
 }

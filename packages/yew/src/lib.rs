@@ -1,8 +1,7 @@
 #![allow(clippy::needless_doctest_main)]
 #![doc(html_logo_url = "https://yew.rs/img/logo.png")]
 #![cfg_attr(documenting, feature(doc_cfg))]
-#![cfg_attr(documenting, feature(doc_auto_cfg))]
-#![cfg_attr(nightly_yew, feature(fn_traits, async_closure, unboxed_closures))]
+#![cfg_attr(nightly_yew, feature(fn_traits, unboxed_closures))]
 
 //! # Yew Framework - API Documentation
 //!
@@ -30,7 +29,7 @@
 //!
 //! ## Example
 //!
-//! ```rust
+//! ```rust,no_run
 //! use yew::prelude::*;
 //!
 //! enum Msg {
@@ -68,11 +67,9 @@
 //!     }
 //! }
 //!
-//! # fn dont_execute() {
 //! fn main() {
 //!     yew::Renderer::<App>::new().render();
 //! }
-//! # }
 //! ```
 
 #![deny(
@@ -295,8 +292,8 @@ mod app_handle;
 #[cfg(feature = "csr")]
 mod renderer;
 
-#[cfg(feature = "csr")]
-#[cfg(test)]
+#[cfg(all(feature = "csr", any(test, feature = "test")))]
+#[allow(missing_docs)]
 pub mod tests;
 
 /// The module that contains all events available in the framework.
@@ -330,13 +327,13 @@ pub mod prelude {
 
     #[cfg(feature = "csr")]
     pub use crate::app_handle::AppHandle;
-    pub use crate::callback::Callback;
+    pub use crate::callback::{Callback, CallbackRef, CallbackRefMut};
     pub use crate::context::{ContextHandle, ContextProvider};
     pub use crate::events::*;
     pub use crate::functional::*;
     pub use crate::html::{
         create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
-        Html, HtmlResult, NodeRef, Properties, ToHtml,
+        Html, HtmlResult, NodeRef, Properties,
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;

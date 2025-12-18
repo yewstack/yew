@@ -8,7 +8,7 @@ pub(crate) fn strip_slash_suffix(path: &str) -> &str {
 
 static BASE_URL_LOADED: std::sync::Once = std::sync::Once::new();
 thread_local! {
-    static BASE_URL: RefCell<Option<String>> = RefCell::new(None);
+    static BASE_URL: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 // This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API
@@ -42,7 +42,7 @@ pub fn fetch_base_url() -> Option<String> {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     gloo::utils::window()
         .location()
@@ -55,7 +55,7 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
         })
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     let query = query.trim();
 
@@ -66,7 +66,12 @@ pub fn compose_path(pathname: &str, query: &str) -> Option<String> {
     }
 }
 
-#[cfg(test)]
+// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
+#[cfg(all(
+    test,
+    target_arch = "wasm32",
+    any(target_os = "unknown", target_os = "none")
+))]
 mod tests {
     use gloo::utils::document;
     use wasm_bindgen_test::wasm_bindgen_test as test;

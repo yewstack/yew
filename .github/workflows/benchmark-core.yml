@@ -1,0 +1,63 @@
+name: Benchmark - core
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/workflows/benchmark-core.yml
+      - "packages/yew/**"
+      - "tools/benchmark-core/**"
+
+jobs:
+  benchmark-core:
+    name: Benchmark - core
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          repository: "yewstack/yew"
+          ref: master
+          path: yew-master
+
+      - name: Checkout pull request
+        uses: actions/checkout@v4
+        with:
+          path: current-pr
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Restore Rust cache for yew packages
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
+          workspaces: |
+            yew-master
+            current-pr
+
+      - name: Run pull request benchmark
+        working-directory: current-pr/tools/benchmark-core
+        run: cargo bench -q > ../output.log
+
+      - name: Run master benchmark
+        working-directory: yew-master/tools/benchmark-core
+        run: cargo bench -q > ../output.log
+
+      - name: Write Pull Request ID
+        run: |
+          echo "${{ github.event.number }}" > .PR_NUMBER
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-core
+          include-hidden-files: true
+          path: |
+            .PR_NUMBER
+            yew-master/tools/output.log
+            current-pr/tools/output.log
+          retention-days: 1

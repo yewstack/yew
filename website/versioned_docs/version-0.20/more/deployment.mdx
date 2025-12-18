@@ -22,7 +22,7 @@ An application with Yew router is built as a [Single Page Application (SPA)](htt
 
 But on a fresh load, such as when navigating to the page by entering it in the address bar or refreshing the page, all of these actions are handled by the browser itself, outside the running application. The browser makes a direct request to the server for that URL, bypassing the router. A wrongly configured server would return with status 404 - Not Found.
 
-By returning `index.html` instead, the app loads as it normally would as if request was for `/`, until the router notices that the the route is `/show/42` and displays the appropriate contents.
+By returning `index.html` instead, the app loads as it normally would as if request was for `/`, until the router notices that the route is `/show/42` and displays the appropriate contents.
 
 ### Configuring correct MIME-type for Web Assembly asset.
 

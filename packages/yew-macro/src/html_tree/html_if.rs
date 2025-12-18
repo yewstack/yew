@@ -1,12 +1,11 @@
-use boolinator::Boolinator;
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Token};
+use syn::{parse_quote, Expr, Token};
 
-use super::{HtmlRootBraced, ToNodeIterator};
+use super::HtmlRootBraced;
 use crate::PeekValue;
 
 pub struct HtmlIf {
@@ -19,7 +18,7 @@ pub struct HtmlIf {
 impl PeekValue<()> for HtmlIf {
     fn peek(cursor: Cursor) -> Option<()> {
         let (ident, _) = cursor.ident()?;
-        (ident == "if").as_option()
+        (ident == "if").then_some(())
     }
 }
 
@@ -70,13 +69,13 @@ impl Parse for HtmlIf {
 
 impl ToTokens for HtmlIf {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let HtmlIf {
+        let Self {
             if_token,
             cond,
             then_branch,
             else_branch,
         } = self;
-        let default_else_branch = syn::parse_quote! { {} };
+        let default_else_branch = parse_quote! { {} };
         let else_branch = else_branch
             .as_ref()
             .map(|(_, branch)| branch)
@@ -86,27 +85,6 @@ impl ToTokens for HtmlIf {
         };
 
         tokens.extend(new_tokens);
-    }
-}
-
-impl ToNodeIterator for HtmlIf {
-    fn to_node_iterator_stream(&self) -> Option<TokenStream> {
-        let HtmlIf {
-            if_token,
-            cond,
-            then_branch,
-            else_branch,
-        } = self;
-        let default_else_branch = syn::parse_str("{}").unwrap();
-        let else_branch = else_branch
-            .as_ref()
-            .map(|(_, branch)| branch)
-            .unwrap_or(&default_else_branch);
-        let new_tokens = quote_spanned! {if_token.span()=>
-            if #cond #then_branch else #else_branch
-        };
-
-        Some(quote_spanned! {if_token.span=> #new_tokens})
     }
 }
 

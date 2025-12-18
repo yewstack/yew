@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 use strum_macros::{Display, EnumIter};
+use yew::html::IntoPropValue;
 use yew::prelude::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -42,8 +43,8 @@ impl Filter {
     }
 }
 
-impl ToHtml for Filter {
-    fn to_html(&self) -> Html {
+impl IntoPropValue<Html> for Filter {
+    fn into_prop_value(self) -> Html {
         html! {<>{self.to_string()}</>}
     }
 }

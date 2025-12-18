@@ -49,7 +49,6 @@ pub(crate) struct Bundle(BNode);
 
 impl Bundle {
     /// Creates a new bundle.
-
     pub const fn new() -> Self {
         Self(BNode::List(BList::new()))
     }
@@ -95,8 +94,9 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
             node: VNode,
+            previous_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self {
-            let bundle = node.hydrate(root, parent_scope, parent, fragment);
+            let bundle = node.hydrate(root, parent_scope, parent, fragment, previous_next_sibling);
             Self(bundle)
         }
     }

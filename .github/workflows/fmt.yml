@@ -13,7 +13,7 @@ jobs:
     name: cargo fmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -22,4 +22,4 @@ jobs:
           components: rustfmt
 
       - name: Run fmt
-        run: cargo +nightly fmt --all -- --check --unstable-features
+        run: cargo +nightly fmt --all -- --check

@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use git2::{Repository, Sort};
 
 use crate::create_log_line::create_log_line;
+use crate::github_user_fetcher::GitHubUsersFetcher;
 use crate::log_line::LogLine;
 
 pub fn create_log_lines(
@@ -12,6 +13,7 @@ pub fn create_log_lines(
 ) -> Result<Vec<LogLine>> {
     let repo = Repository::open_from_env()?;
 
+    let mut user_fetcher = GitHubUsersFetcher::default();
     let from_oid = repo
         .revparse_single(&from)
         .context("Could not find `from` revision")?
@@ -28,6 +30,9 @@ pub fn create_log_lines(
     revwalk.push(to_oid)?;
 
     revwalk
-        .filter_map(|oid| create_log_line(&repo, package_labels, oid, token.clone()).transpose())
+        .filter_map(|oid| {
+            create_log_line(&repo, package_labels, oid, token.clone(), &mut user_fetcher)
+                .transpose()
+        })
         .collect()
 }

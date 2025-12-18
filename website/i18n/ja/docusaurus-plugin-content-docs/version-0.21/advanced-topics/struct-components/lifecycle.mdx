@@ -1,0 +1,300 @@
+---
+title: 'ライフサイクル'
+description: 'コンポーネントとそのライフサイクルフック'
+---
+
+`Component` トレイトには実装が必要なメソッドがいくつかあります。Yew はコンポーネントのライフサイクルの異なる段階でこれらを呼び出します。
+
+## ライフサイクル
+
+:::important contribute
+`Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/yew/issues/1915)
+:::
+
+## ライフサイクルのメソッド
+
+### Create
+
+コンポーネントが作られると、親コンポーネントからプロパティを受け取り、`create` メソッドに渡される `Context<Self>` 内に格納されます。
+プロパティはコンポーネントの状態を初期化するのに使われ、"link"はコールバックを登録したりコンポーネントにメッセージを送るのに使われます。
+
+```rust
+use yew::{Component, Context, html, Html, Properties};
+
+#[derive(PartialEq, Properties)]
+pub struct Props;
+
+pub struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = Props;
+
+    // highlight-start
+    fn create(ctx: &Context<Self>) -> Self {
+        MyComponent
+    }
+    // highlight-end
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // impl
+        }
+    }
+}
+```
+
+### View
+
+コンポーネントは`view()`メソッドによってレイアウトを宣言します。
+Yew は`html!`マクロによって HTML と SVG ノード、リスナー、子コンポーネントを宣言できます。
+マクロは React の JSX のような動きをしますが、JavaScript の代わりに Rust の式を用います。
+Yew は Svelte のように、`onclick={onclick}` の代わりに `{onclick}` と書くことができる省略構文を提供しています。
+
+```rust
+use yew::{Component, Context, html, Html, Properties};
+
+enum Msg {
+    Click,
+}
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    button_text: String,
+}
+
+struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = Msg;
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    // highlight-start
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onclick = ctx.link().callback(|_| Msg::Click);
+        html! {
+            <button {onclick}>{ &ctx.props().button_text }</button>
+        }
+    }
+    // highlight-end
+}
+```
+
+使い方については[`html!`ガイド](concepts/html/introduction.mdx)をご確認ください。
+
+### Rendered
+
+`rendered()`コンポーネントのライフサイクルのメソッドは`view()`が処理されて Yew がコンポーネントをレンダリングした後、
+ブラウザがページを更新する前に呼ばれます。
+コンポーネントは、コンポーネントが要素をレンダリングした後にのみ実行できるアクションを実行するため、このメソッドを実装したい場合があります。
+コンポーネントが初めてレンダリングされたかどうかは `first_render` パラメータで確認できます。
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::{
+    Component, Context, html, Html, NodeRef,
+};
+
+pub struct MyComponent {
+    node_ref: NodeRef,
+}
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <input ref={self.node_ref.clone()} type="text" />
+        }
+    }
+
+    // highlight-start
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        if first_render {
+            if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
+                input.focus();
+            }
+        }
+    }
+    // highlight-end
+}
+```
+
+:::tip note
+ライフサイクルメソッドは実装の必要がなく、デフォルトでは何もしません。
+:::
+
+### Update
+
+コンポーネントは動的で、非同期メッセージを受信するために登録することができます。
+ライフサイクルメソッド `update()` はメッセージごとに呼び出されます。
+これにより、コンポーネントはメッセージが何であったかに基づいて自身を更新し、自身を再レンダリングする必要があるかどうかを判断することができます。
+メッセージは、HTML 要素リスナーによってトリガーされたり、子コンポーネント、エージェント、サービス、または Futures によって送信されたりします。
+
+`update()`がどのようなのかについての例は以下の通りです:
+
+```rust
+use yew::{Component, Context, html, Html};
+
+// highlight-start
+pub enum Msg {
+    SetInputEnabled(bool)
+}
+// highlight-end
+
+struct MyComponent {
+    input_enabled: bool,
+}
+
+impl Component for MyComponent {
+    // highlight-next-line
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            input_enabled: false,
+        }
+    }
+
+    // highlight-start
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::SetInputEnabled(enabled) => {
+                if self.input_enabled != enabled {
+                    self.input_enabled = enabled;
+                    true // Re-render
+                } else {
+                    false
+                }
+            }
+        }
+    }
+    // highlight-end
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // impl
+        }
+    }
+
+}
+```
+
+### Changed
+
+コンポーネントは親によって再レンダリングされることがあります。
+このような場合、新しいプロパティを受け取り、再レンダリングを選択する可能性があります。
+この設計では、プロパティを変更することで、親から子へのコンポーネントの通信が容易になります。
+props が変更されたときにコンポーネントを再レンダリングするデフォルト実装があります。
+
+### Destroy
+
+After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle method; this is
+necessary if you need to undertake operations to clean up after earlier actions of a component
+before it is destroyed. This method is optional and does nothing by default.
+
+### Infinite loops
+
+Infinite loops are possible with Yew's lifecycle methods but are only caused when trying to update
+the same component after every render, when that update also requests the component to be rendered.
+
+A simple example can be seen below:
+
+```rust
+use yew::{Context, Component, Html};
+
+struct Comp;
+
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        // We are going to always request to re-render on any msg
+        true
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        // For this example it doesn't matter what is rendered
+        Html::default()
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+        // Request that the component is updated with this new msg
+        ctx.link().send_message(());
+    }
+}
+```
+
+Let's run through what happens here:
+
+1. Component is created using the `create` function.
+2. The `view` method is called so Yew knows what to render to the browser DOM.
+3. The `rendered` method is called, which schedules an update message using the `Context` link.
+4. Yew finishes the post-render phase.
+5. Yew checks for scheduled events and sees the update message queue is not empty so works through
+   the messages.
+6. The `update` method is called which returns `true` to indicate something has changed and the
+   component needs to re-render.
+7. Jump back to 2.
+
+You can still schedule updates in the `rendered` method and it is often useful to do so, but
+consider how your component will terminate this loop when you do.
+
+## Associated Types
+
+The `Component` trait has two associated types: `Message` and `Properties`.
+
+```rust ,ignore
+impl Component for MyComponent {
+    type Message = Msg;
+    type Properties = Props;
+
+    // ...
+}
+```
+
+The `Message` type is used to send messages to a component after an event has taken place; for
+example, you might want to undertake some action when a user clicks a button or scrolls down the
+page. Because components tend to have to respond to more than one event, the `Message` type will
+normally be an enum, where each variant is an event to be handled.
+
+When organizing your codebase, it is sensible to include the definition of the `Message` type in the
+same module in which your component is defined. You may find it helpful to adopt a consistent naming
+convention for message types. One option (though not the only one) is to name the types
+`ComponentNameMsg`, e.g. if your component was called `Homepage` then you might call the type
+`HomepageMsg`.
+
+```rust
+enum Msg {
+    Click,
+    FormInput(String)
+}
+```
+
+`Properties` represents the information passed to a component from its parent. This type must implement the `Properties` trait \(usually by deriving it\) and can specify whether certain properties are required or optional. This type is used when creating and updating a component. It is common practice to create a struct called `Props` in your component's module and use that as the component's `Properties` type. It is common to shorten "properties" to "props". Since props are handed down from parent components, the root component of your application typically has a `Properties` type of `()`. If you wish to specify properties for your root component, use the `App::mount_with_props` method.
+
+:::info
+[Learn more about properties](./properties)
+:::
+
+## Lifecycle Context
+
+All component lifecycle methods take a context object. This object provides a reference to the component's scope, which
+allows sending messages to a component and the props passed to the component.

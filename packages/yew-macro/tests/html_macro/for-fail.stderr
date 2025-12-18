@@ -1,0 +1,59 @@
+error: unexpected end of input, expected `in`
+ --> tests/html_macro/for-fail.rs:6:9
+  |
+6 |     _ = ::yew::html!{for x};
+  |         ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected an expression
+ --> tests/html_macro/for-fail.rs:7:9
+  |
+7 |     _ = ::yew::html!{for x in};
+  |         ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected curly braces
+ --> tests/html_macro/for-fail.rs:8:9
+  |
+8 |     _ = ::yew::html!{for x in 0 .. 10};
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: duplicate key for a node in a `for`-loop
+       this will create elements with duplicate keys if the loop iterates more than once
+  --> tests/html_macro/for-fail.rs:18:18
+   |
+18 |         <div key="duplicate" />
+   |                  ^^^^^^^^^^^
+
+error: duplicate key for a node in a `for`-loop
+       this will create elements with duplicate keys if the loop iterates more than once
+  --> tests/html_macro/for-fail.rs:22:19
+   |
+22 |         <div key={smth::KEY} />
+   |                   ^^^^
+
+error[E0267]: `break` inside of a closure
+  --> tests/html_macro/for-fail.rs:14:16
+   |
+13 |       _ = ::yew::html!{for _ in 0 .. 10 {
+   |  _________-
+14 | |         <span>{break}</span>
+   | |                ^^^^^ cannot `break` inside of a closure
+15 | |     }};
+   | |______- enclosing closure
+
+error[E0308]: mismatched types
+ --> tests/html_macro/for-fail.rs:9:26
+  |
+9 |     _ = ::yew::html!{for (x, y) in 0 .. 10 {
+  |                          ^^^^^^
+  |                          |
+  |                          expected integer, found `(_, _)`
+  |                          expected due to this
+  |
+  = note: expected type `{integer}`
+            found tuple `(_, _)`

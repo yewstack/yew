@@ -36,7 +36,7 @@
 
 ## About
 
-**Yew** is a modern Rust framework for creating multi-threaded front-end web apps with WebAssembly.
+**Yew** is a modern Rust framework for creating multi-threaded, front-end web apps with WebAssembly.
 
 * Features a macro for declaring interactive HTML with Rust expressions. Developers who have experience using JSX in React should feel quite at home when using Yew.
 * Achieves high performance by minimizing DOM API calls for each page render and by making it easy to offload processing to background web workers.
@@ -46,7 +46,7 @@
 
 ## Contributing
 
-Yew is a community effort and we welcome all kinds of contributions, big or small, from developers of all backgrounds. We want the Yew community to be a fun and friendly place, so please review our [Code of Conduct](https://github.com/yewstack/yew/blob/master/CODE_OF_CONDUCT.md) to learn what behavior will not be tolerated.
+Yew is a community-driven effort and we welcome all kinds of contributions, big or small, from developers of all backgrounds. We want the Yew community to be a fun and friendly place, so please review our [Code of Conduct](https://github.com/yewstack/yew/blob/master/CODE_OF_CONDUCT.md) to learn what behavior will not be tolerated.
 
 #### 🤠 New to Yew?
 
@@ -58,7 +58,7 @@ Check out the community curated list of awesome things related to Yew / WebAssem
 
 #### 🤔 Confused about something?
 
-Feel free to drop into our [Discord chatroom](https://discord.gg/VQck8X4) or open a [new "Question" issue](https://github.com/yewstack/yew/issues/new/choose) to get help from contributors. Often questions lead to improvements to the ergonomics of the framework, better documentation, and even new features!
+Feel free to drop into our [Discord chatroom](https://discord.gg/VQck8X4) or open a [new "Question" issue](https://github.com/yewstack/yew/issues/new/choose) to get help from contributors. Often questions lead to improvements to the ergonomics of the framework, better documentation and even new features!
 
 #### 🙂 Ready to dive into the code?
 

@@ -1,4 +1,3 @@
----
 name: "Test Website"
 
 on:
@@ -15,12 +14,7 @@ jobs:
     name: Tests Website Snippets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: actions/checkout@v4
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -39,6 +33,8 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: yew-packages
 
       - uses: browser-actions/setup-geckodriver@latest
         with:
