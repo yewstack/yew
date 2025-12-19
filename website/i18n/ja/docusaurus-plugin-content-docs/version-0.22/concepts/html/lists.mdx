@@ -7,29 +7,28 @@ import TabItem from '@theme/TabItem'
 
 ## イテレータ
 
-Yew は、イテレータから HTML を構築するための 2 つの異なる構文をサポートしています。
+イテレータから HTML を構築する方法は 3 つあります：
 
 <Tabs>
-  <TabItem value="Syntax type 1" label="Syntax type 1">
-
-最初の方法は、イテレータの最終変換で `collect::<Html>()` を呼び出すことで、Yew が表示できるリストを返します。
+  <TabItem value="`for` loops" label="`for` ループ">
+主なアプローチは for ループを使用することです。これは Rust に既に存在する for ループと同じですが、2 つの重要な違いがあります：
+1. 通常の for ループは何も返せませんが、`html!` 内の for ループはノードのリストに変換されます。
+2. `break`、`continue` などの発散式は `html!` 内の for ループの本体では許可されていません。
 
 ```rust
 use yew::prelude::*;
 
-let items = (1..=10).collect::<Vec<_>>();
-
 html! {
-    <ul class="item-list">
-        { items.iter().collect::<Html>() }
-    </ul>
+    for i in 0 .. 10 {
+        <span>{i}</span>
+    }
 };
 ```
 
   </TabItem>
-  <TabItem value="Syntax type 2" label="Syntax type 2">
-
-もう一つの方法は、`for` キーワードを使用することです。これはネイティブの Rust 構文ではなく、HTML マクロによってイテレータを表示するために必要なコードを出力します。
+  <TabItem value="`for` block" label="`for` ブロック">
+もう一つの方法は `for` キーワードを使用することです。これはネイティブの Rust 構文ではなく、HTML マクロによってイテレータを表示するために必要なコードを出力します。
+この方法は、イテレータが既に計算されていて、マクロに渡すだけでよい場合に最初の方法より適しています。
 
 ```rust
 use yew::prelude::*;
@@ -39,6 +38,23 @@ let items = (1..=10).collect::<Vec<_>>();
 html! {
     <ul class="item-list">
         { for items.iter() }
+    </ul>
+};
+```
+
+  </TabItem>
+  <TabItem value="`collect` method" label="`collect` メソッド">
+
+最後の方法は、イテレータの最終変換で `collect::<Html>()` を呼び出すことで、Yew が表示できるリストを返します。
+
+```rust
+use yew::prelude::*;
+
+let items = (1..=10).collect::<Vec<_>>();
+
+html! {
+    <ul class="item-list">
+        { items.iter().collect::<Html>() }
     </ul>
 };
 ```

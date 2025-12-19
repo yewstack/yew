@@ -4158,7 +4158,7 @@ checksum = "9edde0db4769d2dc68579893f2306b26c6ecfbe0ef499b013d731b7b9247e0b9"
 
 [[package]]
 name = "yew"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "base64ct",
  "bincode 2.0.0-rc.3",
@@ -4186,7 +4186,7 @@ dependencies = [
 
 [[package]]
 name = "yew-agent"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "bincode 2.0.0-rc.3",
  "futures 0.3.31",
@@ -4203,7 +4203,7 @@ dependencies = [
 
 [[package]]
 name = "yew-agent-macro"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4226,7 +4226,7 @@ dependencies = [
 
 [[package]]
 name = "yew-macro"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "implicit-clone",
  "once_cell",
@@ -4242,7 +4242,7 @@ dependencies = [
 
 [[package]]
 name = "yew-router"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "gloo",
  "js-sys",
@@ -4260,7 +4260,7 @@ dependencies = [
 
 [[package]]
 name = "yew-router-macro"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "proc-macro2",
  "quote",

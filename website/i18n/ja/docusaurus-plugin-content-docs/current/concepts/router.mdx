@@ -59,7 +59,7 @@ enum Route {
     NotFound,
 }
 
-#[function_component(Secure)]
+#[component(Secure)]
 fn secure() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -82,7 +82,7 @@ fn switch(routes: Route) -> Html {
     }
 }
 
-#[function_component(Main)]
+#[component(Main)]
 fn app() -> Html {
     html! {
         <BrowserRouter>
@@ -181,7 +181,7 @@ enum Route {
 以下は、クリック時に `Home` ルートにナビゲートするボタンを実装する例です。
 
 ```rust ,ignore
-#[function_component(MyComponent)]
+#[component(MyComponent)]
 pub fn my_component() -> Html {
     let navigator = use_navigator().unwrap();
     let onclick = Callback::from(move |_| navigator.push(&Route::Home));
@@ -206,7 +206,7 @@ pub fn my_component() -> Html {
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-#[function_component(NavItems)]
+#[component(NavItems)]
 pub fn nav_items() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -262,7 +262,7 @@ fn view(&self, ctx: &Context<Self>) -> Html {
 `yew-router` は prelude に `<Redirect />` コンポーネントも提供しています。これはナビゲーター API と同様の効果を実現するために使用できます。このコンポーネントは、ターゲットルートとして `to` 属性を受け取ります。`<Redirect/>` がレンダリングされると、ユーザーは指定されたルートにリダイレクトされます。以下はその例です：
 
 ```rust ,ignore
-#[function_component(SomePage)]
+#[component(SomePage)]
 fn some_page() -> Html {
     // `use_user` フックを使用してユーザーを取得
     let user = match use_user() {
@@ -435,7 +435,7 @@ fn switch_settings(route: SettingsRoute) -> Html {
     }
 }
 
-#[function_component(App)]
+#[component(App)]
 pub fn app() -> Html {
     html! {
         <BrowserRouter>

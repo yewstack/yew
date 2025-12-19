@@ -27,18 +27,18 @@ slug: /concepts/function-components
 
 ## 建立函數元件
 
-若要建立函數元件，請將 `#[function_component]` 屬性加入到一個函式中。依照慣例，函數的名稱採用 PascalCase，與 `html!` 巨集中的普通 html 元素形成對比。
+若要建立函數元件，請將 `#[component]` 屬性加入到一個函式中。依照慣例，函數的名稱採用 PascalCase，與 `html!` 巨集中的普通 html 元素形成對比。
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // 然後在其他地方，您可以在 `html!` 中使用元件
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld /> }
 }
@@ -50,9 +50,9 @@ fn App() -> Html {
 
 ```xhtml
 <App>
-  <HelloWorld>
-    <p>"Hello world"</p>
-  </HelloWord>
+    <HelloWorld>
+        <p>"Hello world"</p>
+    </HelloWorld>
 </App>
 ```
 

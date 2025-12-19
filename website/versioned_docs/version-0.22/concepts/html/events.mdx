@@ -126,7 +126,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{EventTarget, HtmlInputElement};
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let input_value_handle = use_state(String::default);
     let input_value = (*input_value_handle).clone();
@@ -220,7 +220,7 @@ but it works in a very similar way to `JsCast`.
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let input_value_handle = use_state(String::default);
     let input_value = (*input_value_handle).clone();
@@ -280,7 +280,7 @@ does the cast on the target of the event. `TargetCast::target_unchecked_into` is
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     //highlight-next-line
     let input_node_ref = use_node_ref();
@@ -328,7 +328,7 @@ You might also see by using `NodeRef` we don't have to send the `String` back in
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let input_node_ref = use_node_ref();
 
@@ -390,7 +390,7 @@ use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::HtmlElement;
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
@@ -457,7 +457,7 @@ use yew::prelude::*;
 
 use gloo::events::EventListener;
 
-#[function_component]
+#[component]
 fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 

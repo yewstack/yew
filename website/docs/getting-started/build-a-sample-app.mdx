@@ -93,8 +93,9 @@ that updates its value when clicked. Replace the contents of `src/main.rs` with 
 
 :::note
 The call to `yew::Renderer::<App>::new().render()` inside the `main` function starts your application and mounts
-it to the page's `<body>` tag. If you would like to start your application with any dynamic
-properties, you can instead use `yew::Renderer::<App>::with_props(..).render()`.
+it to the page's `<body>` tag.
+If you would like to start your application with any dynamic properties, you can instead use `yew::Renderer::<App>::with_props(..).render()`.
+If you would like to mount your application to a specific element rather than the `<body>` tag, use `yew::Renderer::<App>::with_root(element).render()` where `element` is a `web_sys::Element`.
 :::
 
 ```rust ,no_run, title=main.rs

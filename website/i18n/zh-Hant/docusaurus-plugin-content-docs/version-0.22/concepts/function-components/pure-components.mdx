@@ -7,14 +7,14 @@ title: '純組件'
 這個例子是一個純組件。對於給定的屬性 `is_loading`，它總是傳回相同的 `Html`，沒有任何副作用。
 
 ```rust
-use yew::{Properties, function_component, Html, html};
+use yew::{Properties, component, Html, html};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     if props.is_loading {
         html! { "Loading" }
