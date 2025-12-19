@@ -35,7 +35,8 @@ pub struct UseReducerHandle<T>
 where
     T: Reducible,
 {
-    value: Rc<T>,
+    current_state: Rc<RefCell<Rc<T>>>,
+    snapshot: Rc<T>,
     dispatch: DispatchFn<T>,
 }
 
@@ -63,7 +64,17 @@ where
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &self.value
+        // Try to get the latest value from the shared RefCell.
+        // If it's currently borrowed (e.g., during dispatch/reduce), fall back to snapshot.
+        if let Ok(rc_ref) = self.current_state.try_borrow() {
+            unsafe {
+                let ptr: *const T = Rc::as_ptr(&*rc_ref);
+                &*ptr
+            }
+        } else {
+            // RefCell is mutably borrowed (during dispatch), use snapshot
+            &self.snapshot
+        }
     }
 }
 
@@ -73,7 +84,8 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            value: Rc::clone(&self.value),
+            current_state: Rc::clone(&self.current_state),
+            snapshot: Rc::clone(&self.snapshot),
             dispatch: Rc::clone(&self.dispatch),
         }
     }
@@ -84,8 +96,13 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = if let Ok(rc_ref) = self.current_state.try_borrow() {
+            format!("{:?}", *rc_ref)
+        } else {
+            format!("{:?}", self.snapshot)
+        };
         f.debug_struct("UseReducerHandle")
-            .field("value", &format!("{:?}", self.value))
+            .field("value", &value)
             .finish()
     }
 }
@@ -95,7 +112,7 @@ where
     T: Reducible + PartialEq,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.value == rhs.value
+        **self == **rhs
     }
 }
 
@@ -239,10 +256,15 @@ where
                 }
             });
 
-            let value = state.current_state.borrow().clone();
+            let current_state = state.current_state.clone();
+            let snapshot = state.current_state.borrow().clone();
             let dispatch = state.dispatch.clone();
 
-            UseReducerHandle { value, dispatch }
+            UseReducerHandle {
+                current_state,
+                snapshot,
+                dispatch,
+            }
         }
     }
 
