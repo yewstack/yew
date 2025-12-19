@@ -1,5 +1,5 @@
 [tools]
-wasm_opt = "version_122"
+wasm_opt = "version_125"
 
 [[hooks]]
 stage = "pre_build"
