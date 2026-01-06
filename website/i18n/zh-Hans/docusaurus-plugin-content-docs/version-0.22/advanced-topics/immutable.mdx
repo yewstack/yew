@@ -13,6 +13,16 @@ description: 'Yew 的不可变数据结构'
 
 不可变类型非常适合保存属性的值，因为它们可以在从组件传递到组件时以很低的成本克隆。
 
+## 常见的不可变类型
+
+Yew 推荐使用来自 `implicit-clone` crate 的以下不可变类型：
+
+- `IString`（在 Yew 中别名为 `AttrValue`）- 用于字符串而不是 `String`
+- `IArray<T>` - 用于数组/向量而不是 `Vec<T>`
+- `IMap<K, V>` - 用于映射而不是 `HashMap<K, V>`
+
+这些类型是引用计数（`Rc`）或静态引用，使它们的克隆成本非常低。
+
 ## 进一步阅读
 
 - [不可变示例](https://github.com/yewstack/yew/tree/master/examples/immutable)

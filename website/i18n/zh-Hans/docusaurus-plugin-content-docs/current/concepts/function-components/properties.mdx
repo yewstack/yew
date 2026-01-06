@@ -43,26 +43,26 @@ pub struct Props {
 
 ## 在函数组件中使用
 
-属性 `#[function_component]` 允许在函数参数中选择性地接收 Props。要提供它们，可以通过 `html!` 宏中的属性进行赋值。
+属性 `#[component]` 允许在函数参数中选择性地接收 Props。要提供它们，可以通过 `html!` 宏中的属性进行赋值。
 
 <Tabs>
   <TabItem value="with-props" label="With Props">
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
     html! { <>{"Am I loading? - "}{is_loading}</> }
 }
 
 // 然后提供属性
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }
@@ -73,15 +73,15 @@ fn App() -> Html {
   <TabItem value="no-props" label="No Props">
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // 没有属性需要提供
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld /> }
 }
@@ -107,7 +107,7 @@ fn App() -> Html {
 使用 `Default` trait 的字段类型的默认值初始化属性值。
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -117,7 +117,7 @@ pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -127,12 +127,12 @@ fn HelloWorld(&Props { is_loading }: &Props) -> Html {
 }
 
 // 这样使用默认值
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <HelloWorld /> }
 }
 // 或者不覆盖默认值
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }
@@ -158,7 +158,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -168,12 +168,12 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 }
 
 // 这样使用默认值
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <Hello /> }
 }
 // 或者不覆盖默认值
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }
@@ -202,7 +202,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -212,12 +212,12 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 }
 
 // 使用默认值
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <Hello /> }
 }
 // 或者不覆盖默认值
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }
@@ -251,7 +251,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -260,7 +260,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     }
 }
 
-#[function_component]
+#[component]
 fn App() -> Html {
     // highlight-start
     let pre_made_props = yew::props! {
@@ -279,9 +279,9 @@ fn App() -> Html {
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-// #[autoprops] 宏必须出现在 #[function_component] 之前，顺序很重要
+// #[autoprops] 宏必须出现在 #[component] 之前，顺序很重要
 #[autoprops]
-#[function_component]
+#[component]
 fn Greetings(
     #[prop_or_default]
     is_loading: bool,
@@ -329,8 +329,8 @@ fn main() {
    **注意**：`AttrValue` 在内部是来自 [implicit-clone](https://crates.io/crates/implicit-clone) 的 `IString`。查看该包以了解更多信息。
 2. 使用内部可变性。 <br />
    **为什么不好？** 内部可变性（例如 `RefCell`、`Mutex` 等）应该 _通常_ 避免使用。它可能会导致重新渲染问题（Yew 不知道状态何时发生了变化），因此您可能需要手动强制重新渲染。就像所有事物一样，它有其用武之地。请谨慎使用。
-3. 使用 `Vec` 类型而不是 `IArray`。 <br />
-   **为什么不好？** `Vec`，就像 `String` 一样，克隆成本也很高。`IArray` 是一个引用计数的切片 (`Rc<T>`) 或一个 `&'static [T]`，因此非常便宜克隆。<br />
+3. 使用 `Vec<T>` 类型而不是 `IArray<T>`。 <br />
+   **为什么不好？** `Vec<T>`，就像 `String` 一样，克隆成本也很高。`IArray<T>` 是一个引用计数的切片 (`Rc<[T]>`) 或一个 `&'static [T]`，因此非常便宜克隆。<br />
    **注意**：`IArray` 可以从 [implicit-clone](https://crates.io/crates/implicit-clone) 导入。查看该包以了解更多信息。
 4. 您发觉可能的新内容。您是否遇到了一个希望早点了解清楚的边缘情况？请随时创建一个问题或向本文档提供修复的 PR。
 

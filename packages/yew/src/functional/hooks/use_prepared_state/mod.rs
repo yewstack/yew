@@ -129,8 +129,11 @@ mod feat_any_hydration_ssr {
         fn prepare(&self) -> String {
             use base64ct::{Base64, Encoding};
 
-            let state = bincode::serialize(&(self.state.as_deref(), self.deps.as_deref()))
-                .expect("failed to prepare state");
+            let state = bincode::serde::encode_to_vec(
+                (self.state.as_deref(), self.deps.as_deref()),
+                bincode::config::standard(),
+            )
+            .expect("failed to prepare state");
 
             Base64::encode_string(&state)
         }

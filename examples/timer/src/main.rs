@@ -1,6 +1,6 @@
 use gloo::console::{self, Timer};
 use gloo::timers::callback::{Interval, Timeout};
-use yew::{html, Component, Context, Html};
+use yew::prelude::*;
 
 pub enum Msg {
     StartTimeout,
@@ -13,7 +13,7 @@ pub enum Msg {
 
 pub struct App {
     time: String,
-    messages: Vec<&'static str>,
+    messages: Vec<AttrValue>,
     _standalone: (Interval, Interval),
     interval: Option<Interval>,
     timeout: Option<Timeout>,
@@ -68,7 +68,7 @@ impl Component for App {
                 self.messages.clear();
                 console::clear!();
 
-                self.messages.push("Timer started!");
+                self.log("Timer started!");
                 self.console_timer = Some(Timer::new("Timer"));
                 true
             }
@@ -82,18 +82,18 @@ impl Component for App {
                 self.messages.clear();
                 console::clear!();
 
-                self.messages.push("Interval started!");
+                self.log("Interval started!");
                 true
             }
             Msg::Cancel => {
                 self.cancel();
-                self.messages.push("Canceled!");
+                self.log("Canceled!");
                 console::warn!("Canceled!");
                 true
             }
             Msg::Done => {
                 self.cancel();
-                self.messages.push("Done!");
+                self.log("Done!");
 
                 // todo weblog
                 // ConsoleService::group();
@@ -107,7 +107,7 @@ impl Component for App {
                 true
             }
             Msg::Tick => {
-                self.messages.push("Tick...");
+                self.log("Tick...");
                 // todo weblog
                 // ConsoleService::count_named("Tick");
                 true
@@ -139,11 +139,17 @@ impl Component for App {
                         { &self.time }
                     </div>
                     <div id="messages">
-                        { for self.messages.iter().map(|message| html! { <p>{ *message }</p> }) }
+                        { for self.messages.iter().map(|message| html! { <p>{ message }</p> }) }
                     </div>
                 </div>
             </>
         }
+    }
+}
+
+impl App {
+    fn log(&mut self, message: impl Into<AttrValue>) {
+        self.messages.push(message.into());
     }
 }
 

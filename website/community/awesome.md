@@ -5,6 +5,7 @@ description: 'Community projects built using yew'
 
 ## Projects
 
+- [Fullstack application with infrastructure](https://github.com/alelavelli/rust-fullstack-web-application) - Complete production-ready application with `yew` as frontend, `axum` as backend, `docker compose` as infrastructure, `mongodb` as database.
 - [Realworld example](https://github.com/jetli/rust-yew-realworld-example-app) - Exemplary real world app built with Rust + Yew + WebAssembly. It utilizes Yew's latest `function components` and `hooks`. It also supports desktop application powered by [Tauri](https://github.com/tauri-apps/tauri).
 - [webapp.rs](https://github.com/saschagrunert/webapp.rs) - A web application completely written in Rust, frontend is built with Yew.
 - [Rust-Full-Stack](https://github.com/steadylearner/Rust-Full-Stack) - Easily testable and working Rust codes with blog posts to explain them.
@@ -126,8 +127,8 @@ description: 'Community projects built using yew'
 ## Books
 
 - [The WebAssembly Book](https://rustwasm.github.io/docs/book/) - Working with the web and producing .wasm files.
-- [The wasm-bindgen Guide](https://rustwasm.github.io/docs/wasm-bindgen/) - How to bind Rust and JavaScript APIs.
-- [The wasm-pack Guide](https://rustwasm.github.io/docs/wasm-pack/) - How to build and work with rust-generated WebAssembly.
+- [The wasm-bindgen Guide](https://wasm-bindgen.github.io/wasm-bindgen/) - How to bind Rust and JavaScript APIs.
+- [The wasm-pack Guide](https://drager.github.io/wasm-pack/book/) - How to build and work with rust-generated WebAssembly.
 - [Programming WebAssembly with Rust](https://pragprog.com/book/khrust/programming-webassembly-with-rust) - Includes a chapter `Advanced JavaScript Integration with Yew` on creating an app with Yew.
 - [Creative Projects for Rust Programmers](https://www.oreilly.com/library/view/creative-projects-for/9781789346220/) - Chapter 5, `Creating a Client-Side WebAssembly App Using Yew`.
 

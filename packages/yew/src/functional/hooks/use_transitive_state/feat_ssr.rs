@@ -30,8 +30,11 @@ where
         let f = self.state_fn.borrow_mut().take().unwrap();
         let state = f(self.deps.clone());
 
-        let state = bincode::serialize(&(Some(&state), Some(&*self.deps)))
-            .expect("failed to prepare state");
+        let state = bincode::serde::encode_to_vec(
+            (Some(&state), Some(&*self.deps)),
+            bincode::config::standard(),
+        )
+        .expect("failed to prepare state");
 
         Base64::encode_string(&state)
     }

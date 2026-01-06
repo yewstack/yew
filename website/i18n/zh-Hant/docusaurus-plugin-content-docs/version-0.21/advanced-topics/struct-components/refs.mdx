@@ -1,26 +1,53 @@
 ---
-description: 外帶 DOM 的存取
+title: 'Refs'
+description: '外帶 DOM 的存取'
 ---
-
-# Refs
-
-## Refs
 
 `ref` 關鍵字可以被使用在任何 HTML 的元素或是元件，用來得到那個物件附加的 DOM `Element`。這個可以在 view 生命周期方法之外，改變 DOM。
 
 對於要存取 canvas 元素，或滾動到頁面不同的區塊，很有幫助。
+For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to
+a canvas element after it has been rendered from `view`.
 
 語法可以這樣使用：
 
 ```rust
-// 建立
-self.node_ref = NodeRef::default();
+use web_sys::Element;
+use yew::{html, Component, Context, Html, NodeRef};
 
-// 在 view 裡
-html! {
-    <div ref={self.node_ref.clone()}></div>
+struct Comp {
+    node_ref: NodeRef,
 }
 
-// 更新
-let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            // highlight-next-line
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // highlight-next-line
+            <div ref={self.node_ref.clone()}></div>
+        }
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        // highlight-start
+        let has_attributes = self.node_ref
+            .cast::<Element>()
+            .unwrap()
+            .has_attributes();
+        // highlight-end
+    }
+}
 ```
+
+## Relevant examples
+
+- [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)

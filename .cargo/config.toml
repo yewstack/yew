@@ -4,6 +4,5 @@ runner = 'wasm-bindgen-test-runner'
 [target.'cfg(all(target_arch = "wasm32", target_os = "wasi"))']
 runner = 'wasmtime -W unknown-imports-trap=y'
 
-# This section needs to be last.
-# GitHub Actions modifies this section.
-[unstable]
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

@@ -7,29 +7,28 @@ import TabItem from '@theme/TabItem'
 
 ## 迭代器
 
-Yew 支援兩種不同的語法來從迭代器建立 HTML。
+從迭代器建立 HTML 有 3 種方法：
 
 <Tabs>
-  <TabItem value="Syntax type 1" label="Syntax type 1">
-
-第一種方法是在迭代器的最終轉換上呼叫 `collect::<Html>()`，它傳回一個 Yew 可以顯示的清單。
+  <TabItem value="`for` loops" label="`for` 迴圈">
+主要方法是使用 for 迴圈，與 Rust 中已有的 for 迴圈相同，但有 2 個關鍵區別：
+1. 與標準 for 迴圈不能傳回任何內容不同，`html!` 中的 for 迴圈會被轉換為節點清單；
+2. 發散運算式，即 `break`、`continue` 在 `html!` 中的 for 迴圈主體內是不允許的。
 
 ```rust
 use yew::prelude::*;
 
-let items = (1..=10).collect::<Vec<_>>();
-
 html! {
-    <ul class="item-list">
-        { items.iter().collect::<Html>() }
-    </ul>
+    for i in 0 .. 10 {
+        <span>{i}</span>
+    }
 };
 ```
 
   </TabItem>
-  <TabItem value="Syntax type 2" label="Syntax type 2">
-
+  <TabItem value="`for` block" label="`for` 區塊">
 另一種方法是使用 `for` 關鍵字，這不是原生的 Rust 語法，而是由 HTML 巨集用於輸出顯示迭代器所需的程式碼。
+當迭代器已經計算好，只需要將其傳遞給巨集時，這種方法比第一種更好。
 
 ```rust
 use yew::prelude::*;
@@ -39,6 +38,23 @@ let items = (1..=10).collect::<Vec<_>>();
 html! {
     <ul class="item-list">
         { for items.iter() }
+    </ul>
+};
+```
+
+  </TabItem>
+  <TabItem value="`collect` method" label="`collect` 方法">
+
+最後一種方法是在迭代器的最終轉換上呼叫 `collect::<Html>()`，它傳回一個 Yew 可以顯示的清單。
+
+```rust
+use yew::prelude::*;
+
+let items = (1..=10).collect::<Vec<_>>();
+
+html! {
+    <ul class="item-list">
+        { items.iter().collect::<Html>() }
     </ul>
 };
 ```

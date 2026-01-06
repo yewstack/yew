@@ -92,7 +92,7 @@ mod feat_hydration {
     use web_sys::Node;
 
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
 
     impl Hydratable for VText {
         fn hydrate(
@@ -101,9 +101,19 @@ mod feat_hydration {
             _parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            previous_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
-            let next_sibling = if let Some(m) = fragment.front().cloned() {
-                // better safe than sorry.
+            let create_at = |next_sibling: Option<Node>, text: AttrValue| {
+                // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as
+                // a single text node by browser, hence we need to add extra text
+                // nodes here if the next node is not a text node. Similarly, the
+                // value of the text node may be a combination of multiple VText
+                // vnodes. So we always need to override their values.
+                let text_node = document().create_text_node(text.as_ref());
+                DomSlot::create(next_sibling).insert(parent, &text_node);
+                BText { text, text_node }
+            };
+            let btext = if let Some(m) = fragment.front().cloned() {
                 if m.node_type() == Node::TEXT_NODE {
                     let m = m.unchecked_into::<TextNode>();
                     // pop current node.
@@ -117,27 +127,21 @@ mod feat_hydration {
                     // Please see the next comment for a detailed explanation.
                     m.set_node_value(Some(self.text.as_ref()));
 
-                    return BText {
+                    BText {
                         text: self.text,
                         text_node: m,
-                    };
+                    }
+                } else {
+                    create_at(Some(m), self.text)
                 }
-                Some(m)
             } else {
-                fragment.sibling_at_end().cloned()
+                create_at(fragment.sibling_at_end().cloned(), self.text)
             };
-
-            // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as a
-            // single text node by browser, hence we need to add extra text nodes here
-            // if the next node is not a text node. Similarly, the value of the text
-            // node may be a combination of multiple VText vnodes. So we always need to
-            // override their values.
-            let text_node = document().create_text_node("");
-            DomSlot::create(next_sibling).insert(parent, &text_node);
-            BText {
-                text: "".into(),
-                text_node,
+            if let Some(previous_next_sibling) = previous_next_sibling {
+                previous_next_sibling.reassign(DomSlot::at(btext.text_node.clone().into()));
             }
+            *previous_next_sibling = None;
+            btext
         }
     }
 }

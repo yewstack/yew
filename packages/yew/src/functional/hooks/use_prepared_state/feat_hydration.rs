@@ -90,10 +90,15 @@ where
                                 .await
                                 .expect("failed to deserialize state");
 
-                            let (state, deps) =
-                                bincode::deserialize::<(Option<T>, Option<D>)>(&buf)
-                                    .map(|(state, deps)| (state.map(Rc::new), deps.map(Rc::new)))
-                                    .expect("failed to deserialize state");
+                            let ((state, deps), _) =
+                                bincode::serde::decode_from_slice::<(Option<T>, Option<D>), _>(
+                                    &buf,
+                                    bincode::config::standard(),
+                                )
+                                .map(|((state, deps), consumed)| {
+                                    ((state.map(Rc::new), deps.map(Rc::new)), consumed)
+                                })
+                                .expect("failed to deserialize state");
 
                             data.set((Ok((state, deps)), None));
                         });

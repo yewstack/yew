@@ -19,7 +19,7 @@ description: '使用上下文传递深度嵌套数据'
 考虑以下示例，它通过 props 传递主题：
 
 ```rust
-use yew::{html, Component, Context, Html, Properties, function_component};
+use yew::{html, Component, Context, Html, Properties, component};
 
 #[derive(Clone, PartialEq)]
 pub struct Theme {
@@ -32,7 +32,7 @@ pub struct NavbarProps {
     theme: Theme,
 }
 
-#[function_component]
+#[component]
 fn Navbar(props: &NavbarProps) -> Html {
     html! {
         <div>
@@ -52,14 +52,14 @@ pub struct ThemeProps {
     children: Html,
 }
 
-#[function_component]
+#[component]
 fn Title(_props: &ThemeProps) -> Html {
     html! {
         // impl
     }
 }
 
-#[function_component]
+#[component]
 fn NavButton(_props: &ThemeProps) -> Html {
     html! {
         // impl
@@ -67,7 +67,7 @@ fn NavButton(_props: &ThemeProps) -> Html {
 }
 
 /// App 根节点
-#[function_component]
+#[component]
 fn App() -> Html {
     let theme = Theme {
         foreground: "yellow".to_owned(),
@@ -103,7 +103,7 @@ struct Theme {
 }
 
 /// 主组件
-#[function_component]
+#[component]
 pub fn App() -> Html {
     let ctx = use_state(|| Theme {
         foreground: "#000000".to_owned(),
@@ -122,7 +122,7 @@ pub fn App() -> Html {
 
 /// 工具栏
 /// 此组件可以访问上下文。
-#[function_component]
+#[component]
 pub fn Toolbar() -> Html {
     html! {
         <div>
@@ -133,7 +133,7 @@ pub fn Toolbar() -> Html {
 
 /// 放置在 `Toolbar` 中的按钮
 /// 由于此组件是组件树中 `ThemeContextProvider` 的子组件，它也可以访问上下文。
-#[function_component]
+#[component]
 pub fn ThemedButton() -> Html {
     let theme = use_context::<Theme>().expect("no ctx found");
 
@@ -156,7 +156,7 @@ pub fn ThemedButton() -> Html {
 
 我们有两种选择在结构体组件中使用上下文：
 
-- [高阶组件](../advanced-topics/struct-components/hoc.mdx)：一个高阶函数组件将使用上下文并将数据传递给需要它的结构体组件。
+- [高阶组件](../advanced-topics/struct-components/hoc)：一个高阶函数组件将使用上下文并将数据传递给需要它的结构体组件。
 - 直接在结构体组件中使用上下文。请参阅 [结构体组件作为消费者的示例](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs)
 
 ## 使用场景

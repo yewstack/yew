@@ -19,7 +19,7 @@ description: 'コンテキストを使用して深くネストされたデータ
 以下の例を考えてみましょう。これは props を介してテーマを渡しています：
 
 ```rust
-use yew::{html, Component, Context, Html, Properties, function_component};
+use yew::{html, Component, Context, Html, Properties, component};
 
 #[derive(Clone, PartialEq)]
 pub struct Theme {
@@ -32,7 +32,7 @@ pub struct NavbarProps {
     theme: Theme,
 }
 
-#[function_component]
+#[component]
 fn Navbar(props: &NavbarProps) -> Html {
     html! {
         <div>
@@ -52,14 +52,14 @@ pub struct ThemeProps {
     children: Html,
 }
 
-#[function_component]
+#[component]
 fn Title(_props: &ThemeProps) -> Html {
     html! {
         // impl
     }
 }
 
-#[function_component]
+#[component]
 fn NavButton(_props: &ThemeProps) -> Html {
     html! {
         // impl
@@ -67,7 +67,7 @@ fn NavButton(_props: &ThemeProps) -> Html {
 }
 
 /// アプリのルート
-#[function_component]
+#[component]
 fn App() -> Html {
     let theme = Theme {
         foreground: "yellow".to_owned(),
@@ -102,7 +102,7 @@ struct Theme {
 }
 
 /// メインコンポーネント
-#[function_component]
+#[component]
 pub fn App() -> Html {
     let ctx = use_state(|| Theme {
         foreground: "#000000".to_owned(),
@@ -121,7 +121,7 @@ pub fn App() -> Html {
 
 /// ツールバー
 /// このコンポーネントはコンテキストにアクセスできます。
-#[function_component]
+#[component]
 pub fn Toolbar() -> Html {
     html! {
         <div>
@@ -133,7 +133,7 @@ pub fn Toolbar() -> Html {
 /// `Toolbar` 内に配置されたボタン
 /// このコンポーネントは、コンポーネントツリー内の `ThemeContextProvider` の子コンポーネントであるため、
 /// コンテキストにアクセスできます。
-#[function_component]
+#[component]
 pub fn ThemedButton() -> Html {
     let theme = use_context::<Theme>().expect("no ctx found");
 
@@ -156,7 +156,7 @@ pub fn ThemedButton() -> Html {
 
 構造体コンポーネント内でコンテキストを使用するには、2つの方法があります：
 
-- [高階コンポーネント](../advanced-topics/struct-components/hoc.mdx)：高階関数コンポーネントがコンテキストを使用し、必要なデータを構造体コンポーネントに渡します。
+- [高階コンポーネント](../advanced-topics/struct-components/hoc)：高階関数コンポーネントがコンテキストを使用し、必要なデータを構造体コンポーネントに渡します。
 - 構造体コンポーネント内で直接コンテキストを使用します。詳細については、[構造体コンポーネントのコンシューマーとしての例](https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs) を参照してください。
 
 ## 使用シナリオ

@@ -547,17 +547,17 @@ mod feat_csr {
             root: BSubtree,
             parent: Element,
             slot: DomSlot,
-            internal_ref: DynamicDomSlot,
             props: Rc<COMP::Properties>,
-        ) {
+        ) -> DynamicDomSlot {
             let bundle = Bundle::new();
             let sibling_slot = DynamicDomSlot::new(slot);
-            internal_ref.reassign(sibling_slot.to_position());
+            let own_slot = DynamicDomSlot::new(sibling_slot.to_position());
+            let shared_slot = own_slot.clone();
 
             let state = ComponentRenderState::Render {
                 bundle,
                 root,
-                own_slot: internal_ref,
+                own_slot,
                 parent,
                 sibling_slot,
             };
@@ -577,6 +577,7 @@ mod feat_csr {
             );
             // Not guaranteed to already have the scheduler started
             scheduler::start();
+            shared_slot
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomSlot) {
@@ -653,7 +654,7 @@ mod feat_hydration {
     {
         /// Hydrates the component.
         ///
-        /// Returns a pending NodeRef of the next sibling.
+        /// Returns the position of the hydrated node in DOM.
         ///
         /// # Note
         ///
@@ -664,9 +665,9 @@ mod feat_hydration {
             root: BSubtree,
             parent: Element,
             fragment: &mut Fragment,
-            internal_ref: DynamicDomSlot,
             props: Rc<COMP::Properties>,
-        ) {
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
+        ) -> DynamicDomSlot {
             // This is very helpful to see which component is failing during hydration
             // which means this component may not having a stable layout / differs between
             // client-side and server-side.
@@ -693,11 +694,22 @@ mod feat_hydration {
                 _ => None,
             };
 
+            // These two references need to be fixed before the component is used.
+            // Our own slot gets fixed on the first render.
+            // The sibling slot gets shared with the caller to fix up when continuing through
+            // existing DOM.
+            let own_slot = DynamicDomSlot::new_debug_trapped();
+            let shared_slot = own_slot.clone();
+            let sibling_slot = DynamicDomSlot::new_debug_trapped();
+            if let Some(prev_next_sibling) = prev_next_sibling {
+                prev_next_sibling.reassign(shared_slot.to_position());
+            }
+            *prev_next_sibling = Some(sibling_slot.clone());
             let state = ComponentRenderState::Hydration {
                 parent,
                 root,
-                own_slot: internal_ref,
-                sibling_slot: DynamicDomSlot::new_debug_trapped(),
+                own_slot,
+                sibling_slot,
                 fragment,
             };
 
@@ -716,6 +728,7 @@ mod feat_hydration {
 
             // Not guaranteed to already have the scheduler started
             scheduler::start();
+            shared_slot
         }
     }
 }

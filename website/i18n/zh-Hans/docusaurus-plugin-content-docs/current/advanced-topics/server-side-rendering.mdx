@@ -24,7 +24,7 @@ Yew 提供了一个 `ServerRenderer` 来在服务端渲染页面。
 use yew::prelude::*;
 use yew::ServerRenderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
@@ -112,7 +112,7 @@ Yew 采用了一种不同的方法，通过 `<Suspense />` 来解决这个问题
 use yew::prelude::*;
 use yew::Renderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {<div>{"Hello, World!"}</div>}
 }
@@ -138,7 +138,7 @@ Yew 支持以单线程进行服务端渲染，通过 `yew::LocalServerRenderer`�
 use yew::prelude::*;
 use yew::LocalServerRenderer;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     use yew_router::prelude::*;
 

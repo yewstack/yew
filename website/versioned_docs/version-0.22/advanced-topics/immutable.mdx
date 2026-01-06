@@ -18,6 +18,16 @@ achieve this we usually wrap things in `Rc`.
 Immutable types are a great fit for holding property's values because they can
 be cheaply cloned when passed from component to component.
 
+## Common Immutable Types
+
+Yew recommends using the following immutable types from the `implicit-clone` crate:
+
+- `IString` (aliased as `AttrValue` in Yew) - for strings instead of `String`
+- `IArray<T>` - for arrays/vectors instead of `Vec<T>`
+- `IMap<K, V>` - for maps instead of `HashMap<K, V>`
+
+These types are either reference-counted (`Rc`) or static references, making them very cheap to clone.
+
 ## Further reading
 
 - [Immutable example](https://github.com/yewstack/yew/tree/master/examples/immutable)

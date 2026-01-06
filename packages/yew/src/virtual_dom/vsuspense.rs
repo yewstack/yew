@@ -2,7 +2,7 @@ use super::{Key, VNode};
 use crate::html::ImplicitClone;
 
 /// This struct represents a suspendable DOM fragment.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, ImplicitClone, Debug, PartialEq)]
 pub struct VSuspense {
     /// Child nodes.
     pub(crate) children: VNode,
@@ -13,8 +13,6 @@ pub struct VSuspense {
     /// The Key.
     pub(crate) key: Option<Key>,
 }
-
-impl ImplicitClone for VSuspense {}
 
 impl VSuspense {
     pub fn new(children: VNode, fallback: VNode, suspended: bool, key: Option<Key>) -> Self {

@@ -1,6 +1,6 @@
 [package]
 name = "yew-agent"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Hamza <muhammadhamza1311@gmail.com>"]
 repository = "https://github.com/yewstack/yew"
 homepage = "https://yew.rs"
@@ -12,16 +12,16 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.84.0"
 
 [dependencies]
-yew = { version = "0.21.0", path = "../yew" }
+yew = { version = "0.22.0", path = "../yew" }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 pinned = "0.1.0"
-thiserror = "1.0.37"
-bincode = { version = "1.3.3" }
+thiserror = "2.0.17"
+bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 wasm-bindgen-futures = "0.4"
 serde = { version = "1", features = ["derive"] }
 futures = "0.3"
-yew-agent-macro = { version = "0.2", path = "../yew-agent-macro" }
+yew-agent-macro = { version = "0.3", path = "../yew-agent-macro" }
 
 [dependencies.web-sys]
 version = "0.3"
@@ -37,4 +37,4 @@ features = [
 ]
 
 [dev-dependencies]
-serde = "1.0.218"
+serde = "1.0.228"

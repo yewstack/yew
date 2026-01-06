@@ -22,14 +22,14 @@ let result = cb.emit(String::from("Bob"));  // 呼叫回調函數
 在 yew 中的一個常見模式是建立一個回呼函數，並將其作為屬性傳遞給子元件。
 
 ```rust
-use yew::{function_component, html, Html, Properties, Callback};
+use yew::{component, html, Html, Properties, Callback};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_name_entry: Callback<String>,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
 
     props.on_name_entry.emit(String::from("Bob"));
@@ -38,7 +38,7 @@ fn HelloWorld(props: &Props) -> Html {
 }
 
 // 然後提供屬性 (Props)
-#[function_component]
+#[component]
 fn App() -> Html {
     let on_name_entry: Callback<String> = Callback::from(move |name: String| {
         let greeting = format!("Hey, {}!", name);
@@ -57,9 +57,9 @@ fn App() -> Html {
 例如，這裡我們定義了一個回呼函數，當使用者點擊按鈕時將會呼叫：
 
 ```rust
-use yew::{function_component, html, Html, Properties, Callback};
+use yew::{component, html, Html, Properties, Callback};
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let onclick = Callback::from(move |_| {
         let greeting = String::from("Hi there");
