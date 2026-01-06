@@ -66,7 +66,7 @@ impl NavigatorContext {
 ///
 /// The implementation is separated to make sure <Router /> has the same virtual dom layout as
 /// the <BrowserRouter /> and <HashRouter />.
-#[function_component(BaseRouter)]
+#[component(BaseRouter)]
 fn base_router(props: &RouterProps) -> Html {
     let RouterProps {
         history,
@@ -87,7 +87,7 @@ fn base_router(props: &RouterProps) -> Html {
             history.clone(),
             old_basename.as_ref().or(basename.as_ref()).cloned(),
         );
-        *old_basename = basename.clone();
+        old_basename.clone_from(&basename);
         let location = history.location();
         let stripped = old_navigator.strip_basename(Cow::from(location.path()));
         let prefixed = navigator.prefix_basename(&stripped);
@@ -149,7 +149,7 @@ fn base_router(props: &RouterProps) -> Html {
 /// If you are building a web application, you may want to consider using [`BrowserRouter`] instead.
 ///
 /// You only need one `<Router />` for each application.
-#[function_component(Router)]
+#[component(Router)]
 pub fn router(props: &RouterProps) -> Html {
     html! {
         <BaseRouter ..{props.clone()} />
@@ -173,7 +173,7 @@ pub struct ConcreteRouterProps {
 ///
 /// The router will by default use the value declared in `<base href="..." />` as its basename.
 /// You may also specify a different basename with props.
-#[function_component(BrowserRouter)]
+#[component(BrowserRouter)]
 pub fn browser_router(props: &ConcreteRouterProps) -> Html {
     let ConcreteRouterProps { children, basename } = props.clone();
     let history = use_state(|| AnyHistory::from(BrowserHistory::new()));
@@ -196,7 +196,7 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
 /// # Warning
 ///
 /// Prefer [`BrowserRouter`] whenever possible and use this as a last resort.
-#[function_component(HashRouter)]
+#[component(HashRouter)]
 pub fn hash_router(props: &ConcreteRouterProps) -> Html {
     let ConcreteRouterProps { children, basename } = props.clone();
     let history = use_state(|| AnyHistory::from(HashHistory::new()));

@@ -160,7 +160,7 @@ Yew は Rust のプロシージャルマクロを利用しており、JSX（Java
 <div>
     <h3>John Doe: Building and breaking things</h3>
     <img
-        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        src="https://placehold.co/640x360.png?text=Video+Player+Placeholder"
         alt="video thumbnail"
     />
 </div>
@@ -181,7 +181,7 @@ html! {
         </div>
         <div>
             <h3>{ "John Doe: Building and breaking things" }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     </>
 }
@@ -402,7 +402,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
             <h3>{ video.title.clone() }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     }
 }
@@ -438,7 +438,7 @@ fn app() -> Html {
 +            { for details }
 -            <div>
 -                <h3>{ "John Doe: Building and breaking things" }</h3>
--                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-                <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
 -            </div>
         </>
     }
@@ -460,12 +460,12 @@ fn app() -> Html {
 
 実際のアプリケーションでは、データは通常ハードコーディングされているのではなく、API から取得されます。外部ソースからビデオリストを取得してみましょう。そのためには、以下のクレートを追加する必要があります：
 
--   [`gloo-net`](https://crates.io/crates/gloo-net)
-    fetch 呼び出しを行うために使用します。
--   [`serde`](https://serde.rs) とその派生特性
-    JSON 応答をデシリアライズするために使用します。
--   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-    Rust の Future を Promise として実行するために使用します。
+- [`gloo-net`](https://crates.io/crates/gloo-net)
+  fetch 呼び出しを行うために使用します。
+- [`serde`](https://serde.rs) とその派生特性
+  JSON 応答をデシリアライズするために使用します。
+- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+  Rust の Future を Promise として実行するために使用します。
 
 `Cargo.toml` ファイルの依存関係を更新しましょう：
 

@@ -9,7 +9,7 @@ Yew アプリケーションをコンパイル、ビルド、パッケージ、�
 Rust をインストールするには、[公式の手順](https://www.rust-lang.org/tools/install) に従ってください。
 
 :::important
-Yew がサポートする最低 Rust バージョン（MSRV）は `1.76.0` です。古いバージョンではコンパイルできません。`rustup show`（「active toolchain」の下）または `rustc --version` を使用してツールチェーンのバージョンを確認できます。ツールチェーンを更新するには、`rustup update` を実行してください。
+Yew がサポートする最低 Rust バージョン（MSRV）は `1.84.0` です。古いバージョンではコンパイルできません。`rustup show`（「active toolchain」の下）または `rustc --version` を使用してツールチェーンのバージョンを確認できます。ツールチェーンを更新するには、`rustup update` を実行してください。
 :::
 
 ## WebAssembly ターゲットのインストール
@@ -35,9 +35,9 @@ cargo install --locked trunk
 
 Trunk の他にも、Yew アプリケーションをパッケージ化するための他のオプションがあります。以下のオプションのいずれかを試してみることをお勧めします：
 
--   [`wasm-pack`](https://rustwasm.github.io/wasm-pack/)
--   [`wasm-run`](https://github.com/IMI-eRnD-Be/wasm-run)
--   [`xtask-wasm`](https://github.com/rustminded/xtask-wasm/)（まだ初期開発段階です）
+- [`wasm-pack`](https://github.com/drager/wasm-pack/)
+- [`wasm-run`](https://github.com/IMI-eRnD-Be/wasm-run)
+- [`xtask-wasm`](https://github.com/rustminded/xtask-wasm/)（まだ初期開発段階です）
 
 ## 次のステップ
 

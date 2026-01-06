@@ -61,13 +61,13 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 }
 ```
 
-_[`wasm-bindgen` 指引中的 `web-sys` 繼承](https://rustwasm.github.io/wasm-bindgen/web-sys/inheritance.html)_
+_[`wasm-bindgen` 指引中的 `web-sys` 繼承](https://wasm-bindgen.github.io/wasm-bindgen/web-sys/inheritance.html)_
 
 ## `NodeRef` 中的 `Node`
 
-Yew 使用 [`NodeRef`](concepts/function-components/node-refs.mdx) 來提供一種方式來保留由 [`html!`](concepts/html/introduction.mdx) 巨集所建立的 `Node` 的引用。 `NodeRef` 中的 `Node` 指的是 [`web_sys::Node`](https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Node.html)。 `NodeRef::get` 方法將傳回一個 `Option<Node>` 值，但是，在 Yew 中，大多數情況下，您希望將此值轉換為特定元素，以便使用其特定方法。如果存在，可以使用 [`JsCast`](./wasm-bindgen.mdx#JsCast) 對 `Node` 值進行轉換，但是Yew 提供了 `NodeRef::cast` 方法來執行此轉換，以方便使用，因此您不一定需要為 `JsCast` 特性包含 `wasm-bindgen` 依賴項。
+Yew 使用 [`NodeRef`](concepts/function-components/node-refs.mdx) 來提供一種方式來保留由 [`html!`](concepts/html/introduction.mdx) 巨集所建立的 `Node` 的引用。 `NodeRef` 中的 `Node` 指的是 [`web_sys::Node`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Node.html)。 `NodeRef::get` 方法將傳回一個 `Option<Node>` 值，但是，在 Yew 中，大多數情況下，您希望將此值轉換為特定元素，以便使用其特定方法。如果存在，可以使用 [`JsCast`](./wasm-bindgen.mdx#JsCast) 對 `Node` 值進行轉換，但是Yew 提供了 `NodeRef::cast` 方法來執行此轉換，以方便使用，因此您不一定需要為 `JsCast` 特性包含 `wasm-bindgen` 依賴項。
 
-下面的兩個程式碼區塊本質上是相同的，第一個使用 `NodeRef::cast`，第二個使用 [`JsCast::dyn_into`](https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) 在 `NodeRef::get` 傳回的 `web_sys::Node` 上。
+下面的兩個程式碼區塊本質上是相同的，第一個使用 `NodeRef::cast`，第二個使用 [`JsCast::dyn_into`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into) 在 `NodeRef::get` 傳回的 `web_sys::Node` 上。
 
 <Tabs>
   <TabItem value="Using NodeRef::cast" label="Using NodeRef::cast">

@@ -48,7 +48,7 @@ impl<T> Value<T> {
 
     /// Set a new value. The caller should take care that the value is valid for the element's
     /// `value` property
-    fn set(&mut self, value: Option<AttrValue>) {
+    pub(crate) fn set(&mut self, value: Option<AttrValue>) {
         self.0 = value;
     }
 }
@@ -63,7 +63,7 @@ impl<T> Deref for Value<T> {
 
 /// Fields specific to
 /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) [VTag](crate::virtual_dom::VTag)s
-#[derive(Debug, Clone, Default, Eq, PartialEq)]
+#[derive(Debug, Clone, ImplicitClone, Default, Eq, PartialEq)]
 pub(crate) struct InputFields {
     /// Contains a value of an
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input).
@@ -75,8 +75,6 @@ pub(crate) struct InputFields {
     /// frameworks it's more useful to control `checked` value of an `InputElement`.
     pub(crate) checked: Option<bool>,
 }
-
-impl ImplicitClone for InputFields {}
 
 impl Deref for InputFields {
     type Target = Value<InputElement>;
@@ -93,7 +91,7 @@ impl DerefMut for InputFields {
 }
 
 impl InputFields {
-    /// Crate new attributes for an [InputElement] element
+    /// Create new attributes for an [InputElement] element
     fn new(value: Option<AttrValue>, checked: Option<bool>) -> Self {
         Self {
             value: Value::new(value),
@@ -102,9 +100,20 @@ impl InputFields {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub(crate) struct TextareaFields {
+    /// Contains the value of an
+    /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea).
+    pub(crate) value: Value<TextAreaElement>,
+    /// Contains the default value of
+    /// [TextAreaElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea).
+    #[allow(unused)] // unused only if both "csr" and "ssr" features are off
+    pub(crate) defaultvalue: Option<AttrValue>,
+}
+
 /// [VTag] fields that are specific to different [VTag] kinds.
 /// Decreases the memory footprint of [VTag] by avoiding impossible field and value combinations.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, ImplicitClone)]
 pub(crate) enum VTagInner {
     /// Fields specific to
     /// [InputElement](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
@@ -113,11 +122,7 @@ pub(crate) enum VTagInner {
     /// Fields specific to
     /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
     /// [VTag]s
-    Textarea {
-        /// Contains a value of an
-        /// [TextArea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
-        value: Value<TextAreaElement>,
-    },
+    Textarea(TextareaFields),
     /// Fields for all other kinds of [VTag]s
     Other {
         /// A tag of the element.
@@ -127,12 +132,10 @@ pub(crate) enum VTagInner {
     },
 }
 
-impl ImplicitClone for VTagInner {}
-
 /// A type for a virtual
 /// [Element](https://developer.mozilla.org/en-US/docs/Web/API/Element)
 /// representation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, ImplicitClone)]
 pub struct VTag {
     /// [VTag] fields that are specific to different [VTag] kinds.
     pub(crate) inner: VTagInner,
@@ -145,18 +148,15 @@ pub struct VTag {
     pub key: Option<Key>,
 }
 
-impl ImplicitClone for VTag {}
-
 impl VTag {
     /// Creates a new [VTag] instance with `tag` name (cannot be changed later in DOM).
     pub fn new(tag: impl Into<AttrValue>) -> Self {
         let tag = tag.into();
+        let lowercase_tag = tag.to_ascii_lowercase();
         Self::new_base(
-            match &*tag.to_ascii_lowercase() {
+            match &*lowercase_tag {
                 "input" => VTagInner::Input(Default::default()),
-                "textarea" => VTagInner::Textarea {
-                    value: Default::default(),
-                },
+                "textarea" => VTagInner::Textarea(Default::default()),
                 _ => VTagInner::Other {
                     tag,
                     children: Default::default(),
@@ -184,7 +184,7 @@ impl VTag {
         checked: Option<bool>,
         node_ref: NodeRef,
         key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
+        // at the bottom for more readable macro-expanded code
         attributes: Attributes,
         listeners: Listeners,
     ) -> Self {
@@ -214,16 +214,18 @@ impl VTag {
     #[allow(clippy::too_many_arguments)]
     pub fn __new_textarea(
         value: Option<AttrValue>,
+        defaultvalue: Option<AttrValue>,
         node_ref: NodeRef,
         key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
+        // at the bottom for more readable macro-expanded code
         attributes: Attributes,
         listeners: Listeners,
     ) -> Self {
         VTag::new_base(
-            VTagInner::Textarea {
+            VTagInner::Textarea(TextareaFields {
                 value: Value::new(value),
-            },
+                defaultvalue,
+            }),
             node_ref,
             key,
             attributes,
@@ -243,7 +245,7 @@ impl VTag {
         tag: AttrValue,
         node_ref: NodeRef,
         key: Option<Key>,
-        // at bottom for more readable macro-expanded coded
+        // at the bottom for more readable macro-expanded code
         attributes: Attributes,
         listeners: Listeners,
         children: VNode,
@@ -332,7 +334,7 @@ impl VTag {
     pub fn value(&self) -> Option<&AttrValue> {
         match &self.inner {
             VTagInner::Input(f) => f.as_ref(),
-            VTagInner::Textarea { value } => value.as_ref(),
+            VTagInner::Textarea(TextareaFields { value, .. }) => value.as_ref(),
             VTagInner::Other { .. } => None,
         }
     }
@@ -345,7 +347,7 @@ impl VTag {
             VTagInner::Input(f) => {
                 f.set(value.into_prop_value());
             }
-            VTagInner::Textarea { value: dst } => {
+            VTagInner::Textarea(TextareaFields { value: dst, .. }) => {
                 dst.set(value.into_prop_value());
             }
             VTagInner::Other { .. } => (),
@@ -447,7 +449,7 @@ impl PartialEq for VTag {
 
         (match (&self.inner, &other.inner) {
             (Input(l), Input(r)) => l == r,
-            (Textarea { value: value_l }, Textarea { value: value_r }) => value_l == value_r,
+            (Textarea (TextareaFields{ value: value_l, .. }), Textarea (TextareaFields{ value: value_r, .. })) => value_l == value_r,
             (Other { tag: tag_l, .. }, Other { tag: tag_r, .. }) => tag_l == tag_r,
             _ => false,
         }) && self.listeners.eq(&other.listeners)
@@ -471,9 +473,9 @@ mod feat_ssr {
     use crate::virtual_dom::VText;
 
     // Elements that cannot have any child elements.
-    static VOID_ELEMENTS: &[&str; 14] = &[
+    static VOID_ELEMENTS: &[&str; 15] = &[
         "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param",
-        "source", "track", "wbr",
+        "source", "track", "wbr", "textarea",
     ];
 
     impl VTag {
@@ -497,14 +499,14 @@ mod feat_ssr {
                 }
             };
 
-            if let VTagInner::Input(_) = self.inner {
-                if let Some(m) = self.value() {
-                    write_attr(w, "value", Some(m));
+            if let VTagInner::Input(InputFields { value, checked }) = &self.inner {
+                if let Some(value) = value.as_deref() {
+                    write_attr(w, "value", Some(value));
                 }
 
                 // Setting is as an attribute sets the `defaultChecked` property. Only emit this
                 // if it's explicitly set to checked.
-                if self.checked() == Some(true) {
+                if *checked == Some(true) {
                     write_attr(w, "checked", None);
                 }
             }
@@ -515,23 +517,23 @@ mod feat_ssr {
 
             let _ = w.write_str(">");
 
-            match self.inner {
+            match &self.inner {
                 VTagInner::Input(_) => {}
-                VTagInner::Textarea { .. } => {
-                    if let Some(m) = self.value() {
-                        VText::new(m.to_owned())
+                VTagInner::Textarea(TextareaFields {
+                    value,
+                    defaultvalue,
+                }) => {
+                    if let Some(def) = value.as_ref().or(defaultvalue.as_ref()) {
+                        VText::new(def.clone())
                             .render_into_stream(w, parent_scope, hydratable, VTagKind::Other)
                             .await;
                     }
 
                     let _ = w.write_str("</textarea>");
                 }
-                VTagInner::Other {
-                    ref tag,
-                    ref children,
-                    ..
-                } => {
-                    if !VOID_ELEMENTS.contains(&tag.as_ref()) {
+                VTagInner::Other { tag, children } => {
+                    let lowercase_tag = tag.to_ascii_lowercase();
+                    if !VOID_ELEMENTS.contains(&lowercase_tag.as_ref()) {
                         children
                             .render_into_stream(w, parent_scope, hydratable, tag.into())
                             .await;
@@ -567,7 +569,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div></div> }
         }
@@ -583,7 +585,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_attr() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div class="abc"></div> }
         }
@@ -599,7 +601,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_content() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div>{"Hello!"}</div> }
         }
@@ -615,7 +617,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_tag_with_nested_tag_and_input() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <div>{"Hello!"}<input value="abc" type="text" /></div> }
         }
@@ -631,7 +633,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_textarea() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <textarea value="teststring" /> }
         }
@@ -646,8 +648,40 @@ mod ssr_tests {
 
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
+    async fn test_textarea_w_defaultvalue() {
+        #[component]
+        fn Comp() -> Html {
+            html! { <textarea defaultvalue="teststring" /> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<textarea>teststring</textarea>"#);
+    }
+
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
+    async fn test_value_precedence_over_defaultvalue() {
+        #[component]
+        fn Comp() -> Html {
+            html! { <textarea defaultvalue="defaultvalue" value="value" /> }
+        }
+
+        let s = ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
+
+        assert_eq!(s, r#"<textarea>value</textarea>"#);
+    }
+
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_escaping_in_style_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <style>{"body > a {color: #cc0;}"}</style> }
         }
@@ -663,7 +697,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_escaping_in_script_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { <script>{"foo.bar = x < y;"}</script> }
         }
@@ -679,7 +713,7 @@ mod ssr_tests {
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_multiple_vtext_in_style_tag() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let one = "html { background: black } ";
             let two = "body > a { color: white } ";

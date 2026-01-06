@@ -3,7 +3,6 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 use super::{Key, VNode};
-use crate::html::ImplicitClone;
 
 #[doc(hidden)]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -24,8 +23,6 @@ pub struct VList {
 
     pub key: Option<Key>,
 }
-
-impl ImplicitClone for VList {}
 
 impl PartialEq for VList {
     fn eq(&self, other: &Self) -> bool {

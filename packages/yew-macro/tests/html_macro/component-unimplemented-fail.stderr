@@ -12,16 +12,17 @@ error[E0599]: the function or associated item `new` exists for struct `VChild<Un
  --> tests/html_macro/component-unimplemented-fail.rs:6:14
   |
 3 | struct Unimplemented;
-  | -------------------- doesn't satisfy `Unimplemented: BaseComponent`
+  | -------------------- doesn't satisfy `Unimplemented: BaseComponent` or `Unimplemented: yew::Component`
 ...
 6 |     html! { <Unimplemented /> };
   |              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
   |
   = note: the following trait bounds were not satisfied:
-          `Unimplemented: BaseComponent`
-note: the trait `BaseComponent` must be implemented
+          `Unimplemented: yew::Component`
+          which is required by `Unimplemented: BaseComponent`
+note: the trait `yew::Component` must be implemented
  --> $WORKSPACE/packages/yew/src/html/component/mod.rs
   |
-  | pub trait BaseComponent: Sized + 'static {
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | pub trait Component: Sized + 'static {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

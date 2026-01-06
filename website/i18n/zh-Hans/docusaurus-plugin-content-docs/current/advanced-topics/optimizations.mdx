@@ -38,9 +38,9 @@ Yew 的最大缺点是编译所需的时间很长。编译项目所需的时间�
 
 ## 减小二进制文件大小
 
--   优化 Rust 代码
--   `cargo.toml`（定义发布配置文件）
--   使用 `wasm-opt` 优化 wasm 代码
+- 优化 Rust 代码
+- `cargo.toml`（定义发布配置文件）
+- 使用 `wasm-opt` 优化 wasm 代码
 
 **注意：有关减小二进制文件大小的更多信息，请参阅[Rust Wasm 手册](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)。**
 
@@ -87,8 +87,8 @@ build-std-features = ["panic_immediate_abort"]
 
 Rust Wasm 手册中有关于减小 Wasm 二进制文件大小的部分：[缩小 .wasm 大小](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
--   使用 `wasm-pack`，默认情况下会优化发布构建中的 `wasm` 代码
--   直接在 `wasm` 文件上使用 `wasm-opt`
+- 使用 `wasm-pack`，默认情况下会优化发布构建中的 `wasm` 代码
+- 直接在 `wasm` 文件上使用 `wasm-opt`
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
@@ -106,7 +106,7 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 ## 进一步阅读
 
--   [Rust 手册中关于智能指针的章节](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
--   [Rust Wasm 手册中关于减小二进制文件大小的信息](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
--   [Rust 配置文件的文档](https://doc.rust-lang.org/cargo/reference/profiles.html)
--   [binaryen 项目](https://github.com/WebAssembly/binaryen)
+- [Rust 手册中关于智能指针的章节](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Rust Wasm 手册中关于减小二进制文件大小的信息](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Rust 配置文件的文档](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen 项目](https://github.com/WebAssembly/binaryen)

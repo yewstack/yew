@@ -16,7 +16,11 @@ use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::vtag::{InputFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE};
+#[cfg(feature = "hydration")]
+use crate::virtual_dom::vtag::HTML_NAMESPACE;
+use crate::virtual_dom::vtag::{
+    InputFields, TextareaFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE,
+};
 use crate::virtual_dom::{AttrValue, Attributes, Key, VTag};
 use crate::NodeRef;
 
@@ -119,18 +123,23 @@ impl Reconcilable for VTag {
             key,
             ..
         } = self;
-        slot.insert(parent, &el);
 
+        // Apply attributes BEFORE inserting the element into the DOM
+        // This is crucial for SVG animation elements where the animation
+        // starts immediately upon DOM insertion
         let attributes = attributes.apply(root, &el);
         let listeners = listeners.apply(root, &el);
+
+        // Now insert the element with attributes already set
+        slot.insert(parent, &el);
 
         let inner = match self.inner {
             VTagInner::Input(f) => {
                 let f = f.apply(root, el.unchecked_ref());
                 BTagInner::Input(f)
             }
-            VTagInner::Textarea { value } => {
-                let value = value.apply(root, el.unchecked_ref());
+            VTagInner::Textarea(f) => {
+                let value = f.apply(root, el.unchecked_ref());
                 BTagInner::Textarea { value }
             }
             VTagInner::Other { children, tag } => {
@@ -201,7 +210,10 @@ impl Reconcilable for VTag {
             (VTagInner::Input(new), BTagInner::Input(old)) => {
                 new.apply_diff(root, el.unchecked_ref(), old);
             }
-            (VTagInner::Textarea { value: new }, BTagInner::Textarea { value: old }) => {
+            (
+                VTagInner::Textarea(TextareaFields { value: new, .. }),
+                BTagInner::Textarea { value: old },
+            ) => {
                 new.apply_diff(root, el.unchecked_ref(), old);
             }
             (
@@ -233,12 +245,18 @@ impl Reconcilable for VTag {
 impl VTag {
     fn create_element(&self, parent: &Element) -> Element {
         let tag = self.tag();
-
-        if tag == "svg"
-            || parent
-                .namespace_uri()
-                .map_or(false, |ns| ns == SVG_NAMESPACE)
+        // check for an xmlns attribute. If it exists, create an element with the specified
+        // namespace
+        if let Some(xmlns) = self
+            .attributes
+            .iter()
+            .find(|(k, _)| *k == "xmlns")
+            .map(|(_, v)| v)
         {
+            document()
+                .create_element_ns(Some(xmlns), tag)
+                .expect("can't create namespaced element for vtag")
+        } else if tag == "svg" || parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
             let namespace = Some(SVG_NAMESPACE);
             document()
                 .create_element_ns(namespace, tag)
@@ -246,7 +264,7 @@ impl VTag {
         } else if tag == "math"
             || parent
                 .namespace_uri()
-                .map_or(false, |ns| ns == MATHML_NAMESPACE)
+                .is_some_and(|ns| ns == MATHML_NAMESPACE)
         {
             let namespace = Some(MATHML_NAMESPACE);
             document()
@@ -319,7 +337,7 @@ mod feat_hydration {
     use web_sys::Node;
 
     use super::*;
-    use crate::dom_bundle::{node_type_str, Fragment, Hydratable};
+    use crate::dom_bundle::{node_type_str, DynamicDomSlot, Fragment, Hydratable};
 
     impl Hydratable for VTag {
         fn hydrate(
@@ -328,6 +346,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             _parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let tag_name = self.tag().to_owned();
 
@@ -354,15 +373,30 @@ mod feat_hydration {
             );
             let el = node.dyn_into::<Element>().expect("expected an element.");
 
-            assert_eq!(
-                el.tag_name().to_lowercase(),
-                tag_name,
-                "expected element of kind {}, found {}.",
-                tag_name,
-                el.tag_name().to_lowercase(),
-            );
+            {
+                let el_tag_name = el.tag_name();
+                let parent_namespace = _parent.namespace_uri();
 
-            // We simply registers listeners and updates all attributes.
+                // In HTML namespace (or no namespace), createElement is case-insensitive
+                // In other namespaces (SVG, MathML), createElementNS is case-sensitive
+                let should_compare_case_insensitive = parent_namespace.is_none()
+                    || parent_namespace.as_deref() == Some(HTML_NAMESPACE);
+
+                if should_compare_case_insensitive {
+                    // Case-insensitive comparison for HTML elements
+                    assert!(
+                        tag_name.eq_ignore_ascii_case(&el_tag_name),
+                        "expected element of kind {tag_name}, found {el_tag_name}.",
+                    );
+                } else {
+                    // Case-sensitive comparison for namespaced elements (SVG, MathML)
+                    assert_eq!(
+                        el_tag_name, tag_name,
+                        "expected element of kind {tag_name}, found {el_tag_name}.",
+                    );
+                }
+            }
+            // We simply register listeners and update all attributes.
             let attributes = attributes.apply(root, &el);
             let listeners = listeners.apply(root, &el);
 
@@ -372,14 +406,19 @@ mod feat_hydration {
                     let f = f.apply(root, el.unchecked_ref());
                     BTagInner::Input(f)
                 }
-                VTagInner::Textarea { value } => {
-                    let value = value.apply(root, el.unchecked_ref());
+                VTagInner::Textarea(f) => {
+                    let value = f.apply(root, el.unchecked_ref());
 
                     BTagInner::Textarea { value }
                 }
                 VTagInner::Other { children, tag } => {
                     let mut nodes = Fragment::collect_children(&el);
-                    let child_bundle = children.hydrate(root, parent_scope, &el, &mut nodes);
+                    let mut prev_next_child = None;
+                    let child_bundle =
+                        children.hydrate(root, parent_scope, &el, &mut nodes, &mut prev_next_child);
+                    if let Some(prev_next_child) = prev_next_child {
+                        prev_next_child.reassign(DomSlot::at_end());
+                    }
 
                     nodes.trim_start_text_nodes();
 
@@ -390,6 +429,10 @@ mod feat_hydration {
             };
 
             node_ref.set(Some((*el).clone()));
+            if let Some(prev_next_sibling) = prev_next_sibling {
+                prev_next_sibling.reassign(DomSlot::at((*el).clone()));
+            }
+            *prev_next_sibling = None;
 
             BTag {
                 inner,

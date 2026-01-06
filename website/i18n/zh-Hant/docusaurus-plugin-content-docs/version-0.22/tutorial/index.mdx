@@ -160,7 +160,7 @@ Yew 利用了 Rust 的過程宏，並為我們提供了一種類似於 JSX（Jav
 <div>
     <h3>John Doe: Building and breaking things</h3>
     <img
-        src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder"
+        src="https://placehold.co/640x360.png?text=Video+Player+Placeholder"
         alt="video thumbnail"
     />
 </div>
@@ -181,7 +181,7 @@ html! {
         </div>
         <div>
             <h3>{ "John Doe: Building and breaking things" }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     </>
 }
@@ -402,7 +402,7 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     html! {
         <div>
             <h3>{ video.title.clone() }</h3>
-            <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
         </div>
     }
 }
@@ -438,7 +438,7 @@ fn app() -> Html {
 +            { for details }
 -            <div>
 -                <h3>{ "John Doe: Building and breaking things" }</h3>
--                <img src="https://via.placeholder.com/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-                <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
 -            </div>
         </>
     }
@@ -460,12 +460,12 @@ fn app() -> Html {
 
 在真實的應用程式中，資料通常來自 API 而不是硬編碼。讓我們從外部來源取得我們的影片清單。為此，我們需要添加以下 crate：
 
--   [`gloo-net`](https://crates.io/crates/gloo-net)
-    用於進行 fetch 調用。
--   [`serde`](https://serde.rs) 及其衍生特性
-    用於反序列化 JSON 回應
--   [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-    用於將 Rust 的 Future 作為 Promise 執行
+- [`gloo-net`](https://crates.io/crates/gloo-net)
+  用於進行 fetch 調用。
+- [`serde`](https://serde.rs) 及其衍生特性
+  用於反序列化 JSON 回應
+- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
+  用於將 Rust 的 Future 作為 Promise 執行
 
 讓我們更新 `Cargo.toml` 檔案中的依賴項：
 

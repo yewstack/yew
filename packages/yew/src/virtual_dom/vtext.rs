@@ -14,8 +14,6 @@ pub struct VText {
     pub text: AttrValue,
 }
 
-impl ImplicitClone for VText {}
-
 impl VText {
     /// Creates new virtual text node with a content.
     pub fn new(text: impl Into<AttrValue>) -> Self {

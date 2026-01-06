@@ -2,22 +2,20 @@ use std::borrow::Cow;
 use std::iter::FromIterator;
 use std::rc::Rc;
 
-use implicit_clone::ImplicitClone;
 use indexmap::IndexSet;
 
 use super::IntoPropValue;
+use crate::html::ImplicitClone;
 use crate::utils::RcExt;
 use crate::virtual_dom::AttrValue;
 
 /// A set of classes, cheap to clone.
 ///
 /// The preferred way of creating this is using the [`classes!`][yew::classes!] macro.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, ImplicitClone, Default)]
 pub struct Classes {
     set: Rc<IndexSet<AttrValue>>,
 }
-
-impl ImplicitClone for Classes {}
 
 /// helper method to efficiently turn a set of classes into a space-separated
 /// string. Abstracts differences between ToString and IntoPropValue. The
@@ -276,6 +274,18 @@ impl<T: Into<Classes> + Clone> From<&[T]> for Classes {
 impl<T: Into<Classes>, const SIZE: usize> From<[T; SIZE]> for Classes {
     fn from(t: [T; SIZE]) -> Self {
         t.into_iter().collect()
+    }
+}
+
+impl From<&Classes> for Classes {
+    fn from(c: &Classes) -> Self {
+        c.clone()
+    }
+}
+
+impl From<&Classes> for AttrValue {
+    fn from(c: &Classes) -> Self {
+        c.clone().into_prop_value()
     }
 }
 

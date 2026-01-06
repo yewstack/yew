@@ -61,21 +61,22 @@ help: consider annotating `Value` with `#[derive(PartialEq)]`
 9  |     struct Value;
    |
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<t3::_Props::value, _>` is not satisfied
+error[E0277]: not all required properties have been provided
   --> tests/derive_props/fail.rs:35:24
    |
 35 |         ::yew::props!{ Props { } };
-   |                        ^^^^^ the trait `HasProp<t3::_Props::value, _>` is not implemented for `AssertAllProps`
+   |                        ^^^^^ missing required properties for this component
    |
+   = help: the trait `HasProp<t3::_Props::value, _>` is not implemented for `AssertAllProps`
    = help: the following other types implement trait `HasProp<P, How>`:
-             <t1::CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t2::HasPropsvalue<B> as HasProp<t2::_Props::value, t2::HasPropsvalue<B>>>
-             <t2::HasPropsvalue<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t2::CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t3::HasPropsvalue<B> as HasProp<t3::_Props::value, t3::HasPropsvalue<B>>>
-             <t3::HasPropsvalue<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t3::CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t4::HasPropsvalue<B> as HasProp<t4::_Props::value, t4::HasPropsvalue<B>>>
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `suspense::component::CheckSuspensePropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `t10::CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
            and $N others
 note: required for `t3::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t3::Props, (_,)>`
   --> tests/derive_props/fail.rs:29:21
@@ -93,21 +94,22 @@ note: required by a bound in `html::component::properties::__macro::PreBuild::<T
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
    = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: the trait bound `AssertAllProps: HasProp<t4::_Props::value, _>` is not satisfied
+error[E0277]: not all required properties have been provided
   --> tests/derive_props/fail.rs:47:24
    |
 47 |         ::yew::props!{ Props { } };
-   |                        ^^^^^ the trait `HasProp<t4::_Props::value, _>` is not implemented for `AssertAllProps`
+   |                        ^^^^^ missing required properties for this component
    |
+   = help: the trait `HasProp<t4::_Props::value, _>` is not implemented for `AssertAllProps`
    = help: the following other types implement trait `HasProp<P, How>`:
-             <t1::CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t2::HasPropsvalue<B> as HasProp<t2::_Props::value, t2::HasPropsvalue<B>>>
-             <t2::HasPropsvalue<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t2::CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t3::HasPropsvalue<B> as HasProp<t3::_Props::value, t3::HasPropsvalue<B>>>
-             <t3::HasPropsvalue<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t3::CheckPropsAll<B> as HasProp<P, &dyn HasProp<P, How>>>
-             <t4::HasPropsvalue<B> as HasProp<t4::_Props::value, t4::HasPropsvalue<B>>>
+             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
+             `suspense::component::CheckSuspensePropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
+             `t10::CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
            and $N others
 note: required for `t4::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t4::Props, (_,)>`
   --> tests/derive_props/fail.rs:41:21
@@ -143,7 +145,7 @@ error[E0277]: expected a `FnOnce()` closure, found `{integer}`
 76 |         #[prop_or_else(123)]
    |                        ^^^ expected an `FnOnce()` closure, found `{integer}`
    |
-   = help: the trait `FnOnce<()>` is not implemented for `{integer}`
+   = help: the trait `FnOnce()` is not implemented for `{integer}`
    = note: wrap the `{integer}` in a closure with no arguments: `|| { /* code */ }`
 note: required by a bound in `Option::<T>::unwrap_or_else`
   --> $RUST/core/src/option.rs
@@ -168,3 +170,11 @@ error[E0271]: expected `foo` to be a fn item that returns `String`, but it retur
     |
 note: required by a bound in `Option::<T>::unwrap_or_else`
    --> $RUST/core/src/option.rs
+
+warning: unused variable: `bar`
+   --> tests/derive_props/fail.rs:100:12
+    |
+100 |     fn foo(bar: i32) -> String {
+    |            ^^^ help: if this is intentional, prefix it with an underscore: `_bar`
+    |
+    = note: `#[warn(unused_variables)]` on by default

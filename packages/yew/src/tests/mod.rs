@@ -1,2 +1,2 @@
-#[allow(missing_docs)]
+//! Internal module for unit tests
 pub mod layout_tests;

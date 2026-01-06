@@ -38,9 +38,9 @@ Yewの最大の欠点は、コンパイルにかかる時間が長いことで�
 
 ## バイナリサイズの縮小
 
--   Rustコードの最適化
--   `cargo.toml`（リリースプロファイルの定義）
--   `wasm-opt` を使用してwasmコードを最適化
+- Rustコードの最適化
+- `cargo.toml`（リリースプロファイルの定義）
+- `wasm-opt` を使用してwasmコードを最適化
 
 **注意：バイナリサイズの縮小に関する詳細は、[Rust Wasmマニュアル](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)を参照してください。**
 
@@ -87,8 +87,8 @@ build-std-features = ["panic_immediate_abort"]
 
 Rust Wasm マニュアルには、Wasm バイナリファイルのサイズを縮小する方法に関するセクションがあります：[.wasm サイズの縮小](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
--   `wasm-pack` を使用すると、デフォルトでリリースビルドの `wasm` コードが最適化されます
--   `wasm` ファイルに直接 `wasm-opt` を使用する
+- `wasm-pack` を使用すると、デフォルトでリリースビルドの `wasm` コードが最適化されます
+- `wasm` ファイルに直接 `wasm-opt` を使用する
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
@@ -106,7 +106,7 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 ## さらに読む
 
--   [Rust マニュアルのスマート ポインターに関する章](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
--   [Rust Wasm マニュアルのコードサイズの縮小に関する章](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
--   [Rust プロファイルに関するドキュメント](https://doc.rust-lang.org/cargo/reference/profiles.html)
--   [binaryen プロジェクト](https://github.com/WebAssembly/binaryen)
+- [Rust マニュアルのスマート ポインターに関する章](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Rust Wasm マニュアルのコードサイズの縮小に関する章](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Rust プロファイルに関するドキュメント](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen プロジェクト](https://github.com/WebAssembly/binaryen)
