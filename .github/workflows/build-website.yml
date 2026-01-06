@@ -21,9 +21,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "18"
+          node-version: "lts/Jod"
+          package-manager-cache: false
 
       - name: Install dependencies
         run: |
@@ -31,9 +32,18 @@ jobs:
           npm ci
 
       - name: Run prettier
+        id: fmt
+        continue-on-error: true
         run: |
           cd website
           npm run fmt
+
+      - if: steps.fmt.outcome == 'failure'
+        run: |
+          cd website
+          npm run fmt:write
+          git diff
+          exit 1
 
       - name: Check Translations
         run: |
