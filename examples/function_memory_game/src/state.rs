@@ -127,7 +127,7 @@ impl Reducible for State {
             }
             Action::TrySaveBestScore(sec_past) => {
                 if sec_past < self.best_score {
-                    LocalStorage::set(KEY_BEST_SCORE, sec_past);
+                    let _ = LocalStorage::set(KEY_BEST_SCORE, sec_past);
                     State {
                         best_score: sec_past,
                         ..self.as_ref().clone()
