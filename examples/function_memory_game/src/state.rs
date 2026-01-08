@@ -23,7 +23,7 @@ pub struct Card {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct State {
     pub unresolved_card_pairs: u8,
-    pub best_score: u32,
+    pub best_score: u32, // seconds to solve
     pub status: Status,
     pub cards: Vec<Card>,
     pub last_card: Option<RawCard>,
@@ -67,7 +67,7 @@ impl Reducible for State {
                         unresolved_card_pairs: self.unresolved_card_pairs,
                         best_score: self.best_score,
                         status,
-                        cards: cards.clone(),
+                        cards,
                         last_card: Some(card),
                         rollback_cards: None,
                     },
@@ -90,7 +90,7 @@ impl Reducible for State {
                             unresolved_card_pairs,
                             best_score: self.best_score,
                             status,
-                            cards: cards.clone(),
+                            cards,
                             last_card: None,
                             rollback_cards,
                         }
@@ -126,8 +126,16 @@ impl Reducible for State {
                 .into()
             }
             Action::TrySaveBestScore(sec_past) => {
-                (self.best_score > sec_past).then(|| LocalStorage::set(KEY_BEST_SCORE, sec_past));
-                self
+                if sec_past < self.best_score {
+                    let _ = LocalStorage::set(KEY_BEST_SCORE, sec_past);
+                    State {
+                        best_score: sec_past,
+                        ..self.as_ref().clone()
+                    }
+                    .into()
+                } else {
+                    self // No update needed, return existing state
+                }
             }
             Action::GameReset => State::reset().into(),
         }
