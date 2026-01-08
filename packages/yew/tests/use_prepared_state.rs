@@ -56,7 +56,7 @@ async fn use_prepared_state_works() {
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
 
     let result = obtain_result_by_id("output");
 
@@ -106,7 +106,7 @@ async fn use_prepared_state_with_suspension_works() {
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
 
     let result = obtain_result_by_id("output");
 
