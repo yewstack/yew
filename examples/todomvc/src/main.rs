@@ -66,7 +66,6 @@ impl Component for App {
                     .state
                     .entries
                     .iter()
-                    .filter(|e| self.state.filter.fits(e))
                     .nth(idx)
                     .unwrap();
                 self.state.edit_value.clone_from(&entry.description);
