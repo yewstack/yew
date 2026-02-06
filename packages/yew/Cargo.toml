@@ -19,7 +19,7 @@ rust-version = "1.84.0"
 [dependencies]
 console_error_panic_hook = "0.1"
 gloo = "0.11"
-indexmap = { version = "2.11", features = ["std"] }
+indexmap = { version = "2.13", features = ["std"] }
 js-sys = "0.3"
 slab = "0.4"
 wasm-bindgen = "0.2"
@@ -31,7 +31,7 @@ implicit-clone = { workspace = true, features = ["map"] }
 base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { version = "2.0.0-rc.3", optional = true, features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
-tracing = "0.1.40"
+tracing = "0.1.44"
 tokise = "0.2.0"
 rustversion = "1"
 
