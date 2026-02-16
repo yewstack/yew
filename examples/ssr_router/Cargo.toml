@@ -30,7 +30,7 @@ axum = "0.8"
 tower = { version = "0.5", features = ["make"] }
 tower-http = { version = "0.6", features = ["fs"] }
 env_logger = "0.11"
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true }
 hyper = { version = "1.4", features = ["server", "http1"] }
 
 [target.'cfg(unix)'.dependencies]

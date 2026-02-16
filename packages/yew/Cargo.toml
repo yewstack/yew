@@ -88,7 +88,7 @@ tokio = { workspace = true, features = ["macros", "rt", "time"] }
 wasm-bindgen-test = "0.3"
 gloo = { version = "0.11", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
-trybuild = "1"
+trybuild = { workspace = true }
 
 [dev-dependencies.web-sys]
 version = "0.3"

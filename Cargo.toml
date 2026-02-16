@@ -32,3 +32,9 @@ unexpected_cfgs = { level = "warn", check-cfg = [
 [workspace.dependencies]
 tokio = { version = "1.48.0" }
 implicit-clone = { version = "0.6.0" }
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2" }
+trybuild = "1"
+clap = { version = "4", features = ["derive"] }
+bytes = "1"
