@@ -6,18 +6,18 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 lipsum = { version = "0.9.1", git = "https://github.com/mgeisler/lipsum.git", branch = "master" }
-log = "0.4"
-rand = { version = "0.9", features = ["small_rng"] }
+log.workspace = true
+rand = { workspace = true, features = ["small_rng"] }
 yew = { path = "../../packages/yew" }
 yew-router = { path = "../../packages/yew-router" }
-serde = { version = "1.0", features = ["derive"] }
-gloo = "0.11"
-wasm-logger = "0.2"
-instant = { version = "0.1", features = ["wasm-bindgen"] }
-once_cell = "1"
+serde = { workspace = true, features = ["derive"] }
+gloo.workspace = true
+wasm-logger.workspace = true
+instant = { workspace = true }
+once_cell.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.3.4", features = ["wasm_js"] }
+getrandom = { workspace = true }
 
 [[bin]]
 name = "function_router"

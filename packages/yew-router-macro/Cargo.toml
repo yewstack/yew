@@ -17,6 +17,6 @@ quote.workspace = true
 syn = { workspace = true, features = ["full","extra-traits"] }
 
 [dev-dependencies]
-rustversion = "1"
+rustversion.workspace = true
 trybuild = { workspace = true }
 yew-router = { path = "../yew-router" }
