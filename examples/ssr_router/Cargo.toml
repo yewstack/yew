@@ -17,12 +17,12 @@ required-features = ["ssr"]
 yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
 log = "0.4"
-futures = { version = "0.3", features = ["std"], default-features = false }
+futures = { workspace = true, features = ["std"], default-features = false }
 hyper-util = "0.1.17"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4"
-wasm-logger = "0.2"
+wasm-bindgen-futures.workspace = true
+wasm-logger.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
@@ -30,7 +30,7 @@ axum = "0.8"
 tower = { version = "0.5", features = ["make"] }
 tower-http = { version = "0.6", features = ["fs"] }
 env_logger = "0.11"
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true }
 hyper = { version = "1.4", features = ["server", "http1"] }
 
 [target.'cfg(unix)'.dependencies]

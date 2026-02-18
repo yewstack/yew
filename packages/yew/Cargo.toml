@@ -18,32 +18,32 @@ rust-version = "1.84.0"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-gloo = "0.11"
+gloo.workspace = true
 indexmap = { version = "2.11", features = ["std"] }
-js-sys = "0.3"
+js-sys.workspace = true
 slab = "0.4"
-wasm-bindgen = "0.2"
+wasm-bindgen.workspace = true
 yew-macro = { version = "^0.22.0", path = "../yew-macro" }
-thiserror = "2.0"
-futures = { version = "0.3", default-features = false, features = ["std"] }
+thiserror.workspace = true
+futures = { workspace = true, default-features = false, features = ["std"] }
 html-escape = { version = "0.2.13", optional = true }
 implicit-clone = { workspace = true, features = ["map"] }
 base64ct = { version = "1.6.0", features = ["std"], optional = true }
-bincode = { version = "2.0.0-rc.3", optional = true, features = ["serde"] }
-serde = { version = "1", features = ["derive"] }
+bincode = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
 tracing = "0.1.40"
 tokise = "0.2.0"
-rustversion = "1"
+rustversion.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4"
+wasm-bindgen-futures.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # We still need tokio as we have docs linked to it.
 tokio = { workspace = true, features = ["rt"] }
 
 [dependencies.web-sys]
-version = "^0.3.70"
+workspace = true
 features = [
   "AnimationEvent",
   "Document",
@@ -86,12 +86,12 @@ tokio = { workspace = true, features = ["macros", "rt", "time"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-gloo = { version = "0.11", features = ["futures"] }
-wasm-bindgen-futures = "0.4"
-trybuild = "1"
+gloo = { workspace = true, features = ["futures"] }
+wasm-bindgen-futures.workspace = true
+trybuild = { workspace = true }
 
 [dev-dependencies.web-sys]
-version = "0.3"
+workspace = true
 features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
 
 [features]

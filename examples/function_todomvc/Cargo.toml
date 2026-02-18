@@ -6,14 +6,14 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-strum = "0.27"
-strum_macros = "0.27"
-gloo = "0.11"
+serde = { workspace = true, features = ["derive"] }
+strum.workspace = true
+strum_macros.workspace = true
+gloo.workspace = true
 yew = { path = "../../packages/yew", features = ["csr"] }
 
 [dependencies.web-sys]
-version = "0.3"
+workspace = true
 features = [
 	"HtmlInputElement",
 ]
