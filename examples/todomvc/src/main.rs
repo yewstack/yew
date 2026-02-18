@@ -62,13 +62,7 @@ impl Component for App {
                 self.state.filter = filter;
             }
             Msg::ToggleEdit(idx) => {
-                let entry = self
-                    .state
-                    .entries
-                    .iter()
-                    .filter(|e| self.state.filter.fits(e))
-                    .nth(idx)
-                    .unwrap();
+                let entry = self.state.entries.get(idx).unwrap();
                 self.state.edit_value.clone_from(&entry.description);
                 self.state.clear_all_edit();
                 self.state.toggle_edit(idx);
