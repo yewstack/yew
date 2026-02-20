@@ -6,6 +6,6 @@ publish = false
 
 [dependencies]
 reqwest = { workspace = true, features = ["blocking", "json"] }
-regex = "1.12.2"
-toml = "0.9.8"
+regex = "1.12.3"
+toml = "1.0.3"
 serde = { workspace = true, features = ["derive"] }
