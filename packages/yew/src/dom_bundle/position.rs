@@ -145,7 +145,7 @@ impl DomSlot {
                     gloo::console::error!(msg, err, parent, next_sibling, node);
                     // Log via tracing for consistency
                     tracing::error!(msg);
-                    // Panic to short-curcuit and fail
+                    // Panic to short-circuit and fail
                     panic!("{}", msg)
                 });
         });

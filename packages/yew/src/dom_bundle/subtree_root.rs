@@ -402,7 +402,7 @@ impl SubtreeData {
         event: &'s Event,
     ) -> Option<impl 's + Iterator<Item = (&'s SubtreeData, Element)>> {
         // Note: the event is not necessarily identically the same object for all installed
-        // handlers hence this cache can be unreliable. Hence the cached repsonsible_tree_id
+        // handlers hence this cache can be unreliable. Hence the cached responsible_tree_id
         // might be missing. On the other hand, due to event retargeting at shadow roots,
         // the cache might be wrong! Keep in mind that we handle events in the capture
         // phase, so top-down. When descending and retargeting into closed shadow-dom, the
