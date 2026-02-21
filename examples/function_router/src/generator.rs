@@ -97,8 +97,8 @@ impl Generator {
         let mut title = String::new();
 
         let words = YEW_CHAIN
-            .iter_with_rng(&mut self.rng)
-            .map(|word| word.trim_matches(|c: char| c.is_ascii_punctuation()))
+            .iter(&mut self.rng, None)
+            .map(|word: &str| word.trim_matches(|c: char| c.is_ascii_punctuation()))
             .filter(|word| !word.is_empty())
             .take(n_words as usize);
 
@@ -122,7 +122,7 @@ impl Generator {
         const WORDS_MAX: u32 = 25;
 
         let n_words = self.rng.random_range(WORDS_MIN..WORDS_MAX);
-        YEW_CHAIN.generate_with_rng(&mut self.rng, n_words as usize)
+        join_words(YEW_CHAIN.iter(&mut self.rng, None).take(n_words as usize))
     }
 
     pub fn paragraph(&mut self) -> String {
@@ -140,6 +140,24 @@ impl Generator {
         }
         paragraph
     }
+}
+
+fn join_words<'a>(words: impl Iterator<Item = &'a str>) -> String {
+    let mut result = String::new();
+    for (i, word) in words.enumerate() {
+        if i > 0 {
+            result.push(' ');
+        }
+        if i == 0 {
+            result.push_str(&title_case(word));
+        } else {
+            result.push_str(word);
+        }
+    }
+    if !result.is_empty() && !result.ends_with(|c: char| c.is_ascii_punctuation()) {
+        result.push('.');
+    }
+    result
 }
 
 fn title_case(word: &str) -> String {
