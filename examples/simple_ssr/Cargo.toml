@@ -18,7 +18,6 @@ reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 uuid = { version = "1.18.1", features = ["serde"] }
 futures.workspace = true
-bytes = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
@@ -27,7 +26,7 @@ log.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
-warp = "0.3"
+warp = { git = "https://github.com/seanmonstar/warp.git", rev = "de1ccd8", features = ["server"] }
 clap = { workspace = true }
 
 [features]
