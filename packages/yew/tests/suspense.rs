@@ -816,3 +816,86 @@ async fn test_duplicate_suspension() {
     let result = obtain_result();
     assert_eq!(result.as_str(), "hello!");
 }
+
+// Regression test for https://github.com/yewstack/yew/issues/3780
+// use_future causes use_effect to fire before DOM is updated, so
+// document.get_element_by_id returns None for elements the component renders.
+#[wasm_bindgen_test]
+async fn use_effect_can_access_dom_after_use_future_resolves() {
+    #[derive(Properties, Clone)]
+    struct ContentProps {
+        dom_observed: Rc<RefCell<Option<bool>>>,
+    }
+
+    impl PartialEq for ContentProps {
+        fn eq(&self, _other: &Self) -> bool {
+            true
+        }
+    }
+
+    #[component(Content)]
+    fn content(props: &ContentProps) -> HtmlResult {
+        use_future(|| async {
+            sleep(Duration::ZERO).await;
+        })?;
+
+        {
+            let dom_observed = props.dom_observed.clone();
+            use_effect_with((), move |_| {
+                let element = gloo::utils::document().get_element_by_id("foo");
+                *dom_observed.borrow_mut() = Some(element.is_some());
+                || {}
+            });
+        }
+
+        Ok(html! {
+            <div id="result">
+                <div id="foo"></div>
+            </div>
+        })
+    }
+
+    #[derive(Properties, Clone)]
+    struct AppProps {
+        dom_observed: Rc<RefCell<Option<bool>>>,
+    }
+
+    impl PartialEq for AppProps {
+        fn eq(&self, _other: &Self) -> bool {
+            true
+        }
+    }
+
+    #[component(App)]
+    fn app(props: &AppProps) -> Html {
+        html! {
+            <Suspense fallback={html! {<div>{"loading"}</div>}}>
+                <Content dom_observed={props.dom_observed.clone()} />
+            </Suspense>
+        }
+    }
+
+    let dom_observed: Rc<RefCell<Option<bool>>> = Rc::new(RefCell::new(None));
+
+    yew::Renderer::<App>::with_root_and_props(
+        gloo::utils::document().get_element_by_id("output").unwrap(),
+        AppProps {
+            dom_observed: dom_observed.clone(),
+        },
+    )
+    .render();
+
+    // After everything settles (suspension resolves, component renders, effects run),
+    // use_effect should have found the #foo element in the DOM.
+    //
+    // Bug (issue #3780): use_effect fires before the DOM is updated when use_future
+    // is involved, so get_element_by_id("foo") returns None and dom_observed is Some(false).
+    // Expected: use_effect fires after the DOM is committed, so dom_observed should be
+    // Some(true).
+    sleep(Duration::from_millis(50)).await;
+    assert_eq!(
+        *dom_observed.borrow(),
+        Some(true),
+        "use_effect should see the rendered DOM element after use_future resolves"
+    );
+}
