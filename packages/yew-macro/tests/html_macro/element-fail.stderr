@@ -339,6 +339,24 @@ error: the property value must be either a literal or enclosed in braces. Consid
 90 |     html! { <input string=NotToString /> };
    |                           ^^^^^^^^^^^
 
+error: HTML attribute names are case-insensitive. Did you mean `onsubmit`?
+  --> tests/html_macro/element-fail.rs:93:19
+   |
+93 |     html! { <form onSubmit={Callback::from(|_e: SubmitEvent| {})} /> };
+   |                   ^^^^^^^^
+
+error: HTML attribute names are case-insensitive. Did you mean `onclick`?
+  --> tests/html_macro/element-fail.rs:94:20
+   |
+94 |     html! { <input onClick={Callback::from(|_e: MouseEvent| {})} /> };
+   |                    ^^^^^^^
+
+error: HTML attribute names are case-insensitive. Did you mean `disabled`?
+  --> tests/html_macro/element-fail.rs:95:20
+   |
+95 |     html! { <input Disabled=true /> };
+   |                    ^^^^^^^^
+
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:36:28
    |
