@@ -37,7 +37,6 @@ quote = "1"
 syn = { version = "2" }
 trybuild = "1"
 clap = { version = "4", features = ["derive"] }
-bytes = "1"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

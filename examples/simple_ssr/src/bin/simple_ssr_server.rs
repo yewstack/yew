@@ -1,13 +1,10 @@
-use std::error::Error;
+use std::convert::Infallible;
 use std::path::PathBuf;
 
-use bytes::Bytes;
 use clap::Parser;
 use futures::stream::{self, Stream, StreamExt};
 use simple_ssr::App;
 use warp::Filter;
-
-type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 
 /// A basic example
 #[derive(Parser, Debug)]
@@ -20,15 +17,12 @@ struct Opt {
 async fn render(
     index_html_before: String,
     index_html_after: String,
-) -> Box<dyn Stream<Item = Result<Bytes, BoxedError>> + Send> {
+) -> impl Stream<Item = Result<String, Infallible>> {
     let renderer = yew::ServerRenderer::<App>::new();
 
-    Box::new(
-        stream::once(async move { index_html_before })
-            .chain(renderer.render_stream())
-            .chain(stream::once(async move { index_html_after }))
-            .map(|m| Result::<_, BoxedError>::Ok(m.into())),
-    )
+    stream::once(async move { Ok(index_html_before) })
+        .chain(renderer.render_stream().map(Ok))
+        .chain(stream::once(async move { Ok(index_html_after) }))
 }
 
 #[tokio::main]
@@ -48,7 +42,14 @@ async fn main() {
         let index_html_before = index_html_before.clone();
         let index_html_after = index_html_after.clone();
 
-        async move { warp::reply::html(render(index_html_before, index_html_after).await) }
+        async move {
+            let body = render(index_html_before, index_html_after).await;
+            warp::reply::with_header(
+                warp::reply::stream(body),
+                "content-type",
+                "text/html; charset=utf-8",
+            )
+        }
     });
 
     let routes = html.or(warp::fs::dir(opts.dir));
