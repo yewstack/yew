@@ -166,7 +166,7 @@ features = [
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::{console, Document, HtmlElement, MouseEvent};
 
-let mousemove = Closure::<dyn Fn(MouseEvent)>::wrap(Box::new(|e| {
+let mousemove = Closure::<dyn Fn(MouseEvent)>::wrap(Box::new(|e: MouseEvent| {
     let rect = e
         .target()
         .expect("mouse event doesn't have a target")
