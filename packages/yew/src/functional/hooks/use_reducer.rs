@@ -48,6 +48,11 @@ impl<T> UseReducerHandle<T>
 where
     T: Reducible,
 {
+    /// Returns the inner value of the handle in an `Rc`.
+    pub fn get(&self) -> Rc<T> {
+        self.value.clone()
+    }
+
     /// Dispatch the given action to the reducer.
     pub fn dispatch(&self, value: T::Action) {
         (self.dispatch)(value)
@@ -58,6 +63,18 @@ where
         UseReducerDispatcher {
             dispatch: self.dispatch.clone(),
         }
+    }
+
+    /// Destrctures the handle into its 2 parts:
+    /// 0: the current data associated with the reducer;
+    /// 1: the dispatcher responsible for applying an action to the value.
+    pub fn into_inner(self) -> (Rc<T>, UseReducerDispatcher<T>) {
+        (
+            self.value,
+            UseReducerDispatcher {
+                dispatch: self.dispatch,
+            },
+        )
     }
 }
 

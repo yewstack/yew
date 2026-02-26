@@ -1,4 +1,5 @@
 use std::fmt;
+use std::mem::transmute;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -9,6 +10,7 @@ use crate::functional::hook;
 use crate::html::IntoPropValue;
 use crate::Callback;
 
+#[repr(transparent)]
 struct UseStateReducer<T> {
     value: T,
 }
@@ -115,6 +117,12 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
 }
 
 impl<T> UseStateHandle<T> {
+    /// Returns the inner value of the handle.
+    pub fn get(&self) -> Rc<T> {
+        // Safety: `UseStateReducer<T>` is `repr(transparent)` and only contains `T`
+        unsafe { transmute(self.inner.get()) }
+    }
+
     /// Replaces the value
     pub fn set(&self, value: T) {
         self.inner.dispatch(value)
@@ -125,6 +133,15 @@ impl<T> UseStateHandle<T> {
         UseStateSetter {
             inner: self.inner.dispatcher(),
         }
+    }
+
+    /// Destructures the handle into its 2 parts:
+    /// 0: The current associated state;
+    /// 1: The setter responsible for changing the state on demand.
+    pub fn into_inner(self) -> (Rc<T>, UseStateSetter<T>) {
+        let (data, inner) = self.inner.into_inner();
+        // Safety: check the `get` method above
+        (unsafe { transmute(data) }, UseStateSetter { inner })
     }
 }
 
