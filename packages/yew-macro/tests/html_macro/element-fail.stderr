@@ -491,8 +491,8 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
              `Option<F>` implements `IntoPropValue<Option<yew::Callback<I, O>>>`
              `Option<Rc<str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
+             `Option<T>` implements `IntoPropValue<VNode>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
-             `Option<VNode>` implements `IntoPropValue<VNode>`
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -510,8 +510,8 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              `Option<F>` implements `IntoPropValue<Option<yew::Callback<I, O>>>`
              `Option<Rc<str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
+             `Option<T>` implements `IntoPropValue<VNode>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
-             `Option<VNode>` implements `IntoPropValue<VNode>`
 
 error[E0277]: the trait bound `{integer}: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:51:28
@@ -627,8 +627,8 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              `Option<F>` implements `IntoPropValue<Option<yew::Callback<I, O>>>`
              `Option<Rc<str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
+             `Option<T>` implements `IntoPropValue<VNode>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
-             `Option<VNode>` implements `IntoPropValue<VNode>`
 
 error[E0277]: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:58:29

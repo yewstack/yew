@@ -214,10 +214,10 @@ impl IntoPropValue<VNode> for Vec<VNode> {
     }
 }
 
-impl IntoPropValue<VNode> for Option<VNode> {
+impl<T: IntoPropValue<VNode>> IntoPropValue<VNode> for Option<T> {
     #[inline]
     fn into_prop_value(self) -> VNode {
-        self.unwrap_or_default()
+        self.map(IntoPropValue::into_prop_value).unwrap_or_default()
     }
 }
 
@@ -348,6 +348,18 @@ mod test {
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
         let _: Option<AttrValue> = Cow::Borrowed("foo").into_prop_value();
+    }
+
+    #[test]
+    fn test_option_to_vnode() {
+        let _: VNode = Some(String::from("hello")).into_prop_value();
+        let _: VNode = Some(AttrValue::Static("hello")).into_prop_value();
+        let _: VNode = Option::<String>::None.into_prop_value();
+        let _: VNode = Option::<AttrValue>::None.into_prop_value();
+        let _: VNode = Some(VNode::default()).into_prop_value();
+        let _: VNode = Option::<VNode>::None.into_prop_value();
+        let _: VNode = Some(42u32).into_prop_value();
+        let _: VNode = Some(true).into_prop_value();
     }
 
     #[test]
