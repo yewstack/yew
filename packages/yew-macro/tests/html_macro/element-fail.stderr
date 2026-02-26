@@ -465,14 +465,14 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<VNode>`
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
              `&'static str` implements `IntoPropValue<Option<String>>`
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
-             `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
@@ -665,14 +665,14 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<VNode>`
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
              `&'static str` implements `IntoPropValue<Option<String>>`
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
-             `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied

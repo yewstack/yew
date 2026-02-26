@@ -292,6 +292,12 @@ macro_rules! impl_into_prop_value_via_display {
                 VText::from(self).into()
             }
         }
+        impl IntoPropValue<VNode> for &$from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> VNode {
+                self.clone().into_prop_value()
+            }
+        }
     };
 }
 
@@ -360,6 +366,19 @@ mod test {
         let _: VNode = Option::<VNode>::None.into_prop_value();
         let _: VNode = Some(42u32).into_prop_value();
         let _: VNode = Some(true).into_prop_value();
+    }
+
+    #[test]
+    fn test_ref_to_vnode() {
+        let _: VNode = (&42i32).into_prop_value();
+        let _: VNode = (&true).into_prop_value();
+        let _: VNode = (&1.5f64).into_prop_value();
+        let s = String::from("hello");
+        let _: VNode = (&s).into_prop_value();
+        let a = AttrValue::Static("hello");
+        let _: VNode = (&a).into_prop_value();
+        let sr: &str = "hello";
+        let _: VNode = (&sr).into_prop_value();
     }
 
     #[test]

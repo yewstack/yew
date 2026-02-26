@@ -134,6 +134,15 @@ fn compile_pass() {
 
     let opt_none: ::std::option::Option<::std::string::String> = ::std::option::Option::None;
     _ = ::yew::html! { <div>{opt_none}</div> };
+
+    let num = 42i32;
+    _ = ::yew::html! { <div>{&num}</div> };
+
+    let text = ::std::string::String::new();
+    _ = ::yew::html! { <div>{&text}</div> };
+
+    let sr: &::core::primitive::str = "hello";
+    _ = ::yew::html! { <div>{&sr}</div> };
 }
 
 fn main() {}
