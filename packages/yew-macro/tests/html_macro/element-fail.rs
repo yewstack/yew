@@ -88,6 +88,11 @@ fn compile_fail() {
     html! { <input type=() /> };
     html! { <input value=() /> };
     html! { <input string=NotToString /> };
+
+    // case-insensitive attribute collision (issue #3996)
+    html! { <form onSubmit={Callback::from(|_e: SubmitEvent| {})} /> };
+    html! { <input onClick={Callback::from(|_e: MouseEvent| {})} /> };
+    html! { <input Disabled=true /> };
 }
 
 fn main() {}

@@ -33,6 +33,9 @@ impl Parse for ElementProps {
         let value = props.pop("value");
         let checked = props.pop("checked");
         let defaultvalue = props.pop("defaultvalue");
+
+        check_case_collisions(&props.prop_list)?;
+
         let special = props.special;
 
         Ok(Self {
@@ -84,6 +87,25 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
     ]
     .into()
 });
+
+const SPECIAL_ELEMENT_PROPS: &[&str] = &["class", "value", "checked", "defaultvalue"];
+
+fn check_case_collisions(remaining: &super::PropList) -> syn::Result<()> {
+    crate::join_errors(remaining.iter().filter_map(|prop| {
+        let lower = prop.label.to_ascii_lowercase_string();
+        if LISTENER_SET.contains(lower.as_str())
+            || BOOLEAN_SET.contains(lower.as_str())
+            || SPECIAL_ELEMENT_PROPS.contains(&lower.as_str())
+        {
+            Some(syn::Error::new_spanned(
+                &prop.label,
+                format!("HTML attribute names are case-insensitive. Did you mean `{lower}`?"),
+            ))
+        } else {
+            None
+        }
+    }))
+}
 
 static LISTENER_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
     [
