@@ -50,7 +50,6 @@ wasm-logger = "0.2"
 rand = "0.9"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
-once_cell = "1"
 rustversion = "1"
 strum = "0.27"
 strum_macros = "0.27"

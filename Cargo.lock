@@ -360,7 +360,6 @@ dependencies = [
  "chrono",
  "clap",
  "git2",
- "once_cell",
  "regex",
  "reqwest",
  "semver",
@@ -1899,7 +1898,6 @@ name = "js_callback"
 version = "0.1.0"
 dependencies = [
  "js-sys",
- "once_cell",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "yew",
@@ -4204,7 +4202,6 @@ name = "yew-macro"
 version = "0.22.0"
 dependencies = [
  "implicit-clone",
- "once_cell",
  "prettyplease",
  "proc-macro-error",
  "proc-macro2",

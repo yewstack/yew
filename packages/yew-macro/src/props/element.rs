@@ -1,6 +1,6 @@
 use std::collections::HashSet;
+use std::sync::LazyLock;
 
-use once_cell::sync::Lazy;
 use syn::parse::{Parse, ParseStream};
 
 use super::{Prop, Props, SpecialProps};
@@ -48,7 +48,7 @@ impl Parse for ElementProps {
     }
 }
 
-static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
+static BOOLEAN_SET: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     [
         // Living Standard
         // From: https://html.spec.whatwg.org/#attributes-3
@@ -85,7 +85,7 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
     .into()
 });
 
-static LISTENER_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
+static LISTENER_SET: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     [
         // Living Standard
         // From: https://html.spec.whatwg.org/multipage/webappapis.html#globaleventhandlers
