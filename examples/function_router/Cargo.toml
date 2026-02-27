@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+image = { version = "0.25", default-features = false, features = ["png"] }
 lipsum = { version = "0.9.1", git = "https://github.com/mgeisler/lipsum.git", rev = "233e48a" }
 log.workspace = true
 rand = { workspace = true, features = ["small_rng"] }
@@ -14,7 +15,6 @@ serde = { workspace = true, features = ["derive"] }
 gloo.workspace = true
 wasm-logger.workspace = true
 instant = { workspace = true }
-once_cell.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { workspace = true }
