@@ -22,9 +22,12 @@ args = ["test", "--all-targets", "--all-features"]
 dependencies = ["native-test", "wasm-test"]
 
 [tasks.clippy-feature-soundness]
-script = '''
-#!/usr/bin/env bash
-set -ex
-bash ../../ci/feature-soundness.sh
-bash ../../ci/feature-soundness-release.sh
-'''
+command = "cargo"
+args = [
+    "hack", "clippy",
+    "-p", "yew", "-p", "yew-agent", "-p", "yew-router",
+    "--feature-powerset", "--no-dev-deps",
+    "--exclude-features", "test,serde,not_browser_env",
+    "--keep-going",
+    "--", "-D", "warnings",
+]
