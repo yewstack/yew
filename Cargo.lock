@@ -2949,6 +2949,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-logger",
  "yew",
+ "yew-router",
 ]
 
 [[package]]

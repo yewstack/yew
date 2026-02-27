@@ -12,7 +12,7 @@ use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::Router;
 use clap::Parser;
-use function_router::{ServerApp, ServerAppProps};
+use function_router::{route_meta, Route, ServerApp, ServerAppProps};
 use futures::stream::{self, StreamExt};
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
@@ -21,6 +21,7 @@ use tokio::net::TcpListener;
 use tower::Service;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
+use yew_router::prelude::Routable;
 
 // We use jemalloc as it produces better performance.
 #[cfg(unix)]
@@ -35,20 +36,32 @@ struct Opt {
     dir: PathBuf,
 }
 
+fn head_tags_for(path: &str) -> String {
+    let route = Route::recognize(path).unwrap_or(Route::NotFound);
+    let (title, description) = route_meta(&route);
+    format!(
+        "<title>{title} | Yew SSR Router</title><meta name=\"description\" \
+         content=\"{description}\" />"
+    )
+}
+
 async fn render(
     url: Uri,
     Query(queries): Query<HashMap<String, String>>,
     State((index_html_before, index_html_after)): State<(String, String)>,
 ) -> impl IntoResponse {
-    let url = url.path().to_owned();
+    let path = url.path().to_owned();
+
+    // Inject route-specific <head> tags before </head>, outside of Yew rendering.
+    let before = index_html_before.replace("</head>", &format!("{}</head>", head_tags_for(&path)));
 
     let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
-        url: url.into(),
+        url: path.into(),
         queries,
     });
 
     Body::from_stream(
-        stream::once(async move { index_html_before })
+        stream::once(async move { before })
             .chain(renderer.render_stream())
             .chain(stream::once(async move { index_html_after }))
             .map(Result::<_, Infallible>::Ok),
