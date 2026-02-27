@@ -4,8 +4,9 @@ use std::sync::{LazyLock, Mutex};
 
 use image::{ImageBuffer, Rgb};
 
-static CACHE: LazyLock<Mutex<HashMap<(u32, u32, u32), String>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
+type ImageCache = Mutex<HashMap<(u32, u32, u32), String>>;
+
+static CACHE: LazyLock<ImageCache> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 // Cosine palette (Inigo Quilez style)
 // color(t) = a + b * cos(2pi(c*t + d))
@@ -57,9 +58,9 @@ const PALETTES: &[Palette] = &[
 fn palette_color(pal: &Palette, t: f64) -> [u8; 3] {
     let tau = std::f64::consts::TAU;
     let mut rgb = [0u8; 3];
-    for i in 0..3 {
+    for (i, channel) in rgb.iter_mut().enumerate() {
         let v = pal.a[i] + pal.b[i] * (tau * (pal.c[i] * t + pal.d[i])).cos();
-        rgb[i] = (v.clamp(0.0, 1.0) * 255.0) as u8;
+        *channel = (v.clamp(0.0, 1.0) * 255.0) as u8;
     }
     rgb
 }
@@ -188,7 +189,7 @@ pub fn generate_data_url(width: u32, height: u32, seed: u32) -> String {
 
 fn base64_encode(data: &[u8]) -> String {
     const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut result = String::with_capacity((data.len() + 2) / 3 * 4);
+    let mut result = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
         let b0 = chunk[0] as u32;
         let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
