@@ -25,6 +25,7 @@ wasm-bindgen-futures.workspace = true
 wasm-logger.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+yew-router = { path = "../../packages/yew-router" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
 axum = "0.8"
 tower = { version = "0.5", features = ["make"] }
