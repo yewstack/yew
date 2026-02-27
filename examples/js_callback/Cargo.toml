@@ -10,4 +10,3 @@ wasm-bindgen.workspace = true
 yew = { path = "../../packages/yew", features = ["csr"] }
 wasm-bindgen-futures.workspace = true
 js-sys.workspace = true
-once_cell.workspace = true

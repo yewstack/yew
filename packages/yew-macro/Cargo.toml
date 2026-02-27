@@ -20,7 +20,6 @@ proc-macro-error = "1"
 proc-macro2.workspace = true
 quote.workspace = true
 syn = { workspace = true, features = ["full", "extra-traits", "visit-mut"] }
-once_cell.workspace = true
 prettyplease = "0.2"
 rustversion.workspace = true
 
