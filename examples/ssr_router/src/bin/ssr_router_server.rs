@@ -105,7 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ),
     );
 
-    let addr: SocketAddr = ([127, 0, 0, 1], 8080).into();
+    let addr: SocketAddr = ([0, 0, 0, 0], 8080).into();
 
     println!("You can view the website at: http://localhost:8080/");
 

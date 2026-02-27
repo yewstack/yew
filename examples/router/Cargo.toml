@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+function_router = { path = "../function_router" }
 instant = { workspace = true }
 lipsum = { version = "0.9.1", git = "https://github.com/mgeisler/lipsum.git", rev = "233e48a" }
 log.workspace = true
@@ -14,5 +15,4 @@ wasm-logger.workspace = true
 yew = { path = "../../packages/yew", features = ["csr"] }
 yew-router = { path = "../../packages/yew-router" }
 serde = { workspace = true, features = ["derive"] }
-once_cell.workspace = true
 gloo.workspace = true

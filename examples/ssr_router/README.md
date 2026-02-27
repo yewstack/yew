@@ -8,7 +8,7 @@ of the function router example.
 
 1. Build Hydration Bundle
 
-`trunk build index.html`
+`trunk build`
 
 2. Run the server
 

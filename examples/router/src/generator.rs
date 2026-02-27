@@ -1,5 +1,6 @@
+use std::sync::LazyLock;
+
 use lipsum::MarkovChain;
-use once_cell::sync::Lazy;
 use rand::distr::Bernoulli;
 use rand::rngs::SmallRng;
 use rand::seq::IteratorRandom;
@@ -9,7 +10,7 @@ const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");
 const YEW_CONTENT: &str = include_str!("../data/yew.txt");
 
-static YEW_CHAIN: Lazy<MarkovChain<'static>> = Lazy::new(|| {
+static YEW_CHAIN: LazyLock<MarkovChain<'static>> = LazyLock::new(|| {
     let mut chain = MarkovChain::new();
     chain.learn(YEW_CONTENT);
     chain
@@ -41,20 +42,16 @@ impl Generator {
         self.rng.sample(Bernoulli::from_ratio(n, d).unwrap())
     }
 
-    pub fn image_url(&mut self, dimension: (usize, usize), keywords: &[String]) -> String {
-        let cache_buster = self.rng.random::<u16>();
+    pub fn image_url(&mut self, dimension: (usize, usize), _keywords: &[String]) -> String {
+        let seed: u32 = self.rng.random();
         let (width, height) = dimension;
-        format!(
-            "https://source.unsplash.com/random/{}x{}?{}&sig={}",
-            width,
-            height,
-            keywords.join(","),
-            cache_buster
-        )
+        function_router::imagegen::generate_data_url(width as u32, height as u32, seed)
     }
 
     pub fn face_image_url(&mut self, dimension: (usize, usize)) -> String {
-        self.image_url(dimension, &["human".to_owned(), "face".to_owned()])
+        let seed: u32 = self.rng.random();
+        let (width, height) = dimension;
+        function_router::imagegen::generate_data_url(width as u32, height as u32, seed)
     }
 
     pub fn human_name(&mut self) -> String {
