@@ -10,7 +10,7 @@ rust-version = "1.84.0"
 yew-agent = { path = "../../packages/yew-agent/" }
 
 [dev-dependencies]
-derive_more = { version = "2.0", features = ["from"] }
+derive_more = { version = "2.1", features = ["from"] }
 gloo.workspace = true
 gloo-net = "0.6"
 js-sys.workspace = true

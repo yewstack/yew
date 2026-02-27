@@ -16,7 +16,7 @@ required-features = ["ssr"]
 yew = { path = "../../packages/yew" }
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
-uuid = { version = "1.18.1", features = ["serde"] }
+uuid = { version = "1.20.0", features = ["serde"] }
 futures.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
