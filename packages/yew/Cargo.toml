@@ -25,7 +25,7 @@ slab = "0.4"
 wasm-bindgen.workspace = true
 yew-macro = { version = "^0.22.0", path = "../yew-macro" }
 thiserror.workspace = true
-futures = { workspace = true, default-features = false, features = ["std"] }
+futures = { workspace = true, features = ["std"] }
 html-escape = { version = "0.2.13", optional = true }
 implicit-clone = { workspace = true, features = ["map"] }
 base64ct = { version = "1.6.0", features = ["std"], optional = true }
