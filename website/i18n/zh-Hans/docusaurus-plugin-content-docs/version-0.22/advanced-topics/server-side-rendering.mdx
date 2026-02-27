@@ -66,13 +66,13 @@ async fn no_main() {
 
 ## 服务端渲染期间的数据获取
 
-数据获取是服务端渲染和注水（hydration）期间的难点之一。
+数据获取是服务端渲染和水合（hydration）期间的难点之一。
 
 传统做法中，当一个组件渲染时，它会立即可用（输出一个虚拟 DOM 以进行渲染）。当组件不需要获取任何数据时，这种方式是有效的。但是如果组件在渲染时想要获取一些数据会发生什么呢？
 
 过去，Yew 没有机制来检测组件是否仍在获取数据。数据获取客户端负责实现一个解决方案，以检测在初始渲染期间请求了什么，并在请求完成后触发第二次渲染。服务器会重复这个过程，直到在返回响应之前没有在渲染期间添加更多的挂起请求。
 
-这不仅浪费了 CPU 资源，因为重复渲染组件，而且数据客户端还需要提供一种方法，在注水过程中使在服务端获取的数据可用，以确保初始渲染返回的虚拟 DOM 与服务端渲染的 DOM 树一致，这可能很难实现。
+这不仅浪费了 CPU 资源，因为重复渲染组件，而且数据客户端还需要提供一种方法，在水合过程中使在服务端获取的数据可用，以确保初始渲染返回的虚拟 DOM 与服务端渲染的 DOM 树一致，这可能很难实现。
 
 Yew 采用了一种不同的方法，通过 `<Suspense />` 来解决这个问题。
 
@@ -80,52 +80,43 @@ Yew 采用了一种不同的方法，通过 `<Suspense />` 来解决这个问题
 
 当应用程序在服务端渲染时，Yew 会等待组件不再挂起，然后将其序列化到字符串缓冲区中。
 
-在注水过程中，`<Suspense />` 组件中的元素保持未注水状态，直到所有子组件不再挂起。
+在水合过程中，`<Suspense />` 组件中的元素保持未水合状态，直到所有子组件不再挂起。
 
 通过这种方法，开发人员可以轻松构建一个准备好进行服务端渲染的、与客户端无关的应用程序，并进行数据获取。
 
-## Rendering `<head>` Tags
+## 渲染 `<head>` 标签
 
-A common need with SSR is rendering dynamic `<head>` content (e.g. `<title>`,
-`<meta>`) so that crawlers and social previews see the right metadata on first
-load.
+SSR 中的一个常见需求是渲染动态 `<head>` 内容（例如 `<title>`、`<meta>`），使爬虫和社交预览在首次加载时能看到正确的元数据。
 
-`ServerRenderer` only renders your component tree (typically at the body of the document),
-it has no access to `<head>`. Head tags must therefore be generated **on the server, outside of
-Yew**, and spliced into the HTML template before it is sent to the client.
+`ServerRenderer` 只渲染组件树（通常对应文档的 body 部分），无法访问 `<head>`。因此，head 标签必须**在服务端、Yew 之外**生成，并在发送给客户端之前拼接到 HTML 模板中。
 
-The [`ssr_router` example](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
-route from the request URL, generates the appropriate `<title>` and `<meta>`
-tags, and injects them into the Trunk-generated `index.html` before
-`</head>`.
+[`ssr_router` 示例](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) 演示了这一模式：服务端从请求 URL 识别路由，生成适当的 `<title>` 和 `<meta>` 标签，并将它们注入到 Trunk 生成的 `index.html` 的 `</head>` 之前。
 
 :::info
 
-For a fully SSR-compatible third-party solution, use [the `<Helmet/>` component from Bounce](https://docs.rs/bounce/latest/bounce/helmet/index.html).
+如需完全兼容 SSR 的第三方解决方案，请使用 [Bounce 的 `<Helmet/>` 组件](https://docs.rs/bounce/latest/bounce/helmet/index.html)。
 
 :::
 
-## SSR Hydration
+## SSR 水合（SSR Hydration）
 
-## 服务端渲染注水（SSR Hydration）
-
-注水是将 Yew 应用程序连接到服务端生成的 HTML 文件的过程。默认情况下，`ServerRender` 打印可注水的 HTML 字符串，其中包含额外的信息以便于注水。当调用 `Renderer::hydrate` 方法时，Yew 不会从头开始渲染，而是将应用程序生成的虚拟 DOM 与服务器渲染器生成的 HTML 字符串进行协调。
+水合是将 Yew 应用程序连接到服务端生成的 HTML 文件的过程。默认情况下，`ServerRender` 打印可水合的 HTML 字符串，其中包含额外的信息以便于水合。当调用 `Renderer::hydrate` 方法时，Yew 不会从头开始渲染，而是将应用程序生成的虚拟 DOM 与服务器渲染器生成的 HTML 字符串进行协调。
 
 :::caution
 
-为了成功对由 `ServerRenderer` 创建的 HTML 标记注水，客户端必须生成一个虚拟 DOM 布局，它与用于 SSR 的布局完全匹配，包括不包含任何元素的组件。如果您有任何只在一个实现中有用的组件，您可能希望使用 `PhantomComponent` 来填充额外组件的位置。
+要成功对由 `ServerRenderer` 创建的 HTML 标记进行水合，客户端必须生成一个虚拟 DOM 布局，它与用于 SSR 的布局完全匹配，包括不包含任何元素的组件。如果您有任何只在一个实现中有用的组件，您可能希望使用 `PhantomComponent` 来填充额外组件的位置。
 :::
 
 :::warning
 
-只有在浏览器初始渲染 SSR 输出（静态 HTML）后，真实 DOM 与预期 DOM 匹配时，注水才能成功。如果您的 HTML 不符合规范，注水可能会失败。浏览器可能会更改不正确的 HTML 的 DOM 结构，导致实际 DOM 与预期 DOM 不同。例如，[如果您有一个没有 `<tbody>` 的 `<table>`，浏览器可能会向 DOM 添加一个 `<tbody>`](https://github.com/yewstack/yew/issues/2684)
+只有在浏览器初始渲染 SSR 输出（静态 HTML）后，真实 DOM 与预期 DOM 匹配时，水合才能成功。如果您的 HTML 不符合规范，水合可能会失败。浏览器可能会更改不正确的 HTML 的 DOM 结构，导致实际 DOM 与预期 DOM 不同。例如，[如果您有一个没有 `<tbody>` 的 `<table>`，浏览器可能会向 DOM 添加一个 `<tbody>`](https://github.com/yewstack/yew/issues/2684)
 :::
 
-## 注水期间的组件生命周期
+## 水合期间的组件生命周期
 
-在注水期间，组件在创建后安排了 2 次连续的渲染。任何效果都是在第二次渲染完成后调用的。确保您的组件的渲染函数没有副作用是很重要的。它不应该改变任何状态或触发额外的渲染。如果您的组件当前改变状态或触发额外的渲染，请将它们移动到 `use_effect` 钩子中。
+在水合期间，组件在创建后安排了 2 次连续的渲染。任何效果都是在第二次渲染完成后调用的。确保您的组件的渲染函数没有副作用是很重要的。它不应该改变任何状态或触发额外的渲染。如果您的组件当前改变状态或触发额外的渲染，请将它们移动到 `use_effect` 钩子中。
 
-在注水过程中，可以使用结构化组件进行服务端渲染，视图函数将在渲染函数之前被调用多次。直到调用渲染函数之前，DOM 被认为是未连接的，您应该防止在调用 `rendered()` 方法之前访问渲染节点。
+在水合过程中，可以使用结构化组件进行服务端渲染，视图函数将在渲染函数之前被调用多次。直到调用渲染函数之前，DOM 被认为是未连接的，您应该防止在调用 `rendered()` 方法之前访问渲染节点。
 
 ## 示例
 
@@ -141,7 +132,7 @@ fn App() -> Html {
 fn main() {
     let renderer = Renderer::<App>::new();
 
-    // 对 body 元素下的所有内容进行注水，移除尾部元素（如果有）。
+    // 对 body 元素下的所有内容进行水合，并移除尾部元素（如果有）。
     renderer.hydrate();
 }
 ```

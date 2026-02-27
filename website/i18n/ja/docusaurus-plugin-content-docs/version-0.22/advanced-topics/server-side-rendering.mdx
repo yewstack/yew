@@ -84,24 +84,17 @@ Yewは、`<Suspense />` を使用してこの問題を解決する異なるア�
 
 この方法により、開発者はサーバーサイドレンダリングに対応したクライアント非依存のアプリケーションを簡単に構築し、データ取得を行うことができます。
 
-## Rendering `<head>` Tags
+## `<head>` タグのレンダリング
 
-A common need with SSR is rendering dynamic `<head>` content (e.g. `<title>`,
-`<meta>`) so that crawlers and social previews see the right metadata on first
-load.
+SSR でよく必要とされるのは、クローラーやソーシャルプレビューが最初のロード時に正しいメタデータを参照できるよう、動的な `<head>` コンテンツ（`<title>`、`<meta>` など）をレンダリングすることです。
 
-`ServerRenderer` only renders your component tree (typically at the body of the document),
-it has no access to `<head>`. Head tags must therefore be generated **on the server, outside of
-Yew**, and spliced into the HTML template before it is sent to the client.
+`ServerRenderer` はコンポーネントツリー（通常はドキュメントの body 部分）のみをレンダリングし、`<head>` にはアクセスできません。そのため、head タグは **Yew の外部でサーバー側に**生成し、クライアントに送信する前に HTML テンプレートに埋め込む必要があります。
 
-The [`ssr_router` example](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
-route from the request URL, generates the appropriate `<title>` and `<meta>`
-tags, and injects them into the Trunk-generated `index.html` before
-`</head>`.
+[`ssr_router` サンプル](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) はこのパターンを示しています：サーバーはリクエスト URL からルートを判別し、適切な `<title>` および `<meta>` タグを生成して、Trunk が生成した `index.html` の `</head>` の前に挿入します。
 
 :::info
 
-For a fully SSR-compatible third-party solution, use [the `<Helmet/>` component from Bounce](https://docs.rs/bounce/latest/bounce/helmet/index.html).
+完全に SSR 互換のサードパーティソリューションとして、[Bounce の `<Helmet/>` コンポーネント](https://docs.rs/bounce/latest/bounce/helmet/index.html) が利用できます。
 
 :::
 
