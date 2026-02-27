@@ -287,7 +287,7 @@ impl Component for Page {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="page">
-                { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
+                { ctx.props().sidebar.clone() }
                 // ... page content
             </div>
         }

@@ -123,6 +123,26 @@ fn compile_pass() {
 
     let option_vnode = ::std::option::Option::Some(::yew::html! {});
     _ = ::yew::html! { <div>{option_vnode}</div> };
+
+    let opt_string: ::std::option::Option<::std::string::String> =
+        ::std::option::Option::Some(::std::convert::From::from("hello"));
+    _ = ::yew::html! { <div>{opt_string}</div> };
+
+    let opt_attr: ::std::option::Option<::yew::AttrValue> =
+        ::std::option::Option::Some(::yew::AttrValue::Static("hello"));
+    _ = ::yew::html! { <div>{opt_attr}</div> };
+
+    let opt_none: ::std::option::Option<::std::string::String> = ::std::option::Option::None;
+    _ = ::yew::html! { <div>{opt_none}</div> };
+
+    let num = 42i32;
+    _ = ::yew::html! { <div>{&num}</div> };
+
+    let text = ::std::string::String::new();
+    _ = ::yew::html! { <div>{&text}</div> };
+
+    let sr: &::core::primitive::str = "hello";
+    _ = ::yew::html! { <div>{&sr}</div> };
 }
 
 fn main() {}
