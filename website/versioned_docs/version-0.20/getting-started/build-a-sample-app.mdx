@@ -54,7 +54,7 @@ To convert this simple command line application to a basic Yew web application, 
 
 Add `yew` to the list of dependencies editing file:
 
-```toml title=Cargo.toml
+```toml title=Cargo.toml {7}
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -127,6 +127,7 @@ Finally, add an `index.html` file in the root directory of your app.
     <head>
         <meta charset="utf-8" />
         <title>Yew App</title>
+        <body></body>
     </head>
     <body></body>
 </html>

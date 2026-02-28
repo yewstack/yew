@@ -62,17 +62,19 @@ cargo run
 ## Our first static page
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
-Update the files as follows:
+Add `yew` to the list of dependencies:
 
-```toml title="Cargo.toml" {7}
+```toml title=Cargo.toml {7}
 [package]
 name = "yew-app"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew = { version = "0.21.0", features = ["csr"] }
 ```
+
+or using `cargo add yew -F csr`.
 
 :::info
 
