@@ -5,10 +5,27 @@ use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{parse_quote, Attribute, Error, Expr, Field, GenericParam, Generics, Type, Visibility};
+use syn::{
+    parse_quote, Attribute, Error, Expr, Field, GenericArgument, GenericParam, Generics,
+    PathArguments, Type, Visibility,
+};
 
 use super::should_preserve_attr;
 use crate::derive_props::generics::push_type_param;
+
+fn is_option_type(ty: &Type) -> bool {
+    if let Type::Path(type_path) = ty {
+        if let Some(segment) = type_path.path.segments.last() {
+            if segment.ident == "Option" {
+                if let PathArguments::AngleBracketed(args) = &segment.arguments {
+                    return args.args.len() == 1
+                        && matches!(args.args.first(), Some(GenericArgument::Type(_)));
+                }
+            }
+        }
+    }
+    false
+}
 
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
@@ -130,9 +147,24 @@ impl PropField {
     ) -> proc_macro2::TokenStream {
         let Self { name, ty, attr, .. } = self;
         let token_ty = Ident::new("__YewTokenTy", Span::mixed_site());
+        let none_fn_name = format_ident!("{}_none", name, span = Span::mixed_site());
         let build_fn = match attr {
             PropAttr::Required { wrapped_name } => {
                 let check_struct = self.to_check_name(props_name);
+                let none_setter = if is_option_type(ty) {
+                    quote! {
+                        #[doc(hidden)]
+                        #vis fn #none_fn_name<#token_ty>(
+                            &mut self,
+                            token: #token_ty,
+                        ) -> #check_struct< #token_ty > {
+                            self.wrapped.#wrapped_name = ::std::option::Option::Some(::std::option::Option::None);
+                            #check_struct ( ::std::marker::PhantomData )
+                        }
+                    }
+                } else {
+                    quote! {}
+                };
                 quote! {
                     #[doc(hidden)]
                     #vis fn #name<#token_ty>(
@@ -143,9 +175,25 @@ impl PropField {
                         self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
                         #check_struct ( ::std::marker::PhantomData )
                     }
+
+                    #none_setter
                 }
             }
             _ => {
+                let none_setter = if is_option_type(ty) {
+                    quote! {
+                        #[doc(hidden)]
+                        #vis fn #none_fn_name<#token_ty>(
+                            &mut self,
+                            token: #token_ty,
+                        ) -> #token_ty {
+                            self.wrapped.#name = ::std::option::Option::Some(::std::option::Option::None);
+                            token
+                        }
+                    }
+                } else {
+                    quote! {}
+                };
                 quote! {
                     #[doc(hidden)]
                     #vis fn #name<#token_ty>(
@@ -156,6 +204,8 @@ impl PropField {
                         self.wrapped.#name = ::std::option::Option::Some(value.into_prop_value());
                         token
                     }
+
+                    #none_setter
                 }
             }
         };
