@@ -1,43 +1,111 @@
 //! This module contains the implementation yew's virtual nodes' keys.
 
 use std::fmt::{self, Display, Formatter};
-use std::ops::Deref;
+use std::hash::{Hash, Hasher};
+use std::num::NonZeroU64;
 use std::rc::Rc;
 
 use crate::html::ImplicitClone;
 
+fn hash_value<H: Hash + ?Sized>(value: &H) -> NonZeroU64 {
+    use std::hash::DefaultHasher;
+
+    let mut hasher = DefaultHasher::new();
+    value.hash(&mut hasher);
+    NonZeroU64::new(hasher.finish()).unwrap_or(NonZeroU64::MIN)
+}
+
 /// Represents the (optional) key of Yew's virtual nodes.
 ///
-/// Keys are cheap to clone.
-#[derive(Clone, ImplicitClone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+/// Keys are cheap to clone (a single `u64` copy) and to compare (a single
+/// integer comparison). Internally a key stores a hash of the value it was
+/// created from, so no heap allocation is required for numeric types in release
+/// builds.
+///
+/// In debug builds the original string representation is kept alongside the
+/// hash, enabling better diagnostics.
+///
+/// # Type-aware hashing
+///
+/// Keys created from different types are **not** equal even when their string
+/// representations coincide. For example `Key::from("1")` and `Key::from(1u64)`
+/// are distinct.
+#[derive(Clone, ImplicitClone)]
 pub struct Key {
-    key: Rc<str>,
+    hash: NonZeroU64,
+    #[cfg(debug_assertions)]
+    original: Rc<str>,
 }
 
 impl Display for Key {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.key.fmt(f)
+        #[cfg(debug_assertions)]
+        {
+            self.original.fmt(f)
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            write!(f, "#{}", self.hash)
+        }
     }
 }
 
-impl Deref for Key {
-    type Target = str;
+impl fmt::Debug for Key {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        #[cfg(debug_assertions)]
+        {
+            write!(f, "Key({:?})", self.original)
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            write!(f, "Key(#{})", self.hash)
+        }
+    }
+}
 
-    fn deref(&self) -> &str {
-        self.key.as_ref()
+impl PartialEq for Key {
+    fn eq(&self, other: &Self) -> bool {
+        self.hash == other.hash
+    }
+}
+
+impl Eq for Key {}
+
+impl PartialOrd for Key {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Key {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.hash.cmp(&other.hash)
+    }
+}
+
+impl Hash for Key {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.hash.hash(state);
     }
 }
 
 impl From<Rc<str>> for Key {
     fn from(key: Rc<str>) -> Self {
-        Self { key }
+        Self {
+            hash: hash_value(&*key),
+            #[cfg(debug_assertions)]
+            original: key,
+        }
     }
 }
 
 impl From<&'_ str> for Key {
     fn from(key: &'_ str) -> Self {
-        let key: Rc<str> = Rc::from(key);
-        Self::from(key)
+        Self {
+            hash: hash_value(key),
+            #[cfg(debug_assertions)]
+            original: Rc::from(key),
+        }
     }
 }
 
@@ -47,33 +115,85 @@ impl From<String> for Key {
     }
 }
 
-macro_rules! key_impl_from_to_string {
+macro_rules! key_impl_from_numeric {
     ($type:ty) => {
         impl From<$type> for Key {
             fn from(key: $type) -> Self {
-                Self::from(key.to_string().as_str())
+                Self {
+                    hash: hash_value(&key),
+                    #[cfg(debug_assertions)]
+                    original: Rc::from(key.to_string().as_str()),
+                }
             }
         }
     };
 }
 
-key_impl_from_to_string!(char);
-key_impl_from_to_string!(u8);
-key_impl_from_to_string!(u16);
-key_impl_from_to_string!(u32);
-key_impl_from_to_string!(u64);
-key_impl_from_to_string!(u128);
-key_impl_from_to_string!(usize);
-key_impl_from_to_string!(i8);
-key_impl_from_to_string!(i16);
-key_impl_from_to_string!(i32);
-key_impl_from_to_string!(i64);
-key_impl_from_to_string!(i128);
-key_impl_from_to_string!(isize);
+key_impl_from_numeric!(char);
+key_impl_from_numeric!(u8);
+key_impl_from_numeric!(u16);
+key_impl_from_numeric!(u32);
+key_impl_from_numeric!(u64);
+key_impl_from_numeric!(u128);
+key_impl_from_numeric!(usize);
+key_impl_from_numeric!(i8);
+key_impl_from_numeric!(i16);
+key_impl_from_numeric!(i32);
+key_impl_from_numeric!(i64);
+key_impl_from_numeric!(i128);
+key_impl_from_numeric!(isize);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn same_str_equal() {
+        assert_eq!(Key::from("hello"), Key::from("hello"));
+    }
+
+    #[test]
+    fn different_str_not_equal() {
+        assert_ne!(Key::from("hello"), Key::from("world"));
+    }
+
+    #[test]
+    fn same_integer_equal() {
+        assert_eq!(Key::from(42u64), Key::from(42u64));
+    }
+
+    #[test]
+    fn different_integer_not_equal() {
+        assert_ne!(Key::from(1u64), Key::from(2u64));
+    }
+
+    #[test]
+    fn str_and_integer_not_equal() {
+        assert_ne!(Key::from("0"), Key::from(0u64));
+    }
+
+    #[test]
+    fn string_and_str_equal() {
+        assert_eq!(Key::from("abc"), Key::from(String::from("abc")));
+    }
+
+    #[test]
+    fn rc_str_and_str_equal() {
+        assert_eq!(Key::from("abc"), Key::from(Rc::<str>::from("abc")));
+    }
+
+    #[test]
+    fn option_key_niche_optimised() {
+        assert_eq!(
+            std::mem::size_of::<Option<Key>>(),
+            std::mem::size_of::<Key>()
+        );
+    }
+}
 
 #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
-mod test {
+mod wasm_tests {
     use std::rc::Rc;
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
