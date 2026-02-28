@@ -488,6 +488,8 @@ impl ComponentState {
     fn commit_render(&mut self, shared_state: &Shared<Option<ComponentState>>, new_vdom: Html) {
         // Currently not suspended, we remove any previous suspension and update
         // normally.
+        #[cfg(feature = "csr")]
+        let resuming_from_suspension = self.suspension.is_some();
         self.resume_existing_suspension();
 
         match self.render_state {
@@ -509,13 +511,19 @@ impl ComponentState {
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
 
+                // When resuming from suspension, the component's DOM nodes live in a
+                // detached parent. The Suspense ancestor must process the Resume
+                // message and re-render to move children into the live DOM before
+                // effects run. Use the `rendered` queue (not `rendered_first`) so
+                // the scheduler processes the Suspense update and render first.
+                let schedule_as_first = first_render && !resuming_from_suspension;
                 scheduler::push_component_rendered(
                     self.comp_id,
                     Box::new(RenderedRunner {
                         state: shared_state.clone(),
                         first_render,
                     }),
-                    first_render,
+                    schedule_as_first,
                 );
             }
 
