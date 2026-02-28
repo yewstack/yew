@@ -1,5 +1,21 @@
 # Changelog
 
+## ✨ yew **0.22.1** *(2026-02-28)* Changelog
+
+### 🛠 Fixes
+
+- domslot panic fixed caused by suspension [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4003](https://github.com/yewstack/yew/pull/4003)]
+- some Option<T> and &T can be used as children again. e.g. Option<AttrValue> [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4005](https://github.com/yewstack/yew/pull/4005)]
+- fix custom hook compile failure in edition 2024. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3992](https://github.com/yewstack/yew/pull/3992)]
+- Fix stale state in callbacks when multiple events fire rapidly. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3988](https://github.com/yewstack/yew/pull/3988)]
+- fixes invisible svg on Chrome when included with `from_html_unchecked` [[@Jason Heard](https://github.com/101100), [#3970](https://github.com/yewstack/yew/pull/3970)]
+- documentation typo in introduction.mdx. [[@devfbe](https://github.com/devfbe), [#3417](https://github.com/yewstack/yew/pull/3417)]
+
+### ⚙️ Improvements
+- Improved SSR example with meta rendering. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4011](https://github.com/yewstack/yew/pull/4011)]
+- replaced once_cell with std equivalents (LazyLock, OnceLock). [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4010](https://github.com/yewstack/yew/pull/4010)]
+- Updated rust dependencies.
+
 ## ✨ yew **0.22.0** *(2025-12-08)*
 
 #### Changelog
