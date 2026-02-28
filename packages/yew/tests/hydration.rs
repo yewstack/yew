@@ -1223,3 +1223,65 @@ async fn hydration_with_camelcase_svg_elements() {
 
     assert_eq!(counter_text, "Count: 1");
 }
+
+#[wasm_bindgen_test]
+async fn hydration_suspended_child_does_not_trap_sibling_slot() {
+    #[hook]
+    fn use_suspend() -> SuspensionResult<()> {
+        use_future(|| async {})?;
+        Ok(())
+    }
+
+    #[component(SuspendingChild)]
+    fn suspending_child() -> HtmlResult {
+        use_suspend()?;
+        Ok(html! { <div class="suspended">{"child"}</div> })
+    }
+
+    #[component(App)]
+    fn app() -> Html {
+        let trigger = use_state(|| false);
+        {
+            let trigger = trigger.clone();
+            use_effect_with((), move |_| {
+                trigger.set(true);
+            });
+        }
+
+        html! {
+            <div id="result">
+                <Suspense fallback={html!{<div>{"Loading..."}</div>}}>
+                    if *trigger {
+                        <p class="new-sibling">{"new sibling"}</p>
+                    }
+                    <SuspendingChild />
+                </Suspense>
+            </div>
+        }
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    sleep(Duration::ZERO).await;
+
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    sleep(Duration::ZERO).await;
+    sleep(Duration::ZERO).await;
+    sleep(Duration::ZERO).await;
+    sleep(Duration::ZERO).await;
+
+    let result = obtain_result();
+
+    assert_eq!(
+        result.as_str(),
+        r#"<p class="new-sibling">new sibling</p><div class="suspended">child</div>"#,
+    );
+}
