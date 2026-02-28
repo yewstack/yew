@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 
 use proc_macro_error::emit_error;
-use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
     parse_quote_spanned, visit_mut, Expr, ExprCall, ExprClosure, ExprForLoop, ExprIf, ExprLoop,
@@ -52,7 +51,8 @@ impl VisitMut for BodyRewriter {
                             note = "see: https://yew.rs/docs/next/concepts/function-components/hooks"
                         );
                     } else {
-                        *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #ctx_ident) };
+                        // Use Span::call_site() instead of i.span() to fix rust-analyzer nav
+                        *i = parse_quote_spanned! { proc_macro2::Span::call_site() => ::yew::functional::Hook::run(#i, #ctx_ident) };
                     }
 
                     return;
@@ -78,7 +78,8 @@ impl VisitMut for BodyRewriter {
                                 note = "see: https://yew.rs/docs/next/concepts/function-components/hooks"
                             );
                         } else {
-                            *i = parse_quote_spanned! { i.span() => ::yew::functional::Hook::run(#i, #ctx_ident) };
+                            // Use Span::call_site() instead of i.span() to fix rust-analyzer nav
+                            *i = parse_quote_spanned! { proc_macro2::Span::call_site() => ::yew::functional::Hook::run(#i, #ctx_ident) };
                         }
                     } else {
                         visit_mut::visit_expr_macro_mut(self, m);
