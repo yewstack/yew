@@ -10,6 +10,7 @@ use syn::{Expr, Token, TypePath};
 
 use super::{ComponentProps, Prop, PropList, Props};
 use crate::html_tree::HtmlDashedName;
+use crate::DisplayExt;
 
 /// Pop from `Punctuated` without leaving it in a state where it has trailing punctuation.
 fn pop_last_punctuated<T, P>(punctuated: &mut Punctuated<T, P>) -> Option<T> {
@@ -29,7 +30,7 @@ fn is_associated_properties(ty: &TypePath) -> bool {
         if seg.ident == "Properties" {
             if let Some(seg) = segments_it.next_back() {
                 // ... and we can be reasonably sure that the previous segment is a component ...
-                if !crate::non_capitalized_ascii(&seg.ident.to_string()) {
+                if !seg.ident.is_non_capitalized_ascii() {
                     // ... then we assume that this is an associated type like
                     // `Component::Properties`
                     return true;

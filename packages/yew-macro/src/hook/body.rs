@@ -8,6 +8,8 @@ use syn::{
     ExprMatch, ExprWhile, Ident, Item,
 };
 
+use crate::DisplayExt;
+
 #[derive(Debug)]
 pub struct BodyRewriter {
     branch_lock: Arc<Mutex<()>>,
@@ -43,7 +45,7 @@ impl VisitMut for BodyRewriter {
         // Only rewrite hook calls.
         if let Expr::Path(ref m) = &*i.func {
             if let Some(m) = m.path.segments.last().as_ref().map(|m| &m.ident) {
-                if m.to_string().starts_with("use_") {
+                if m.starts_with("use_") {
                     if self.is_branched() {
                         emit_error!(
                             m,
@@ -69,7 +71,7 @@ impl VisitMut for BodyRewriter {
         match &mut *i {
             Expr::Macro(m) => {
                 if let Some(ident) = m.mac.path.segments.last().as_ref().map(|m| &m.ident) {
-                    if ident.to_string().starts_with("use_") {
+                    if ident.starts_with("use_") {
                         if self.is_branched() {
                             emit_error!(
                                 ident,
