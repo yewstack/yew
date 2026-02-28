@@ -570,4 +570,80 @@ mod test {
             let _ = html! { <Child>{&attr_value}</Child> };
         }
     }
+
+    #[test]
+    fn test_bare_none_option_string_prop() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct Props {
+            pub foo: Option<String>,
+        }
+
+        #[component]
+        fn Comp(_props: &Props) -> Html {
+            html! {}
+        }
+
+        let _ = html! { <Comp foo={None} /> };
+        let _ = html! { <Comp foo="hello" /> };
+        let _ = html! { <Comp foo={Some("hello")} /> };
+    }
+
+    #[test]
+    fn test_bare_none_option_attr_value_prop() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct Props {
+            pub foo: Option<AttrValue>,
+        }
+
+        #[component]
+        fn Comp(_props: &Props) -> Html {
+            html! {}
+        }
+
+        let _ = html! { <Comp foo={None} /> };
+        let _ = html! { <Comp foo="hello" /> };
+        let _ = html! { <Comp foo={AttrValue::from("hello")} /> };
+    }
+
+    #[test]
+    fn test_bare_none_option_html_prop() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct Props {
+            pub title: Option<Html>,
+        }
+
+        #[component]
+        fn Comp(_props: &Props) -> Html {
+            html! {}
+        }
+
+        let _ = html! { <Comp title={None} /> };
+        let _ = html! { <Comp title={Option::<Html>::None} /> };
+    }
+
+    #[test]
+    fn test_bare_none_optional_prop_with_default() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct Props {
+            #[prop_or_default]
+            pub foo: Option<String>,
+        }
+
+        #[component]
+        fn Comp(_props: &Props) -> Html {
+            html! {}
+        }
+
+        let _ = html! { <Comp foo={None} /> };
+        let _ = html! { <Comp foo="hello" /> };
+        let _ = html! { <Comp /> };
+    }
 }

@@ -9,6 +9,17 @@ use syn::Expr;
 
 use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
 
+fn is_none_expr(expr: &Expr) -> bool {
+    matches!(
+        expr,
+        Expr::Path(syn::ExprPath {
+            attrs,
+            qself: None,
+            path,
+        }) if attrs.is_empty() && path.is_ident("None")
+    )
+}
+
 struct BaseExpr {
     pub dot_dot: DotDot,
     pub expr: Expr,
@@ -100,8 +111,18 @@ impl ComponentProps {
                     let #token_ident = ::yew::html::AssertAllProps;
                 };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span()=>
-                        let #token_ident = #builder_ident.#label(#token_ident, #value);
+                    if is_none_expr(value) {
+                        let none_setter = Ident::new(
+                            &format!("{}_none", label),
+                            label.span().resolved_at(Span::mixed_site()),
+                        );
+                        quote_spanned! {value.span()=>
+                            let #token_ident = #builder_ident.#none_setter(#token_ident);
+                        }
+                    } else {
+                        quote_spanned! {value.span()=>
+                            let #token_ident = #builder_ident.#label(#token_ident, #value);
+                        }
                     }
                 });
                 let set_children = children_renderer.map(|children| {
@@ -125,8 +146,14 @@ impl ComponentProps {
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                        #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
+                    if is_none_expr(value) {
+                        quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                            #ident.#label = ::std::option::Option::None;
+                        }
+                    } else {
+                        quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                            #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
+                        }
                     }
                 });
                 let set_children = children_renderer.map(|children| {
