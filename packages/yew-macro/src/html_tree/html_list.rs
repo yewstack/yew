@@ -141,11 +141,14 @@ impl Parse for HtmlListProps {
                 return Err(input.error("only a single `key` prop is allowed on a fragment"));
             }
 
-            if prop.label.to_ascii_lowercase_string() != "key" {
-                return Err(syn::Error::new_spanned(
-                    prop.label,
-                    "fragments only accept the `key` prop",
-                ));
+            match String::try_from(&prop.label) {
+                Ok(label) if label.eq_ignore_ascii_case("key") => {}
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        prop.label,
+                        "fragments only accept the `key` prop",
+                    ))
+                }
             }
 
             Some(prop.value)

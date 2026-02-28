@@ -4,10 +4,10 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Ident, Lit, LitStr, Token};
+use syn::{Expr, ExprLit, Ident, Lit, LitStr, Token};
 
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
-use crate::props::{ElementProps, Prop, PropDirective};
+use crate::props::{ElementProps, Prop, PropDirective, PropLabel};
 use crate::stringify::{Stringify, Value};
 use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
 
@@ -199,6 +199,30 @@ impl ToTokens for HtmlElement {
         // other attributes
 
         let attributes = {
+            #[derive(Clone)]
+            enum Key {
+                Static(LitStr),
+                Dynamic(Expr),
+            }
+
+            impl From<&PropLabel> for Key {
+                fn from(value: &PropLabel) -> Self {
+                    match value {
+                        PropLabel::Static(dashed_name) => Self::Static(dashed_name.to_lit_str()),
+                        PropLabel::Dynamic(expr) => Self::Dynamic(expr.clone()),
+                    }
+                }
+            }
+
+            impl ToTokens for Key {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    tokens.extend(match self {
+                        Key::Static(dashed_name) => quote! { #dashed_name },
+                        Key::Dynamic(expr) => quote! { #expr },
+                    });
+                }
+            }
+
             let normal_attrs = attributes.iter().map(
                 |Prop {
                      label,
@@ -207,7 +231,7 @@ impl ToTokens for HtmlElement {
                      ..
                  }| {
                     (
-                        label.to_lit_str(),
+                        Key::from(label),
                         value.optimize_literals_tagged(),
                         *directive,
                     )
@@ -220,26 +244,30 @@ impl ToTokens for HtmlElement {
                      directive,
                      ..
                  }| {
-                    let key = label.to_lit_str();
+                    let key = Key::from(label);
+                    let lit = match &key {
+                        Key::Static(lit) => lit,
+                        Key::Dynamic(_) => unreachable!(),
+                    };
                     Some((
                         key.clone(),
                         match value {
                             Expr::Lit(e) => match &e.lit {
                                 Lit::Bool(b) => Value::Static(if b.value {
-                                    quote! { #key }
+                                    quote! { #lit }
                                 } else {
                                     return None;
                                 }),
                                 _ => Value::Dynamic(quote_spanned! {value.span()=> {
                                     ::yew::utils::__ensure_type::<::std::primitive::bool>(#value);
-                                    #key
+                                    #lit
                                 }}),
                             },
                             expr => Value::Dynamic(
                                 quote_spanned! {expr.span().resolved_at(Span::call_site())=>
                                     if #expr {
                                         ::std::option::Option::Some(
-                                            ::yew::virtual_dom::AttrValue::Static(#key)
+                                            ::yew::virtual_dom::AttrValue::Static(#lit)
                                         )
                                     } else {
                                         ::std::option::Option::None
@@ -261,7 +289,7 @@ impl ToTokens for HtmlElement {
                                 None
                             } else {
                                 Some((
-                                    LitStr::new("class", lit.span()),
+                                    Key::Static(LitStr::new("class", lit.span())),
                                     Value::Static(quote! { #lit }),
                                     None,
                                 ))
@@ -270,7 +298,7 @@ impl ToTokens for HtmlElement {
                         None => {
                             let expr = &classes.value;
                             Some((
-                                LitStr::new("class", classes.label.span()),
+                                Key::Static(LitStr::new("class", classes.label.span())),
                                 Value::Dynamic(quote! {
                                     ::std::convert::Into::<::yew::html::Classes>::into(#expr)
                                 }),
@@ -280,15 +308,13 @@ impl ToTokens for HtmlElement {
                     });
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
-            fn try_into_static(
-                src: &[(LitStr, Value, Option<PropDirective>)],
-            ) -> Option<TokenStream> {
-                if src
-                    .iter()
-                    .any(|(_, _, d)| matches!(d, Some(PropDirective::ApplyAsProperty(_))))
-                {
+            fn try_into_static(src: &[(Key, Value, Option<PropDirective>)]) -> Option<TokenStream> {
+                if src.iter().any(|(k, _, d)| {
+                    matches!(k, Key::Dynamic(_))
+                        || matches!(d, Some(PropDirective::ApplyAsProperty(_)))
+                }) {
                     // don't try to make a static attribute list if there are any properties to
-                    // assign
+                    // assign or any labels are dynamic
                     return None;
                 }
                 let mut kv = Vec::with_capacity(src.len());
@@ -313,13 +339,24 @@ impl ToTokens for HtmlElement {
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
             }
 
-            let attrs = normal_attrs
-                .chain(boolean_attrs)
-                .chain(class_attr)
-                .collect::<Vec<(LitStr, Value, Option<PropDirective>)>>();
-            try_into_static(&attrs).unwrap_or_else(|| {
-                let keys = attrs.iter().map(|(k, ..)| quote! { #k });
-                let values = attrs.iter().map(|(_, v, directive)| {
+            /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Dynamic`
+            fn try_into_dynamic(
+                src: &[(Key, Value, Option<PropDirective>)],
+            ) -> Option<TokenStream> {
+                if src.iter().any(|(k, ..)| {
+                    !matches!(
+                        k,
+                        Key::Dynamic(Expr::Lit(ExprLit {
+                            lit: Lit::Str(_),
+                            ..
+                        })) | Key::Static(_)
+                    )
+                }) {
+                    // use IndexMap if there are any dynamic-expr labels
+                    return None;
+                }
+                let keys = src.iter().map(|(k, ..)| quote! { #k });
+                let values = src.iter().map(|(_, v, directive)| {
                     let value = match directive {
                         Some(PropDirective::ApplyAsProperty(token)) => {
                             quote_spanned!(token.span()=> ::std::option::Option::Some(
@@ -337,11 +374,50 @@ impl ToTokens for HtmlElement {
                     };
                     quote! { #value }
                 });
-                quote! {
+                Some(quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
                         keys: &[#(#keys),*],
                         values: ::std::boxed::Box::new([#(#values),*]),
                     }
+                })
+            }
+
+            let attrs = normal_attrs
+                .chain(boolean_attrs)
+                .chain(class_attr)
+                .collect::<Vec<(Key, Value, Option<PropDirective>)>>();
+            try_into_static(&attrs).or_else(|| try_into_dynamic(&attrs)).unwrap_or_else(|| {
+                let results = attrs.iter()
+                    .map(|(k, v, directive)| {
+                        let value = match directive {
+                            Some(PropDirective::ApplyAsProperty(token)) => {
+                                quote_spanned!(token.span()=> ::std::option::Option::Some(
+                                    ::yew::virtual_dom::AttributeOrProperty::Property(
+                                        ::std::convert::Into::into(#v)
+                                    ))
+                                )
+                            }
+                            None => {
+                                let value = wrap_attr_value(v);
+                                quote! {
+                                    ::std::option::Option::map(#value, ::yew::virtual_dom::AttributeOrProperty::Attribute)
+                                }
+                            },
+                        };
+                        quote! { (::std::convert::Into::into(#k), #value) }
+                    });
+                quote! {
+                    ::yew::virtual_dom::Attributes::IndexMap(
+                        ::std::rc::Rc::new(
+                            ::std::iter::Iterator::collect(
+                                ::std::iter::Iterator::filter_map(
+                                    ::std::iter::IntoIterator::into_iter([#(#results),*]),
+                                    // FIXME verify if i understood it correctly
+                                    |(k, v)| v.map(|v| (k, v))
+                                )
+                            )
+                        )
+                    )
                 }
             })
         };
@@ -350,7 +426,8 @@ impl ToTokens for HtmlElement {
             quote! { ::yew::virtual_dom::listeners::Listeners::None }
         } else {
             let listeners_it = listeners.iter().map(|Prop { label, value, .. }| {
-                let name = &label.name;
+                // TODO: consider making a `ListenerProp` that has dashed name's name and value
+                let name = &<&HtmlDashedName>::try_from(label).unwrap().name;
                 quote! {
                     ::yew::html::#name::Wrapper::__macro_new(#value)
                 }
