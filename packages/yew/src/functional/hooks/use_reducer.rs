@@ -319,8 +319,13 @@ where
 /// implement a `Reducible` trait which defines the associated `Action` type and a
 /// reducer function.
 ///
-/// This hook will always trigger a re-render upon receiving an action. See
-/// [`use_reducer_eq`] if you want the component to only re-render when the state changes.
+/// This hook will trigger a re-render whenever the reducer function produces a new `Rc` value upon
+/// receiving an action. If the reducer function simply returns the original `Rc` then the component
+/// will not re-render. See [`use_reducer_eq`] if you want the component to first compare the old
+/// and new state and only re-render when the state actually changes.
+///
+/// To cause a re-render even if the reducer function returns the same `Rc`, take a look at
+/// [`use_force_update`].
 ///
 /// # Example
 /// ```rust
@@ -405,7 +410,7 @@ where
     T: Reducible + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, |_, _| true)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b))
 }
 
 /// [`use_reducer`] but only re-renders when `prev_state != next_state`.
@@ -418,5 +423,10 @@ where
     T: Reducible + PartialEq + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, T::ne)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b) && a != b)
+}
+
+/// Check if two references point to the same address.
+fn address_eq<T>(a: &T, b: &T) -> bool {
+    std::ptr::eq(a as *const T, b as *const T)
 }
