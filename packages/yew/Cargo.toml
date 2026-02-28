@@ -1,6 +1,6 @@
 [package]
 name = "yew"
-version = "0.22.0"
+version = "0.22.1"
 edition = "2021"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
@@ -23,7 +23,7 @@ indexmap = { version = "2.13", features = ["std"] }
 js-sys.workspace = true
 slab = "0.4"
 wasm-bindgen.workspace = true
-yew-macro = { version = "^0.22.0", path = "../yew-macro" }
+yew-macro = { version = "^0.22.1", path = "../yew-macro" }
 thiserror.workspace = true
 futures = { workspace = true, features = ["std"] }
 html-escape = { version = "0.2.13", optional = true }

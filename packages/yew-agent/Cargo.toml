@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.84.0"
 
 [dependencies]
-yew = { version = "0.22.0", path = "../yew" }
+yew = { version = "0.22.1", path = "../yew" }
 wasm-bindgen.workspace = true
 js-sys.workspace = true
 pinned = "0.1.0"

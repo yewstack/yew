@@ -12,7 +12,7 @@ rand = { workspace = true, features = ["small_rng"] }
 getrandom = { workspace = true }
 wasm-bindgen.workspace = true
 web-sys = { workspace = true, features = ["Window"]}
-yew = { version = "0.22.0", features = ["csr"], path = "../../packages/yew" }
+yew = { version = "0.22.1", features = ["csr"], path = "../../packages/yew" }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ['-O4']

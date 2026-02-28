@@ -4189,7 +4189,7 @@ checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
 
 [[package]]
 name = "yew"
-version = "0.22.0"
+version = "0.22.1"
 dependencies = [
  "base64ct",
  "bincode 2.0.0-rc.3",
@@ -4257,7 +4257,7 @@ dependencies = [
 
 [[package]]
 name = "yew-macro"
-version = "0.22.0"
+version = "0.22.1"
 dependencies = [
  "implicit-clone",
  "prettyplease",

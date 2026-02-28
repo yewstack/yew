@@ -12,7 +12,7 @@ repository = "https://github.com/yewstack/yew"
 rust-version = "1.84.0"
 
 [dependencies]
-yew = { version = "0.22.0", path = "../yew", default-features= false }
+yew = { version = "0.22.1", path = "../yew", default-features= false }
 yew-router-macro = { version = "0.19.0", path = "../yew-router-macro" }
 
 wasm-bindgen.workspace = true
@@ -35,7 +35,7 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 serde = { workspace = true, features = ["derive"] }
-yew = { version = "0.22.0", path = "../yew", features = ["csr"] }
+yew = { version = "0.22.1", path = "../yew", features = ["csr"] }
 
 [dev-dependencies.web-sys]
 workspace = true
