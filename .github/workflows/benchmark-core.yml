@@ -52,7 +52,7 @@ jobs:
           echo "${{ github.event.number }}" > .PR_NUMBER
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-core
           include-hidden-files: true

@@ -78,7 +78,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.number }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: size-cmp-${{ matrix.target }}-info
           include-hidden-files: true
