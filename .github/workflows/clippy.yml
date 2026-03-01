@@ -34,17 +34,31 @@ jobs:
           toolchain: stable
           components: clippy
 
+      - uses: taiki-e/install-action@cargo-hack
+
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: clippy
 
       - name: Lint feature soundness
         if: matrix.profile == 'dev'
-        run: bash ./ci/feature-soundness.sh
+        run: >-
+          cargo hack clippy
+          -p yew -p yew-agent -p yew-router
+          --feature-powerset --no-dev-deps
+          --exclude-features test,serde,not_browser_env
+          --keep-going
+          -- -D warnings
 
       - name: Lint feature soundness
         if: matrix.profile == 'release'
-        run: bash ./ci/feature-soundness-release.sh
+        run: >-
+          cargo hack clippy
+          -p yew -p yew-agent -p yew-router
+          --feature-powerset --no-dev-deps
+          --exclude-features test,serde,not_browser_env
+          --keep-going --release
+          -- -D warnings
 
   clippy:
     name: Clippy Workspace
