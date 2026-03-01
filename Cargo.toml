@@ -58,3 +58,4 @@ chrono = "0.4"
 thiserror = "2.0"
 bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 reqwest = "0.12"
+axum = "0.8"

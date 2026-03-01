@@ -128,6 +128,97 @@ suspended.
 With this approach, developers can build a client-agnostic, SSR-ready
 application with data fetching with very little effort.
 
+### Low-level hooks
+
+Yew ships two low-level hooks for carrying server-computed state to the client:
+
+- **`use_prepared_state!`** runs an (optionally async) closure during SSR, serializes the result, and delivers it to the client during hydration. Ideal for fetching data that the component needs on first render.
+- **`use_transitive_state!`** is similar, but the closure runs _after_ the component's SSR output is produced. Useful for collecting caches or aggregated state.
+
+Both use `bincode` + `base64` under the hood and are embedded in the HTML as `<script>` tags.
+
+### `yew-link`: unified data fetching
+
+The low-level hooks handle the **initial page load** (SSR → hydration), but after hydration, client-side navigation requires a separate data-fetching path (e.g. `use_future_with` + an HTTP client). This means writing the same data logic twice.
+
+The `yew-link` crate provides a higher-level abstraction that unifies all three paths (SSR, hydration, and client-side navigation) behind a single hook:
+
+1. **Define** your data type with the `#[linked_state]` attribute macro.
+2. **Register** a resolver on the server.
+3. **Wrap** your app in `<LinkProvider>`.
+4. **Call** `use_linked_state::<MyData>(input)` in any component.
+
+```rust ,ignore
+use yew_link::{linked_state, LinkedState};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Post { pub title: String, pub body: String }
+
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+        ctx.get_post(*id).await
+    }
+}
+```
+
+The macro generates the `LinkedState` and (server-only) `LinkedStateResolve` trait impls. The resolve body is stripped from WASM bundles automatically.
+
+#### Typed errors
+
+If `resolve` can fail, declare `type Error`:
+
+```rust ,ignore
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+    type Error = ApiError;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Result<Self, ApiError> {
+        ctx.get_post(*id).await.map_err(ApiError::from)
+    }
+}
+```
+
+When `type Error` is omitted, the error type defaults to an uninhabited `Never` type and the resolve body is wrapped in `Ok(…)`.
+
+`use_linked_state` returns `SuspensionResult<Result<Rc<T>, LinkError<T::Error>>>`. The outer layer is for suspense (loading), the inner `Result` carries the resolved value or a `LinkError` that distinguishes application errors (`LinkError::Resolve`) from infrastructure failures (`LinkError::Internal`).
+
+#### Server setup
+
+```rust ,ignore
+use yew_link::{Resolver, linked_state_handler};
+
+let resolver = Arc::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+let app = axum::Router::new()
+    .route("/api/link", axum::routing::post(linked_state_handler))
+    .with_state(resolver);
+```
+
+#### Component usage
+
+```rust ,ignore
+use yew_link::{use_linked_state, LinkProvider};
+
+#[component]
+fn PostPage(props: &PostPageProps) -> HtmlResult {
+    let post = use_linked_state::<Post>(props.id)?.unwrap();
+    Ok(html! { <h1>{ &post.title }</h1> })
+}
+```
+
+During SSR the state is resolved locally via the `Resolver` and embedded in the HTML through `use_prepared_state`. On hydration the client reads the embedded state with zero network requests. On subsequent client-side navigations the hook fetches from the `LinkProvider`'s endpoint URL automatically.
+
+See the [`ssr_router` example](https://github.com/yewstack/yew/tree/master/examples/ssr_router) for a full working demo.
+
 ## Rendering `<head>` Tags
 
 A common need with SSR is rendering dynamic `<head>` content (e.g. `<title>`,

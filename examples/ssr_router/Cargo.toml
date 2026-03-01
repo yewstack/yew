@@ -3,8 +3,6 @@ name = "ssr_router"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [[bin]]
 name = "ssr_router_hydrate"
 required-features = ["hydration"]
@@ -15,8 +13,14 @@ required-features = ["ssr"]
 
 [dependencies]
 yew = { path = "../../packages/yew" }
+yew-link = { path = "../../packages/yew-link" }
+yew-router = { path = "../../packages/yew-router" }
 function_router = { path = "../function_router" }
 log = "0.4"
+rand = { workspace = true }
+getrandom = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 futures = { workspace = true, features = ["std"] }
 hyper-util = "0.1.20"
 
@@ -25,9 +29,8 @@ wasm-bindgen-futures.workspace = true
 wasm-logger.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-yew-router = { path = "../../packages/yew-router" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
-axum = "0.8"
+axum = { workspace = true }
 tower = { version = "0.5", features = ["make"] }
 tower-http = { version = "0.6", features = ["fs"] }
 env_logger = "0.11"
@@ -38,5 +41,5 @@ hyper = { version = "1.4", features = ["server", "http1"] }
 jemallocator = "0.5"
 
 [features]
-ssr = ["yew/ssr"]
-hydration = ["yew/hydration"]
+ssr = ["yew/ssr", "yew-link/ssr", "yew-link/axum"]
+hydration = ["yew/hydration", "yew-link/hydration"]
