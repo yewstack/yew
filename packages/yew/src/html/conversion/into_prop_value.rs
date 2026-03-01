@@ -298,6 +298,24 @@ macro_rules! impl_into_prop_value_via_display {
                 self.clone().into_prop_value()
             }
         }
+        impl IntoPropValue<Option<VNode>> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> Option<VNode> {
+                Some(IntoPropValue::<VNode>::into_prop_value(self))
+            }
+        }
+        impl IntoPropValue<Option<VNode>> for &$from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> Option<VNode> {
+                Some(IntoPropValue::<VNode>::into_prop_value(self))
+            }
+        }
+        impl IntoPropValue<Option<VNode>> for Option<$from_ty> {
+            #[inline(always)]
+            fn into_prop_value(self) -> Option<VNode> {
+                self.map(IntoPropValue::<VNode>::into_prop_value)
+            }
+        }
     };
 }
 
@@ -308,6 +326,18 @@ macro_rules! impl_into_prop_value_via_attr_value {
             #[inline(always)]
             fn into_prop_value(self) -> VNode {
                 VText::new(self).into()
+            }
+        }
+        impl IntoPropValue<Option<VNode>> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> Option<VNode> {
+                Some(VText::new(self).into())
+            }
+        }
+        impl IntoPropValue<Option<VNode>> for Option<$from_ty> {
+            #[inline(always)]
+            fn into_prop_value(self) -> Option<VNode> {
+                self.map(|v| VText::new(v).into())
             }
         }
     };
@@ -366,6 +396,28 @@ mod test {
         let _: VNode = Option::<VNode>::None.into_prop_value();
         let _: VNode = Some(42u32).into_prop_value();
         let _: VNode = Some(true).into_prop_value();
+    }
+
+    #[test]
+    fn test_into_option_vnode() {
+        // T -> Option<VNode>
+        let _: Option<VNode> = "hello".into_prop_value();
+        let _: Option<VNode> = String::from("hello").into_prop_value();
+        let _: Option<VNode> = AttrValue::Static("hello").into_prop_value();
+        let _: Option<VNode> = 42u32.into_prop_value();
+        let _: Option<VNode> = true.into_prop_value();
+        // &T -> Option<VNode>
+        let _: Option<VNode> = (&42u32).into_prop_value();
+        let _: Option<VNode> = (&true).into_prop_value();
+        let s = String::from("hello");
+        let _: Option<VNode> = (&s).into_prop_value();
+        // Option<T> -> Option<VNode>
+        let _: Option<VNode> = Some("hello").into_prop_value();
+        let _: Option<VNode> = Option::<&str>::None.into_prop_value();
+        let _: Option<VNode> = Some(String::from("hello")).into_prop_value();
+        let _: Option<VNode> = Option::<String>::None.into_prop_value();
+        let _: Option<VNode> = Some(42u32).into_prop_value();
+        let _: Option<VNode> = Some(true).into_prop_value();
     }
 
     #[test]
@@ -569,5 +621,31 @@ mod test {
 
             let _ = html! { <Child>{&attr_value}</Child> };
         }
+    }
+
+    #[test]
+    fn test_option_html_prop_compiles() {
+        use crate::prelude::*;
+
+        #[derive(PartialEq, Properties)]
+        pub struct Props {
+            pub title: Option<Html>,
+        }
+
+        #[component]
+        fn Foo(props: &Props) -> Html {
+            match &props.title {
+                Some(title) => html! { <h1>{ title.clone() }</h1> },
+                None => html! {},
+            }
+        }
+
+        let _ = html! { <Foo title="Title" /> };
+
+        let _ = html! { <Foo title={String::from("Title")} /> };
+
+        let _ = html! { <Foo title={Some("Title")} /> };
+
+        let _ = html! { <Foo title={Option::<Html>::None} /> };
     }
 }
