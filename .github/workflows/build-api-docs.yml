@@ -44,7 +44,7 @@ jobs:
           cp -r target/doc/* api-docs/dist/next
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: api-docs
           path: api-docs/
@@ -57,7 +57,7 @@ jobs:
 
       - if: github.event_name == 'pull_request'
         name: Upload pr info
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pr-info
           include-hidden-files: true
