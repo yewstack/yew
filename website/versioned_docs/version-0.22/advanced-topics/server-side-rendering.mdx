@@ -138,7 +138,7 @@ load.
 it has no access to `<head>`. Head tags must therefore be generated **on the server, outside of
 Yew**, and spliced into the HTML template before it is sent to the client.
 
-The [`ssr_router` example](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
+The [`ssr_router` example](https://github.com/yewstack/yew/blob/yew-v0.22.1/examples/ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
 route from the request URL, generates the appropriate `<title>` and `<meta>`
 tags, and injects them into the Trunk-generated `index.html` before
 `</head>`.
@@ -212,8 +212,8 @@ fn main() {
 }
 ```
 
-Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
-Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+Example: [simple_ssr](https://github.com/yewstack/yew/tree/yew-v0.22.1/examples/simple_ssr)
+Example: [ssr_router](https://github.com/yewstack/yew/tree/yew-v0.22.1/examples/ssr_router)
 
 ## Single thread mode
 
@@ -256,7 +256,7 @@ async fn main() {
 }
 ```
 
-Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module)
+Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/yew-v0.22.1/examples/wasi_ssr_module)
 
 :::note
 If you are using the `wasm32-unknown-unknown` target to build a SSR application, you can use the `not_browser_env` feature flag to disable access of browser-specific APIs inside of Yew. This would be useful on serverless platforms like Cloudflare Worker.

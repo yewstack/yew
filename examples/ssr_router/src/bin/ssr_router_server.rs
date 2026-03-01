@@ -9,18 +9,20 @@ use axum::extract::{Query, Request, State};
 use axum::handler::HandlerWithoutStateExt;
 use axum::http::Uri;
 use axum::response::IntoResponse;
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::Router;
 use clap::Parser;
-use function_router::{route_meta, Route, ServerApp, ServerAppProps};
+use function_router::{route_meta, Route};
 use futures::stream::{self, StreamExt};
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
 use hyper_util::server;
+use ssr_router::{LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps};
 use tokio::net::TcpListener;
 use tower::Service;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
+use yew_link::{linked_state_handler, Resolver, ResolverProp};
 use yew_router::prelude::Routable;
 
 // We use jemalloc as it produces better performance.
@@ -45,25 +47,36 @@ fn head_tags_for(path: &str) -> String {
     )
 }
 
+#[derive(Clone)]
+struct AppState {
+    index_html_before: String,
+    index_html_after: String,
+    resolver: ResolverProp,
+}
+
 async fn render(
     url: Uri,
     Query(queries): Query<HashMap<String, String>>,
-    State((index_html_before, index_html_after)): State<(String, String)>,
+    State(state): State<AppState>,
 ) -> impl IntoResponse {
     let path = url.path().to_owned();
 
     // Inject route-specific <head> tags before </head>, outside of Yew rendering.
-    let before = index_html_before.replace("</head>", &format!("{}</head>", head_tags_for(&path)));
+    let before = state
+        .index_html_before
+        .replace("</head>", &format!("{}</head>", head_tags_for(&path)));
+    let resolver = state.resolver.clone();
 
     let renderer = yew::ServerRenderer::<ServerApp>::with_props(move || ServerAppProps {
         url: path.into(),
         queries,
+        resolver,
     });
 
     Body::from_stream(
         stream::once(async move { before })
             .chain(renderer.render_stream())
-            .chain(stream::once(async move { index_html_after }))
+            .chain(stream::once(async move { state.index_html_after }))
             .map(Result::<_, Infallible>::Ok),
     )
 }
@@ -93,10 +106,15 @@ where
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let exec = Executor::default();
-
     env_logger::init();
-
     let opts = Opt::parse();
+
+    let resolver_prop: ResolverProp = Resolver::new()
+        .register_linked::<LinkedPost>(())
+        .register_linked::<LinkedAuthor>(())
+        .register_linked::<LinkedPostMeta>(())
+        .into();
+    let arc_resolver = resolver_prop.0.clone();
 
     let index_html_s = tokio::fs::read_to_string(opts.dir.join("index.html"))
         .await
@@ -105,21 +123,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let (index_html_before, index_html_after) = index_html_s.split_once("<body>").unwrap();
     let mut index_html_before = index_html_before.to_owned();
     index_html_before.push_str("<body>");
-
     let index_html_after = index_html_after.to_owned();
 
-    let app = Router::new().fallback_service(
-        ServeDir::new(opts.dir)
-            .append_index_html_on_directories(false)
-            .fallback(
-                get(render)
-                    .with_state((index_html_before.clone(), index_html_after.clone()))
-                    .into_service(),
-            ),
-    );
+    let app_state = AppState {
+        index_html_before,
+        index_html_after,
+        resolver: resolver_prop,
+    };
+
+    let app = Router::new()
+        .route(
+            "/api/link",
+            post(linked_state_handler).with_state(arc_resolver),
+        )
+        .fallback_service(
+            ServeDir::new(opts.dir)
+                .append_index_html_on_directories(false)
+                .fallback(get(render).with_state(app_state).into_service()),
+        );
 
     let addr: SocketAddr = ([0, 0, 0, 0], 8080).into();
-
     println!("You can view the website at: http://localhost:8080/");
 
     let listener = TcpListener::bind(addr).await?;

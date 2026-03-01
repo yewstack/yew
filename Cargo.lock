@@ -2970,16 +2970,21 @@ dependencies = [
  "env_logger",
  "function_router",
  "futures 0.3.31",
+ "getrandom 0.3.4",
  "hyper",
  "hyper-util",
  "jemallocator",
  "log",
+ "rand 0.9.2",
+ "serde",
+ "serde_json",
  "tokio",
  "tower",
  "tower-http",
  "wasm-bindgen-futures",
  "wasm-logger",
  "yew",
+ "yew-link",
  "yew-router",
 ]
 
@@ -4249,6 +4254,32 @@ name = "yew-autoprops"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "58865a8f2470a6ad839274e05c9627170d32930f39a2348f8c425880a6131792"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "yew-link"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "gloo-net 0.6.0",
+ "log",
+ "serde",
+ "serde_json",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
+ "yew-link-macro",
+]
+
+[[package]]
+name = "yew-link-macro"
+version = "0.1.0"
 dependencies = [
  "proc-macro2",
  "quote",
