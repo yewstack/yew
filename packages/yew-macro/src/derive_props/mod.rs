@@ -30,7 +30,7 @@ pub struct DerivePropsInput {
     preserved_attrs: Vec<Attribute>,
 }
 
-/// AST visitor that replaces all occurences of the keyword `Self` with `new_self`
+/// AST visitor that replaces all occurrences of the keyword `Self` with `new_self`
 struct Normaliser<'ast> {
     new_self: &'ast Ident,
     generics: &'ast Generics,
@@ -152,7 +152,7 @@ impl Parse for DerivePropsInput {
 }
 
 impl DerivePropsInput {
-    /// Replaces all occurences of `Self` in the struct with the actual name of the struct.
+    /// Replaces all occurrences of `Self` in the struct with the actual name of the struct.
     /// Must be called before tokenising the struct.
     pub fn normalise(&mut self) {
         let mut normaliser = Normaliser::new(&self.props_name, &self.generics);

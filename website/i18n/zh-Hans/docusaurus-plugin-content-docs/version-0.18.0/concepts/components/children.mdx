@@ -84,7 +84,7 @@ pub enum Item {
     Secondary(VChild<Secondary>),
 }
 
-// Now, we implment `Into<Html>` so that yew knows how to render `Item`.
+// Now, we implement `Into<Html>` so that yew knows how to render `Item`.
 impl Into<Html> for Item {
     fn into(self) -> Html {
         match self {

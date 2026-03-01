@@ -6,7 +6,7 @@ This example consists of a list which can be manipulated in various ways.
 
 ### Notes
 
-If you would like to view this example as a performance demonstation, run this example in `release` mode.
+If you would like to view this example as a performance demonstration, run this example in `release` mode.
 
 ## Concepts
 

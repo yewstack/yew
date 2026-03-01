@@ -4,7 +4,7 @@ use syn::parse_macro_input;
 
 /// Derive macro used to mark an enum as Routable.
 ///
-/// This macro can only be used on enums. Every varient of the macro needs to be marked
+/// This macro can only be used on enums. Every variant of the macro needs to be marked
 /// with the `at` attribute to specify the URL of the route. It generates an implementation of
 ///  `yew_router::Routable` trait and `const`s for the routes passed which are used with `Route`
 /// component.

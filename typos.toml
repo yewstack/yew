@@ -1,0 +1,5 @@
+[files]
+extend-exclude = ["examples/router/data/syllables.txt", "examples/function_router/data/syllables.txt"]
+
+[default.extend-words]
+ba = "ba"
