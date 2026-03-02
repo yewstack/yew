@@ -3034,6 +3034,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "suspense_ssr"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "clap",
+ "futures 0.3.31",
+ "hyper",
+ "hyper-util",
+ "log",
+ "serde",
+ "tokio",
+ "tower",
+ "tower-http",
+ "wasm-bindgen-futures",
+ "wasm-logger",
+ "yew",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"

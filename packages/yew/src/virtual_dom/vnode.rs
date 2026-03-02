@@ -192,10 +192,12 @@ impl fmt::Debug for VNode {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::rc::Rc;
+
     use futures::future::{FutureExt, LocalBoxFuture};
 
     use super::*;
-    use crate::feat_ssr::VTagKind;
+    use crate::feat_ssr::{SsrContext, VTagKind};
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
 
@@ -206,6 +208,7 @@ mod feat_ssr {
             parent_scope: &'a AnyScope,
             hydratable: bool,
             parent_vtag_kind: VTagKind,
+            ctx: &'a Rc<SsrContext>,
         ) -> LocalBoxFuture<'a, ()> {
             async fn render_into_stream_(
                 this: &VNode,
@@ -213,9 +216,13 @@ mod feat_ssr {
                 parent_scope: &AnyScope,
                 hydratable: bool,
                 parent_vtag_kind: VTagKind,
+                ctx: &Rc<SsrContext>,
             ) {
                 match this {
-                    VNode::VTag(vtag) => vtag.render_into_stream(w, parent_scope, hydratable).await,
+                    VNode::VTag(vtag) => {
+                        vtag.render_into_stream(w, parent_scope, hydratable, ctx)
+                            .await
+                    }
                     VNode::VText(vtext) => {
                         vtext
                             .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
@@ -223,12 +230,12 @@ mod feat_ssr {
                     }
                     VNode::VComp(vcomp) => {
                         vcomp
-                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
                             .await
                     }
                     VNode::VList(vlist) => {
                         vlist
-                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
                             .await
                     }
                     // We are pretty safe here as it's not possible to get a web_sys::Node without
@@ -243,7 +250,7 @@ mod feat_ssr {
                     VNode::VPortal(_) => {}
                     VNode::VSuspense(vsuspense) => {
                         vsuspense
-                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                            .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
                             .await
                     }
 
@@ -252,8 +259,9 @@ mod feat_ssr {
             }
 
             async move {
-                render_into_stream_(self, w, parent_scope, hydratable, parent_vtag_kind).await
-            }.boxed_local()
+                render_into_stream_(self, w, parent_scope, hydratable, parent_vtag_kind, ctx).await
+            }
+            .boxed_local()
         }
     }
 }

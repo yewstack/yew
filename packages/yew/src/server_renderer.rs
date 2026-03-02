@@ -11,6 +11,11 @@ use crate::platform::{LocalHandle, Runtime};
 
 #[cfg(feature = "ssr")]
 pub(crate) mod feat_ssr {
+    use std::cell::{Cell, RefCell};
+    use std::rc::Rc;
+
+    use crate::platform::pinned::oneshot;
+
     /// Passed top-down as context for `render_into_stream` functions to know the current innermost
     /// `VTag` kind to apply appropriate text escaping.
     /// Right now this is used to make `VText` nodes aware of their environment and correctly
@@ -38,6 +43,41 @@ pub(crate) mod feat_ssr {
             }
         }
     }
+
+    pub(crate) struct DeferredSuspense {
+        pub boundary_id: u32,
+        pub content_rx: oneshot::Receiver<String>,
+    }
+
+    pub(crate) struct SsrContext {
+        next_boundary_id: Cell<u32>,
+        deferred: RefCell<Vec<DeferredSuspense>>,
+    }
+
+    impl SsrContext {
+        pub fn new() -> Rc<Self> {
+            Rc::new(Self {
+                next_boundary_id: Cell::new(0),
+                deferred: RefCell::new(Vec::new()),
+            })
+        }
+
+        pub fn next_boundary_id(&self) -> u32 {
+            let id = self.next_boundary_id.get();
+            self.next_boundary_id.set(id + 1);
+            id
+        }
+
+        pub fn push_deferred(&self, deferred: DeferredSuspense) {
+            self.deferred.borrow_mut().push(deferred);
+        }
+
+        pub fn take_deferred(&self) -> Vec<DeferredSuspense> {
+            std::mem::take(&mut *self.deferred.borrow_mut())
+        }
+    }
+
+    pub(crate) const YEW_SWAP_SCRIPT: &str = r#"<script>function $YC(b,s){var bt=document.getElementById(b),st=document.getElementById(s);if(!bt||!st)return;var p=bt.previousSibling,n=bt.nextSibling,d=0;while(n){var nx=n.nextSibling;if(n.nodeType===8){if(n.data==="$?"||n.data.startsWith("<?")){d++}else if(n.data==="/$"||n.data.startsWith("</?")){if(d===0){n.parentNode.removeChild(n);break}d--}}n.parentNode.removeChild(n);n=nx}if(p&&p.nodeType===8&&(p.data==="$?"||p.data.startsWith("<?")))p.parentNode.removeChild(p);var c=st.content||st;while(c.firstChild)bt.parentNode.insertBefore(c.firstChild,bt);bt.parentNode.removeChild(bt);st.parentNode.removeChild(st)}</script>"#;
 }
 
 /// A Yew Server-side Renderer that renders on the current thread.
@@ -123,21 +163,47 @@ where
     }
 
     fn render_stream_inner(self) -> impl Stream<Item = String> {
+        use std::fmt::Write;
+
+        use crate::feat_ssr::{SsrContext, YEW_SWAP_SCRIPT};
+
         let scope = Scope::<COMP>::new(None);
 
         let outer_span = tracing::Span::current();
         BufStream::new(move |mut w| async move {
             let render_span = tracing::debug_span!("render_stream_item");
             render_span.follows_from(outer_span);
+            let ctx = SsrContext::new();
             scope
                 .render_into_stream(
                     &mut w,
                     self.props.into(),
                     self.hydratable,
                     Default::default(),
+                    &ctx,
                 )
                 .instrument(render_span)
                 .await;
+
+            let mut script_emitted = false;
+            loop {
+                let deferred = ctx.take_deferred();
+                if deferred.is_empty() {
+                    break;
+                }
+                if !script_emitted {
+                    let _ = w.write_str(YEW_SWAP_SCRIPT);
+                    script_emitted = true;
+                }
+                for seg in deferred {
+                    let content = seg.content_rx.await.unwrap_or_default();
+                    let _ = write!(
+                        w,
+                        r#"<template id="S:{bid}">{content}</template><script>$YC("B:{bid}","S:{bid}")</script>"#,
+                        bid = seg.boundary_id,
+                    );
+                }
+            }
         })
     }
 

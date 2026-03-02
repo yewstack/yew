@@ -117,13 +117,32 @@ Suspense is a special component that when used on the client side, provides a
 way to show a fallback UI while the component is fetching
 data (suspended) and resumes to normal UI when the data fetching completes.
 
-When the application is rendered on the server side, Yew waits until a
-component is no longer suspended before serializing it into the string
-buffer.
+### Out-of-Order Streaming
+
+When the application is rendered on the server side using `render_stream()`,
+Yew uses out-of-order streaming for `<Suspense />` boundaries. If a
+component's children suspend (e.g. due to an async data fetch via
+`use_prepared_state!`), Yew does not block the stream. Instead:
+
+1. The **fallback UI** is sent to the browser immediately, wrapped in
+   boundary markers.
+2. The rest of the page continues streaming.
+3. Once the suspended content resolves, it is appended to the end of the
+   stream inside a `<template>` tag, along with a small inline script that
+   swaps it into the correct position in the DOM.
+
+This is similar to React's `renderToPipeableStream` pattern. The browser
+can start painting the fallback and loading other resources (CSS, JS, WASM)
+while the server is still fetching data. The result is a faster
+time-to-first-byte and a better perceived loading experience.
+
+If the children resolve synchronously (no suspension), they are rendered
+inline with zero overhead.
 
 During the hydration process, elements within a `<Suspense />` component
-remains dehydrated until all of its child components are no longer
-suspended.
+remain dehydrated until all of its child components are no longer
+suspended. Because the inline swap script runs before the WASM bundle
+loads, the DOM is already in its final state by the time hydration begins.
 
 With this approach, developers can build a client-agnostic, SSR-ready
 application with data fetching with very little effort.
@@ -214,6 +233,7 @@ fn main() {
 
 Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
 Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+Example: [suspense_ssr](https://github.com/yewstack/yew/tree/master/examples/suspense_ssr) - SSR with `<Suspense />` and async data fetching
 
 ## Single thread mode
 

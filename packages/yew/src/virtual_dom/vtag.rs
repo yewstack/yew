@@ -465,9 +465,10 @@ impl PartialEq for VTag {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::fmt::Write;
+    use std::rc::Rc;
 
     use super::*;
-    use crate::feat_ssr::VTagKind;
+    use crate::feat_ssr::{SsrContext, VTagKind};
     use crate::html::AnyScope;
     use crate::platform::fmt::BufWriter;
     use crate::virtual_dom::VText;
@@ -484,6 +485,7 @@ mod feat_ssr {
             w: &mut BufWriter,
             parent_scope: &AnyScope,
             hydratable: bool,
+            ctx: &Rc<SsrContext>,
         ) {
             let _ = w.write_str("<");
             let _ = w.write_str(self.tag());
@@ -535,14 +537,13 @@ mod feat_ssr {
                     let lowercase_tag = tag.to_ascii_lowercase();
                     if !VOID_ELEMENTS.contains(&lowercase_tag.as_ref()) {
                         children
-                            .render_into_stream(w, parent_scope, hydratable, tag.into())
+                            .render_into_stream(w, parent_scope, hydratable, tag.into(), ctx)
                             .await;
 
                         let _ = w.write_str("</");
                         let _ = w.write_str(tag);
                         let _ = w.write_str(">");
                     } else {
-                        // We don't write children of void elements nor closing tags.
                         debug_assert!(
                             match children {
                                 VNode::VList(m) => m.is_empty(),

@@ -1,0 +1,35 @@
+[package]
+name = "suspense_ssr"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "suspense_ssr_hydrate"
+required-features = ["hydration"]
+
+[[bin]]
+name = "suspense_ssr_server"
+required-features = ["ssr"]
+
+[dependencies]
+yew = { path = "../../packages/yew" }
+serde = { workspace = true, features = ["derive"] }
+futures = { workspace = true, features = ["std"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures.workspace = true
+wasm-logger.workspace = true
+log.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs", "time"] }
+axum = "0.8"
+tower = { version = "0.5", features = ["make"] }
+tower-http = { version = "0.6", features = ["fs"] }
+clap = { workspace = true }
+hyper = { version = "1.4", features = ["server", "http1"] }
+hyper-util = "0.1.20"
+
+[features]
+ssr = ["yew/ssr"]
+hydration = ["yew/hydration"]

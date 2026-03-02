@@ -294,7 +294,7 @@ mod feat_ssr {
     use std::fmt::Write;
 
     use super::*;
-    use crate::feat_ssr::VTagKind;
+    use crate::feat_ssr::{SsrContext, VTagKind};
     use crate::html::component::lifecycle::{
         ComponentRenderState, CreateRunner, DestroyRunner, RenderRunner,
     };
@@ -310,11 +310,8 @@ mod feat_ssr {
             props: Rc<COMP::Properties>,
             hydratable: bool,
             parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
         ) {
-            // Rust's Future implementation is stack-allocated and incurs zero runtime-cost.
-            //
-            // If the content of this channel is ready before it is awaited, it is
-            // similar to taking the value from a mutex lock.
             let (tx, rx) = oneshot::channel();
             let state = ComponentRenderState::Ssr { sender: Some(tx) };
 
@@ -342,7 +339,7 @@ mod feat_ssr {
             let html = rx.await.unwrap();
 
             let self_any_scope = AnyScope::from(self.clone());
-            html.render_into_stream(w, &self_any_scope, hydratable, parent_vtag_kind)
+            html.render_into_stream(w, &self_any_scope, hydratable, parent_vtag_kind, ctx)
                 .await;
 
             if let Some(prepared_state) = self.get_component().unwrap().prepare_state() {

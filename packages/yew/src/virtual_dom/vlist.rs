@@ -254,13 +254,14 @@ mod test {
 #[cfg(feature = "ssr")]
 mod feat_ssr {
     use std::fmt::Write;
+    use std::rc::Rc;
     use std::task::Poll;
 
     use futures::stream::StreamExt;
     use futures::{join, pin_mut, poll, FutureExt};
 
     use super::*;
-    use crate::feat_ssr::VTagKind;
+    use crate::feat_ssr::{SsrContext, VTagKind};
     use crate::html::AnyScope;
     use crate::platform::fmt::{self, BufWriter};
 
@@ -271,12 +272,13 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
             parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
         ) {
             match &self[..] {
                 [] => {}
                 [child] => {
                     child
-                        .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                        .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
                         .await;
                 }
                 _ => {
@@ -286,6 +288,7 @@ mod feat_ssr {
                         parent_scope: &AnyScope,
                         hydratable: bool,
                         parent_vtag_kind: VTagKind,
+                        ctx: &Rc<SsrContext>,
                     ) where
                         I: Iterator<Item = &'a VNode>,
                     {
@@ -298,8 +301,14 @@ mod feat_ssr {
                                 //
                                 // We capture and return the mutable reference to avoid this.
 
-                                m.render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
-                                    .await;
+                                m.render_into_stream(
+                                    w,
+                                    parent_scope,
+                                    hydratable,
+                                    parent_vtag_kind,
+                                    ctx,
+                                )
+                                .await;
                                 w
                             };
                             pin_mut!(child_fur);
@@ -307,8 +316,6 @@ mod feat_ssr {
                             match poll!(child_fur.as_mut()) {
                                 Poll::Pending => {
                                     let (mut next_w, next_r) = fmt::buffer();
-                                    // Move buf writer into an async block for it to be dropped at
-                                    // the end of the future.
                                     let rest_render_fur = async move {
                                         render_child_iter(
                                             children,
@@ -316,10 +323,10 @@ mod feat_ssr {
                                             parent_scope,
                                             hydratable,
                                             parent_vtag_kind,
+                                            ctx,
                                         )
                                         .await;
                                     }
-                                    // boxing to avoid recursion
                                     .boxed_local();
 
                                     let transfer_fur = async move {
@@ -342,7 +349,7 @@ mod feat_ssr {
                     }
 
                     let children = self.iter();
-                    render_child_iter(children, w, parent_scope, hydratable, parent_vtag_kind)
+                    render_child_iter(children, w, parent_scope, hydratable, parent_vtag_kind, ctx)
                         .await;
                 }
             }
