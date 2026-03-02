@@ -16,13 +16,14 @@ required-features = ["ssr"]
 [dependencies]
 yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
-log = "0.4"
 futures = { workspace = true, features = ["std"] }
 hyper-util.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-web.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
-wasm-logger.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 yew-router = { path = "../../packages/yew-router" }

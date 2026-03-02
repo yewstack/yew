@@ -15,11 +15,12 @@ required-features = ["ssr"]
 yew = { path = "../../packages/yew" }
 serde = { workspace = true, features = ["derive"] }
 futures = { workspace = true, features = ["std"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-web.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
-wasm-logger.workspace = true
-log.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs", "time"] }

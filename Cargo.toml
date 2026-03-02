@@ -63,3 +63,6 @@ tower = { version = "0.5", features = ["make"] }
 tower-http = { version = "0.6", features = ["fs"] }
 hyper = { version = "1.4", features = ["server", "http1"] }
 hyper-util = "0.1.20"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt"] }
+tracing-web = "0.1"
