@@ -59,7 +59,7 @@ enum Route {
     NotFound,
 }
 
-#[function_component(Secure)]
+#[component(Secure)]
 fn secure() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -82,7 +82,7 @@ fn switch(routes: Route) -> Html {
     }
 }
 
-#[function_component(Main)]
+#[component(Main)]
 fn app() -> Html {
     html! {
         <BrowserRouter>
@@ -181,7 +181,7 @@ enum Route {
 以下是实现一个按钮的示例，该按钮在点击时导航到 `Home` 路由。
 
 ```rust ,ignore
-#[function_component(MyComponent)]
+#[component(MyComponent)]
 pub fn my_component() -> Html {
     let navigator = use_navigator().unwrap();
     let onclick = Callback::from(move |_| navigator.push(&Route::Home));
@@ -206,7 +206,7 @@ pub fn my_component() -> Html {
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-#[function_component(NavItems)]
+#[component(NavItems)]
 pub fn nav_items() -> Html {
     let navigator = use_navigator().unwrap();
 
@@ -262,7 +262,7 @@ fn view(&self, ctx: &Context<Self>) -> Html {
 `yew-router` 还在 prelude 中提供了一个 `<Redirect />` 组件。它可以用于实现与导航器 API 类似的效果。该组件接受一个 `to` 属性作为目标路由。当渲染 `<Redirect/>` 时，用户将被重定向到属性中指定的路由。以下是一个示例：
 
 ```rust ,ignore
-#[function_component(SomePage)]
+#[component(SomePage)]
 fn some_page() -> Html {
     // 建立对 `use_user` 的钩子
     let user = match use_user() {
@@ -435,7 +435,7 @@ fn switch_settings(route: SettingsRoute) -> Html {
     }
 }
 
-#[function_component(App)]
+#[component(App)]
 pub fn app() -> Html {
     html! {
         <BrowserRouter>

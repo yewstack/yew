@@ -109,7 +109,7 @@ pub struct UseStateHandle<T> {
 impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseStateHandle")
-            .field("value", &format!("{:?}", self.inner.value))
+            .field("value", &format!("{:?}", **self))
             .finish()
     }
 }
@@ -132,7 +132,7 @@ impl<T> Deref for UseStateHandle<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &(*self.inner).value
+        &self.inner.value
     }
 }
 

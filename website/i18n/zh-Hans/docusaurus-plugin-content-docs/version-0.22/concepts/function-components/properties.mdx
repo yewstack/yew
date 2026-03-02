@@ -43,26 +43,26 @@ pub struct Props {
 
 ## 在函数组件中使用
 
-属性 `#[function_component]` 允许在函数参数中选择性地接收 Props。要提供它们，可以通过 `html!` 宏中的属性进行赋值。
+属性 `#[component]` 允许在函数参数中选择性地接收 Props。要提供它们，可以通过 `html!` 宏中的属性进行赋值。
 
 <Tabs>
   <TabItem value="with-props" label="With Props">
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
     html! { <>{"Am I loading? - "}{is_loading}</> }
 }
 
 // 然后提供属性
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }
@@ -73,15 +73,15 @@ fn App() -> Html {
   <TabItem value="no-props" label="No Props">
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // 没有属性需要提供
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld /> }
 }
@@ -107,7 +107,7 @@ fn App() -> Html {
 使用 `Default` trait 的字段类型的默认值初始化属性值。
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -117,7 +117,7 @@ pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -127,12 +127,12 @@ fn HelloWorld(&Props { is_loading }: &Props) -> Html {
 }
 
 // 这样使用默认值
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <HelloWorld /> }
 }
 // 或者不覆盖默认值
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }
@@ -158,7 +158,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -168,12 +168,12 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 }
 
 // 这样使用默认值
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <Hello /> }
 }
 // 或者不覆盖默认值
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }
@@ -202,7 +202,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -212,12 +212,12 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 }
 
 // 使用默认值
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <Hello /> }
 }
 // 或者不覆盖默认值
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }
@@ -251,7 +251,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -260,7 +260,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     }
 }
 
-#[function_component]
+#[component]
 fn App() -> Html {
     // highlight-start
     let pre_made_props = yew::props! {
@@ -279,9 +279,9 @@ fn App() -> Html {
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-// #[autoprops] 宏必须出现在 #[function_component] 之前，顺序很重要
+// #[autoprops] 宏必须出现在 #[component] 之前，顺序很重要
 #[autoprops]
-#[function_component]
+#[component]
 fn Greetings(
     #[prop_or_default]
     is_loading: bool,

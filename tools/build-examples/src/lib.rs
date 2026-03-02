@@ -1,5 +1,5 @@
-use std::fs;
 use std::path::Path;
+use std::{env, fs};
 
 use serde::Deserialize;
 use toml::Table;
@@ -13,6 +13,16 @@ struct GitHubRelease {
 }
 
 pub fn get_latest_wasm_opt_version() -> String {
+    if let Ok(version) = env::var("LATEST_WASM_OPT_VERSION") {
+        if !version.is_empty() {
+            return version;
+        }
+    }
+
+    get_latest_wasm_opt_version_from_api()
+}
+
+fn get_latest_wasm_opt_version_from_api() -> String {
     let url = "https://api.github.com/repos/WebAssembly/binaryen/releases/latest";
     let client = reqwest::blocking::Client::new();
 

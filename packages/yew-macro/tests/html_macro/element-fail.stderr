@@ -465,14 +465,14 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<VNode>`
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
              `&'static str` implements `IntoPropValue<Option<String>>`
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
-             `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
@@ -491,8 +491,8 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
              `Option<F>` implements `IntoPropValue<Option<yew::Callback<I, O>>>`
              `Option<Rc<str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
+             `Option<T>` implements `IntoPropValue<VNode>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
-             `Option<VNode>` implements `IntoPropValue<VNode>`
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
   --> tests/html_macro/element-fail.rs:48:22
@@ -510,8 +510,8 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
              `Option<F>` implements `IntoPropValue<Option<yew::Callback<I, O>>>`
              `Option<Rc<str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
+             `Option<T>` implements `IntoPropValue<VNode>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
-             `Option<VNode>` implements `IntoPropValue<VNode>`
 
 error[E0277]: the trait bound `{integer}: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:51:28
@@ -627,8 +627,8 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
              `Option<F>` implements `IntoPropValue<Option<yew::Callback<I, O>>>`
              `Option<Rc<str>>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<String>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
+             `Option<T>` implements `IntoPropValue<VNode>`
              `Option<VChild<T>>` implements `IntoPropValue<Option<ChildrenRenderer<C>>>`
-             `Option<VNode>` implements `IntoPropValue<VNode>`
 
 error[E0277]: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
   --> tests/html_macro/element-fail.rs:58:29
@@ -665,14 +665,14 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
    |                            ^^^^^^^^^^^ the trait `IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not implemented for `NotToString`
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<VNode>`
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
              `&'static str` implements `IntoPropValue<Option<String>>`
              `&'static str` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `&'static str` implements `IntoPropValue<String>`
-             `&'static str` implements `IntoPropValue<implicit_clone::unsync::string::IString>`
-             `&ChildrenRenderer<VNode>` implements `IntoPropValue<VNode>`
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied

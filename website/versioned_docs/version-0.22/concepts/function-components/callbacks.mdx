@@ -23,14 +23,14 @@ let result = cb.emit(String::from("Bob")); // call the callback
 A common pattern in yew is to create a callback and pass it down as a prop.
 
 ```rust
-use yew::{function_component, html, Html, Properties, Callback};
+use yew::{component, html, Html, Properties, Callback};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub on_name_entry: Callback<String>,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
 
     props.on_name_entry.emit(String::from("Bob"));
@@ -39,7 +39,7 @@ fn HelloWorld(props: &Props) -> Html {
 }
 
 // Then supply the prop
-#[function_component]
+#[component]
 fn App() -> Html {
     let on_name_entry: Callback<String> = Callback::from(move |name: String| {
         let greeting = format!("Hey, {}!", name);
@@ -58,9 +58,9 @@ Callbacks are also used to hook into DOM events.
 For example, here we define a callback that will be called when the user clicks the button:
 
 ```rust
-use yew::{function_component, html, Html, Properties, Callback};
+use yew::{component, html, Html, Properties, Callback};
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let onclick = Callback::from(move |_| {
         let greeting = String::from("Hi there");

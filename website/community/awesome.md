@@ -5,6 +5,7 @@ description: 'Community projects built using yew'
 
 ## Projects
 
+- [Fullstack application with infrastructure](https://github.com/alelavelli/rust-fullstack-web-application) - Complete production-ready application with `yew` as frontend, `axum` as backend, `docker compose` as infrastructure, `mongodb` as database.
 - [Realworld example](https://github.com/jetli/rust-yew-realworld-example-app) - Exemplary real world app built with Rust + Yew + WebAssembly. It utilizes Yew's latest `function components` and `hooks`. It also supports desktop application powered by [Tauri](https://github.com/tauri-apps/tauri).
 - [webapp.rs](https://github.com/saschagrunert/webapp.rs) - A web application completely written in Rust, frontend is built with Yew.
 - [Rust-Full-Stack](https://github.com/steadylearner/Rust-Full-Stack) - Easily testable and working Rust codes with blog posts to explain them.

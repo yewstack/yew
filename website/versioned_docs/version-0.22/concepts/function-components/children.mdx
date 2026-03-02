@@ -5,9 +5,9 @@ title: 'Children'
 `Children` is a special prop type that allows you to receive nested `Html` that is provided like html child elements.
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {
         // highlight-start
@@ -25,7 +25,7 @@ pub struct Props {
     pub children: Html, // the field name `children` is important!
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! {
         <div class="very-stylized-container">

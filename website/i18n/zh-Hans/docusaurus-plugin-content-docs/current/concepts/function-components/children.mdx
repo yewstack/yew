@@ -5,9 +5,9 @@ title: '子元素 (Children)'
 `Children` 是一种特殊的属性类型，允许您接收嵌套的 `Html`，就像 html 子元素一样提供。
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
-#[function_component]
+#[component]
 fn App() -> Html {
     html! {
         // highlight-start
@@ -25,7 +25,7 @@ pub struct Props {
     pub children: Html, // `children` 键很重要！
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     html! {
         <div class="very-stylized-container">

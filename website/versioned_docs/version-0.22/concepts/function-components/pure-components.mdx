@@ -10,14 +10,14 @@ from its props when its view function does not mutate its state or has other sid
 The example below is a pure component. For a given prop `is_loading` it will always result in the same `Html` without any side effects.
 
 ```rust
-use yew::{Properties, function_component, Html, html};
+use yew::{Properties, component, Html, html};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     if props.is_loading {
         html! { "Loading" }

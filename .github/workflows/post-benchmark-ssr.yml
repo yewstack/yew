@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           run-id: ${{ github.event.workflow_run.id }}

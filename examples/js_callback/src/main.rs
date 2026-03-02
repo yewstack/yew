@@ -1,4 +1,5 @@
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -7,7 +8,7 @@ use yew::suspense::{use_future, SuspensionResult};
 
 mod bindings;
 
-static WASM_BINDGEN_SNIPPETS_PATH: OnceCell<String> = OnceCell::new();
+static WASM_BINDGEN_SNIPPETS_PATH: OnceLock<String> = OnceLock::new();
 
 #[function_component]
 fn Important() -> Html {

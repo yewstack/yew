@@ -77,7 +77,7 @@ yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 ```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let counter = use_state(|| 0);
     let onclick = {

@@ -1,16 +1,16 @@
 ---
 title: '泛型元件'
-description: '函數元件的 #[function_component] 屬性'
+description: '函數元件的 #[component] 屬性'
 ---
 
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-`#[function_component]` 屬性也適用於用於建立泛型元件的泛型函數。
+`#[component]` 屬性也適用於用於建立泛型元件的泛型函數。
 
 ```rust
 use std::fmt::Display;
-use yew::{function_component, html, Properties, Html};
+use yew::{component, html, Properties, Html};
 
 #[derive(Properties, PartialEq)]
 pub struct Props<T>
@@ -20,7 +20,7 @@ where
     data: T,
 }
 
-#[function_component]
+#[component]
 pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
 where
     T: PartialEq + Clone + Into<Html>,

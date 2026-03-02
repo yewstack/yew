@@ -43,26 +43,26 @@ pub struct Props {
 
 ## 関数コンポーネントでの使用
 
-属性 `#[function_component]` は、関数の引数で Props を選択的に受け取ることを可能にします。それらを提供するには、`html!` マクロ内の属性を通じて割り当てることができます。
+属性 `#[component]` は、関数の引数で Props を選択的に受け取ることを可能にします。それらを提供するには、`html!` マクロ内の属性を通じて割り当てることができます。
 
 <Tabs>
   <TabItem value="with-props" label="With Props">
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
     html! { <>{"Am I loading? - "}{is_loading}</> }
 }
 
 // そしてプロパティを提供します
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }
@@ -73,15 +73,15 @@ fn App() -> Html {
   <TabItem value="no-props" label="No Props">
 
 ```rust
-use yew::{function_component, html, Html};
+use yew::{component, html, Html};
 
-#[function_component]
+#[component]
 fn HelloWorld() -> Html {
     html! { "Hello world" }
 }
 
 // 提供するプロパティはありません
-#[function_component]
+#[component]
 fn App() -> Html {
     html! { <HelloWorld /> }
 }
@@ -107,7 +107,7 @@ fn App() -> Html {
 `Default` トレイトを使用して、フィールド型のデフォルト値でプロパティ値を初期化します。
 
 ```rust
-use yew::{function_component, html, Html, Properties};
+use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -117,7 +117,7 @@ pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -127,12 +127,12 @@ fn HelloWorld(&Props { is_loading }: &Props) -> Html {
 }
 
 // デフォルト値を使用する
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <HelloWorld /> }
 }
 // またはデフォルト値を上書きしない
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }
@@ -158,7 +158,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -168,12 +168,12 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 }
 
 // デフォルト値を使用する
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <Hello /> }
 }
 // またはデフォルト値を上書きしない
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }
@@ -202,7 +202,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -212,12 +212,12 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
 }
 
 // デフォルト値を使用する
-#[function_component]
+#[component]
 fn Case1() -> Html {
     html! { <Hello /> }
 }
 // またはデフォルト値を上書きしない
-#[function_component]
+#[component]
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }
@@ -251,7 +251,7 @@ pub struct Props {
     pub name: AttrValue,
 }
 
-#[function_component]
+#[component]
 fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
@@ -260,7 +260,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     }
 }
 
-#[function_component]
+#[component]
 fn App() -> Html {
     // highlight-start
     let pre_made_props = yew::props! {
@@ -279,9 +279,9 @@ fn App() -> Html {
 use yew::prelude::*;
 use yew_autoprops::autoprops;
 
-// #[autoprops] マクロは #[function_component] の前に配置する必要があります。順序が重要です。
+// #[autoprops] マクロは #[component] の前に配置する必要があります。順序が重要です。
 #[autoprops]
-#[function_component]
+#[component]
 fn Greetings(
     #[prop_or_default]
     is_loading: bool,

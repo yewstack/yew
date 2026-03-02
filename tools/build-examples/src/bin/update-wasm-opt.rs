@@ -31,6 +31,12 @@ fn main() -> ExitCode {
             continue;
         }
 
+        // Skip hidden directories (e.g., .cargo)
+        let file_name = entry.file_name();
+        if file_name.to_string_lossy().starts_with('.') {
+            continue;
+        }
+
         let example = path
             .file_name()
             .expect("Failed to get directory name")

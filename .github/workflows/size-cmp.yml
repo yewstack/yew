@@ -20,14 +20,14 @@ jobs:
 
     steps:
       - name: Checkout master
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ matrix.target == 'master' }}
         with:
           repository: "yewstack/yew"
           ref: master
 
       - name: Checkout pull request
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ matrix.target == 'pr' }}
 
       - name: Write Optimisation Flags
@@ -59,8 +59,18 @@ jobs:
         with:
           version: "latest"
 
+      - name: Get latest wasm-opt version
+        id: wasm-opt
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: WebAssembly/binaryen
+          excludes: prerelease, draft
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build examples
         run: cargo run -p build-examples --bin build-examples
+        env:
+          LATEST_WASM_OPT_VERSION: ${{ steps.wasm-opt.outputs.release }}
 
       - name: Collect size information
         run: python3 ci/collect_sizes.py
@@ -68,7 +78,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.number }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: size-cmp-${{ matrix.target }}-info
           include-hidden-files: true

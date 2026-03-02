@@ -16,9 +16,13 @@ pub struct BRaw {
 
 impl BRaw {
     fn create_elements(html: &str, parent_namespace: Option<&str>) -> Vec<Node> {
-        let div = gloo::utils::document()
-            .create_element_ns(parent_namespace, "div")
-            .unwrap();
+        let div = if parent_namespace.is_some() {
+            gloo::utils::document()
+                .create_element_ns(parent_namespace, "div")
+                .unwrap()
+        } else {
+            gloo::utils::document().create_element("div").unwrap()
+        };
         div.set_inner_html(html);
         let children = div.child_nodes();
         let children = js_sys::Array::from(&children);

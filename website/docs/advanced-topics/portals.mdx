@@ -59,6 +59,14 @@ once targeting the element inside the shadow root and once targeting the host el
 in mind that **open** shadow roots work fine. If this impacts you, feel free to open a bug report
 about it.
 
+## SSR limitation
+
+Portals are **not rendered during server-side rendering**. They require a live
+DOM host element (`web_sys::Element`) which is unavailable on the server.
+If you need to render content into `<head>` during SSR, see the
+[head rendering section](./server-side-rendering#rendering-head-tags)
+in the SSR documentation.
+
 ## Further reading
 
 - [Portals example](https://github.com/yewstack/yew/tree/master/examples/portals)

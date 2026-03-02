@@ -643,7 +643,7 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, DynamicDomSlot, Fragment};
+    use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot, Fragment};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -694,11 +694,10 @@ mod feat_hydration {
                 _ => None,
             };
 
-            // These two references need to be fixed before the component is used.
-            // Our own slot gets fixed on the first render.
-            // The sibling slot gets shared with the caller to fix up when continuing through
-            // existing DOM.
-            let own_slot = DynamicDomSlot::new_debug_trapped();
+            let own_slot = match fragment.front().cloned() {
+                Some(first_node) => DynamicDomSlot::new(DomSlot::at(first_node)),
+                None => DynamicDomSlot::new(DomSlot::at_end()),
+            };
             let shared_slot = own_slot.clone();
             let sibling_slot = DynamicDomSlot::new_debug_trapped();
             if let Some(prev_next_sibling) = prev_next_sibling {

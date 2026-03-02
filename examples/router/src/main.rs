@@ -70,8 +70,6 @@ impl Component for App {
                         <a href="https://yew.rs">{ "Yew" }</a>
                         { " using " }
                         <a href="https://bulma.io">{ "Bulma" }</a>
-                        { " and images from " }
-                        <a href="https://unsplash.com">{ "Unsplash" }</a>
                     </div>
                 </footer>
             </BrowserRouter>

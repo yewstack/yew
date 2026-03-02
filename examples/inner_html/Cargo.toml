@@ -7,8 +7,8 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
-gloo = "0.11"
+gloo.workspace = true
 
 [dependencies.web-sys]
-version = "0.3"
+workspace = true
 features = ["console", "Document", "Element", "Node", "Window"]

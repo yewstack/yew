@@ -35,7 +35,12 @@ pub struct UseReducerHandle<T>
 where
     T: Reducible,
 {
-    value: Rc<T>,
+    /// Shared source of truth, updated synchronously by dispatch.
+    current_state: Rc<RefCell<Rc<T>>>,
+    /// Accumulates `Rc<T>` clones returned by [`Deref::deref`] so that references
+    /// remain valid for the lifetime of this handle. Reset on each re-render when
+    /// a new handle is created.
+    deref_history: RefCell<Vec<Rc<T>>>,
     dispatch: DispatchFn<T>,
 }
 
@@ -63,7 +68,34 @@ where
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &self.value
+        let rc = match self.current_state.try_borrow() {
+            Ok(shared) => Rc::clone(&*shared),
+            Err(_) => {
+                // RefCell is mutably borrowed (during dispatch). Use the last
+                // value we successfully read.
+                let history = self.deref_history.borrow();
+                Rc::clone(history.last().expect("deref_history is never empty"))
+            }
+        };
+
+        let ptr: *const T = Rc::as_ptr(&rc);
+
+        // Only store a new entry when the Rc allocation differs from the most
+        // recent one, avoiding unbounded growth from repeated reads of the same
+        // state.
+        {
+            let mut history = self.deref_history.borrow_mut();
+            if !Rc::ptr_eq(history.last().expect("deref_history is never empty"), &rc) {
+                history.push(rc);
+            }
+        }
+
+        // SAFETY: `ptr` points into the heap allocation of an `Rc<T>`. That Rc
+        // is kept alive in `self.deref_history` (either the entry we just pushed,
+        // or a previous entry with the same allocation). `deref_history` lives as
+        // long as `self`, and `Rc` guarantees its heap allocation stays live while
+        // any clone exists. Therefore `ptr` is valid for the lifetime of `&self`.
+        unsafe { &*ptr }
     }
 }
 
@@ -72,8 +104,17 @@ where
     T: Reducible,
 {
     fn clone(&self) -> Self {
+        // Take a fresh snapshot so the clone's deref_history is never empty.
+        let snapshot = match self.current_state.try_borrow() {
+            Ok(shared) => Rc::clone(&*shared),
+            Err(_) => {
+                let history = self.deref_history.borrow();
+                Rc::clone(history.last().expect("deref_history is never empty"))
+            }
+        };
         Self {
-            value: Rc::clone(&self.value),
+            current_state: Rc::clone(&self.current_state),
+            deref_history: RefCell::new(vec![snapshot]),
             dispatch: Rc::clone(&self.dispatch),
         }
     }
@@ -84,8 +125,17 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = if let Ok(rc_ref) = self.current_state.try_borrow() {
+            format!("{:?}", *rc_ref)
+        } else {
+            let history = self.deref_history.borrow();
+            format!(
+                "{:?}",
+                **history.last().expect("deref_history is never empty")
+            )
+        };
         f.debug_struct("UseReducerHandle")
-            .field("value", &format!("{:?}", self.value))
+            .field("value", &value)
             .finish()
     }
 }
@@ -95,7 +145,7 @@ where
     T: Reducible + PartialEq,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        self.value == rhs.value
+        **self == **rhs
     }
 }
 
@@ -239,10 +289,15 @@ where
                 }
             });
 
-            let value = state.current_state.borrow().clone();
+            let current_state = state.current_state.clone();
+            let snapshot = state.current_state.borrow().clone();
             let dispatch = state.dispatch.clone();
 
-            UseReducerHandle { value, dispatch }
+            UseReducerHandle {
+                current_state,
+                deref_history: RefCell::new(vec![snapshot]),
+                dispatch,
+            }
         }
     }
 
@@ -264,8 +319,13 @@ where
 /// implement a `Reducible` trait which defines the associated `Action` type and a
 /// reducer function.
 ///
-/// This hook will always trigger a re-render upon receiving an action. See
-/// [`use_reducer_eq`] if you want the component to only re-render when the state changes.
+/// This hook will trigger a re-render whenever the reducer function produces a new `Rc` value upon
+/// receiving an action. If the reducer function simply returns the original `Rc` then the component
+/// will not re-render. See [`use_reducer_eq`] if you want the component to first compare the old
+/// and new state and only re-render when the state actually changes.
+///
+/// To cause a re-render even if the reducer function returns the same `Rc`, take a look at
+/// [`use_force_update`].
 ///
 /// # Example
 /// ```rust
@@ -350,7 +410,7 @@ where
     T: Reducible + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, |_, _| true)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b))
 }
 
 /// [`use_reducer`] but only re-renders when `prev_state != next_state`.
@@ -363,5 +423,10 @@ where
     T: Reducible + PartialEq + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, T::ne)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b) && a != b)
+}
+
+/// Check if two references point to the same address.
+fn address_eq<T>(a: &T, b: &T) -> bool {
+    std::ptr::eq(a as *const T, b as *const T)
 }

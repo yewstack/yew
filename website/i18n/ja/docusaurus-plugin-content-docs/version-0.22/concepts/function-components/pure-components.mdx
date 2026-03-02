@@ -7,14 +7,14 @@ title: '純粋コンポーネント'
 この例は純粋コンポーネントです。与えられたプロパティ `is_loading` に対して、常に同じ `Html` を返し、副作用はありません。
 
 ```rust
-use yew::{Properties, function_component, Html, html};
+use yew::{Properties, component, Html, html};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }
 
-#[function_component]
+#[component]
 fn HelloWorld(props: &Props) -> Html {
     if props.is_loading {
         html! { "Loading" }
