@@ -24,11 +24,11 @@ impl Component for GrandParent {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ButtonClick(children_name) => {
+            Msg::ButtonClick(child_name) => {
                 // Update the shared state
                 let shared_state = Rc::make_mut(&mut self.state);
                 shared_state.total_clicks += 1;
-                shared_state.last_clicked = Some(children_name);
+                shared_state.last_clicked = Some(child_name);
                 true
             }
         }

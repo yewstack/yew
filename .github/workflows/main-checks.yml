@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Check spelling
-        uses: crate-ci/typos@v1.39.2
+        uses: crate-ci/typos@v1.44.0
 
   doc_tests:
     name: Documentation Tests

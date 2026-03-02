@@ -59,7 +59,7 @@
  - Better diagnostics for byte literals in `html!`. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3441](https://github.com/yewstack/yew/pull/3441)]
  - Concise diagnostics for missing props. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3873](https://github.com/yewstack/yew/pull/3873)]
  - Use the namespace when xmlns attributes are specified. [[@JasonCG](https://github.com/jasoncg), [#3629](https://github.com/yewstack/yew/pull/3629)]
- - Fix generic type missing erros in hooks. [[@Michael Meyer](https://github.com/Ichmed), [#3633](https://github.com/yewstack/yew/pull/3633)]
+ - Fix generic type missing errors in hooks. [[@Michael Meyer](https://github.com/Ichmed), [#3633](https://github.com/yewstack/yew/pull/3633)]
  - Better duplicate key diagnostics. [[@WorldSEnder](https://github.com/WorldSEnder), [#3785](https://github.com/yewstack/yew/pull/3785)]
  - Fix autocompletion in html macro for rust-analyzer. [[@Moritz Hedtke](https://github.com/mohe2015), [#3829](https://github.com/yewstack/yew/pull/3829)]
  - `#[hook]`: `clippy::multiple_bound_locations` lint no longer triggered. [[@Tim Kurdov](https://github.com/its-the-shrimp), [#3803](https://github.com/yewstack/yew/pull/3803)]
