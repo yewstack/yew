@@ -18,7 +18,7 @@ yew = { path = "../../packages/yew" }
 function_router = { path = "../function_router" }
 log = "0.4"
 futures = { workspace = true, features = ["std"] }
-hyper-util = "0.1.20"
+hyper-util.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
@@ -27,12 +27,12 @@ wasm-logger.workspace = true
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 yew-router = { path = "../../packages/yew-router" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
-axum = "0.8"
-tower = { version = "0.5", features = ["make"] }
-tower-http = { version = "0.6", features = ["fs"] }
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
 env_logger = "0.11"
-clap = { workspace = true }
-hyper = { version = "1.4", features = ["server", "http1"] }
+clap.workspace = true
+hyper.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 jemallocator = "0.5"

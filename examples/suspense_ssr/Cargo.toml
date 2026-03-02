@@ -23,12 +23,12 @@ log.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs", "time"] }
-axum = "0.8"
-tower = { version = "0.5", features = ["make"] }
-tower-http = { version = "0.6", features = ["fs"] }
-clap = { workspace = true }
-hyper = { version = "1.4", features = ["server", "http1"] }
-hyper-util = "0.1.20"
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+clap.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
 
 [features]
 ssr = ["yew/ssr"]
