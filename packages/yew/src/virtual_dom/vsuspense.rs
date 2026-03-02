@@ -29,17 +29,14 @@ impl VSuspense {
 mod feat_ssr {
     use std::fmt::Write;
     use std::rc::Rc;
-    use std::task::Poll;
 
     use futures::stream::StreamExt;
-    use futures::{pin_mut, poll, FutureExt};
+    use futures::{pin_mut, FutureExt};
 
     use super::*;
-    use crate::feat_ssr::{DeferredSuspense, SsrContext, VTagKind};
+    use crate::feat_ssr::{SsrContext, VTagKind};
     use crate::html::AnyScope;
     use crate::platform::fmt::{self, BufWriter};
-    use crate::platform::pinned::oneshot;
-    use crate::platform::spawn_local;
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
@@ -51,6 +48,81 @@ mod feat_ssr {
             parent_vtag_kind: VTagKind,
             ctx: &Rc<SsrContext>,
         ) {
+            // Out-of-order streaming is only available when the scheduler is synchronous
+            // (native and WASI targets). In browser WASM, the scheduler is deferred via
+            // spawn_local, so a single poll!() cannot reliably distinguish "component
+            // pending scheduler" from "component truly suspended". We fall back to the
+            // blocking inline approach there.
+            #[cfg(any(
+                not(target_arch = "wasm32"),
+                target_os = "wasi",
+                feature = "not_browser_env"
+            ))]
+            {
+                self.render_out_of_order(w, parent_scope, hydratable, parent_vtag_kind, ctx)
+                    .await;
+            }
+
+            #[cfg(all(
+                target_arch = "wasm32",
+                not(target_os = "wasi"),
+                not(feature = "not_browser_env")
+            ))]
+            {
+                self.render_inline(w, parent_scope, hydratable, parent_vtag_kind, ctx)
+                    .await;
+            }
+        }
+
+        #[cfg(all(
+            target_arch = "wasm32",
+            not(target_os = "wasi"),
+            not(feature = "not_browser_env")
+        ))]
+        async fn render_inline(
+            &self,
+            w: &mut BufWriter,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+            parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
+        ) {
+            let collectable = Collectable::Suspense;
+
+            if hydratable {
+                collectable.write_open_tag(w);
+            }
+
+            self.children
+                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
+                .await;
+
+            if hydratable {
+                collectable.write_close_tag(w);
+            }
+        }
+
+        #[cfg(any(
+            not(target_arch = "wasm32"),
+            target_os = "wasi",
+            feature = "not_browser_env"
+        ))]
+        async fn render_out_of_order(
+            &self,
+            w: &mut BufWriter,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+            parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
+        ) {
+            use std::task::Poll;
+
+            use futures::poll;
+
+            use crate::feat_ssr::DeferredSuspense;
+            use crate::platform::pinned::oneshot;
+            use crate::platform::spawn_local;
+
             let collectable = Collectable::Suspense;
 
             let (mut child_w, child_r) = fmt::buffer();
