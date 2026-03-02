@@ -99,14 +99,14 @@ During this update all services were removed in favor of community driven soluti
 
 Remove this entirely. `yew-services` adds a layer a abstraction which makes it easier to call external resources. This is all well and good but this layer is supposed to be specific to Yew. It would be better if an framework agnostic abstraction existed instead.
 
--   `ConsoleService`
-    Use [gloo-console](https://crates.io/crates/gloo-console) or [`weblog`](https://crates.io/crates/weblog) instead.
--   `DialogService`
-    Use [`gloo-dialogs`](https://docs.rs/gloo-dialogs/) instead.
--   `IntervalService`
-    Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
--   `KeyboardService`
-    `on*` event handlers in yew already handle it. Using this service is even more cumbersome because it requires use of `NodeRef` in order to call any functions provided by it.
+- `ConsoleService`
+  Use [gloo-console](https://crates.io/crates/gloo-console) or [`weblog`](https://crates.io/crates/weblog) instead.
+- `DialogService`
+  Use [`gloo-dialogs`](https://docs.rs/gloo-dialogs/) instead.
+- `IntervalService`
+  Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
+- `KeyboardService`
+  `on*` event handlers in yew already handle it. Using this service is even more cumbersome because it requires use of `NodeRef` in order to call any functions provided by it.
 
 ```rust ,ignore
 let onkeydown = Callback::from(|e| {
@@ -118,16 +118,16 @@ html! {
 }
 ```
 
--   `ResizeService`
-    Use [`gloo-events`](https://docs.rs/gloo-events) to attach the listener instead.
--   `StorageService`
-    Use [`gloo-storage`](https://docs.rs/gloo-storage/) instead.
--   `TimeoutService`
-    Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
--   `WebSocketService`
-    Use [`wasm-sockets`](https://github.com/scratchyone/wasm-sockets) or [`gloo-net`](https://crates.io/crates/gloo-net) instead.
--   `FetchService`
-    Use [`reqwest`](https://crates.io/crates/reqwest) or [`gloo-net`](https://crates.io/crates/gloo-net) instead.
+- `ResizeService`
+  Use [`gloo-events`](https://docs.rs/gloo-events) to attach the listener instead.
+- `StorageService`
+  Use [`gloo-storage`](https://docs.rs/gloo-storage/) instead.
+- `TimeoutService`
+  Use [`gloo-timers`](https://docs.rs/gloo-timers/) instead.
+- `WebSocketService`
+  Use [`wasm-sockets`](https://github.com/scratchyone/wasm-sockets) or [`gloo-net`](https://crates.io/crates/gloo-net) instead.
+- `FetchService`
+  Use [`reqwest`](https://crates.io/crates/reqwest) or [`gloo-net`](https://crates.io/crates/gloo-net) instead.
 
 ## New crate - yew-agent
 

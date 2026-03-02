@@ -3,11 +3,12 @@
 use std::cmp::PartialEq;
 
 use super::AttrValue;
+use crate::html::ImplicitClone;
 
 /// A type for a virtual
 /// [`TextNode`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createTextNode)
 /// representation.
-#[derive(Clone)]
+#[derive(Clone, ImplicitClone)]
 pub struct VText {
     /// Contains a text of the node.
     pub text: AttrValue,
@@ -65,18 +66,19 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
     use tokio::test;
 
     use crate::prelude::*;
-    use crate::ServerRenderer;
+    use crate::LocalServerRenderer as ServerRenderer;
 
-    #[test]
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
     async fn test_simple_str() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             html! { "abc" }
         }

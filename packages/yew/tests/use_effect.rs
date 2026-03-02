@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
@@ -35,7 +35,7 @@ async fn use_effect_destroys_on_component_drop() {
         }
     }
 
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp(props: &FunctionProps) -> Html {
         let effect_called = props.effect_called.clone();
         let destroy_called = props.destroy_called.clone();
@@ -47,7 +47,7 @@ async fn use_effect_destroys_on_component_drop() {
         html! {}
     }
 
-    #[function_component(UseEffectWrapperComponent)]
+    #[component(UseEffectWrapperComponent)]
     fn use_effect_wrapper_comp(props: &WrapperProps) -> Html {
         let show = use_state(|| true);
         if *show {
@@ -79,7 +79,7 @@ async fn use_effect_destroys_on_component_drop() {
 
 #[wasm_bindgen_test]
 async fn use_effect_works_many_times() {
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
@@ -112,7 +112,7 @@ async fn use_effect_works_many_times() {
 
 #[wasm_bindgen_test]
 async fn use_effect_works_once() {
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
@@ -144,7 +144,7 @@ async fn use_effect_works_once() {
 
 #[wasm_bindgen_test]
 async fn use_effect_refires_on_dependency_change() {
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let number_ref = use_mut_ref(|| 0);
         let number_ref_c = number_ref.clone();

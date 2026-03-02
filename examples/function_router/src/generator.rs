@@ -1,6 +1,7 @@
+use std::sync::LazyLock;
+
 use lipsum::MarkovChain;
-use once_cell::sync::Lazy;
-use rand::distributions::Bernoulli;
+use rand::distr::Bernoulli;
 use rand::rngs::StdRng;
 use rand::seq::IteratorRandom;
 use rand::{Rng, SeedableRng};
@@ -9,7 +10,7 @@ const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");
 const YEW_CONTENT: &str = include_str!("../data/yew.txt");
 
-static YEW_CHAIN: Lazy<MarkovChain<'static>> = Lazy::new(|| {
+static YEW_CHAIN: LazyLock<MarkovChain<'static>> = LazyLock::new(|| {
     let mut chain = MarkovChain::new();
     chain.learn(YEW_CONTENT);
     chain
@@ -28,12 +29,12 @@ impl Generator {
 }
 impl Generator {
     pub fn new_seed(&mut self) -> u32 {
-        self.rng.gen()
+        self.rng.random()
     }
 
     /// [low, high)
     pub fn range(&mut self, low: u32, high: u32) -> u32 {
-        self.rng.gen_range(low..high)
+        self.rng.random_range(low..high)
     }
 
     /// `n / d` chance
@@ -41,33 +42,29 @@ impl Generator {
         self.rng.sample(Bernoulli::from_ratio(n, d).unwrap())
     }
 
-    pub fn image_url(&mut self, dimension: (u32, u32), keywords: &[String]) -> String {
-        let cache_buster = self.rng.gen::<u16>();
+    pub fn image_url(&mut self, dimension: (u32, u32), _keywords: &[String]) -> String {
+        let seed: u32 = self.rng.random();
         let (width, height) = dimension;
-        format!(
-            "https://source.unsplash.com/random/{}x{}?{}&sig={}",
-            width,
-            height,
-            keywords.join(","),
-            cache_buster
-        )
+        crate::imagegen::generate_data_url(width, height, seed)
     }
 
     pub fn face_image_url(&mut self, dimension: (u32, u32)) -> String {
-        self.image_url(dimension, &["human".to_owned(), "face".to_owned()])
+        let seed: u32 = self.rng.random();
+        let (width, height) = dimension;
+        crate::imagegen::generate_data_url(width, height, seed)
     }
 
     pub fn human_name(&mut self) -> String {
         const SYLLABLES_MIN: u32 = 1;
         const SYLLABLES_MAX: u32 = 5;
 
-        let n_syllables = self.rng.gen_range(SYLLABLES_MIN..SYLLABLES_MAX);
+        let n_syllables = self.rng.random_range(SYLLABLES_MIN..SYLLABLES_MAX);
         let first_name = SYLLABLES
             .split_whitespace()
             .choose_multiple(&mut self.rng, n_syllables as usize)
             .join("");
 
-        let n_syllables = self.rng.gen_range(SYLLABLES_MIN..SYLLABLES_MAX);
+        let n_syllables = self.rng.random_range(SYLLABLES_MIN..SYLLABLES_MAX);
         let last_name = SYLLABLES
             .split_whitespace()
             .choose_multiple(&mut self.rng, n_syllables as usize)
@@ -80,7 +77,7 @@ impl Generator {
         const KEYWORDS_MIN: u32 = 1;
         const KEYWORDS_MAX: u32 = 4;
 
-        let n_keywords = self.rng.gen_range(KEYWORDS_MIN..KEYWORDS_MAX);
+        let n_keywords = self.rng.random_range(KEYWORDS_MIN..KEYWORDS_MAX);
         KEYWORDS
             .split_whitespace()
             .map(ToOwned::to_owned)
@@ -92,13 +89,13 @@ impl Generator {
         const WORDS_MAX: u32 = 8;
         const SMALL_WORD_LEN: u32 = 3;
 
-        let n_words = self.rng.gen_range(WORDS_MIN..WORDS_MAX);
+        let n_words = self.rng.random_range(WORDS_MIN..WORDS_MAX);
 
         let mut title = String::new();
 
         let words = YEW_CHAIN
-            .iter_with_rng(&mut self.rng)
-            .map(|word| word.trim_matches(|c: char| c.is_ascii_punctuation()))
+            .iter(&mut self.rng, None)
+            .map(|word: &str| word.trim_matches(|c: char| c.is_ascii_punctuation()))
             .filter(|word| !word.is_empty())
             .take(n_words as usize);
 
@@ -121,15 +118,15 @@ impl Generator {
         const WORDS_MIN: u32 = 7;
         const WORDS_MAX: u32 = 25;
 
-        let n_words = self.rng.gen_range(WORDS_MIN..WORDS_MAX);
-        YEW_CHAIN.generate_with_rng(&mut self.rng, n_words as usize)
+        let n_words = self.rng.random_range(WORDS_MIN..WORDS_MAX);
+        join_words(YEW_CHAIN.iter(&mut self.rng, None).take(n_words as usize))
     }
 
     pub fn paragraph(&mut self) -> String {
         const SENTENCES_MIN: u32 = 3;
         const SENTENCES_MAX: u32 = 20;
 
-        let n_sentences = self.rng.gen_range(SENTENCES_MIN..SENTENCES_MAX);
+        let n_sentences = self.rng.random_range(SENTENCES_MIN..SENTENCES_MAX);
         let mut paragraph = String::new();
         for i in 0..n_sentences {
             if i > 0 {
@@ -140,6 +137,24 @@ impl Generator {
         }
         paragraph
     }
+}
+
+fn join_words<'a>(words: impl Iterator<Item = &'a str>) -> String {
+    let mut result = String::new();
+    for (i, word) in words.enumerate() {
+        if i > 0 {
+            result.push(' ');
+        }
+        if i == 0 {
+            result.push_str(&title_case(word));
+        } else {
+            result.push_str(word);
+        }
+    }
+    if !result.is_empty() && !result.ends_with(|c: char| c.is_ascii_punctuation()) {
+        result.push('.');
+    }
+    result
 }
 
 fn title_case(word: &str) -> String {

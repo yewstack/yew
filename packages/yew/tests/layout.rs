@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
@@ -14,7 +14,7 @@ use yew::prelude::*;
 
 #[wasm_bindgen_test]
 async fn change_nested_after_append() {
-    #[function_component]
+    #[component]
     fn Nested() -> Html {
         let delayed_trigger = use_state(|| true);
 
@@ -36,12 +36,12 @@ async fn change_nested_after_append() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn Top() -> Html {
         html! { <Nested /> }
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let show_bottom = use_state_eq(|| false);
 

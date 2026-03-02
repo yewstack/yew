@@ -4,14 +4,14 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
-use std::rc::Rc;
 
 use web_sys::Element;
 
 use super::{test_log, BNode, BSubtree, DomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
-use crate::virtual_dom::{Key, VList, VNode, VText};
+use crate::utils::RcExt;
+use crate::virtual_dom::{Key, VList, VNode};
 
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
@@ -30,10 +30,8 @@ impl VList {
 
         let children = self
             .children
-            .map(Rc::try_unwrap)
-            .unwrap_or_else(|| Ok(Vec::new()))
-            // Rc::unwrap_or_clone is not stable yet.
-            .unwrap_or_else(|m| m.to_vec());
+            .map(RcExt::unwrap_or_clone)
+            .unwrap_or_default();
 
         (self.key, fully_keyed, children)
     }
@@ -56,7 +54,7 @@ struct NodeWriter<'s> {
     slot: DomSlot,
 }
 
-impl<'s> NodeWriter<'s> {
+impl NodeWriter<'_> {
     /// Write a new node that has no ancestor
     fn add(self, node: VNode) -> (Self, BNode) {
         test_log!("adding: {:?}", node);
@@ -71,7 +69,7 @@ impl<'s> NodeWriter<'s> {
     }
 
     /// Shift a bundle into place without patching it
-    fn shift(&self, bundle: &mut BNode) {
+    fn shift(&self, bundle: &BNode) {
         bundle.shift(self.parent, self.slot.clone());
     }
 
@@ -214,6 +212,18 @@ impl BList {
             rev_bundles.iter().map(|v| key!(v)),
         );
 
+        if cfg!(debug_assertions) {
+            let mut keys = HashSet::with_capacity(left_vdoms.len());
+            for (idx, n) in left_vdoms.iter().enumerate() {
+                let key = key!(n);
+                debug_assert!(
+                    keys.insert(key!(n)),
+                    "duplicate key detected: {key} at index {idx}. Keys in keyed lists must be \
+                     unique!",
+                );
+            }
+        }
+
         // If there is no key mismatch, apply the unkeyed approach
         // Corresponds to adding or removing items from the back of the list
         if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
@@ -241,19 +251,50 @@ impl BList {
 
         // Step 2. Diff matching children in the middle, that is between the first and last key
         // mismatch Find first key mismatch from the front
-        let matching_len_start = matching_len(
+        let mut matching_len_start = matching_len(
             lefts.iter().map(|v| key!(v)),
             rev_bundles.iter().map(|v| key!(v)).rev(),
         );
 
         // Step 2.1. Splice out the existing middle part and build a lookup by key
         let rights_to = rev_bundles.len() - matching_len_start;
-        let mut spliced_middle =
-            rev_bundles.splice(matching_len_end..rights_to, std::iter::empty());
-        let mut spare_bundles: HashSet<KeyedEntry> =
-            HashSet::with_capacity((matching_len_end..rights_to).len());
+        let mut bundle_middle = matching_len_end..rights_to;
+        if bundle_middle.start > bundle_middle.end {
+            // If this range is "inverted", this implies that the incoming nodes in lefts contain a
+            // duplicate key!
+            // Pictogram:
+            //                                         v lefts_to
+            // lefts:              | SSSSSSSS | ------ | EEEEEEEE |
+            //                                ↕ matching_len_start
+            // rev_bundles.rev():  | SSS | ?? | EEE |
+            //                           ^ rights_to
+            // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a
+            // key in the ? portion of bundles. Since the former can't overlap, a key
+            // must be duplicate. Duplicates might lead to us forgetting about some
+            // bundles entirely. It is NOT straight forward to adjust the below code to
+            // consistently check and handle this. The duplicate keys might
+            // be in the start or end portion.
+            // With debug_assertions we can never reach this. For production code, hope for the best
+            // by pretending. We still need to adjust some things so splicing doesn't
+            // panic:
+            matching_len_start = 0;
+            bundle_middle = matching_len_end..rev_bundles.len();
+        }
+        let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
+
+        // BNode contains js objects that look suspicious to clippy but are harmless
+        #[allow(clippy::mutable_key_type)]
+        let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
+        let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
         for (idx, r) in (&mut spliced_middle).enumerate() {
-            spare_bundles.insert(KeyedEntry(idx, r));
+            #[cold]
+            fn duplicate_in_bundle(root: &BSubtree, parent: &Element, r: BNode) {
+                test_log!("removing: {:?}", r);
+                r.detach(root, parent, false);
+            }
+            if let Some(KeyedEntry(_, dup)) = spare_bundles.replace(KeyedEntry(idx, r)) {
+                duplicate_in_bundle(root, parent, dup);
+            }
         }
 
         // Step 2.2. Put the middle part back together in the new key order
@@ -323,7 +364,7 @@ impl BList {
                         // it should be
                         Ordering::Equal => barrier_idx += 1,
                         // shift the node unconditionally, don't start a run
-                        Ordering::Less => writer.shift(&mut r_bundle),
+                        Ordering::Less => writer.shift(&r_bundle),
                         // start a run
                         Ordering::Greater => {
                             current_run = Some(RunInformation {
@@ -429,15 +470,7 @@ impl Reconcilable for VList {
         // The left items are known since we want to insert them
         // (self.children). For the right ones, we will look at the bundle,
         // i.e. the current DOM list element that we want to replace with self.
-        let (key, mut fully_keyed, mut lefts) = self.split_for_blist();
-
-        if lefts.is_empty() {
-            // Without a placeholder the next element becomes first
-            // and corrupts the order of rendering
-            // We use empty text element to stake out a place
-            lefts.push(VText::new("").into());
-            fully_keyed = false;
-        }
+        let (key, fully_keyed, lefts) = self.split_for_blist();
 
         let rights = &mut blist.rev_children;
         test_log!("lefts: {:?}", lefts);
@@ -461,7 +494,7 @@ impl Reconcilable for VList {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
 
     impl Hydratable for VList {
         fn hydrate(
@@ -470,13 +503,14 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
+            prev_next_sibling: &mut Option<DynamicDomSlot>,
         ) -> Self::Bundle {
             let (key, fully_keyed, vchildren) = self.split_for_blist();
 
             let mut children = Vec::with_capacity(vchildren.len());
 
             for child in vchildren.into_iter() {
-                let child = child.hydrate(root, parent_scope, parent, fragment);
+                let child = child.hydrate(root, parent_scope, parent, fragment, prev_next_sibling);
 
                 children.push(child);
             }
@@ -492,7 +526,7 @@ mod feat_hydration {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests {
     extern crate self as yew;
@@ -569,7 +603,7 @@ mod layout_tests {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod layout_tests_keys {
     extern crate self as yew;
@@ -1428,6 +1462,27 @@ mod layout_tests_keys {
                 expected: "<p>3</p><p>2</p><p>1</p>",
             },
         ]);
+
+        diff_layouts(layouts);
+    }
+
+    #[test]
+    //#[should_panic(expected = "duplicate key detected: vtag at index 1")]
+    // can't inspect panic message in wasm :/
+    #[should_panic]
+    fn duplicate_keys() {
+        let mut layouts = vec![];
+
+        layouts.push(TestLayout {
+            name: "A list with duplicate keys",
+            node: html! {
+                <>
+                    <i key="vtag" />
+                    <i key="vtag" />
+                </>
+            },
+            expected: "<i></i><i></i>",
+        });
 
         diff_layouts(layouts);
     }

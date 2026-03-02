@@ -12,7 +12,11 @@ use crate::functional::{use_state, Hook, HookContext};
 use crate::platform::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(
+    target_arch = "wasm32",
+    not(target_os = "wasi"),
+    not(feature = "not_browser_env")
+))]
 async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
     use gloo::utils::window;
     use js_sys::Uint8Array;
@@ -34,7 +38,11 @@ async fn decode_base64(s: &str) -> Result<Vec<u8>, JsValue> {
     Ok(content_array.to_vec())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    target_os = "wasi",
+    feature = "not_browser_env"
+))]
 async fn decode_base64(_s: &str) -> Result<Vec<u8>, JsValue> {
     unreachable!("this function is not callable under non-wasm targets!");
 }
@@ -82,10 +90,15 @@ where
                                 .await
                                 .expect("failed to deserialize state");
 
-                            let (state, deps) =
-                                bincode::deserialize::<(Option<T>, Option<D>)>(&buf)
-                                    .map(|(state, deps)| (state.map(Rc::new), deps.map(Rc::new)))
-                                    .expect("failed to deserialize state");
+                            let ((state, deps), _) =
+                                bincode::serde::decode_from_slice::<(Option<T>, Option<D>), _>(
+                                    &buf,
+                                    bincode::config::standard(),
+                                )
+                                .map(|((state, deps), consumed)| {
+                                    ((state.map(Rc::new), deps.map(Rc::new)), consumed)
+                                })
+                                .expect("failed to deserialize state");
 
                             data.set((Ok((state, deps)), None));
                         });

@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
@@ -18,7 +18,7 @@ async fn props_are_passed() {
         value: String,
     }
 
-    #[function_component]
+    #[component]
     fn PropsComponent(props: &PropsPassedFunctionProps) -> Html {
         assert_eq!(&props.value, "props");
         html! {

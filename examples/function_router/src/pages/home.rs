@@ -55,7 +55,7 @@ pub fn Home() -> Html {
 
             <div class="tile is-child">
                 <figure class="image is-3by1">
-                    <img alt="A random image for the input term 'yew'." src="https://source.unsplash.com/random/1200x400/?yew" />
+                    <img alt="A procedurally generated decorative image." src={crate::imagegen::generate_data_url(600, 200, 42)} />
                 </figure>
             </div>
 

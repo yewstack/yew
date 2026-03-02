@@ -57,6 +57,20 @@ These errors can change with each release of the compiler, so they should be gen
 
 To update or generate a new `stderr` file you can run `cargo make test-overwrite` in the `yew-macro` directory.
 
+## Spell Checking
+
+We use [typos](https://github.com/crate-ci/typos) to catch spelling mistakes. CI runs it automatically on every PR.
+
+To run it locally:
+
+```bash
+cargo install typos-cli --locked
+typos        # check for typos
+typos -w     # auto-fix typos
+```
+
+False positives can be configured in `_typos.toml` at the repo root.
+
 ## Linting
 
 The following command checks the code using Rustfmt and Clippy:
@@ -75,7 +89,7 @@ and follow the repository's README.
 
 ## Writing APIs
 
-When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error mesages? Would this API integrate well with other APIs? Is it intuitive to use this API?
+When building new APIs, think about what it would be like to use them. Would this API cause confusing and hard to pin error messages? Would this API integrate well with other APIs? Is it intuitive to use this API?
 
 Below, you can find some useful guidance and best practices on how to write APIs. These are only _guidelines_ and while they are helpful and should be followed where possible, in some cases, it may not be possible to do so.
 

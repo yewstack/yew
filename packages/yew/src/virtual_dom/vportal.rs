@@ -8,10 +8,10 @@ use super::VNode;
 pub struct VPortal {
     /// The element under which the content is inserted.
     pub host: Element,
-    /// The next sibling after the inserted content. Most be a child of `host`.
+    /// The next sibling after the inserted content. Must be a child of `host`.
     pub inner_sibling: Option<Node>,
     /// The inserted node
-    pub node: Box<VNode>,
+    pub node: VNode,
 }
 
 impl VPortal {
@@ -20,7 +20,7 @@ impl VPortal {
         Self {
             host,
             inner_sibling: None,
-            node: Box::new(content),
+            node: content,
         }
     }
 
@@ -31,7 +31,7 @@ impl VPortal {
         Self {
             host,
             inner_sibling,
-            node: Box::new(content),
+            node: content,
         }
     }
 }

@@ -5,14 +5,14 @@
 ## Concepts
 
 The example uses wasm-bindgen to import functionality from Javascript.
-To learn more about the subject, refer to ["The `wasm-binden` Guide"](https://rustwasm.github.io/wasm-bindgen/examples/import-js.html).
+To learn more about the subject, refer to ["The `wasm-binden` Guide"](https://wasm-bindgen.github.io/wasm-bindgen/examples/import-js.html).
 
 This example also demonstrates how to delay the loading of the snippet using Suspense.
 
 ### Serving JS files 
 
 JS files can be served when they're present in `dist` directory. There are two ways to copy these files:
-1. Use [JS Snippets](https://rustwasm.github.io/wasm-bindgen/reference/js-snippets.html). 
+1. Use [JS Snippets](https://wasm-bindgen.github.io/wasm-bindgen/reference/js-snippets.html). 
 2. Use trunk to copy the file and import it manually
 
 ### Using JS Snippets

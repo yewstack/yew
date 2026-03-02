@@ -34,7 +34,7 @@ All of our examples are built with Trunk.
 
 [Getting started with `trunk`](getting-started/project-setup/using-trunk.mdx)
 
-### [**`wasm-pack`**](https://rustwasm.github.io/docs/wasm-pack/)
+### [**`wasm-pack`**](https://drager.github.io/wasm-pack/book/)
 
 A CLI tool developed by the Rust / Wasm Working Group for packaging up WebAssembly. Best used
 together with the [`wasm-pack-plugin`](https://github.com/wasm-tool/wasm-pack-plugin) for Webpack.
@@ -58,7 +58,7 @@ This was the best preferred tool to use before the creation of `wasm-bindgen`.
 | Local Server                  | Supported                                                        | Only with webpack plugin                                                                              | Supported                                                                                                                                              |
 | Auto rebuild on local changes | Supported                                                        | Only with webpack plugin                                                                              | Supported                                                                                                                                              |
 | Asset handling                | Supported                                                        | Only with webpack plugin                                                                              | Static assets only                                                                                                                                     |
-| Headless Browser Testing      | [In Progress](https://github.com/thedodd/trunk/issues/20)        | [Supported](https://rustwasm.github.io/wasm-pack/book/commands/test.html)                             | [Supported](https://github.com/koute/cargo-web#features)                                                                                               |
+| Headless Browser Testing      | [In Progress](https://github.com/thedodd/trunk/issues/20)        | [Supported](https://github.com/drager/wasm-pack/book/commands/test.html)                              | [Supported](https://github.com/koute/cargo-web#features)                                                                                               |
 | Supported Targets             | <ul><li><code>wasm32-unknown-unknown</code></li></ul>            | <ul><li><code>wasm32-unknown-unknown</code></li></ul>                                                 | <ul> <li><code>wasm32-unknown-unknown</code></li> <li><code>wasm32-unknown-emscripten</code></li> <li><code>asmjs-unknown-emscripten</code></li> </ul> |
 | `web-sys`                     | Compatible                                                       | Compatible                                                                                            | Incompatible                                                                                                                                           |
 | `stdweb`                      | Incompatible                                                     | Compatible                                                                                            | Compatible                                                                                                                                             |

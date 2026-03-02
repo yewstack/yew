@@ -6,7 +6,7 @@ This example consists of a list which can be manipulated in various ways.
 
 ### Notes
 
-If you would like to view this example as a performance demonstation, run this example in `release` mode.
+If you would like to view this example as a performance demonstration, run this example in `release` mode.
 
 ## Concepts
 
@@ -23,5 +23,5 @@ Demonstrates how using keyed elements improves the performance of comparing chan
 Run this application with the trunk development server:
 
 ```bash
-trunk serve --open
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --open
 ```

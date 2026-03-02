@@ -53,7 +53,7 @@ fn create_canvas(document: &Document) -> HtmlCanvasElement {
     canvas.set_height(100);
     let ctx =
         CanvasRenderingContext2d::from(JsValue::from(canvas.get_context("2d").unwrap().unwrap()));
-    ctx.set_fill_style(&JsValue::from_str("green"));
+    ctx.set_fill_style_str("green");
     ctx.fill_rect(10., 10., 50., 50.);
 
     canvas

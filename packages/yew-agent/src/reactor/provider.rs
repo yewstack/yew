@@ -3,11 +3,10 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use gloo_worker::reactor::ReactorScoped;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
-use super::{Reactor, ReactorBridge, ReactorSpawner};
+use super::{Reactor, ReactorBridge, ReactorScoped, ReactorSpawner};
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
 use crate::{Bincode, Codec, Reach};
@@ -86,7 +85,7 @@ where
 /// The Reactor Agent Provider.
 ///
 /// This component provides its children access to a reactor agent.
-#[function_component]
+#[component]
 pub fn ReactorProvider<R, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     R: 'static + Reactor,
@@ -100,13 +99,19 @@ where
         children,
         path,
         lazy,
+        module,
         reach,
     } = props.clone();
 
     // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> ReactorBridge<R>> = {
         let path = path.clone();
-        Rc::new(move || ReactorSpawner::<R>::new().encoding::<C>().spawn(&path))
+        Rc::new(move || {
+            ReactorSpawner::<R>::new()
+                .as_module(module)
+                .encoding::<C>()
+                .spawn(&path)
+        })
     };
 
     let state = {

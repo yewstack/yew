@@ -19,14 +19,14 @@ Using a different editor? Feel free to add instructions for your editor of choic
 
 For function components, use the following template.
 
--   (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
+- (Optional) Click on Edit Variable and give `tag` a reasonable default value like "div", with double quotes.
 
 ```rust ,ignore
 #[derive(PartialEq, Properties)]
 pub struct $Name$Props {
 }
 
-#[function_component]
+#[component]
 pub fn $Name$(props: &$Name$Props) -> Html {
     html! {
         <$tag$>$END$</$tag$>
@@ -72,7 +72,7 @@ impl Component for $NAME$ {
             "#[derive(PartialEq, Properties)]",
             "pub struct ${1:ComponentName}Props {}",
             "",
-            "#[function_component]",
+            "#[component]",
             "pub fn $1(props: &${1}Props) -> Html {",
             "    let ${1}Props {} = props;",
             "    html! {",

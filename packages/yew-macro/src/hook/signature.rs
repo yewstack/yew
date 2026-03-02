@@ -1,14 +1,26 @@
+use std::iter::once;
+use std::mem::take;
+
 use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
 use quote::{quote, ToTokens};
+use syn::punctuated::{Pair, Punctuated};
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, token, visit_mut, FnArg, GenericParam, Ident, Lifetime, Pat,
-    Receiver, ReturnType, Signature, Type, TypeImplTrait, TypeReference, WhereClause,
+    parse_quote, parse_quote_spanned, visit_mut, FnArg, GenericParam, Ident, Lifetime,
+    LifetimeParam, Pat, Receiver, ReturnType, Signature, Type, TypeImplTrait, TypeParam,
+    TypeParamBound, TypeReference, WherePredicate,
 };
 
 use super::lifetime;
+
+fn type_is_generic(ty: &Type, param: &TypeParam) -> bool {
+    match ty {
+        Type::Path(path) => path.path.is_ident(&param.ident),
+        _ => false,
+    }
+}
 
 #[derive(Default)]
 pub struct CollectArgs {
@@ -99,48 +111,68 @@ impl HookSignature {
             ..
         } = sig;
 
-        let hook_lifetime = {
-            let hook_lifetime = Lifetime::new("'hook", Span::mixed_site());
-            generics.params = {
-                let elided_lifetimes = &lifetimes.elided;
-                let params = &generics.params;
+        let hook_lifetime = Lifetime::new("'hook", Span::mixed_site());
+        let mut params: Punctuated<_, _> = once(hook_lifetime.clone())
+            .chain(lifetimes.elided)
+            .map(|lifetime| {
+                GenericParam::Lifetime(LifetimeParam {
+                    attrs: vec![],
+                    lifetime,
+                    colon_token: None,
+                    bounds: Default::default(),
+                })
+            })
+            .map(|param| Pair::new(param, Some(Default::default())))
+            .chain(take(&mut generics.params).into_pairs())
+            .collect();
 
-                parse_quote!(#hook_lifetime, #(#elided_lifetimes,)* #params)
-            };
+        for type_param in params.iter_mut().skip(1) {
+            match type_param {
+                GenericParam::Lifetime(param) => {
+                    if let Some(predicate) = generics
+                        .where_clause
+                        .iter_mut()
+                        .flat_map(|c| &mut c.predicates)
+                        .find_map(|predicate| match predicate {
+                            WherePredicate::Lifetime(p) if p.lifetime == param.lifetime => Some(p),
+                            _ => None,
+                        })
+                    {
+                        predicate.bounds.push(hook_lifetime.clone());
+                    } else {
+                        param.colon_token = Some(param.colon_token.unwrap_or_default());
+                        param.bounds.push(hook_lifetime.clone());
+                    }
+                }
 
-            let mut where_clause = generics
-                .where_clause
-                .clone()
-                .unwrap_or_else(|| WhereClause {
-                    where_token: token::Where {
-                        span: Span::mixed_site(),
-                    },
-                    predicates: Default::default(),
-                });
+                GenericParam::Type(param) => {
+                    if let Some(predicate) = generics
+                        .where_clause
+                        .iter_mut()
+                        .flat_map(|c| &mut c.predicates)
+                        .find_map(|predicate| match predicate {
+                            WherePredicate::Type(p) if type_is_generic(&p.bounded_ty, param) => {
+                                Some(p)
+                            }
+                            _ => None,
+                        })
+                    {
+                        predicate
+                            .bounds
+                            .push(TypeParamBound::Lifetime(hook_lifetime.clone()));
+                    } else {
+                        param.colon_token = Some(param.colon_token.unwrap_or_default());
+                        param
+                            .bounds
+                            .push(TypeParamBound::Lifetime(hook_lifetime.clone()));
+                    }
+                }
 
-            for elided in lifetimes.elided.iter() {
-                where_clause
-                    .predicates
-                    .push(parse_quote!(#elided: #hook_lifetime));
+                GenericParam::Const(_) => {}
             }
+        }
 
-            for explicit in lifetimes.explicit.iter() {
-                where_clause
-                    .predicates
-                    .push(parse_quote!(#explicit: #hook_lifetime));
-            }
-
-            for type_param in generics.type_params() {
-                let type_param_ident = &type_param.ident;
-                where_clause
-                    .predicates
-                    .push(parse_quote!(#type_param_ident: #hook_lifetime));
-            }
-
-            generics.where_clause = Some(where_clause);
-
-            hook_lifetime
-        };
+        generics.params = params;
 
         let (output, output_type) = Self::rewrite_return_type(&hook_lifetime, return_type);
         sig.output = output;
@@ -165,7 +197,15 @@ impl HookSignature {
         self.sig
             .generics
             .lifetimes()
-            .map(|life| parse_quote! { &#life () })
+            .map(|life| TypeReference {
+                and_token: Default::default(),
+                lifetime: Some(life.lifetime.clone()),
+                mutability: None,
+                elem: Box::new(Type::Tuple(syn::TypeTuple {
+                    paren_token: Default::default(),
+                    elems: Default::default(),
+                })),
+            })
             .collect()
     }
 

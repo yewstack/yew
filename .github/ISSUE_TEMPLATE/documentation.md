@@ -11,7 +11,7 @@ assignees: ''
 
 This is about:
 - [ ] A typo 
-- [ ] Innaccurate/misleading documentation (e.g. technically incorrect advice)
+- [ ] Inaccurate/misleading documentation (e.g. technically incorrect advice)
 - [ ] Undocumented code
 - [ ] Outdated documentation
 - [ ] Other

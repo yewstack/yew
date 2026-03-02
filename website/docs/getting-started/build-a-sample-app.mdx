@@ -8,11 +8,25 @@ the boilerplate needed for a basic Yew app or manually set up a small project.
 ## Using a starter template
 
 Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) by following their installation instructions
-then run the following command:
+then take the following steps:
+
+### Checkout and customize project
 
 ```shell
 cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
 ```
+
+### Run project
+
+```shell
+trunk serve
+```
+
+:::note
+
+Trunk [has a bug](https://github.com/trunk-rs/trunk/issues/852) on windows when `trunk serve` command fails. To workaround the issue you can run `trunk build` before running `trunk serve`.
+
+:::
 
 ## Setting up the application manually
 
@@ -79,14 +93,15 @@ that updates its value when clicked. Replace the contents of `src/main.rs` with 
 
 :::note
 The call to `yew::Renderer::<App>::new().render()` inside the `main` function starts your application and mounts
-it to the page's `<body>` tag. If you would like to start your application with any dynamic
-properties, you can instead use `yew::Renderer::<App>::with_props(..).render()`.
+it to the page's `<body>` tag.
+If you would like to start your application with any dynamic properties, you can instead use `yew::Renderer::<App>::with_props(..).render()`.
+If you would like to mount your application to a specific element rather than the `<body>` tag, use `yew::Renderer::<App>::with_root(element).render()` where `element` is a `web_sys::Element`.
 :::
 
 ```rust ,no_run, title=main.rs
 use yew::prelude::*;
 
-#[function_component]
+#[component]
 fn App() -> Html {
     let counter = use_state(|| 0);
     let onclick = {
@@ -115,7 +130,7 @@ fn main() {
 Finally, add an `index.html` file in the root directory of your app.
 
 ```html , title=index.html
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -138,7 +153,7 @@ Add option '--open' to open your default browser `trunk serve --open`.
 :::
 
 Trunk will rebuild your application if you modify any of its source code files.
-By default server will listening at address '127.0.0.1' and port '8080' => [http://localhost:8080](http://127.0.0.1:8080).
+By default server will be listening at address '127.0.0.1' and port '8080' => [http://localhost:8080](http://127.0.0.1:8080).
 To change it, create the following file and edit as needed:
 
 ```toml title="Trunk.toml"

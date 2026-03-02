@@ -14,21 +14,20 @@ required-features = ["ssr"]
 
 [dependencies]
 yew = { path = "../../packages/yew" }
-reqwest = { version = "0.11.22", features = ["json"] }
-serde = { version = "1.0.189", features = ["derive"] }
-uuid = { version = "1.5.0", features = ["serde"] }
-futures = "0.3"
-bytes = "1.5"
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+uuid = { version = "1.20.0", features = ["serde"] }
+futures.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4"
-wasm-logger = "0.2"
-log = "0.4"
+wasm-bindgen-futures.workspace = true
+wasm-logger.workspace = true
+log.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { version = "1.33.0", features = ["full"] }
-warp = "0.3"
-clap = { version = "4", features = ["derive"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
+warp = { git = "https://github.com/seanmonstar/warp.git", rev = "de1ccd8", features = ["server"] }
+clap = { workspace = true }
 
 [features]
 hydration = ["yew/hydration"]
