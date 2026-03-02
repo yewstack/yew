@@ -249,7 +249,7 @@ pub(crate) fn start_now() {
 mod arch {
     use std::sync::atomic::{AtomicBool, Ordering};
 
-    use wasm_bindgen_futures::JsFuture;
+    use wasm_bindgen::prelude::*;
 
     use crate::platform::spawn_local;
 
@@ -272,13 +272,32 @@ mod arch {
 
     const YIELD_DEADLINE_MS: f64 = 50.0;
 
-    async fn yield_to_browser() {
-        let promise = js_sys::Promise::new(&mut |resolve, _| {
-            let _ = web_sys::window()
-                .expect("should be in a browser environment")
-                .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, 0);
-        });
-        let _ = JsFuture::from(promise).await;
+    #[wasm_bindgen]
+    extern "C" {
+        #[wasm_bindgen(js_name = setTimeout)]
+        fn set_timeout(handler: &js_sys::Function, timeout: i32) -> i32;
+    }
+
+    fn run_scheduler(mut queue: Vec<super::QueueEntry>) {
+        let mut deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
+
+        loop {
+            super::with(|s| s.fill_queue(&mut queue));
+            if queue.is_empty() {
+                break;
+            }
+            for r in queue.drain(..) {
+                r.task.run();
+            }
+            let now = js_sys::Date::now();
+            if now >= deadline {
+                let cb = Closure::once_into_js(move || run_scheduler(queue));
+                set_timeout(cb.unchecked_ref(), 0);
+                return;
+            }
+        }
+
+        set_scheduled(false);
     }
 
     /// We delay the start of the scheduler to the end of the micro task queue.
@@ -290,25 +309,7 @@ mod arch {
         }
         set_scheduled(true);
         spawn_local(async {
-            let mut queue = vec![];
-            let mut deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
-
-            loop {
-                super::with(|s| s.fill_queue(&mut queue));
-                if queue.is_empty() {
-                    break;
-                }
-                for r in queue.drain(..) {
-                    r.task.run();
-                }
-                let now = js_sys::Date::now();
-                if now >= deadline {
-                    yield_to_browser().await;
-                    deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
-                }
-            }
-
-            set_scheduled(false);
+            run_scheduler(vec![]);
         });
     }
 }
