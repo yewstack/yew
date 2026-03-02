@@ -1,0 +1,11 @@
+[package]
+name = "function_delayed_input"
+version = "0.1.0"
+authors = ["Ruslan Sibgatullin <info@pudding.pro>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+gloo-timers = { version = "0.3.0", features = ["futures"] }
+web-sys = { workspace = true, features = ["Window"]}
+yew = { path = "../../packages/yew", features = ["csr"] }

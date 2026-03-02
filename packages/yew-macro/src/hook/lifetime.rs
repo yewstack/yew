@@ -10,7 +10,6 @@ use syn::{
 // borrowed from the awesome async-trait crate.
 pub struct CollectLifetimes {
     pub elided: Vec<Lifetime>,
-    pub explicit: Vec<Lifetime>,
     pub name: &'static str,
     pub default_span: Span,
 
@@ -23,7 +22,6 @@ impl CollectLifetimes {
     pub fn new(name: &'static str, default_span: Span) -> Self {
         CollectLifetimes {
             elided: Vec::new(),
-            explicit: Vec::new(),
             name,
             default_span,
 
@@ -55,8 +53,6 @@ impl CollectLifetimes {
     fn visit_lifetime(&mut self, lifetime: &mut Lifetime) {
         if lifetime.ident == "_" {
             *lifetime = self.next_lifetime(lifetime.span());
-        } else {
-            self.explicit.push(lifetime.clone());
         }
     }
 

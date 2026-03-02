@@ -17,6 +17,7 @@ mod app;
 mod components;
 mod content;
 mod generator;
+pub mod imagegen;
 mod pages;
 
 pub use app::*;

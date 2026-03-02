@@ -8,6 +8,7 @@ use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
 use crate::{scheduler, Component, Context, Html};
 
+#[allow(dead_code)]
 struct Comp;
 impl Component for Comp {
     type Message = ();
@@ -31,12 +32,14 @@ impl Component for Comp {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub struct TestLayout<'a> {
     pub name: &'a str,
     pub node: VNode,
     pub expected: &'a str,
 }
 
+#[allow(missing_docs)]
 pub fn diff_layouts(layouts: Vec<TestLayout<'_>>) {
     let document = gloo::utils::document();
     let scope: AnyScope = AnyScope::test();

@@ -19,5 +19,5 @@ Images are authorized by [@bradlygreen](https://github.com/bradlygreen), see [au
 Run this application with the trunk development server:
 
 ```bash
-trunk serve --open
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --open
 ```

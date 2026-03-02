@@ -7,7 +7,7 @@ pub struct Props {
     #[prop_or_default]
     pub hide: bool,
     pub on_hover: Callback<Hovered>,
-    pub name: String,
+    pub name: AttrValue,
     #[prop_or_default]
     pub children: Children,
 }

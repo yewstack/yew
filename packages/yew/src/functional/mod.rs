@@ -1,5 +1,5 @@
 //! Function components are a simplified version of normal components.
-//! They consist of a single function annotated with the attribute `#[function_component]`
+//! They consist of a single function annotated with the attribute `#[component]`
 //! that receives props and determines what should be rendered by returning [`Html`](crate::Html).
 //!
 //! Functions with the attribute have to return `Html` and may take a single parameter for the type
@@ -12,7 +12,7 @@
 //! ```rust
 //! # use yew::prelude::*;
 //! #
-//! #[function_component]
+//! #[component]
 //! fn HelloWorld() -> Html {
 //!     html! { "Hello world" }
 //! }
@@ -40,7 +40,7 @@ pub use hooks::*;
 /// for props. Note that the function only receives a reference to the props.
 ///
 /// When using this attribute you need to provide a name for the component:
-/// `#[function_component(ComponentName)]`.
+/// `#component(ComponentName)]`.
 /// The attribute will then automatically create a [`FunctionComponent`] with the given
 /// identifier which you can use like a normal component.
 ///
@@ -53,13 +53,16 @@ pub use hooks::*;
 /// #     text: String
 /// # }
 /// #
-/// #[function_component(NameOfComponent)]
+/// #[component(NameOfComponent)]
 /// pub fn component(props: &Props) -> Html {
 ///     html! {
 ///         <p>{ &props.text }</p>
 ///     }
 /// }
 /// ```
+pub use yew_macro::function_component as component;
+/// A re-export of [`component`](yew_macro::function_component) with the older name.
+#[deprecated(since = "0.22.0", note = "renamed to `#[component]")]
 pub use yew_macro::function_component;
 /// This attribute creates a user-defined hook from a normal Rust function.
 pub use yew_macro::hook;
@@ -310,7 +313,7 @@ pub trait FunctionProvider {
 ///
 /// Function Components should not be implemented with this type directly.
 ///
-/// Use the `#[function_component]` macro instead.
+/// Use the `#[component]` macro instead.
 #[doc(hidden)]
 pub struct FunctionComponent<T>
 where

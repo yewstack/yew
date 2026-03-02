@@ -1,7 +1,7 @@
 use yew::{html, html_nested};
 
 #[allow(dead_code)]
-#[rustversion::attr(stable(1.64), test)]
+#[rustversion::attr(stable(1.84.0), test)]
 fn html_macro() {
     let t = trybuild::TestCases::new();
 
@@ -35,7 +35,7 @@ fn dynamic_tags_catch_non_ascii() {
 #[test]
 fn html_nested_macro_on_html_element() {
     let _node = html_nested! {
-        <div/>
+        <feBlend/>
     };
     let _node = html_nested! {
         <input/>

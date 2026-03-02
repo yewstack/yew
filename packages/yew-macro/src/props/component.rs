@@ -35,7 +35,7 @@ impl ToTokens for BaseExpr {
 }
 
 pub struct ComponentProps {
-    props: Props,
+    pub props: Props,
     base_expr: Option<Expr>,
 }
 impl ComponentProps {

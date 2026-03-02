@@ -1,5 +1,5 @@
 {
-    "version-0.18.0/sidebar": [
+    "docs": [
         {
             "collapsed": true,
             "type": "category",
@@ -12,37 +12,37 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/getting-started/introduction"
+                            "id": "getting-started/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/getting-started/project-setup/using-trunk"
+                            "id": "getting-started/project-setup/using-trunk"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/getting-started/project-setup/using-wasm-pack"
+                            "id": "getting-started/project-setup/using-wasm-pack"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/getting-started/project-setup/using-cargo-web"
+                            "id": "getting-started/project-setup/using-cargo-web"
                         }
                     ]
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/getting-started/build-a-sample-app"
+                    "id": "getting-started/build-a-sample-app"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/getting-started/choose-web-library"
+                    "id": "getting-started/choose-web-library"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/getting-started/examples"
+                    "id": "getting-started/examples"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/getting-started/starter-templates"
+                    "id": "getting-started/starter-templates"
                 }
             ]
         },
@@ -58,23 +58,23 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/components/introduction"
+                            "id": "concepts/components/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/components/callbacks"
+                            "id": "concepts/components/callbacks"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/components/properties"
+                            "id": "concepts/components/properties"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/components/children"
+                            "id": "concepts/components/children"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/components/refs"
+                            "id": "concepts/components/refs"
                         }
                     ]
                 },
@@ -85,11 +85,11 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/wasm-bindgen/wasm-bindgen"
+                            "id": "concepts/wasm-bindgen/wasm-bindgen"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/wasm-bindgen/web-sys"
+                            "id": "concepts/wasm-bindgen/web-sys"
                         }
                     ]
                 },
@@ -100,31 +100,31 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/introduction"
+                            "id": "concepts/html/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/components"
+                            "id": "concepts/html/components"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/elements"
+                            "id": "concepts/html/elements"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/events"
+                            "id": "concepts/html/events"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/classes"
+                            "id": "concepts/html/classes"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/lists"
+                            "id": "concepts/html/lists"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/html/literals-and-expressions"
+                            "id": "concepts/html/literals-and-expressions"
                         }
                     ]
                 },
@@ -135,25 +135,25 @@
                     "items": [
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/services/introduction"
+                            "id": "concepts/services/introduction"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/services/fetch"
+                            "id": "concepts/services/fetch"
                         },
                         {
                             "type": "doc",
-                            "id": "version-0.18.0/concepts/services/format"
+                            "id": "concepts/services/format"
                         }
                     ]
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/concepts/router"
+                    "id": "concepts/router"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/concepts/agents"
+                    "id": "concepts/agents"
                 }
             ]
         },
@@ -164,11 +164,11 @@
             "items": [
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/advanced-topics/how-it-works"
+                    "id": "advanced-topics/how-it-works"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/advanced-topics/optimizations"
+                    "id": "advanced-topics/optimizations"
                 }
             ]
         },
@@ -179,23 +179,23 @@
             "items": [
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/more/debugging"
+                    "id": "more/debugging"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/more/css"
+                    "id": "more/css"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/more/external-libs"
+                    "id": "more/external-libs"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/more/testing"
+                    "id": "more/testing"
                 },
                 {
                     "type": "doc",
-                    "id": "version-0.18.0/more/roadmap"
+                    "id": "more/roadmap"
                 }
             ]
         }

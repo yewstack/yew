@@ -1,0 +1,291 @@
+---
+title: 'プロパティ (Properties)'
+description: '親子コンポーネントの通信'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+:::note
+
+プロパティ (Properties) は通常 "Props" と略されます。
+
+:::
+
+プロパティ (Properties) はコンポーネントのパラメータであり、Yew はこれらのパラメータを監視できます。
+
+コンポーネントのプロパティで型を使用する前に、その型は `Properties` トレイトを実装している必要があります。
+
+## リアクティブ性
+
+再レンダリング時に、Yew は仮想DOMを調整する際にプロパティが変更されたかどうかを確認し、ネストされたコンポーネントを再レンダリングする必要があるかどうかを判断します。これにより、Yew は非常にリアクティブなフレームワークと見なされます。親コンポーネントからの変更は常に下位に伝播し、ビューはプロパティ/状態からのデータと常に同期します。
+
+:::tip
+
+まだ [チュートリアル](../../tutorial) を完了していない場合は、このリアクティブ性を自分でテストしてみてください！
+
+:::
+
+## 派生マクロ
+
+Yew は、構造体に `Properties` トレイトを簡単に実装できる派生マクロを提供します。
+
+`Properties` を派生する型は、Yew がデータ比較を行えるように `PartialEq` も実装している必要があります。
+
+```rust
+use yew::Properties;
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+```
+
+## 関数コンポーネントでの使用
+
+属性 `#[function_component]` は、関数の引数で Props を選択的に受け取ることを可能にします。それらを提供するには、`html!` マクロ内の属性を通じて割り当てることができます。
+
+<Tabs>
+  <TabItem value="with-props" label="With Props">
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    html! { <>{"Am I loading? - "}{props.is_loading.clone()}</> }
+}
+
+// そしてプロパティを提供します
+#[function_component]
+fn App() -> Html {
+    html! {<HelloWorld is_loading={true} />}
+}
+
+```
+
+  </TabItem>
+  <TabItem value="no-props" label="No Props">
+
+```rust
+use yew::{function_component, html, Html};
+
+
+
+
+
+#[function_component]
+fn HelloWorld() -> Html {
+    html! { "Hello world" }
+}
+
+// 提供するプロパティはありません
+#[function_component]
+fn App() -> Html {
+    html! {<HelloWorld />}
+}
+
+```
+
+  </TabItem>
+</Tabs>
+
+## 派生マクロフィールド属性
+
+`Properties` を派生する際、デフォルトではすべてのフィールドが必須です。
+以下の属性を使用すると、親コンポーネントがそれらを設定しなかった場合にデフォルト値を提供することができます。
+
+:::tip
+属性は Rustdoc によって生成されたドキュメントには表示されません。属性のドキュメント文字列には、その属性がオプションであるかどうか、および特定のデフォルト値があるかどうかを記載する必要があります。
+:::
+
+<Tabs>
+  <TabItem value="prop_or_default" label="#[prop_or_default]">
+
+`Default` トレイトを使用して、フィールド型のデフォルト値でプロパティ値を初期化します。
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    // highlight-start
+    #[prop_or_default]
+    // highlight-end
+    pub is_loading: bool,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    if props.is_loading.clone() {
+        html! { "Loading" }
+    } else {
+        html! { "Hello world" }
+    }
+}
+
+// デフォルト値を使用する
+#[function_component]
+fn Case1() -> Html {
+    html! {<HelloWorld />}
+}
+// またはデフォルト値を上書きしない
+#[function_component]
+fn Case2() -> Html {
+    html! {<HelloWorld is_loading={true} />}
+}
+```
+
+  </TabItem>
+  <TabItem value="prop_or_value" label="#[prop_or(value)]">
+
+`value` を使用してプロパティ値を初期化します。`value` はフィールド型を返す任意の式である可能性があります。
+例えば、ブールプロパティをデフォルトで `true` にするには、属性 `#[prop_or(true)]` を使用します。プロパティが構築されるときに、式が評価され、明示的な値が与えられていない場合に適用されます。
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    // highlight-start
+    #[prop_or("Bob".to_string())]
+    // highlight-end
+    pub name: String,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    html! {<>{"Hello world"}{props.name.clone()}</>}
+}
+
+// デフォルト値を使用する
+#[function_component]
+fn Case1() -> Html {
+    html! {<HelloWorld />}
+}
+// またはデフォルト値を上書きしない
+#[function_component]
+fn Case2() -> Html {
+    html! {<HelloWorld name={"Sam".to_string()} />}
+}
+```
+
+  </TabItem>
+  <TabItem value="prop_or_else_function" label="#[prop_or_else(function)]">
+
+属性値を初期化するために `function` を呼び出します。`function` は `FnMut() -> T` シグネチャを持つ必要があり、ここで `T` はフィールドの型です。このプロパティに明示的な値が与えられていない場合、その関数が呼び出されます。
+
+```rust
+use yew::{function_component, html, Html, Properties};
+
+fn create_default_name() -> String {
+    "Bob".to_string()
+}
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    // highlight-start
+    #[prop_or_else(create_default_name)]
+    // highlight-end
+    pub name: String,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    html! {<>{"Hello world"}{props.name.clone()}</>}
+}
+
+// デフォルト値を使用する
+#[function_component]
+fn Case1() -> Html {
+    html! {<HelloWorld />}
+}
+// またはデフォルト値を上書きしない
+#[function_component]
+fn Case2() -> Html {
+    html! {<HelloWorld name={"Sam".to_string()} />}
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Properties のパフォーマンスオーバーヘッド
+
+内部プロパティは参照カウントされたスマートポインタとして渡されます。これにより、コンポーネントツリー内のプロパティに対して共有ポインタが1つだけ渡されるため、プロパティ全体をクローンする高コストを節約できます。
+
+:::tip
+`AttrValue` はプロパティ値に使用するカスタムタイプであり、これにより String やその他のクローンコストが高いタイプとして定義する必要がなくなります。
+:::
+
+## Props マクロ
+
+`yew::props!` マクロを使用すると、`html!` マクロと同じ方法でプロパティを構築できます。
+
+このマクロは構造体の式と同じ構文を使用しますが、プロパティや基本式 (`Foo { ..base }`) を使用することはできません。タイプパスはプロパティ (`path::to::Props`) に直接指すことも、コンポーネントの関連プロパティ (`MyComp::Properties`) に指すこともできます。
+
+```rust
+use yew::{function_component, html, Html, Properties, props, virtual_dom::AttrValue};
+
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    #[prop_or(AttrValue::from("Bob"))]
+    pub name: AttrValue,
+}
+
+#[function_component]
+fn HelloWorld(props: &Props) -> Html {
+    html! {<>{"Hello world"}{props.name.clone()}</>}
+}
+
+#[function_component]
+fn App() -> Html {
+    // highlight-start
+    let pre_made_props = props! {
+        Props {} // 名前属性を指定する必要はありません
+    };
+    // highlight-end
+    html! {<HelloWorld ..pre_made_props />}
+}
+```
+
+## 評価順序
+
+属性は指定された順序で評価されます。以下の例を参照してください：
+
+```rust
+#[derive(yew::Properties, PartialEq)]
+struct Props { first: usize, second: usize, last: usize }
+
+fn main() {
+    let mut g = 1..=3;
+    let props = yew::props!(Props { first: g.next().unwrap(), second: g.next().unwrap(), last: g.next().unwrap() });
+
+    assert_eq!(props.first, 1);
+    assert_eq!(props.second, 2);
+    assert_eq!(props.last, 3);
+}
+```
+
+## アンチパターン
+
+ほとんどのRust型はプロパティとして渡すことができますが、避けるべきアンチパターンがいくつかあります。これらには以下が含まれますが、これに限定されません：
+
+1. `String` 型を `AttrValue` の代わりに使用する。 <br />
+   **なぜ悪いのか？** `String` のクローンは高コストです。プロパティ値がフックやコールバックと一緒に使用される場合、通常クローンが必要です。`AttrValue` は参照カウントされた文字列 (`Rc<str>`) または `&'static str` であり、非常に安価にクローンできます。<br />
+   **注意**：`AttrValue` は内部的には [implicit-clone](https://crates.io/crates/implicit-clone) からの `IString` です。詳細はそのパッケージを参照してください。
+2. 内部可変性を使用する。 <br />
+   **なぜ悪いのか？** 内部可変性（例えば `RefCell`、`Mutex` など）は _通常_ 避けるべきです。これにより再レンダリングの問題が発生する可能性があり（Yewは状態が変更されたことを認識しません）、手動で再レンダリングを強制する必要があるかもしれません。すべてのものと同様に、適切な使用場所があります。慎重に使用してください。
+3. `Vec<T>` 型を `IArray<T>` の代わりに使用する。 <br />
+   **なぜ悪いのか？** `Vec<T>` も `String` と同様にクローンのコストが高いです。`IArray<T>` は参照カウントされたスライス (`Rc<[T]>`) または `&'static [T]` であり、非常に安価にクローンできます。<br />
+   **注意**：`IArray<T>` は [implicit-clone](https://crates.io/crates/implicit-clone) からインポートできます。詳細はそのパッケージを参照してください。
+4. 新しい発見があるかもしれません。早く知っておきたかったエッジケースに遭遇しましたか？問題を作成するか、このドキュメントに修正のPRを提供してください。
+
+## yew-autoprops
+
+[yew-autoprops](https://crates.io/crates/yew-autoprops) は実験的なパッケージで、関数の引数に基づいて動的にProps構造体を作成することを可能にします。プロパティ構造体が再利用されない場合、これは有用かもしれません。

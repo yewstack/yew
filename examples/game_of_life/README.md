@@ -10,7 +10,7 @@ You can manually toggle cells by clicking on them or create a random layout by p
 This example is quite resource intensive; it's recommended that you only use it with the `--release` flag:
 
 ```bash
-trunk serve --release
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --release
 ```
 
 ## Concepts
@@ -23,5 +23,5 @@ trunk serve --release
 Run this application with the trunk development server:
 
 ```bash
-trunk serve --open
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' trunk serve --open
 ```

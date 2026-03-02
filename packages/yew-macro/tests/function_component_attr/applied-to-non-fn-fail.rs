@@ -5,7 +5,7 @@ struct Props {
     a: usize,
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 struct Test;
 
 fn main() {}

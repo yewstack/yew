@@ -12,7 +12,7 @@ pub struct RedirectProps<R: Routable> {
 }
 
 /// A component that will redirect to specified route when rendered.
-#[function_component(Redirect)]
+#[component(Redirect)]
 pub fn redirect<R>(props: &RedirectProps<R>) -> Html
 where
     R: Routable + 'static,

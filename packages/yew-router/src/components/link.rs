@@ -36,7 +36,7 @@ where
 }
 
 /// A wrapper around `<a>` tag to be used with [`Router`](crate::Router)
-#[function_component]
+#[component]
 pub fn Link<R, Q = (), S = ()>(props: &LinkProps<R, Q, S>) -> Html
 where
     R: Routable + 'static,

@@ -4,10 +4,11 @@ members = [
     "tools/*",
     "examples/*",
 ]
+exclude = ["examples/.cargo"]
 default-members = [
     "packages/*",
 ]
-resolver = "2"
+resolver = "3"
 
 [profile.release]
 lto = true
@@ -18,5 +19,42 @@ opt-level = "z"
 [profile.bench]
 lto = true
 codegen-units = 1
-panic = "abort"
 opt-level = 3
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    "cfg(documenting)",
+    "cfg(verbose_tests)",
+    "cfg(yew_lints)",
+    "cfg(nightly_yew)",
+    "cfg(wasm_bindgen_unstable_test_coverage)"
+]}
+[workspace.dependencies]
+tokio = { version = "1.49.0" }
+implicit-clone = { version = "0.6.0" }
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2" }
+trybuild = "1"
+clap = { version = "4", features = ["derive"] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = "0.3"
+gloo = "0.11"
+serde = "1"
+serde_json = "1"
+futures = { version = "0.3", default-features = false }
+log = "0.4"
+wasm-logger = "0.2"
+rand = "0.9"
+getrandom = { version = "0.3", features = ["wasm_js"] }
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+rustversion = "1"
+strum = "0.28"
+strum_macros = "0.28"
+anyhow = "1"
+chrono = "0.4"
+thiserror = "2.0"
+bincode = { version = "2.0.0-rc.3", features = ["serde"] }
+reqwest = "0.12"

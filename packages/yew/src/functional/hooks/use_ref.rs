@@ -4,16 +4,72 @@ use std::rc::Rc;
 use crate::functional::{hook, use_state, Hook, HookContext};
 use crate::NodeRef;
 
-struct UseMutRef<F> {
+struct UseRef<F> {
     init_fn: F,
 }
 
-impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
-    type Output = Rc<RefCell<T>>;
+impl<T: 'static, F: FnOnce() -> T> Hook for UseRef<F> {
+    type Output = Rc<T>;
 
     fn run(self, ctx: &mut HookContext) -> Self::Output {
-        ctx.next_state(|_| RefCell::new((self.init_fn)()))
+        ctx.next_state(|_| (self.init_fn)())
     }
+}
+
+/// This hook is used for obtaining a reference to a stateful value.
+/// Its state persists across renders.
+///
+/// Mutation must be done via interior mutability, such as `Cell` or `RefCell`.
+///
+/// It is important to note that you do not get notified of state changes.
+/// If you need the component to be re-rendered on state change, consider using
+/// [`use_state`](super::use_state()).
+///
+/// # Example
+/// ```rust
+/// use std::cell::Cell;
+/// use std::ops::{Deref, DerefMut};
+/// use std::rc::Rc;
+///
+/// use web_sys::HtmlInputElement;
+/// use yew::prelude::*;
+///
+/// #[component(UseRef)]
+/// fn ref_hook() -> Html {
+///     let message = use_state(|| "".to_string());
+///     let message_count = use_ref(|| Cell::new(0));
+///
+///     let onclick = Callback::from(move |e| {
+///         let window = gloo::utils::window();
+///
+///         if message_count.get() > 3 {
+///             window.alert_with_message("Message limit reached");
+///         } else {
+///             message_count.set(message_count.get() + 1);
+///             window.alert_with_message("Message sent");
+///         }
+///     });
+///
+///     let onchange = {
+///         let message = message.clone();
+///         Callback::from(move |e: Event| {
+///             let input: HtmlInputElement = e.target_unchecked_into();
+///             message.set(input.value())
+///         })
+///     };
+///
+///     html! {
+///         <div>
+///             <input {onchange} value={(*message).clone()} />
+///             <button {onclick}>{ "Send" }</button>
+///         </div>
+///     }
+/// }
+pub fn use_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<T>>
+where
+    F: FnOnce() -> T,
+{
+    UseRef { init_fn }
 }
 
 /// This hook is used for obtaining a mutable reference to a stateful value.
@@ -32,7 +88,7 @@ impl<T: 'static, F: FnOnce() -> T> Hook for UseMutRef<F> {
 /// use web_sys::HtmlInputElement;
 /// use yew::prelude::*;
 ///
-/// #[function_component(UseRef)]
+/// #[component(UseRef)]
 /// fn ref_hook() -> Html {
 ///     let message = use_state(|| "".to_string());
 ///     let message_count = use_mut_ref(|| 0);
@@ -68,7 +124,9 @@ pub fn use_mut_ref<T: 'static, F>(init_fn: F) -> impl Hook<Output = Rc<RefCell<T
 where
     F: FnOnce() -> T,
 {
-    UseMutRef { init_fn }
+    UseRef {
+        init_fn: || RefCell::new(init_fn()),
+    }
 }
 
 /// This hook is used for obtaining a [`NodeRef`].
@@ -83,9 +141,9 @@ where
 /// use wasm_bindgen::prelude::Closure;
 /// use wasm_bindgen::JsCast;
 /// use web_sys::{Event, HtmlElement};
-/// use yew::{function_component, html, use_effect_with, use_node_ref, Html};
+/// use yew::{component, html, use_effect_with, use_node_ref, Html};
 ///
-/// #[function_component(UseNodeRef)]
+/// #[component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {
 ///     let div_ref = use_node_ref();
 ///

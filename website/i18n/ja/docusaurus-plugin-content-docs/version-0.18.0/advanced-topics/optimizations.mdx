@@ -115,10 +115,10 @@ Yew は純粋な関数やコンポーネントをサポートしていません�
 
 ## バイナリサイズを小さくする
 
--   Rust のコードを最適化する
-    -   `wee_alloc` \( tiny allocator を使用 \)
-    -   `cargo.toml` \( release profile を定義 \)
--   `wasm-opt`を用いて wasm のコードを最適化する
+- Rust のコードを最適化する
+    - `wee_alloc` \( tiny allocator を使用 \)
+    - `cargo.toml` \( release profile を定義 \)
+- `wasm-opt`を用いて wasm のコードを最適化する
 
 **注意: バイナリサイズを小さくするのについては[Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)に詳しく書いてあります。**
 
@@ -162,8 +162,8 @@ lto = true
 The Rust Wasm Book には Wasm バイナリのサイズを小さくすることについてのセクションがあります:
 [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
--   `wasm-pack`でデフォルトの`wasm`のコードをリリースビルド時に最適化する
--   `wasm-opt`によって直接`wasm`ファイルを最適化する
+- `wasm-pack`でデフォルトの`wasm`のコードをリリースビルド時に最適化する
+- `wasm-opt`によって直接`wasm`ファイルを最適化する
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
@@ -181,7 +181,7 @@ wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
 
 ## 参考文献:
 
--   [The Rust Book のスマートポインタに関する章](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
--   [the Rust Wasm Book でのバイナリサイズを小さくすることについて](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
--   [Rust profiles についてのドキュメント](https://doc.rust-lang.org/cargo/reference/profiles.html)
--   [binaryen プロジェクト](https://github.com/WebAssembly/binaryen)
+- [The Rust Book のスマートポインタに関する章](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [the Rust Wasm Book でのバイナリサイズを小さくすることについて](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Rust profiles についてのドキュメント](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen プロジェクト](https://github.com/WebAssembly/binaryen)

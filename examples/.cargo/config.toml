@@ -1,0 +1,7 @@
+# this include is a bit of a hack: due to the unstable nature of the feature,
+# this file only gets included on nightly, hence it can specify "nightly only"
+# rustflags and options
+include = ["unstable.toml", "dummy-min-size-config.toml"]
+
+[unstable]
+config-include = true

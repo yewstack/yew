@@ -18,18 +18,18 @@ pub struct Boid {
 
 impl Boid {
     pub fn new_random(settings: &Settings) -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
 
         let max_radius = settings.min_distance / 2.0;
         let min_radius = max_radius / 6.0;
         // by using the third power large boids become rarer
-        let radius = min_radius + rng.gen::<f64>().powi(3) * (max_radius - min_radius);
+        let radius = min_radius + rng.random::<f64>().powi(3) * (max_radius - min_radius);
 
         Self {
-            position: Vector2D::new(rng.gen::<f64>() * SIZE.x, rng.gen::<f64>() * SIZE.y),
-            velocity: Vector2D::from_polar(rng.gen::<f64>() * math::TAU, settings.max_speed),
+            position: Vector2D::new(rng.random::<f64>() * SIZE.x, rng.random::<f64>() * SIZE.y),
+            velocity: Vector2D::from_polar(rng.random::<f64>() * math::TAU, settings.max_speed),
             radius,
-            hue: rng.gen::<f64>() * math::TAU,
+            hue: rng.random::<f64>() * math::TAU,
         }
     }
 

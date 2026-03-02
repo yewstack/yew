@@ -145,21 +145,7 @@ where
     // These implementations should be merged once https://github.com/tokio-rs/tracing/issues/2503 is resolved.
 
     /// Renders Yew Application into a string Stream
-    #[rustversion::since(1.70)]
     #[allow(clippy::let_with_type_underscore)]
-    #[tracing::instrument(
-        level = tracing::Level::DEBUG,
-        name = "render_stream",
-        skip(self),
-        fields(hydratable = self.hydratable),
-    )]
-    #[inline(always)]
-    pub fn render_stream(self) -> impl Stream<Item = String> {
-        self.render_stream_inner()
-    }
-
-    /// Renders Yew Application into a string Stream
-    #[rustversion::before(1.70)]
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         name = "render_stream",

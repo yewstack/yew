@@ -85,7 +85,7 @@ where
 /// The Oneshot Agent Provider.
 ///
 /// This component provides its children access to an oneshot agent.
-#[function_component]
+#[component]
 pub fn OneshotProvider<T, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
     T: Oneshot + 'static,
@@ -97,13 +97,19 @@ where
         children,
         path,
         lazy,
+        module,
         reach,
     } = props.clone();
 
     // Creates a spawning function so Codec is can be erased from contexts.
     let spawn_bridge_fn: Rc<dyn Fn() -> OneshotBridge<T>> = {
         let path = path.clone();
-        Rc::new(move || OneshotSpawner::<T>::new().encoding::<C>().spawn(&path))
+        Rc::new(move || {
+            OneshotSpawner::<T>::new()
+                .as_module(module)
+                .encoding::<C>()
+                .spawn(&path)
+        })
     };
 
     let state = {

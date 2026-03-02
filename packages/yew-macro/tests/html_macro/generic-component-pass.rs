@@ -76,24 +76,24 @@ where
 }
 
 fn compile_pass() {
-    ::yew::html! { <Generic<::std::string::String> /> };
-    ::yew::html! { <Generic<(u8, bool)> /> };
-    ::yew::html! { <Generic<(u8, bool)> ></Generic<(u8, bool)>> };
-    ::yew::html! { <Generic<::std::string::String> ></Generic<::std::string::String>> };
+    _ = ::yew::html! { <Generic<::std::string::String> /> };
+    _ = ::yew::html! { <Generic<(u8, bool)> /> };
+    _ = ::yew::html! { <Generic<(u8, bool)> ></Generic<(u8, bool)>> };
+    _ = ::yew::html! { <Generic<::std::string::String> ></Generic<::std::string::String>> };
 
-    ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>> /> };
-    ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>>></ Generic<::std::vec::Vec<::std::string::String>>> };
+    _ = ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>> /> };
+    _ = ::yew::html! { <Generic<::std::vec::Vec<::std::string::String>>></ Generic<::std::vec::Vec<::std::string::String>>> };
 
-    ::yew::html! { <Generic<::std::primitive::usize> /> };
-    ::yew::html! { <Generic<::std::primitive::usize>></Generic<::std::primitive::usize>> };
-    ::yew::html! { <Generic<::std::string::String, > /> };
-    ::yew::html! { <Generic<::std::string::String, >></Generic<::std::string::String,>> };
+    _ = ::yew::html! { <Generic<::std::primitive::usize> /> };
+    _ = ::yew::html! { <Generic<::std::primitive::usize>></Generic<::std::primitive::usize>> };
+    _ = ::yew::html! { <Generic<::std::string::String, > /> };
+    _ = ::yew::html! { <Generic<::std::string::String, >></Generic<::std::string::String,>> };
 
-    ::yew::html! { <Generic2<::std::string::String, ::std::string::String> /> };
-    ::yew::html! { <Generic2<::std::string::String, ::std::string::String>></Generic2<::std::string::String, ::std::string::String>> };
+    _ = ::yew::html! { <Generic2<::std::string::String, ::std::string::String> /> };
+    _ = ::yew::html! { <Generic2<::std::string::String, ::std::string::String>></Generic2<::std::string::String, ::std::string::String>> };
 
-    ::yew::html! { <Generic2<::std::string::String, ::std::string::String, > /> };
-    ::yew::html! { <Generic2<::std::string::String, ::std::string::String, >></Generic2<::std::string::String, ::std::string::String, >> };
+    _ = ::yew::html! { <Generic2<::std::string::String, ::std::string::String, > /> };
+    _ = ::yew::html! { <Generic2<::std::string::String, ::std::string::String, >></Generic2<::std::string::String, ::std::string::String, >> };
 }
 
 fn main() {}

@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -15,7 +15,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_memo_works() {
-    #[function_component(UseMemoComponent)]
+    #[component(UseMemoComponent)]
     fn use_memo_comp() -> Html {
         let state = use_state(|| 0);
 
