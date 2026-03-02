@@ -57,6 +57,20 @@ These errors can change with each release of the compiler, so they should be gen
 
 To update or generate a new `stderr` file you can run `cargo make test-overwrite` in the `yew-macro` directory.
 
+## Spell Checking
+
+We use [typos](https://github.com/crate-ci/typos) to catch spelling mistakes. CI runs it automatically on every PR.
+
+To run it locally:
+
+```bash
+cargo install typos-cli --locked
+typos        # check for typos
+typos -w     # auto-fix typos
+```
+
+False positives can be configured in `_typos.toml` at the repo root.
+
 ## Linting
 
 The following command checks the code using Rustfmt and Clippy:
