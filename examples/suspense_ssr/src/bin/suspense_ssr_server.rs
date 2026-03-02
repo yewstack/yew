@@ -92,12 +92,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 tower_service.clone().call(request)
             });
 
-            if let Err(err) = server::conn::auto::Builder::new(exec)
+            let _result = server::conn::auto::Builder::new(exec)
                 .serve_connection_with_upgrades(socket, hyper_service)
-                .await
-            {
-                eprintln!("failed to serve connection: {err:#}");
-            }
+                .await;
         });
     }
 }
