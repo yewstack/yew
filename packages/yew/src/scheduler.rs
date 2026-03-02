@@ -249,7 +249,10 @@ pub(crate) fn start_now() {
 mod arch {
     use std::sync::atomic::{AtomicBool, Ordering};
 
+    use wasm_bindgen_futures::JsFuture;
+
     use crate::platform::spawn_local;
+
     // Really only used as a `Cell<bool>` that is also `Sync`
     static IS_SCHEDULED: AtomicBool = AtomicBool::new(false);
     fn check_scheduled() -> bool {
@@ -267,16 +270,45 @@ mod arch {
         check_scheduled()
     }
 
+    const YIELD_DEADLINE_MS: f64 = 50.0;
+
+    async fn yield_to_browser() {
+        let promise = js_sys::Promise::new(&mut |resolve, _| {
+            let _ = web_sys::window()
+                .expect("should be in a browser environment")
+                .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, 0);
+        });
+        let _ = JsFuture::from(promise).await;
+    }
+
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
+    /// Once running, we yield to the browser every ~50ms to avoid long tasks.
     pub(crate) fn start() {
         if check_scheduled() {
             return;
         }
         set_scheduled(true);
         spawn_local(async {
+            let mut queue = vec![];
+            let mut deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
+
+            loop {
+                super::with(|s| s.fill_queue(&mut queue));
+                if queue.is_empty() {
+                    break;
+                }
+                for r in queue.drain(..) {
+                    r.task.run();
+                }
+                let now = js_sys::Date::now();
+                if now >= deadline {
+                    yield_to_browser().await;
+                    deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
+                }
+            }
+
             set_scheduled(false);
-            super::start_now();
         });
     }
 }
