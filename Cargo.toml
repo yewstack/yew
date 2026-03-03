@@ -3,6 +3,7 @@ members = [
     "packages/*",
     "tools/*",
     "examples/*",
+    "example",
 ]
 exclude = ["examples/.cargo"]
 default-members = [
