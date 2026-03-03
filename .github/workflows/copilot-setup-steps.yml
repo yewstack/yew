@@ -20,7 +20,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: yew-packages
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Setup Trunk
         uses: jetli/trunk-action@v0.5.1
@@ -29,6 +29,8 @@ jobs:
 
       - name: Setup typos
         uses: crate-ci/typos@v1.44.0
+
+      - uses: taiki-e/install-action@cargo-hack
 
       - name: Install wasm-bindgen-cli
         shell: bash
