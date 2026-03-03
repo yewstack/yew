@@ -176,8 +176,23 @@ jobs:
         run: cargo test -p yew-macro test_html_lints
 
   macro_tests:
-    name: Macro Tests
+    name: Macro Tests (${{ matrix.test }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - classes_macro_test
+          - derive_props_test
+          - function_attr_test
+          - hook_attr_test
+          - hook_macro_test
+          - html_macro_test
+          - props_macro_test
+        package: [yew-macro]
+        include:
+          - test: routable_derive_test
+            package: yew-router-macro
 
     steps:
       - uses: actions/checkout@v6
@@ -191,8 +206,8 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
-      - name: Run macro trybuild tests
-        run: cargo test --all-targets -p yew-macro -p yew-router-macro
+      - name: Run ${{ matrix.test }}
+        run: cargo test -p ${{ matrix.package }} --test ${{ matrix.test }}
 
   unit_tests_wasi:
     name: Unit Tests (WASI) on ${{ matrix.toolchain }}
