@@ -46,7 +46,6 @@ jobs:
           cargo hack clippy
           -p yew -p yew-agent -p yew-router
           --feature-powerset --no-dev-deps
-          --exclude-features test,serde,not_browser_env
           --keep-going
           -- -D warnings
 
@@ -56,7 +55,6 @@ jobs:
           cargo hack clippy
           -p yew -p yew-agent -p yew-router
           --feature-powerset --no-dev-deps
-          --exclude-features test,serde,not_browser_env
           --keep-going --release
           -- -D warnings
 
