@@ -175,24 +175,33 @@ jobs:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         run: cargo test -p yew-macro test_html_lints
 
+  macro_tests_discovery:
+    name: Discover macro tests
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        run: |
+          matrix=$(
+            find packages/*/tests -name '*_test.rs' ! -name 'html_lints_test.rs' -printf '%h/%f\n' \
+              | while IFS= read -r path; do
+                  pkg=$(echo "$path" | cut -d/ -f2)
+                  test=$(basename "$path" .rs)
+                  printf '{"package":"%s","test":"%s"}\n' "$pkg" "$test"
+                done \
+              | jq -sc '{include: .}'
+          )
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   macro_tests:
     name: Macro Tests (${{ matrix.test }})
+    needs: macro_tests_discovery
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        test:
-          - classes_macro_test
-          - derive_props_test
-          - function_attr_test
-          - hook_attr_test
-          - hook_macro_test
-          - html_macro_test
-          - props_macro_test
-        package: [yew-macro]
-        include:
-          - test: routable_derive_test
-            package: yew-router-macro
+      matrix: ${{ fromJson(needs.macro_tests_discovery.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v6
