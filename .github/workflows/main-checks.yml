@@ -140,7 +140,12 @@ jobs:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        run: ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
+        run: |
+          if [[ "${{ matrix.toolchain }}" == "1.84.0" ]]; then
+            cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router
+          else
+            ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
+          fi
 
       - name: Run native tests for yew
         env:
@@ -169,6 +174,25 @@ jobs:
         env:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         run: cargo test -p yew-macro test_html_lints
+
+  macro_tests:
+    name: Macro Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.84.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run macro trybuild tests
+        run: cargo test --all-targets -p yew-macro -p yew-router-macro
 
   unit_tests_wasi:
     name: Unit Tests (WASI) on ${{ matrix.toolchain }}
