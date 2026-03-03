@@ -49,10 +49,8 @@ jobs:
           components: rust-src
           targets: wasm32-unknown-unknown
 
-      - name: Restore Rust cache for master
+      - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: size-compare
 
       - name: Setup Trunk
         uses: jetli/trunk-action@v0.5.1

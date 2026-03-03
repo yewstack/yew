@@ -39,7 +39,6 @@ jobs:
       - name: Restore Rust cache for yew packages
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: yew-packages
           workspaces: |
             yew-master
             current-pr
