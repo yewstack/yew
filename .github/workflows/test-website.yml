@@ -34,7 +34,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: yew-packages
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - uses: browser-actions/setup-geckodriver@latest
         with:

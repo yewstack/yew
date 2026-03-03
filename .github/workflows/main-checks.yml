@@ -25,9 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: yew-packages
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -35,15 +32,19 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: ./ci/install-wasm-bindgen-cli.sh
-
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: browser-actions/setup-geckodriver@latest
         with:
@@ -73,25 +74,25 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: yew-packages
-
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
 
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: ./ci/install-wasm-bindgen-cli.sh
-
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
           targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: browser-actions/setup-geckodriver@latest
         with:
@@ -132,7 +133,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: yew-packages
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run native tests
         env:
@@ -162,7 +163,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: yew-packages
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run tests
         env:
@@ -197,6 +198,8 @@ jobs:
           source ~/.bashrc
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run WASI tests for yew
         run: |
@@ -232,6 +235,8 @@ jobs:
           source ~/.bashrc
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Build and run ${{ matrix.package }}
         run: |
