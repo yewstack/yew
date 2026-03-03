@@ -488,14 +488,14 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             &f32
-             &f64
-             &i128
-             &i16
-             &i32
-             &i64
-             &i8
-             &isize
+             `&f32` implements `IntoPropValue<Option<VNode>>`
+             `&f32` implements `IntoPropValue<VNode>`
+             `&f64` implements `IntoPropValue<Option<VNode>>`
+             `&f64` implements `IntoPropValue<VNode>`
+             `&i128` implements `IntoPropValue<Option<VNode>>`
+             `&i128` implements `IntoPropValue<VNode>`
+             `&i16` implements `IntoPropValue<Option<VNode>>`
+             `&i16` implements `IntoPropValue<VNode>`
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -516,14 +516,14 @@ error[E0277]: the trait bound `{integer}: IntoPropValue<String>` is not satisfie
    |                          required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             &f32
-             &f64
-             &i128
-             &i16
-             &i32
-             &i64
-             &i8
-             &isize
+             `&f32` implements `IntoPropValue<Option<VNode>>`
+             `&f32` implements `IntoPropValue<VNode>`
+             `&f64` implements `IntoPropValue<Option<VNode>>`
+             `&f64` implements `IntoPropValue<VNode>`
+             `&i128` implements `IntoPropValue<Option<VNode>>`
+             `&i128` implements `IntoPropValue<VNode>`
+             `&i16` implements `IntoPropValue<Option<VNode>>`
+             `&i16` implements `IntoPropValue<VNode>`
            and $N others
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:4:17
@@ -561,8 +561,10 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                    required by a bound introduced by this call
    |
    = help: the following other types implement trait `IntoPropValue<T>`:
-             &u32
-             u32
+             `&u32` implements `IntoPropValue<Option<VNode>>`
+             `&u32` implements `IntoPropValue<VNode>`
+             `u32` implements `IntoPropValue<Option<VNode>>`
+             `u32` implements `IntoPropValue<VNode>`
 note: required by a bound in `ChildPropertiesBuilder::int`
   --> tests/html_macro/component-fail.rs:4:17
    |
