@@ -140,7 +140,12 @@ jobs:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        run: ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
+        run: |
+          if [[ "${{ matrix.toolchain }}" == "1.84.0" ]]; then
+            cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router
+          else
+            ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
+          fi
 
       - name: Run native tests for yew
         env:
@@ -169,6 +174,49 @@ jobs:
         env:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         run: cargo test -p yew-macro test_html_lints
+
+  macro_tests_discovery:
+    name: Discover macro tests
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        run: |
+          matrix=$(
+            find packages/*/tests -name '*_test.rs' ! -name 'html_lints_test.rs' -printf '%h/%f\n' \
+              | while IFS= read -r path; do
+                  pkg=$(echo "$path" | cut -d/ -f2)
+                  test=$(basename "$path" .rs)
+                  printf '{"package":"%s","test":"%s"}\n' "$pkg" "$test"
+                done \
+              | jq -sc '{include: .}'
+          )
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  macro_tests:
+    name: Macro Tests (${{ matrix.test }})
+    needs: macro_tests_discovery
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.macro_tests_discovery.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.84.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run ${{ matrix.test }}
+        run: cargo test -p ${{ matrix.package }} --test ${{ matrix.test }}
 
   unit_tests_wasi:
     name: Unit Tests (WASI) on ${{ matrix.toolchain }}
