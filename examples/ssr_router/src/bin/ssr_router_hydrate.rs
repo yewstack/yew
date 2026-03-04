@@ -1,4 +1,4 @@
-use function_router::App;
+use ssr_router::App;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]

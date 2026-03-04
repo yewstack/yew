@@ -1,0 +1,17 @@
+[package]
+name = "yew-link-macro"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84.0"
+description = "Proc macros for yew-link"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true, features = ["full"] }
+
+[lints]
+workspace = true
