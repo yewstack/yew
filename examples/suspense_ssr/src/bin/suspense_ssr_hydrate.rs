@@ -1,4 +1,4 @@
-use function_router::App;
+use suspense_ssr::App;
 use tracing_subscriber::filter::Targets;
 use tracing_subscriber::prelude::*;
 use tracing_web::MakeWebConsoleWriter;

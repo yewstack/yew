@@ -14,6 +14,8 @@ use super::Key;
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
+#[cfg(feature = "ssr")]
+use crate::feat_ssr::SsrContext;
 use crate::html::BaseComponent;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
@@ -77,6 +79,7 @@ pub(crate) trait Mountable {
         parent_scope: &'a AnyScope,
         hydratable: bool,
         parent_vtag_kind: VTagKind,
+        ctx: &'a Rc<SsrContext>,
     ) -> LocalBoxFuture<'a, ()>;
 
     #[cfg(feature = "hydration")]
@@ -146,12 +149,13 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &'a AnyScope,
         hydratable: bool,
         parent_vtag_kind: VTagKind,
+        ctx: &'a Rc<SsrContext>,
     ) -> LocalBoxFuture<'a, ()> {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
 
         async move {
             scope
-                .render_into_stream(w, self.props.clone(), hydratable, parent_vtag_kind)
+                .render_into_stream(w, self.props.clone(), hydratable, parent_vtag_kind, ctx)
                 .await;
         }
         .boxed_local()
@@ -277,10 +281,11 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
             parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
         ) {
             self.mountable
                 .as_ref()
-                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
                 .await;
         }
     }

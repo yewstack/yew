@@ -159,6 +159,14 @@ to achieve suspense-based data fetching.
 The [suspense example in the Yew repository](https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs)
 demonstrates how to use.
 
+## Suspense with Server-Side Rendering
+
+`<Suspense />` works with SSR out of the box. Suspended children do not block
+the response; the fallback streams immediately and resolved content swaps in
+later. See [Server-Side Rendering - Out-of-Order Streaming](../advanced-topics/server-side-rendering.mdx#out-of-order-streaming)
+for details.
+
 ## Relevant examples
 
 - [Suspense](https://github.com/yewstack/yew/tree/master/examples/suspense)
+- [Suspense SSR](https://github.com/yewstack/yew/tree/master/examples/suspense_ssr)

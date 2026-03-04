@@ -27,10 +27,16 @@ impl VSuspense {
 
 #[cfg(feature = "ssr")]
 mod feat_ssr {
+    use std::fmt::Write;
+    use std::rc::Rc;
+
+    use futures::stream::StreamExt;
+    use futures::{pin_mut, FutureExt};
+
     use super::*;
-    use crate::feat_ssr::VTagKind;
+    use crate::feat_ssr::{SsrContext, VTagKind};
     use crate::html::AnyScope;
-    use crate::platform::fmt::BufWriter;
+    use crate::platform::fmt::{self, BufWriter};
     use crate::virtual_dom::Collectable;
 
     impl VSuspense {
@@ -40,6 +46,46 @@ mod feat_ssr {
             parent_scope: &AnyScope,
             hydratable: bool,
             parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
+        ) {
+            // Out-of-order streaming is only available when the scheduler is synchronous
+            // (native and WASI targets). In browser WASM, the scheduler is deferred via
+            // spawn_local, so a single poll!() cannot reliably distinguish "component
+            // pending scheduler" from "component truly suspended". We fall back to the
+            // blocking inline approach there.
+            #[cfg(any(
+                not(target_arch = "wasm32"),
+                target_os = "wasi",
+                feature = "not_browser_env"
+            ))]
+            {
+                self.render_out_of_order(w, parent_scope, hydratable, parent_vtag_kind, ctx)
+                    .await;
+            }
+
+            #[cfg(all(
+                target_arch = "wasm32",
+                not(target_os = "wasi"),
+                not(feature = "not_browser_env")
+            ))]
+            {
+                self.render_inline(w, parent_scope, hydratable, parent_vtag_kind, ctx)
+                    .await;
+            }
+        }
+
+        #[cfg(all(
+            target_arch = "wasm32",
+            not(target_os = "wasi"),
+            not(feature = "not_browser_env")
+        ))]
+        async fn render_inline(
+            &self,
+            w: &mut BufWriter,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+            parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
         ) {
             let collectable = Collectable::Suspense;
 
@@ -47,13 +93,110 @@ mod feat_ssr {
                 collectable.write_open_tag(w);
             }
 
-            // always render children on the server side.
             self.children
-                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind)
+                .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
                 .await;
 
             if hydratable {
                 collectable.write_close_tag(w);
+            }
+        }
+
+        #[cfg(any(
+            not(target_arch = "wasm32"),
+            target_os = "wasi",
+            feature = "not_browser_env"
+        ))]
+        async fn render_out_of_order(
+            &self,
+            w: &mut BufWriter,
+            parent_scope: &AnyScope,
+            hydratable: bool,
+            parent_vtag_kind: VTagKind,
+            ctx: &Rc<SsrContext>,
+        ) {
+            use std::task::Poll;
+
+            use futures::poll;
+
+            use crate::feat_ssr::DeferredSuspense;
+            use crate::platform::pinned::oneshot;
+            use crate::platform::spawn_local;
+
+            let collectable = Collectable::Suspense;
+
+            let (mut child_w, child_r) = fmt::buffer();
+
+            let children = self.children.clone();
+            let scope_clone = parent_scope.clone();
+            let ctx_clone = ctx.clone();
+
+            let mut child_fut = async move {
+                children
+                    .render_into_stream(
+                        &mut child_w,
+                        &scope_clone,
+                        hydratable,
+                        parent_vtag_kind,
+                        &ctx_clone,
+                    )
+                    .await;
+            }
+            .boxed_local();
+
+            match poll!(&mut child_fut) {
+                Poll::Ready(()) => {
+                    if hydratable {
+                        collectable.write_open_tag(w);
+                    }
+
+                    pin_mut!(child_r);
+                    while let Some(m) = child_r.next().await {
+                        let _ = w.write_str(m.as_str());
+                    }
+
+                    if hydratable {
+                        collectable.write_close_tag(w);
+                    }
+                }
+                Poll::Pending => {
+                    let boundary_id = ctx.next_boundary_id();
+
+                    if hydratable {
+                        collectable.write_open_tag(w);
+                    }
+
+                    let _ = write!(w, r#"<!--$?--><template id="B:{boundary_id}"></template>"#);
+
+                    self.fallback
+                        .render_into_stream(w, parent_scope, hydratable, parent_vtag_kind, ctx)
+                        .await;
+
+                    let _ = w.write_str("<!--/$-->");
+
+                    if hydratable {
+                        collectable.write_close_tag(w);
+                    }
+
+                    let (content_tx, content_rx) = oneshot::channel();
+
+                    spawn_local(async move {
+                        child_fut.await;
+
+                        let mut content = String::new();
+                        pin_mut!(child_r);
+                        while let Some(m) = child_r.next().await {
+                            content.push_str(m.as_str());
+                        }
+
+                        let _ = content_tx.send(content);
+                    });
+
+                    ctx.push_deferred(DeferredSuspense {
+                        boundary_id,
+                        content_rx,
+                    });
+                }
             }
         }
     }
@@ -69,6 +212,7 @@ mod ssr_tests {
     use tokio::task::{spawn_local, LocalSet};
     use tokio::test;
 
+    use crate::feat_ssr::YEW_SWAP_SCRIPT;
     use crate::platform::time::sleep;
     use crate::prelude::*;
     use crate::suspense::{Suspension, SuspensionResult};
@@ -86,9 +230,7 @@ mod ssr_tests {
             fn new() -> Self {
                 let (s, handle) = Suspension::new();
 
-                // we use tokio spawn local here.
                 spawn_local(async move {
-                    // we use tokio sleep here.
                     sleep(Duration::from_millis(50)).await;
 
                     handle.resume();
@@ -152,9 +294,57 @@ mod ssr_tests {
             })
             .await;
 
-        assert_eq!(
-            s,
-            "<div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div>"
+        let expected = format!(
+            concat!(
+                r#"<!--$?--><template id="B:0"></template>"#,
+                "loading...",
+                "<!--/$-->",
+                "{}",
+                r#"<template id="S:0">"#,
+                "<div>Hello, Jane!</div><div>Hello, John!</div><div>Hello, Josh!</div>",
+                "</template>",
+                r#"<script>$YC("B:0","S:0")</script>"#,
+            ),
+            YEW_SWAP_SCRIPT,
         );
+        assert_eq!(s, expected);
+    }
+
+    #[cfg(not(target_os = "wasi"))]
+    #[test(flavor = "multi_thread", worker_threads = 2)]
+    async fn test_suspense_immediate() {
+        #[derive(PartialEq, Properties, Debug)]
+        struct ChildProps {
+            name: String,
+        }
+
+        #[component]
+        fn Child(props: &ChildProps) -> Html {
+            html! { <div>{"Hello, "}{&props.name}{"!"}</div> }
+        }
+
+        #[component]
+        fn Comp() -> Html {
+            let fallback = html! {"loading..."};
+
+            html! {
+                <Suspense {fallback}>
+                    <Child name="Jane" />
+                </Suspense>
+            }
+        }
+
+        let local = LocalSet::new();
+
+        let s = local
+            .run_until(async move {
+                ServerRenderer::<Comp>::new()
+                    .hydratable(false)
+                    .render()
+                    .await
+            })
+            .await;
+
+        assert_eq!(s, "<div>Hello, Jane!</div>");
     }
 }
