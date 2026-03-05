@@ -2,12 +2,10 @@
 
 mod common;
 
-use std::time::Duration;
-
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -32,7 +30,7 @@ async fn use_state_works() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "5");
 }
@@ -72,7 +70,7 @@ async fn multiple_use_state_setters() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "11");
 }
@@ -101,7 +99,7 @@ async fn use_state_eq_works() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
     assert_eq!(RENDER_COUNT.load(Ordering::Relaxed), 2);
@@ -202,7 +200,7 @@ async fn deref_remains_valid_across_multiple_dispatches_in_callback() {
 
     yew::Renderer::<UBTestComponent>::with_root(document().get_element_by_id("output").unwrap())
         .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // Fire the callback
     document()
@@ -211,7 +209,7 @@ async fn deref_remains_valid_across_multiple_dispatches_in_callback() {
         .unchecked_into::<HtmlElement>()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // The reference obtained between the two dispatches must still read the
     // value from the first dispatch, not garbage or "second_dispatch".
@@ -290,7 +288,7 @@ async fn use_state_handles_read_latest_value_issue_3796() {
 
     yew::Renderer::<FormComponent>::with_root(document().get_element_by_id("output").unwrap())
         .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // Initial state
     let result = obtain_result();
@@ -317,7 +315,7 @@ async fn use_state_handles_read_latest_value_issue_3796() {
         .click();
 
     // Now wait for rerenders to complete
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // Check the values captured by the submit handler.
     // Before the fix, field_b would be empty because the callback captured a stale handle.

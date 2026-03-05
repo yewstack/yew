@@ -10,7 +10,7 @@ use common::obtain_result_by_id;
 use wasm_bindgen_test::*;
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::{Renderer, ServerRenderer};
+use yew::{scheduler, Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -51,7 +51,7 @@ async fn use_prepared_state_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -101,7 +101,7 @@ async fn use_prepared_state_with_suspension_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();

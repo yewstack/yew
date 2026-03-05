@@ -2,14 +2,13 @@
 
 use std::collections::HashSet;
 use std::rc::Rc;
-use std::time::Duration;
 
 use gloo::utils::document;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::HtmlElement;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 mod common;
 
@@ -57,7 +56,7 @@ async fn use_reducer_works() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result = obtain_result();
 
     assert_eq!(result.as_str(), "11");
@@ -117,7 +116,7 @@ async fn use_reducer_eq_works() {
         document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
@@ -127,7 +126,7 @@ async fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
@@ -137,7 +136,7 @@ async fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
@@ -147,7 +146,7 @@ async fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "3");
@@ -157,7 +156,7 @@ async fn use_reducer_eq_works() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "3");
@@ -228,7 +227,7 @@ async fn use_reducer_does_not_rerender_when_rc_is_reused() {
         document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "1");
@@ -238,7 +237,7 @@ async fn use_reducer_does_not_rerender_when_rc_is_reused() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");
@@ -248,7 +247,7 @@ async fn use_reducer_does_not_rerender_when_rc_is_reused() {
         .unwrap()
         .unchecked_into::<HtmlElement>()
         .click();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "2");

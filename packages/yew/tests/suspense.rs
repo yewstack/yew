@@ -14,7 +14,7 @@ use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, use_future_with, Suspension, SuspensionResult};
-use yew::UseStateHandle;
+use yew::{scheduler, UseStateHandle};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -123,7 +123,7 @@ async fn suspense_works() {
         .unwrap()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     gloo::utils::document()
         .query_selector(".increase")
@@ -553,7 +553,7 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     gloo::utils::document()
         .query_selector(".increase")
@@ -563,7 +563,7 @@ async fn effects_not_run_when_suspended() {
         .unwrap()
         .click();
 
-    sleep(Duration::from_millis(0)).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(
@@ -788,7 +788,7 @@ async fn test_duplicate_suspension() {
     #[component]
     fn FetchingProvider(props: &ChildrenProps) -> HtmlResult {
         use_future(|| async {
-            sleep(Duration::ZERO).await;
+            scheduler::flush().await;
         })?;
         Ok(html! { <>{props.children.clone()}</> })
     }

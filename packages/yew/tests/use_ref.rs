@@ -3,12 +3,11 @@
 mod common;
 
 use std::ops::DerefMut;
-use std::time::Duration;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -35,7 +34,7 @@ async fn use_ref_works() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "true");
