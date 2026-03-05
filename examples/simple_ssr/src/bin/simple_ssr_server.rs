@@ -52,7 +52,12 @@ async fn main() {
         }
     });
 
-    let routes = html.or(warp::fs::dir(opts.dir));
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_methods(vec!["GET"])
+        .allow_headers(vec!["content-type"]);
+
+    let routes = html.or(warp::fs::dir(opts.dir)).with(cors);
 
     println!("You can view the website at: http://localhost:8080/");
     warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;

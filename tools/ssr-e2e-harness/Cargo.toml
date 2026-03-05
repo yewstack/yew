@@ -1,0 +1,10 @@
+[package]
+name = "ssr-e2e-harness"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gloo = { workspace = true, features = ["futures"] }
+web-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }

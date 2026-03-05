@@ -19,6 +19,7 @@ use hyper_util::rt::TokioIo;
 use hyper_util::server;
 use tokio::net::TcpListener;
 use tower::Service;
+use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
 use yew_router::prelude::Routable;
@@ -108,15 +109,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let index_html_after = index_html_after.to_owned();
 
-    let app = Router::new().fallback_service(
-        ServeDir::new(opts.dir)
-            .append_index_html_on_directories(false)
-            .fallback(
-                get(render)
-                    .with_state((index_html_before.clone(), index_html_after.clone()))
-                    .into_service(),
-            ),
-    );
+    let app = Router::new()
+        .fallback_service(
+            ServeDir::new(opts.dir)
+                .append_index_html_on_directories(false)
+                .fallback(
+                    get(render)
+                        .with_state((index_html_before.clone(), index_html_after.clone()))
+                        .into_service(),
+                ),
+        )
+        .layer(CorsLayer::permissive());
 
     let addr: SocketAddr = ([0, 0, 0, 0], 8080).into();
 

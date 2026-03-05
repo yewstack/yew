@@ -29,6 +29,13 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "fs"] }
 warp = { git = "https://github.com/seanmonstar/warp.git", rev = "de1ccd8", features = ["server"] }
 clap = { workspace = true }
 
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test.workspace = true
+ssr-e2e-harness = { path = "../../tools/ssr-e2e-harness" }
+
+[dev-dependencies]
+yew = { path = "../../packages/yew", features = ["hydration"] }
+
 [features]
 hydration = ["yew/hydration"]
 ssr = ["yew/ssr"]

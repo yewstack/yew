@@ -1,0 +1,12 @@
+[package]
+name = "ssr-e2e"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process", "time", "signal"] }
+reqwest = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
