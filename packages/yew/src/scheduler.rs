@@ -315,42 +315,8 @@ pub(crate) use arch::*;
     not(target_os = "wasi"),
     not(feature = "not_browser_env")
 ))]
-pub fn flush() -> Flush {
-    Flush { _priv: () }
-}
-
-/// Future returned by [`flush()`] that resolves when the scheduler finishes all pending work.
-///
-/// On each poll, this future eagerly drains any currently-queued scheduler work via
-/// `start_now()`. It then checks whether the scheduler has been re-scheduled (via
-/// `IS_SCHEDULED`), which indicates that spawned microtasks (e.g., from Suspense futures
-/// resolving) will trigger more work. If so, it re-registers its waker and yields, allowing
-/// those microtasks to execute before the next poll. This loop continues until the scheduler
-/// is truly idle.
-#[cfg(all(
-    any(test, feature = "test"),
-    target_arch = "wasm32",
-    not(target_os = "wasi"),
-    not(feature = "not_browser_env")
-))]
-#[derive(Debug)]
-pub struct Flush {
-    _priv: (),
-}
-
-#[cfg(all(
-    any(test, feature = "test"),
-    target_arch = "wasm32",
-    not(target_os = "wasi"),
-    not(feature = "not_browser_env")
-))]
-impl std::future::Future for Flush {
-    type Output = ();
-
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<()> {
+pub async fn flush() {
+    std::future::poll_fn(|cx| {
         start_now();
 
         if arch::is_scheduled() {
@@ -359,7 +325,8 @@ impl std::future::Future for Flush {
         } else {
             std::task::Poll::Ready(())
         }
-    }
+    })
+    .await
 }
 
 /// Flush all pending scheduler work, ensuring all rendering and lifecycle callbacks complete.
