@@ -295,12 +295,6 @@ mod arch {
     pub(crate) fn start() {
         super::start_now();
     }
-
-    #[cfg(any(test, feature = "test"))]
-    #[allow(dead_code)]
-    pub(super) fn is_scheduled() -> bool {
-        false
-    }
 }
 
 pub(crate) use arch::*;
