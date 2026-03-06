@@ -2,7 +2,7 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use clap::Parser;
-use tokio::process::Command;
+use tokio::process::{Child, Command};
 use tokio::time::{sleep, Instant};
 
 #[derive(Parser)]
@@ -88,15 +88,24 @@ async fn wait_for_server(url: &str, timeout: Duration) -> bool {
     false
 }
 
-#[cfg(unix)]
-fn kill_process_group(id: u32) {
-    unsafe {
-        libc::kill(-(id as i32), libc::SIGTERM);
+/// Terminates the server and all its descendant processes.
+///
+/// The server is started via `sh -c "..."`, producing a process tree
+/// (sh -> cargo run -> server binary). `Child::kill()` alone would only
+/// kill `sh`, orphaning the actual server process on the port. On Unix we
+/// use process groups (set up via `process_group(0)` at spawn time) so a
+/// single `kill(-pgid, SIGTERM)` reaches the entire tree.
+fn shutdown_server(server: &mut Child) {
+    #[cfg(unix)]
+    if let Some(id) = server.id() {
+        unsafe {
+            libc::kill(-(id as i32), libc::SIGTERM);
+        }
+        return;
     }
-}
 
-#[cfg(not(unix))]
-fn kill_process_group(_id: u32) {}
+    let _ = server.start_kill();
+}
 
 #[tokio::main]
 async fn main() -> ExitCode {
@@ -116,16 +125,9 @@ async fn main() -> ExitCode {
         cmd.stdout(std::process::Stdio::inherit());
         cmd.stderr(std::process::Stdio::inherit());
         #[cfg(unix)]
-        unsafe {
-            cmd.pre_exec(|| {
-                libc::setpgid(0, 0);
-                Ok(())
-            });
-        }
+        cmd.process_group(0);
         cmd.spawn().expect("failed to start server process")
     };
-
-    let server_pid = server.id().expect("server has no pid");
 
     eprintln!("[ssr-e2e] Waiting for server at {} ...", args.health_url);
 
@@ -135,7 +137,7 @@ async fn main() -> ExitCode {
             "[ssr-e2e] Server did not become ready within {}s",
             args.timeout
         );
-        kill_process_group(server_pid);
+        shutdown_server(&mut server);
         let _ = server.wait().await;
         return ExitCode::FAILURE;
     }
@@ -159,7 +161,7 @@ async fn main() -> ExitCode {
         .await;
 
     eprintln!("[ssr-e2e] Shutting down server ...");
-    kill_process_group(server_pid);
+    shutdown_server(&mut server);
     let _ = server.wait().await;
 
     match test_result {
