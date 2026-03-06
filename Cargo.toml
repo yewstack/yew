@@ -39,6 +39,7 @@ trybuild = "1"
 clap = { version = "4", features = ["derive"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
+wasm-bindgen-test = "0.3"
 js-sys = "0.3"
 web-sys = "0.3"
 gloo = "0.11"
