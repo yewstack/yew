@@ -40,6 +40,14 @@ pub async fn wait_for<F: Fn() -> bool>(predicate: F, timeout_ms: u64, desc: &str
     panic!("{desc} did not become true within {timeout_ms}ms");
 }
 
+/// Fetches SSR HTML for `path`, injects it into the output element, and
+/// pushes the route onto the browser history stack.
+pub async fn setup_ssr_page(server_base: &str, path: &str) {
+    let body_html = fetch_ssr_html(server_base, path).await;
+    output_element().set_inner_html(&body_html);
+    push_route(path);
+}
+
 /// Pushes a new entry onto the browser's history stack without navigation.
 pub fn push_route(path: &str) {
     web_sys::window()

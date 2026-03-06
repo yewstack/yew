@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use function_router::App;
 use gloo::utils::document;
-use ssr_e2e_harness::{fetch_ssr_html, output_element, push_route, wait_for};
+use ssr_e2e_harness::{output_element, setup_ssr_page, wait_for};
 use wasm_bindgen_test::*;
 use yew::platform::time::sleep;
 
@@ -22,10 +22,7 @@ fn get_title_text() -> Option<String> {
 
 #[wasm_bindgen_test]
 async fn hydrate_post_page() {
-    let body_html = fetch_ssr_html(SERVER_BASE, "/posts/0").await;
-
-    output_element().set_inner_html(&body_html);
-    push_route("/posts/0");
+    setup_ssr_page(SERVER_BASE, "/posts/0").await;
     yew::Renderer::<App>::with_root(output_element()).hydrate();
 
     wait_for(
@@ -44,10 +41,7 @@ async fn hydrate_post_page() {
 
 #[wasm_bindgen_test]
 async fn hydrate_posts_list() {
-    let body_html = fetch_ssr_html(SERVER_BASE, "/posts").await;
-
-    output_element().set_inner_html(&body_html);
-    push_route("/posts");
+    setup_ssr_page(SERVER_BASE, "/posts").await;
     yew::Renderer::<App>::with_root(output_element()).hydrate();
 
     wait_for(
@@ -66,10 +60,7 @@ async fn hydrate_posts_list() {
 
 #[wasm_bindgen_test]
 async fn hydrate_home() {
-    let body_html = fetch_ssr_html(SERVER_BASE, "/").await;
-
-    output_element().set_inner_html(&body_html);
-    push_route("/");
+    setup_ssr_page(SERVER_BASE, "/").await;
     yew::Renderer::<App>::with_root(output_element()).hydrate();
 
     sleep(Duration::from_secs(2)).await;

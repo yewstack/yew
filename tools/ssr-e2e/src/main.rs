@@ -24,10 +24,6 @@ struct Args {
     #[clap(long)]
     trunk_dir: Option<String>,
 
-    /// Server port, exposed as SSR_TEST_PORT env var
-    #[clap(long, default_value_t = 8080)]
-    port: u16,
-
     /// Max seconds to wait for the server to become ready
     #[clap(long, default_value_t = 120)]
     timeout: u64,
@@ -43,8 +39,6 @@ async fn run_trunk_build(dir: &str) -> bool {
     let status = Command::new("trunk")
         .args(["build"])
         .current_dir(dir)
-        .stdout(std::process::Stdio::inherit())
-        .stderr(std::process::Stdio::inherit())
         .status()
         .await;
 
@@ -122,8 +116,6 @@ async fn main() -> ExitCode {
     let mut server = {
         let mut cmd = Command::new("sh");
         cmd.args(["-c", &args.server_cmd]);
-        cmd.stdout(std::process::Stdio::inherit());
-        cmd.stderr(std::process::Stdio::inherit());
         #[cfg(unix)]
         cmd.process_group(0);
         cmd.spawn().expect("failed to start server process")
@@ -152,11 +144,7 @@ async fn main() -> ExitCode {
 
     let test_result = Command::new("cargo")
         .args(&cargo_args)
-        .env("SSR_TEST_URL", format!("http://127.0.0.1:{}", args.port))
-        .env("SSR_TEST_PORT", args.port.to_string())
         .env("WASM_BINDGEN_TEST_NO_ORIGIN_ISOLATION", "1")
-        .stdout(std::process::Stdio::inherit())
-        .stderr(std::process::Stdio::inherit())
         .status()
         .await;
 
