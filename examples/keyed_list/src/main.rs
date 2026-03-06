@@ -106,8 +106,7 @@ impl Component for App {
                 true
             }
             Msg::SortById => {
-                self.persons
-                    .sort_unstable_by(|a, b| a.info().id.cmp(&b.info().id));
+                self.persons.sort_unstable_by_key(|a| a.info().id);
                 true
             }
             Msg::SortByName => {
