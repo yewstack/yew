@@ -192,14 +192,13 @@ where
     }
 
     fn flush_messages(&mut self) -> bool {
-        self.context
-            .link()
-            .pending_messages
-            .drain()
-            .into_iter()
-            .fold(false, |acc, msg| {
-                self.component.update(&self.context, msg) || acc
-            })
+        let mut changed = false;
+        for msg in self.context.link().pending_messages.drain() {
+            if self.component.update(&self.context, msg) {
+                changed = true;
+            }
+        }
+        changed
     }
 
     #[cfg(feature = "csr")]
