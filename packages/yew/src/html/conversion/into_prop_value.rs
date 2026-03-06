@@ -255,6 +255,9 @@ impl_into_prop!(|value: &'static str| -> AttrValue { AttrValue::Static(value) })
 impl_into_prop!(|value: String| -> AttrValue { AttrValue::Rc(Rc::from(value)) });
 impl_into_prop!(|value: Rc<str>| -> AttrValue { AttrValue::Rc(value) });
 impl_into_prop!(|value: Cow<'static, str>| -> AttrValue { AttrValue::from(value) });
+impl_into_prop!(|value: &'static str| -> Cow<'static, str> { Cow::Borrowed(value) });
+impl_into_prop!(|value: String| -> Cow<'static, str> { Cow::Owned(value) });
+impl_into_prop!(|value: Rc<str>| -> Cow<'static, str> { Cow::Owned(value.to_string()) });
 
 impl<T: ImplicitClone + 'static> IntoPropValue<IArray<T>> for &'static [T] {
     fn into_prop_value(self) -> IArray<T> {
@@ -384,6 +387,12 @@ mod test {
         let _: Option<AttrValue> = "foo".into_prop_value();
         let _: Option<AttrValue> = Rc::<str>::from("foo").into_prop_value();
         let _: Option<AttrValue> = Cow::Borrowed("foo").into_prop_value();
+        let _: Cow<'static, str> = "foo".into_prop_value();
+        let _: Cow<'static, str> = String::from("foo").into_prop_value();
+        let _: Cow<'static, str> = Rc::<str>::from("foo").into_prop_value();
+        let _: Option<Cow<'static, str>> = Some("foo").into_prop_value();
+        let _: Option<Cow<'static, str>> = Some(String::from("foo")).into_prop_value();
+        let _: Option<Cow<'static, str>> = Some(Rc::<str>::from("foo")).into_prop_value();
     }
 
     #[test]
