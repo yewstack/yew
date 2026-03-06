@@ -175,19 +175,20 @@ impl Reconcilable for VTag {
         match bundle {
             // If the ancestor is a tag of the same type, don't recreate, keep the
             // old tag and update its attributes and children.
-            BNode::Tag(ex) if self.key == ex.key => {
-                if match (&self.inner, &ex.inner) {
-                    (VTagInner::Input(_), BTagInner::Input(_)) => true,
-                    (VTagInner::Textarea { .. }, BTagInner::Textarea { .. }) => true,
-                    (VTagInner::Other { tag: l, .. }, BTagInner::Other { tag: r, .. })
-                        if l == r =>
-                    {
-                        true
-                    }
-                    _ => false,
-                } {
-                    return self.reconcile(root, parent_scope, parent, slot, ex.deref_mut());
-                }
+            BNode::Tag(ex)
+                if self.key == ex.key
+                    && match (&self.inner, &ex.inner) {
+                        (VTagInner::Input(_), BTagInner::Input(_)) => true,
+                        (VTagInner::Textarea { .. }, BTagInner::Textarea { .. }) => true,
+                        (VTagInner::Other { tag: l, .. }, BTagInner::Other { tag: r, .. })
+                            if l == r =>
+                        {
+                            true
+                        }
+                        _ => false,
+                    } =>
+            {
+                return self.reconcile(root, parent_scope, parent, slot, ex.deref_mut());
             }
             _ => {}
         };
