@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use gloo::utils::document;
-use js_sys::{Array, Function, Reflect};
 use wasm_bindgen::prelude::*;
 
 /// Returns the `<div id="output">` element used by wasm-bindgen-test as the
@@ -56,59 +55,4 @@ pub fn push_route(path: &str) {
         .unwrap()
         .push_state_with_url(&JsValue::NULL, "", Some(path))
         .unwrap();
-}
-
-fn window_js() -> JsValue {
-    web_sys::window().unwrap().into()
-}
-
-fn get_prop(key: &str) -> JsValue {
-    Reflect::get(&window_js(), &JsValue::from_str(key)).unwrap()
-}
-
-fn set_prop(key: &str, val: &JsValue) {
-    Reflect::set(&window_js(), &JsValue::from_str(key), val).unwrap();
-}
-
-fn delete_prop(key: &str) {
-    Reflect::delete_property(&window_js().into(), &JsValue::from_str(key)).unwrap();
-}
-
-/// Monkey-patches `window.fetch` to record all calls in
-/// `window.__fetchCalls`.
-pub fn patch_fetch() {
-    let original: Function = get_prop("fetch").into();
-    let calls = Array::new();
-
-    set_prop("__originalFetch", &original);
-    set_prop("__fetchCalls", &calls);
-
-    let wrapper = Closure::<dyn Fn(JsValue, JsValue) -> JsValue>::new(
-        move |input: JsValue, init: JsValue| {
-            let args = Array::new();
-            args.push(&input);
-            if !init.is_undefined() {
-                args.push(&init);
-            }
-            get_prop("__fetchCalls")
-                .unchecked_ref::<Array>()
-                .push(&args);
-            Reflect::apply(&original, &window_js(), &args).unwrap()
-        },
-    );
-
-    set_prop("fetch", wrapper.as_ref().unchecked_ref());
-    wrapper.forget();
-}
-
-/// Returns the number of fetch calls recorded since the last `patch_fetch`.
-pub fn fetch_count() -> u32 {
-    get_prop("__fetchCalls").unchecked_ref::<Array>().length()
-}
-
-/// Restores the original `window.fetch` and removes the call log.
-pub fn restore_fetch() {
-    set_prop("fetch", &get_prop("__originalFetch"));
-    delete_prop("__originalFetch");
-    delete_prop("__fetchCalls");
 }

@@ -7,4 +7,3 @@ edition = "2021"
 gloo = { workspace = true, features = ["futures"] }
 web-sys = { workspace = true }
 wasm-bindgen = { workspace = true }
-js-sys = { workspace = true }
