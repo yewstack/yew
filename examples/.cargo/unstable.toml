@@ -1,2 +1,0 @@
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg", "nightly_yew"]
