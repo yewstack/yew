@@ -58,25 +58,6 @@ pub fn push_route(path: &str) {
         .unwrap();
 }
 
-/// Triggers in-app navigation by pushing a route onto gloo-history's
-/// `BrowserHistory` singleton, which calls `pushState` and then directly
-/// invokes all registered history callbacks.
-///
-/// HtmlElement.click() on `<a>` in headless Firefox triggers real browser
-/// navigation, crashing the test runner. Yew's capture-phase event delegation
-/// cannot prevent it in the wasm-bindgen-test context.
-///
-/// Dispatching a synthetic `PopStateEvent` on `window` also does not work
-/// reliably: `pushState` does not fire `popstate` natively, and while
-/// gloo-history registers a popstate listener, tests have shown it does not
-/// pick up synthetic events consistently across browsers. The reliable approach
-/// is to use `BrowserHistory::push()` directly, which calls `notify_callbacks()`
-/// internally and is the same codepath as yew-router's `<Link>` component.
-pub fn navigate(path: &str) {
-    use gloo_history::History;
-    gloo_history::BrowserHistory::new().push(path);
-}
-
 fn window_js() -> JsValue {
     web_sys::window().unwrap().into()
 }

@@ -3014,7 +3014,6 @@ name = "ssr-e2e-harness"
 version = "0.1.0"
 dependencies = [
  "gloo",
- "gloo-history",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
@@ -3042,9 +3041,11 @@ dependencies = [
  "tokio",
  "tower",
  "tower-http",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
  "wasm-logger",
+ "web-sys",
  "yew",
  "yew-link",
  "yew-router",

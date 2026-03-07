@@ -2,10 +2,11 @@
 
 use gloo::utils::document;
 use ssr_e2e_harness::{
-    clear_resource_timings, fetch_ssr_html, navigate, output_element, resource_request_count,
-    setup_ssr_page, wait_for,
+    clear_resource_timings, fetch_ssr_html, output_element, resource_request_count, setup_ssr_page,
+    wait_for,
 };
 use ssr_router::{App, AppProps, LINK_ENDPOINT};
+use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use yew::Renderer;
 
@@ -90,13 +91,18 @@ async fn ssr_hydration_and_client_navigation() {
 
     // -- Part 2: Navigate to /posts within the same app, then to /posts/0 --
 
-    // Yield to ensure effects (router history listener) are registered.
-    gloo::timers::future::sleep(std::time::Duration::from_millis(500)).await;
+    yew::scheduler::flush().await;
 
     clear_resource_timings();
 
-    // Navigate to /posts first, then to /posts/0 to trigger a client-side fetch.
-    navigate("/posts");
+    let posts_link: web_sys::HtmlElement = output_element()
+        .query_selector("a.navbar-item[href='/posts']")
+        .unwrap()
+        .expect("Posts navbar link should exist")
+        .dyn_into()
+        .unwrap();
+    posts_link.click();
+    yew::scheduler::flush().await;
 
     wait_for(
         || {
@@ -114,7 +120,27 @@ async fn ssr_hydration_and_client_navigation() {
 
     clear_resource_timings();
 
-    navigate("/posts/0");
+    wait_for(
+        || {
+            output_element()
+                .query_selector("a.title.is-block[href='/posts/0']")
+                .ok()
+                .flatten()
+                .is_some()
+        },
+        15000,
+        "post 0 card link on posts list",
+    )
+    .await;
+
+    let post_link: web_sys::HtmlElement = output_element()
+        .query_selector("a.title.is-block[href='/posts/0']")
+        .unwrap()
+        .unwrap()
+        .dyn_into()
+        .unwrap();
+    post_link.click();
+    yew::scheduler::flush().await;
 
     wait_for(
         || {
@@ -153,7 +179,7 @@ async fn ssr_hydration_and_client_navigation() {
     );
 
     app.destroy();
-    output_element().set_inner_html("");
+    yew::scheduler::flush().await;
 }
 
 #[wasm_bindgen_test]
@@ -169,5 +195,5 @@ async fn hydrate_home() {
     .await;
 
     app.destroy();
-    output_element().set_inner_html("");
+    yew::scheduler::flush().await;
 }
