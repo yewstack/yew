@@ -249,7 +249,10 @@ pub(crate) fn start_now() {
 mod arch {
     use std::sync::atomic::{AtomicBool, Ordering};
 
+    use wasm_bindgen::prelude::*;
+
     use crate::platform::spawn_local;
+
     // Really only used as a `Cell<bool>` that is also `Sync`
     static IS_SCHEDULED: AtomicBool = AtomicBool::new(false);
     fn check_scheduled() -> bool {
@@ -267,16 +270,53 @@ mod arch {
         check_scheduled()
     }
 
+    const YIELD_DEADLINE_MS: f64 = 16.0;
+
+    #[wasm_bindgen]
+    extern "C" {
+        #[wasm_bindgen(js_name = setTimeout)]
+        fn set_timeout(handler: &js_sys::Function, timeout: i32) -> i32;
+    }
+
+    fn run_scheduler(mut queue: Vec<super::QueueEntry>) {
+        let deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
+
+        loop {
+            super::with(|s| s.fill_queue(&mut queue));
+            if queue.is_empty() {
+                break;
+            }
+            for r in queue.drain(..) {
+                r.task.run();
+            }
+            if js_sys::Date::now() >= deadline {
+                // Only yield when no DOM-mutating work is pending, so event
+                // handlers that fire during the yield see a consistent DOM.
+                let can_yield = super::with(|s| s.can_yield());
+                if can_yield {
+                    let cb = Closure::once_into_js(move || run_scheduler(queue));
+                    set_timeout(cb.unchecked_ref(), 0);
+                    return;
+                }
+            }
+        }
+
+        set_scheduled(false);
+        #[cfg(any(test, feature = "test"))]
+        super::flush_wakers::wake_all();
+    }
+
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
+    /// Once running, we yield to the browser every ~16ms, but only at points
+    /// where the DOM is in a consistent state (no pending renders/destroys).
     pub(crate) fn start() {
         if check_scheduled() {
             return;
         }
         set_scheduled(true);
         spawn_local(async {
-            set_scheduled(false);
-            super::start_now();
+            run_scheduler(vec![]);
         });
     }
 }
@@ -345,6 +385,21 @@ pub async fn flush() {
 }
 
 impl Scheduler {
+    /// Returns true when no DOM-mutating work is pending, meaning it's safe to
+    /// yield to the browser without leaving the DOM in an inconsistent state.
+    #[cfg(all(
+        target_arch = "wasm32",
+        not(target_os = "wasi"),
+        not(feature = "not_browser_env")
+    ))]
+    fn can_yield(&self) -> bool {
+        self.destroy.inner.is_empty()
+            && self.create.inner.is_empty()
+            && self.render_first.inner.is_empty()
+            && self.render.inner.is_empty()
+            && self.render_priority.inner.is_empty()
+    }
+
     /// Fill vector with tasks to be executed according to Runnable type execution priority
     ///
     /// This method is optimized for typical usage, where possible, but does not break on
