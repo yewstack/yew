@@ -16,7 +16,7 @@ use yew::platform::time::sleep;
 use yew::prelude::*;
 use yew::suspense::{use_future, Suspension, SuspensionResult};
 use yew::virtual_dom::VNode;
-use yew::{component, Renderer, ServerRenderer};
+use yew::{component, scheduler, Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -62,12 +62,12 @@ async fn hydration_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
 
@@ -85,7 +85,7 @@ async fn hydration_works() {
         .unwrap()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
 
@@ -237,7 +237,7 @@ async fn hydration_with_suspense() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -393,7 +393,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -524,7 +524,7 @@ async fn hydration_nested_suspense_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -661,12 +661,12 @@ async fn hydration_node_ref_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -682,7 +682,7 @@ async fn hydration_node_ref_works() {
         .unwrap()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -754,16 +754,13 @@ async fn hydration_list_order_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     // Wait until all suspended components becomes revealed.
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -837,13 +834,13 @@ async fn hydration_suspense_no_flickering() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     // Wait until all suspended components becomes revealed.
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -950,16 +947,13 @@ async fn hydration_order_issue_nested_suspense() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     // Wait until all suspended components becomes revealed.
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -1180,7 +1174,7 @@ async fn hydration_with_camelcase_svg_elements() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // Hydrate - this should not panic
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
@@ -1268,15 +1262,12 @@ async fn hydration_suspended_child_does_not_trap_sibling_slot() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
 

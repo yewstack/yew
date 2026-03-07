@@ -3,6 +3,34 @@
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
+#[cfg(any(test, feature = "test"))]
+mod flush_wakers {
+    use std::cell::RefCell;
+    use std::task::Waker;
+
+    thread_local! {
+        static FLUSH_WAKERS: RefCell<Vec<Waker>> = Default::default();
+    }
+
+    #[cfg(all(
+        target_arch = "wasm32",
+        not(target_os = "wasi"),
+        not(feature = "not_browser_env")
+    ))]
+    pub(super) fn register(waker: Waker) {
+        FLUSH_WAKERS.with(|w| {
+            w.borrow_mut().push(waker);
+        });
+    }
+
+    pub(super) fn wake_all() {
+        FLUSH_WAKERS.with(|w| {
+            for waker in w.borrow_mut().drain(..) {
+                waker.wake();
+            }
+        });
+    }
+}
 
 /// Alias for `Rc<RefCell<T>>`
 pub type Shared<T> = Rc<RefCell<T>>;
@@ -207,6 +235,8 @@ pub(crate) fn start_now() {
     LOCK.with(|l| {
         if let Ok(_lock) = l.try_borrow_mut() {
             scheduler_loop();
+            #[cfg(any(test, feature = "test"))]
+            flush_wakers::wake_all();
         }
     });
 }
@@ -230,6 +260,11 @@ mod arch {
     fn set_scheduled(is: bool) {
         // See comment in check_scheduled why Relaxed ordering is fine
         IS_SCHEDULED.store(is, Ordering::Relaxed)
+    }
+
+    #[cfg(any(test, feature = "test"))]
+    pub(super) fn is_scheduled() -> bool {
+        check_scheduled()
     }
 
     /// We delay the start of the scheduler to the end of the micro task queue.
@@ -263,6 +298,51 @@ mod arch {
 }
 
 pub(crate) use arch::*;
+
+/// Flush all pending scheduler work, ensuring all rendering and lifecycle callbacks complete.
+///
+/// On browser WebAssembly targets, the scheduler defers its work to the microtask queue.
+/// This function registers a waker that is notified when `start_now()` finishes draining all
+/// queues, providing proper event-driven render-complete notification without arbitrary sleeps.
+///
+/// On non-browser targets, the scheduler runs synchronously so this simply drains pending work.
+///
+/// Use this in tests after mounting or updating a component to ensure all rendering has
+/// completed before making assertions.
+#[cfg(all(
+    any(test, feature = "test"),
+    target_arch = "wasm32",
+    not(target_os = "wasi"),
+    not(feature = "not_browser_env")
+))]
+pub async fn flush() {
+    std::future::poll_fn(|cx| {
+        start_now();
+
+        if arch::is_scheduled() {
+            flush_wakers::register(cx.waker().clone());
+            std::task::Poll::Pending
+        } else {
+            std::task::Poll::Ready(())
+        }
+    })
+    .await
+}
+
+/// Flush all pending scheduler work, ensuring all rendering and lifecycle callbacks complete.
+///
+/// On non-browser targets, the scheduler runs synchronously so this simply drains pending work.
+#[cfg(all(
+    any(test, feature = "test"),
+    not(all(
+        target_arch = "wasm32",
+        not(target_os = "wasi"),
+        not(feature = "not_browser_env")
+    ))
+))]
+pub async fn flush() {
+    start_now();
+}
 
 impl Scheduler {
     /// Fill vector with tasks to be executed according to Runnable type execution priority
