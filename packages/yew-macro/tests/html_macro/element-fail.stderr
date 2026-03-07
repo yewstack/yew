@@ -472,7 +472,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
-             `&'static str` implements `IntoPropValue<Option<String>>`
+             `&'static str` implements `IntoPropValue<Cow<'static, str>>`
            and $N others
 
 error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
@@ -487,12 +487,12 @@ error[E0277]: the trait bound `Option<NotToString>: IntoPropValue<Option<implici
    = help: the following other types implement trait `IntoPropValue<T>`:
              `Option<&String>` implements `IntoPropValue<Option<VNode>>`
              `Option<&implicit_clone::unsync::string::IString>` implements `IntoPropValue<Option<VNode>>`
+             `Option<&str>` implements `IntoPropValue<Option<Cow<'_, str>>>`
              `Option<&str>` implements `IntoPropValue<Option<String>>`
              `Option<&str>` implements `IntoPropValue<Option<VNode>>`
              `Option<&str>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<Arc<String>>` implements `IntoPropValue<Option<VNode>>`
              `Option<Arc<str>>` implements `IntoPropValue<Option<VNode>>`
-             `Option<Cow<'_, str>>` implements `IntoPropValue<Option<VNode>>`
            and $N others
 
 error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_clone::unsync::string::IString>>` is not satisfied
@@ -507,12 +507,12 @@ error[E0277]: the trait bound `Option<{integer}>: IntoPropValue<Option<implicit_
    = help: the following other types implement trait `IntoPropValue<T>`:
              `Option<&String>` implements `IntoPropValue<Option<VNode>>`
              `Option<&implicit_clone::unsync::string::IString>` implements `IntoPropValue<Option<VNode>>`
+             `Option<&str>` implements `IntoPropValue<Option<Cow<'_, str>>>`
              `Option<&str>` implements `IntoPropValue<Option<String>>`
              `Option<&str>` implements `IntoPropValue<Option<VNode>>`
              `Option<&str>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<Arc<String>>` implements `IntoPropValue<Option<VNode>>`
              `Option<Arc<str>>` implements `IntoPropValue<Option<VNode>>`
-             `Option<Cow<'_, str>>` implements `IntoPropValue<Option<VNode>>`
            and $N others
 
 error[E0277]: the trait bound `{integer}: IntoEventCallback<MouseEvent>` is not satisfied
@@ -625,12 +625,12 @@ error[E0277]: the trait bound `Option<yew::NodeRef>: IntoPropValue<yew::NodeRef>
    = help: the following other types implement trait `IntoPropValue<T>`:
              `Option<&String>` implements `IntoPropValue<Option<VNode>>`
              `Option<&implicit_clone::unsync::string::IString>` implements `IntoPropValue<Option<VNode>>`
+             `Option<&str>` implements `IntoPropValue<Option<Cow<'_, str>>>`
              `Option<&str>` implements `IntoPropValue<Option<String>>`
              `Option<&str>` implements `IntoPropValue<Option<VNode>>`
              `Option<&str>` implements `IntoPropValue<Option<implicit_clone::unsync::string::IString>>`
              `Option<Arc<String>>` implements `IntoPropValue<Option<VNode>>`
              `Option<Arc<str>>` implements `IntoPropValue<Option<VNode>>`
-             `Option<Cow<'_, str>>` implements `IntoPropValue<Option<VNode>>`
            and $N others
 
 error[E0277]: the trait bound `yew::Callback<String>: IntoEventCallback<MouseEvent>` is not satisfied
@@ -675,7 +675,7 @@ error[E0277]: the trait bound `NotToString: IntoPropValue<Option<implicit_clone:
              `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
              `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
              `&'static str` implements `IntoPropValue<Classes>`
-             `&'static str` implements `IntoPropValue<Option<String>>`
+             `&'static str` implements `IntoPropValue<Cow<'static, str>>`
            and $N others
 
 error[E0277]: the trait bound `(): IntoPropValue<yew::NodeRef>` is not satisfied
