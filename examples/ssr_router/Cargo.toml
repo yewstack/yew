@@ -47,6 +47,7 @@ ssr-e2e-harness = { path = "../../tools/ssr-e2e-harness" }
 
 [dev-dependencies]
 yew = { path = "../../packages/yew", features = ["hydration"] }
+yew-link = { path = "../../packages/yew-link", features = ["hydration"] }
 
 [features]
 ssr = ["yew/ssr", "yew-link/ssr", "yew-link/axum"]

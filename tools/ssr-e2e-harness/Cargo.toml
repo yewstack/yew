@@ -5,5 +5,7 @@ edition = "2021"
 
 [dependencies]
 gloo = { workspace = true, features = ["futures"] }
+gloo-history = "0.2"
 web-sys = { workspace = true }
 wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }

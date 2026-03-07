@@ -17,7 +17,9 @@ use futures::stream::{self, StreamExt};
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
 use hyper_util::server;
-use ssr_router::{LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps};
+use ssr_router::{
+    LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps, LINK_ENDPOINT,
+};
 use tokio::net::TcpListener;
 use tower::Service;
 use tower_http::cors::CorsLayer;
@@ -134,7 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let app = Router::new()
         .route(
-            "/api/link",
+            LINK_ENDPOINT,
             post(linked_state_handler).with_state(arc_resolver),
         )
         .fallback_service(

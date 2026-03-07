@@ -8,6 +8,8 @@ use yew::prelude::*;
 use yew_link::{linked_state, use_linked_state, LinkProvider, ResolverProp};
 use yew_router::prelude::*;
 
+pub const LINK_ENDPOINT: &str = "/api/link";
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LinkedPost(pub content::Post);
 
@@ -402,11 +404,16 @@ fn switch(routes: function_router::Route) -> Html {
     }
 }
 
+#[derive(Properties, PartialEq)]
+pub struct AppProps {
+    pub endpoint: AttrValue,
+}
+
 #[component]
-pub fn App() -> Html {
+pub fn App(props: &AppProps) -> Html {
     html! {
         <BrowserRouter>
-            <LinkProvider endpoint="/api/link">
+            <LinkProvider endpoint={props.endpoint.clone()}>
                 <function_router::components::nav::Nav />
                 <main>
                     <Switch<function_router::Route> render={switch} />
@@ -442,7 +449,7 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
 
     html! {
         <Router history={history}>
-            <LinkProvider endpoint="/api/link" resolver={props.resolver.clone()}>
+            <LinkProvider endpoint={LINK_ENDPOINT} resolver={props.resolver.clone()}>
                 <function_router::components::nav::Nav />
                 <main>
                     <Switch<function_router::Route> render={switch} />

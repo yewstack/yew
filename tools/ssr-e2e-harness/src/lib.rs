@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use gloo::utils::document;
+use js_sys::{Array, Reflect};
 use wasm_bindgen::prelude::*;
 
 /// Returns the `<div id="output">` element used by wasm-bindgen-test as the
@@ -55,4 +56,74 @@ pub fn push_route(path: &str) {
         .unwrap()
         .push_state_with_url(&JsValue::NULL, "", Some(path))
         .unwrap();
+}
+
+/// Triggers in-app navigation by pushing a route onto gloo-history's
+/// `BrowserHistory` singleton, which calls `pushState` and then directly
+/// invokes all registered history callbacks.
+///
+/// HtmlElement.click() on `<a>` in headless Firefox triggers real browser
+/// navigation, crashing the test runner. Yew's capture-phase event delegation
+/// cannot prevent it in the wasm-bindgen-test context.
+///
+/// Dispatching a synthetic `PopStateEvent` on `window` also does not work
+/// reliably: `pushState` does not fire `popstate` natively, and while
+/// gloo-history registers a popstate listener, tests have shown it does not
+/// pick up synthetic events consistently across browsers. The reliable approach
+/// is to use `BrowserHistory::push()` directly, which calls `notify_callbacks()`
+/// internally and is the same codepath as yew-router's `<Link>` component.
+pub fn navigate(path: &str) {
+    use gloo_history::History;
+    gloo_history::BrowserHistory::new().push(path);
+}
+
+fn window_js() -> JsValue {
+    web_sys::window().unwrap().into()
+}
+
+fn performance() -> JsValue {
+    Reflect::get(&window_js(), &JsValue::from_str("performance")).unwrap()
+}
+
+fn call_method(obj: &JsValue, method: &str, args: &Array) -> JsValue {
+    let func: js_sys::Function = Reflect::get(obj, &JsValue::from_str(method))
+        .unwrap()
+        .into();
+    Reflect::apply(&func, obj, args).unwrap()
+}
+
+fn resource_entries() -> Array {
+    let perf = performance();
+    call_method(
+        &perf,
+        "getEntriesByType",
+        &Array::of1(&JsValue::from_str("resource")),
+    )
+    .into()
+}
+
+/// Counts completed network requests to URLs containing `needle` using the
+/// Performance Resource Timing API. This works regardless of how the request
+/// was initiated (gloo-net, window.fetch, XMLHttpRequest, etc.) because it
+/// observes the browser's actual network activity.
+pub fn resource_request_count(needle: &str) -> u32 {
+    let entries = resource_entries();
+    let mut count = 0;
+    for i in 0..entries.length() {
+        let entry = entries.get(i);
+        let name = Reflect::get(&entry, &JsValue::from_str("name"))
+            .unwrap()
+            .as_string()
+            .unwrap_or_default();
+        if name.contains(needle) {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Clears all resource timing entries so that subsequent calls to
+/// [`resource_request_count`] only see new requests.
+pub fn clear_resource_timings() {
+    call_method(&performance(), "clearResourceTimings", &Array::new());
 }
