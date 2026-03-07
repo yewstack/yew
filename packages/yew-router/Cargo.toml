@@ -33,7 +33,7 @@ features = [
 ]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+wasm-bindgen-test.workspace = true
 serde = { workspace = true, features = ["derive"] }
 yew = { version = "0.22.1", path = "../yew", features = ["csr"] }
 

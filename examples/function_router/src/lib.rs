@@ -14,11 +14,11 @@
 //   Hence, it may not yield the same value on the client and server side.
 
 mod app;
-mod components;
-mod content;
+pub mod components;
+pub mod content;
 mod generator;
 pub mod imagegen;
-mod pages;
+pub mod pages;
 
 pub use app::*;
 pub use content::*;
