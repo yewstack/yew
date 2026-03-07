@@ -3014,7 +3014,6 @@ name = "ssr-e2e-harness"
 version = "0.1.0"
 dependencies = [
  "gloo",
- "js-sys",
  "wasm-bindgen",
  "web-sys",
 ]

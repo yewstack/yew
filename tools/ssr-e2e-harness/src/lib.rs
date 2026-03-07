@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use gloo::utils::document;
-use js_sys::{Array, Reflect};
 use wasm_bindgen::prelude::*;
 
 /// Returns the `<div id="output">` element used by wasm-bindgen-test as the
@@ -58,29 +57,8 @@ pub fn push_route(path: &str) {
         .unwrap();
 }
 
-fn window_js() -> JsValue {
-    web_sys::window().unwrap().into()
-}
-
-fn performance() -> JsValue {
-    Reflect::get(&window_js(), &JsValue::from_str("performance")).unwrap()
-}
-
-fn call_method(obj: &JsValue, method: &str, args: &Array) -> JsValue {
-    let func: js_sys::Function = Reflect::get(obj, &JsValue::from_str(method))
-        .unwrap()
-        .into();
-    Reflect::apply(&func, obj, args).unwrap()
-}
-
-fn resource_entries() -> Array {
-    let perf = performance();
-    call_method(
-        &perf,
-        "getEntriesByType",
-        &Array::of1(&JsValue::from_str("resource")),
-    )
-    .into()
+fn performance() -> web_sys::Performance {
+    web_sys::window().unwrap().performance().unwrap()
 }
 
 /// Counts completed network requests to URLs containing `needle` using the
@@ -88,15 +66,11 @@ fn resource_entries() -> Array {
 /// was initiated (gloo-net, window.fetch, XMLHttpRequest, etc.) because it
 /// observes the browser's actual network activity.
 pub fn resource_request_count(needle: &str) -> u32 {
-    let entries = resource_entries();
+    let entries = performance().get_entries_by_type("resource");
     let mut count = 0;
     for i in 0..entries.length() {
-        let entry = entries.get(i);
-        let name = Reflect::get(&entry, &JsValue::from_str("name"))
-            .unwrap()
-            .as_string()
-            .unwrap_or_default();
-        if name.contains(needle) {
+        let entry: web_sys::PerformanceEntry = entries.get(i).unchecked_into();
+        if entry.name().contains(needle) {
             count += 1;
         }
     }
@@ -106,5 +80,5 @@ pub fn resource_request_count(needle: &str) -> u32 {
 /// Clears all resource timing entries so that subsequent calls to
 /// [`resource_request_count`] only see new requests.
 pub fn clear_resource_timings() {
-    call_method(&performance(), "clearResourceTimings", &Array::new());
+    performance().clear_resource_timings();
 }
