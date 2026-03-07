@@ -14,9 +14,10 @@ use syn::{parse_macro_input, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, Pat, 
 ///
 /// ## `type Error` (optional)
 ///
-/// If `type Error` is omitted, it defaults to [`std::convert::Infallible`] and
-/// the resolve body is wrapped in `Ok(…)` automatically. When `type Error` is
-/// present, the resolve body must return `Result<Self, Self::Error>`.
+/// If `type Error` is omitted, it defaults to [`yew_link::Never`] (an uninhabited
+/// serde-compatible error type) and the resolve body is wrapped in `Ok(…)`
+/// automatically. When `type Error` is present, the resolve body must return
+/// `Result<Self, Self::Error>`.
 ///
 /// # Example
 ///
@@ -67,7 +68,13 @@ fn expand(impl_block: ItemImpl) -> syn::Result<proc_macro2::TokenStream> {
             ImplItem::Type(t) if t.ident == "Context" => context_ty = Some(&t.ty),
             ImplItem::Type(t) if t.ident == "Error" => error_ty = Some(&t.ty),
             ImplItem::Fn(f) if f.sig.ident == "resolve" => resolve_fn = Some(f),
-            _ => {}
+            other => {
+                return Err(syn::Error::new_spanned(
+                    other,
+                    "#[linked_state] expects only `type Input`, `type Context`, `type Error` \
+                     (optional), and `async fn resolve`",
+                ));
+            }
         }
     }
 

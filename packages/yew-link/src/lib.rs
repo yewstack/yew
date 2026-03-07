@@ -185,14 +185,26 @@ impl Resolver {
         self.handlers.insert(
             type_name,
             Box::new(move |input_json: serde_json::Value| {
-                let input: T::Input = serde_json::from_value(input_json)
-                    .expect("failed to deserialize linked state input");
+                let input: T::Input = match serde_json::from_value(input_json) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        return Box::pin(async move {
+                            Err(serde_json::Value::String(format!(
+                                "failed to deserialize input: {e}"
+                            )))
+                        });
+                    }
+                };
                 let fut = f(input);
                 Box::pin(async move {
                     match fut.await {
                         Ok(val) => serde_json::to_value(&val)
                             .map_err(|e| serde_json::Value::String(e.to_string())),
-                        Err(e) => Err(serde_json::to_value(&e).unwrap_or(serde_json::Value::Null)),
+                        Err(e) => Err(serde_json::to_value(&e).unwrap_or_else(|ser_err| {
+                            serde_json::Value::String(format!(
+                                "{e}: (serialization failed: {ser_err})"
+                            ))
+                        })),
                     }
                 })
             }),

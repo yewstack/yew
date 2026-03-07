@@ -4330,14 +4330,11 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "gloo-net 0.6.0",
- "log",
  "lru",
  "serde",
  "serde_json",
  "tokio",
- "wasm-bindgen",
  "wasm-bindgen-futures",
- "web-sys",
  "yew",
  "yew-link-macro",
 ]
