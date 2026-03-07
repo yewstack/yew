@@ -1,4 +1,4 @@
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::cell::RefCell;
 use std::collections::HashMap;
 #[cfg(target_arch = "wasm32")]
@@ -237,10 +237,34 @@ impl Resolver {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone)]
 struct CacheKey {
     type_id: TypeId,
     input_hash: u64,
+    input: Rc<dyn Any>,
+    eq_fn: fn(&dyn Any, &dyn Any) -> bool,
+}
+
+impl Hash for CacheKey {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.type_id.hash(state);
+        self.input_hash.hash(state);
+    }
+}
+
+impl PartialEq for CacheKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.type_id == other.type_id && (self.eq_fn)(&*self.input, &*other.input)
+    }
+}
+
+impl Eq for CacheKey {}
+
+#[cfg(target_arch = "wasm32")]
+fn eq_inputs<I: PartialEq + 'static>(a: &dyn Any, b: &dyn Any) -> bool {
+    a.downcast_ref::<I>()
+        .zip(b.downcast_ref::<I>())
+        .map_or(false, |(a, b)| a == b)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -251,6 +275,8 @@ fn cache_key<T: LinkedState>(input: &T::Input) -> CacheKey {
     CacheKey {
         type_id: TypeId::of::<T>(),
         input_hash: hasher.finish(),
+        input: Rc::new(input.clone()),
+        eq_fn: eq_inputs::<T::Input>,
     }
 }
 
