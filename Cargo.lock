@@ -4333,7 +4333,6 @@ dependencies = [
  "lru",
  "serde",
  "serde_json",
- "tokio",
  "wasm-bindgen-futures",
  "yew",
  "yew-link-macro",

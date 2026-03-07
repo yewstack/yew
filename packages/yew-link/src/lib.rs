@@ -33,6 +33,14 @@ pub trait LinkedState: Serialize + DeserializeOwned + Clone + 'static {
 
     /// Application-level error returned by a failed resolve.
     type Error: Serialize + DeserializeOwned + Clone + fmt::Debug + fmt::Display + 'static;
+
+    /// Stable wire-format key used to route requests between client and server.
+    ///
+    /// Generated automatically by [`#[linked_state]`](linked_state) as
+    /// `concat!(module_path!(), "::", stringify!(Type))`. If you implement
+    /// `LinkedState` manually (e.g. for generic types), set this to a
+    /// string that is identical across server and client builds.
+    const TYPE_KEY: &'static str;
 }
 
 /// Server-side extension of [`LinkedState`] that provides a resolve function.
@@ -103,7 +111,12 @@ impl<T: LinkedState> LinkedStateHandle<T> {
     /// Returns the resolved value, panicking if the resolver returned an error.
     ///
     /// This clones the inner [`Rc`], which is cheap.
-    pub fn unwrap(&self) -> Rc<T> {
+    ///
+    /// # Panics
+    ///
+    /// Panics if the resolver returned a [`LinkError`]. Use
+    /// [`as_result`](Self::as_result) for non-panicking access.
+    pub fn data(&self) -> Rc<T> {
         self.result.as_ref().unwrap().clone()
     }
 
@@ -131,12 +144,14 @@ impl<T: LinkedState> LinkedStateHandle<T> {
     }
 }
 
+#[doc(hidden)]
 #[derive(Serialize, serde::Deserialize)]
 pub struct LinkRequest {
-    type_name: String,
+    type_key: String,
     input: serde_json::Value,
 }
 
+#[doc(hidden)]
 #[derive(Serialize, serde::Deserialize)]
 pub struct LinkResponse {
     #[serde(default)]
@@ -181,9 +196,8 @@ impl Resolver {
         F: Fn(T::Input) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<T, T::Error>> + Send + 'static,
     {
-        let type_name = std::any::type_name::<T>();
         self.handlers.insert(
-            type_name,
+            T::TYPE_KEY,
             Box::new(move |input_json: serde_json::Value| {
                 let input: T::Input = match serde_json::from_value(input_json) {
                     Ok(v) => v,
@@ -217,8 +231,8 @@ impl Resolver {
         &self,
         req: &LinkRequest,
     ) -> Result<serde_json::Value, serde_json::Value> {
-        let handler = self.handlers.get(req.type_name.as_str()).ok_or_else(|| {
-            serde_json::Value::String(format!("no resolver registered for {}", req.type_name))
+        let handler = self.handlers.get(req.type_key.as_str()).ok_or_else(|| {
+            serde_json::Value::String(format!("no resolver registered for {}", req.type_key))
         })?;
         handler(req.input.clone()).await
     }
@@ -340,7 +354,7 @@ impl LinkContextInner {
         use gloo_net::http::Request;
 
         let req_body = LinkRequest {
-            type_name: std::any::type_name::<T>().to_string(),
+            type_key: T::TYPE_KEY.to_string(),
             input: serde_json::to_value(input).map_err(|e| LinkError::Internal(e.to_string()))?,
         };
         let resp = Request::post(self.endpoint.as_ref())
@@ -380,7 +394,7 @@ impl LinkContextInner {
             .as_ref()
             .expect("resolver not set on server-side LinkProvider");
         let req = LinkRequest {
-            type_name: std::any::type_name::<T>().to_string(),
+            type_key: T::TYPE_KEY.to_string(),
             input: serde_json::to_value(input).map_err(|e| LinkError::Internal(e.to_string()))?,
         };
         match resolver.resolve_request(&req).await {
@@ -494,17 +508,16 @@ pub fn LinkProvider(props: &LinkProviderProps) -> Html {
 /// Panics if there is no ancestor [`LinkProvider`] in the component tree.
 #[hook]
 pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<LinkedStateHandle<T>> {
-    let _link_ctx =
+    #[cfg(any(feature = "ssr", target_arch = "wasm32"))]
+    let link_ctx =
         use_context::<LinkContextInner>().expect("use_linked_state requires a LinkProvider");
 
     type Prepared<T, E> = Result<T, LinkError<E>>;
 
-    let _noop_refresh = Callback::from(|_: ()| {});
-
     #[cfg(feature = "ssr")]
     {
         let prepared = {
-            let link_ctx = _link_ctx.clone();
+            let link_ctx = link_ctx.clone();
             yew::functional::use_prepared_state_with_suspension(
                 input,
                 move |input: Rc<T::Input>| {
@@ -521,22 +534,21 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
                 Ok(val) => Ok(Rc::new(val.clone())),
                 Err(e) => Err(e.clone()),
             },
-            refresh: _noop_refresh,
+            refresh: Callback::from(|_: ()| {}),
             refreshing: false,
         })
     }
 
     #[cfg(all(not(feature = "ssr"), not(target_arch = "wasm32")))]
     {
-        let _prepared = yew::functional::use_prepared_state_with_suspension::<
-            Prepared<T, T::Error>,
-            T::Input,
-        >(input)?;
+        yew::functional::use_prepared_state_with_suspension::<Prepared<T, T::Error>, T::Input>(
+            input,
+        )?;
         Ok(LinkedStateHandle {
             result: Err(LinkError::Internal(
                 "yew-link requires the `ssr` feature (server) or a wasm32 target (client)".into(),
             )),
-            refresh: _noop_refresh,
+            refresh: Callback::from(|_: ()| {}),
             refreshing: false,
         })
     }
@@ -550,7 +562,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
 
         if let Some(ref result) = prepared {
             if let Ok(json_val) = serde_json::to_value(result.as_ref()) {
-                let mut cache = _link_ctx.cache.borrow_mut();
+                let mut cache = link_ctx.cache.borrow_mut();
                 if cache.peek(&key).is_none() {
                     cache.put(key.clone(), json_val);
                 }
@@ -561,10 +573,10 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
         let has_refreshed = use_ref(|| std::cell::Cell::new(false));
 
         let refresh = {
-            let cache = _link_ctx.cache.clone();
-            let refreshing = _link_ctx.refreshing.clone();
+            let cache = link_ctx.cache.clone();
+            let refreshing = link_ctx.refreshing.clone();
             let key = key.clone();
-            let link_ctx = _link_ctx.clone();
+            let link_ctx = link_ctx.clone();
             let input = input.clone();
             let force_update = force_update.clone();
             let has_refreshed = has_refreshed.clone();
@@ -614,9 +626,9 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
             }
         }
 
-        let is_refreshing = _link_ctx.refreshing.borrow().contains(&key);
+        let is_refreshing = link_ctx.refreshing.borrow().contains(&key);
 
-        if let Some(cached_val) = _link_ctx.cache.borrow_mut().get(&key).cloned() {
+        if let Some(cached_val) = link_ctx.cache.borrow_mut().get(&key).cloned() {
             if let Ok(result) = serde_json::from_value::<Prepared<T, T::Error>>(cached_val) {
                 return Ok(LinkedStateHandle {
                     result: result.map(Rc::new),
@@ -626,11 +638,11 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
             }
         }
 
-        if let Some(sus) = _link_ctx.in_flight.borrow().get(&key).cloned() {
+        if let Some(sus) = link_ctx.in_flight.borrow().get(&key).cloned() {
             if !sus.resumed() {
                 return Err(sus);
             }
-            if let Some(cached_val) = _link_ctx.cache.borrow_mut().get(&key).cloned() {
+            if let Some(cached_val) = link_ctx.cache.borrow_mut().get(&key).cloned() {
                 if let Ok(result) = serde_json::from_value::<Prepared<T, T::Error>>(cached_val) {
                     return Ok(LinkedStateHandle {
                         result: result.map(Rc::new),
@@ -642,7 +654,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
         }
 
         let sus = Suspension::from_future({
-            let link_ctx = _link_ctx.clone();
+            let link_ctx = link_ctx.clone();
             let key = key.clone();
             async move {
                 let result: Result<T, LinkError<T::Error>> =
@@ -662,7 +674,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
             }
         });
 
-        _link_ctx.in_flight.borrow_mut().insert(key, sus.clone());
+        link_ctx.in_flight.borrow_mut().insert(key, sus.clone());
         Err(sus)
     }
 }

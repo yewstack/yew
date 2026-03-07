@@ -20,13 +20,12 @@ wasm-bindgen-futures = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { workspace = true, optional = true }
-tokio = { workspace = true, optional = true }
 
 [features]
 default = []
 ssr = ["yew/ssr"]
 hydration = ["yew/hydration"]
-axum = ["dep:axum", "dep:tokio"]
+axum = ["dep:axum"]
 
 [lints]
 workspace = true

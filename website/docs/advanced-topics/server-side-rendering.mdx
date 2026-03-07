@@ -188,7 +188,7 @@ When `type Error` is omitted, the error type defaults to an uninhabited `Never` 
 
 `use_linked_state` returns `SuspensionResult<LinkedStateHandle<T>>`. The outer layer is for suspense (loading). The handle provides:
 
-- **`.unwrap()`** returns the resolved `Rc<T>`, panicking on error.
+- **`.data()`** returns the resolved `Rc<T>`, panicking on error.
 - **`.as_result()`** borrows the underlying `Result<Rc<T>, LinkError<T::Error>>` for pattern matching.
 - **`.refresh()`** triggers a background re-fetch while keeping the previous (stale) value visible (stale-while-revalidate).
 - **`.is_refreshing()`** returns `true` while a refresh is in progress, so you can show a loading indicator alongside the stale data.
@@ -219,7 +219,7 @@ use yew_link::{use_linked_state, LinkProvider};
 
 #[component]
 fn PostPage(props: &PostPageProps) -> HtmlResult {
-    let post = use_linked_state::<Post>(props.id)?.unwrap();
+    let post = use_linked_state::<Post>(props.id)?.data();
     Ok(html! { <h1>{ &post.title }</h1> })
 }
 ```

@@ -56,7 +56,7 @@ pub struct PostProps {
 
 #[component]
 pub fn PostPage(props: &PostProps) -> HtmlResult {
-    let post = use_linked_state::<LinkedPost>(props.id)?.unwrap();
+    let post = use_linked_state::<LinkedPost>(props.id)?.data();
     Ok(render_post(&post.0))
 }
 
@@ -169,7 +169,7 @@ pub struct AuthorProps {
 
 #[component]
 pub fn AuthorPage(props: &AuthorProps) -> HtmlResult {
-    let author = use_linked_state::<LinkedAuthor>(props.id)?.unwrap();
+    let author = use_linked_state::<LinkedAuthor>(props.id)?.data();
     Ok(render_author(&author.0))
 }
 
@@ -221,7 +221,7 @@ struct CardProps {
 
 #[component]
 fn LinkedPostCard(props: &CardProps) -> HtmlResult {
-    let meta = use_linked_state::<LinkedPostMeta>(props.seed)?.unwrap();
+    let meta = use_linked_state::<LinkedPostMeta>(props.seed)?.data();
     let meta = &meta.0;
     Ok(html! {
         <div class="card">
@@ -244,7 +244,7 @@ fn LinkedPostCard(props: &CardProps) -> HtmlResult {
 
 #[component]
 fn LinkedAuthorCard(props: &CardProps) -> HtmlResult {
-    let author = use_linked_state::<LinkedAuthor>(props.seed)?.unwrap();
+    let author = use_linked_state::<LinkedAuthor>(props.seed)?.data();
     let author = &author.0;
     Ok(html! {
         <div class="card">

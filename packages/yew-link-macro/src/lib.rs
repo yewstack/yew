@@ -117,6 +117,8 @@ fn expand(impl_block: ItemImpl) -> syn::Result<proc_macro2::TokenStream> {
         impl #impl_generics ::yew_link::LinkedState for #self_ty #ty_generics #where_clause {
             type Input = #input_ty;
             type Error = #error_ty_tokens;
+            const TYPE_KEY: &'static str =
+                ::core::concat!(::core::module_path!(), "::", ::core::stringify!(#self_ty));
         }
 
         #[cfg(not(target_arch = "wasm32"))]
