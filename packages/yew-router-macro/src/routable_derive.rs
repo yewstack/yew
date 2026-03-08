@@ -172,7 +172,11 @@ impl Routable {
                         .map(|it| it.ident.as_ref().unwrap())
                         .collect::<Vec<_>>();
 
+                    let mut wildcard_fields = std::collections::HashSet::new();
                     for field in fields.iter() {
+                        if right.contains(&format!("*{field}")) {
+                            wildcard_fields.insert((*field).clone());
+                        }
                         // :param -> {param}
                         // *param -> {param}
                         // so we can pass it to `format!("...", param)`
@@ -180,8 +184,20 @@ impl Routable {
                         right = right.replace(&format!("*{field}"), &format!("{{{field}}}"));
                     }
 
+                    let field_encodings = fields.iter().map(|field| {
+                        if wildcard_fields.contains(*field) {
+                            quote! {
+                                #field = ::yew_router::__macro::encode_path_for_url(&::std::format!("{}", #field))
+                            }
+                        } else {
+                            quote! {
+                                #field = ::yew_router::__macro::encode_for_url(&::std::format!("{}", #field))
+                            }
+                        }
+                    });
+
                     quote! {
-                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#fields = ::yew_router::__macro::encode_for_url(&::std::format!("{}", #fields))),*)
+                        Self::#ident { #(#fields),* } => ::std::format!(#right, #(#field_encodings),*)
                     }
                 }
                 Fields::Unnamed(_) => unreachable!(), // already checked

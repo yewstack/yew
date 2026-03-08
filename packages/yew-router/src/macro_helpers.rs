@@ -1,5 +1,12 @@
 pub use urlencoding::{decode as decode_for_url, encode as encode_for_url};
 
+pub fn encode_path_for_url(path: &str) -> String {
+    path.split('/')
+        .map(|segment| encode_for_url(segment))
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
 use crate::utils::strip_slash_suffix;
 use crate::Routable;
 
