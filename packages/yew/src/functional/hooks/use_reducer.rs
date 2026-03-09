@@ -145,7 +145,9 @@ where
     T: Reducible + PartialEq,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        **self == **rhs
+        let self_snapshot = self.deref_history.borrow();
+        let rhs_snapshot = rhs.deref_history.borrow();
+        *self_snapshot[0] == *rhs_snapshot[0]
     }
 }
 
