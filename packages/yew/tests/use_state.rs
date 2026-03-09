@@ -330,3 +330,86 @@ async fn use_state_handles_read_latest_value_issue_3796() {
     let result = obtain_result();
     assert_eq!(result.as_str(), "a=value_a, b=value_b");
 }
+
+/// Regression test for issue #4058
+///
+/// When a UseStateHandle is passed as a prop to a child component, updating the
+/// state should cause the child to re-render. After the deref_history change
+/// (PR #3988), UseReducerHandle::eq dereferences both old and new handles, but
+/// since Deref now always reads from the shared RefCell, both sides resolve to
+/// the latest value, making eq always return true and preventing child re-renders.
+#[wasm_bindgen_test]
+async fn use_state_handle_as_prop_triggers_child_rerender_issue_4058() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use gloo::utils::document;
+    use wasm_bindgen::JsCast;
+    use web_sys::HtmlElement;
+
+    static CHILD_RENDER_COUNT: AtomicUsize = AtomicUsize::new(0);
+
+    #[derive(Properties, PartialEq)]
+    struct ChildProps {
+        handle: UseStateHandle<i32>,
+    }
+
+    #[component(ChildComponent)]
+    fn child_comp(props: &ChildProps) -> Html {
+        CHILD_RENDER_COUNT.fetch_add(1, Ordering::Relaxed);
+
+        let onclick = {
+            let handle = props.handle.clone();
+            Callback::from(move |_| {
+                handle.set(*handle + 1);
+            })
+        };
+
+        html! {
+            <div>
+                <button id="child-increment" {onclick}>{"Increment"}</button>
+                <div id="result">{ *props.handle }</div>
+            </div>
+        }
+    }
+
+    #[component(ParentComponent)]
+    fn parent_comp() -> Html {
+        let state = use_state(|| 0);
+        html! {
+            <ChildComponent handle={state} />
+        }
+    }
+
+    CHILD_RENDER_COUNT.store(0, Ordering::Relaxed);
+
+    yew::Renderer::<ParentComponent>::with_root(document().get_element_by_id("output").unwrap())
+        .render();
+    scheduler::flush().await;
+
+    // Initial render: child should show 0
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "0");
+    assert_eq!(CHILD_RENDER_COUNT.load(Ordering::Relaxed), 1);
+
+    // Click the increment button in the child
+    document()
+        .get_element_by_id("child-increment")
+        .unwrap()
+        .unchecked_into::<HtmlElement>()
+        .click();
+
+    scheduler::flush().await;
+
+    // After increment: child should re-render and show 1
+    let result = obtain_result();
+    assert_eq!(
+        result.as_str(),
+        "1",
+        "Child component must re-render when UseStateHandle prop changes (issue #4058)"
+    );
+    assert!(
+        CHILD_RENDER_COUNT.load(Ordering::Relaxed) >= 2,
+        "Child must have re-rendered at least twice, but rendered {} times",
+        CHILD_RENDER_COUNT.load(Ordering::Relaxed)
+    );
+}

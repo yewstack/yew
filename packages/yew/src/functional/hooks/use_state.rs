@@ -149,7 +149,7 @@ where
     T: PartialEq,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        *self.inner == *rhs.inner
+        self.inner == rhs.inner
     }
 }
 
