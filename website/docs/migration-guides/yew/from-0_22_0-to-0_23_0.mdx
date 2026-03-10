@@ -15,9 +15,6 @@ If your reducer has a code path that returns `self` unchanged and you relied on 
   <TabItem value="before" label="Before" default>
 
 ```rust ,ignore
-use std::rc::Rc;
-use yew::prelude::*;
-
 pub enum Action {
     Increment,
     ForceRefresh,
@@ -50,8 +47,15 @@ pub fn App() -> Html {
     html! {
         <div>
             <p>{ state.count }</p>
-            <button onclick={move |_| state.dispatch(Action::Increment)}>{ "+1" }</button>
-            <button onclick={move |_| state.dispatch(Action::ForceRefresh)}>{ "Refresh" }</button>
+            <button onclick={
+                let state = state.clone();
+                move |_| state.dispatch(Action::Increment)
+            }>
+                { "+1" }
+            </button>
+            <button onclick={move |_| state.dispatch(Action::ForceRefresh)}>
+                { "Refresh" }
+            </button>
         </div>
     }
 }
@@ -61,9 +65,6 @@ pub fn App() -> Html {
   <TabItem value="after" label="After">
 
 ```rust ,ignore
-use std::rc::Rc;
-use yew::prelude::*;
-
 pub enum Action {
     Increment,
 }
