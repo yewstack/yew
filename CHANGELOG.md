@@ -4,19 +4,24 @@
 
 bumping from 0.22 should require no code changes for most users.
 
-### 🛠 Fixes
-
-- No more broken child re-renders while setting parent's states. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4060](https://github.com/yewstack/yew/pull/4060)]
-- Ergonomics: Bare `None`s are now allowed for `Option<T>` props in the `html!` macro. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4021](https://github.com/yewstack/yew/pull/4021)]
-
-### ⚡️ Features
-
-- `&str` and `String` can now be used for prop types of `Option<Html>`. [[@Cashew](https://github.com/Casheeew), [#4020](https://github.com/yewstack/yew/pull/4020)]
-
 ### 🚨 Breaking changes
 
 - Performance: use_reducer now skips re-rendering for the same Rc. [[@Pascal Sommer](https://github.com/Pascal-So), [#3945](https://github.com/yewstack/yew/pull/3945)]
-    NOTE: Whether this is breaking is arguable. It merely breaks the promise that a dispatch will always cause a re-render. For code that wishes to force re-render, [use_force_update](https://docs.rs/yew/latest/yew/functional/fn.use_force_update.html) helps.
+    NOTE: Whether this is breaking is arguable. It merely breaks the promise that a dispatch will always cause a re-render. For code that wishes to force re-render, [use_force_update](https://docs.rs/yew/latest/yew/functional/fn.use_force_update.html) helps. Please refer to [the migration guide](https://yew.rs/docs/next/migration-guides/yew/from-0_22_0-to-0_23_0) for details.
+
+### ⚡️ Features
+
+- `&str` and `String` can now be used for props of type `Option<Html>`. [[@Cashew](https://github.com/Casheeew), [#4020](https://github.com/yewstack/yew/pull/4020)]
+- Added a `scheduler::flush` function to reliably finish rendering. Useful in testing as a replacement for timeouts. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4044](https://github.com/yewstack/yew/pull/4044)]
+
+### 🛠 Fixes
+
+- No more broken child re-renders while setting parents' states. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4060](https://github.com/yewstack/yew/pull/4060)]
+- Ergonomics: Bare `None`s are now allowed for `Option<T>` props in the `html!` macro. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4021](https://github.com/yewstack/yew/pull/4021)]
+
+### ⚙️ Improvements
+
+- Yew's scheduler now yields to the main thread from time to time. This fix will make the web page more responsive and reduce warnings about long tasks in the console. [[@Siyuan Yan](https://github.com/Madoshakalaka), [#4033](https://github.com/yewstack/yew/pull/4033)]
 
 ## ✨ yew-router **0.20.0** *(2026-03-10)*
 

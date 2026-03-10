@@ -15,9 +15,6 @@ import TabItem from '@theme/TabItem'
   <TabItem value="before" label="之前" default>
 
 ```rust ,ignore
-use std::rc::Rc;
-use yew::prelude::*;
-
 pub enum Action {
     Increment,
     ForceRefresh,
@@ -50,8 +47,15 @@ pub fn App() -> Html {
     html! {
         <div>
             <p>{ state.count }</p>
-            <button onclick={move |_| state.dispatch(Action::Increment)}>{ "+1" }</button>
-            <button onclick={move |_| state.dispatch(Action::ForceRefresh)}>{ "重新整理" }</button>
+            <button onclick={
+                let state = state.clone();
+                move |_| state.dispatch(Action::Increment)
+            }>
+                { "+1" }
+            </button>
+            <button onclick={move |_| state.dispatch(Action::ForceRefresh)}>
+                { "重新整理" }
+            </button>
         </div>
     }
 }
@@ -61,9 +65,6 @@ pub fn App() -> Html {
   <TabItem value="after" label="之後">
 
 ```rust ,ignore
-use std::rc::Rc;
-use yew::prelude::*;
-
 pub enum Action {
     Increment,
 }
