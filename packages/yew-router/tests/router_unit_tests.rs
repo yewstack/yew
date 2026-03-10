@@ -74,3 +74,48 @@ fn router_url_encoding() {
         AppRoute::recognize("/search/a%2Fb/")
     );
 }
+
+#[test]
+fn router_wildcard_encoding() {
+    #[derive(Routable, Debug, Clone, PartialEq)]
+    enum AppRoute {
+        #[at("/")]
+        Root,
+        #[at("/file/*path")]
+        File { path: String },
+        #[at("/user/:id")]
+        User { id: String },
+    }
+
+    let route = AppRoute::File {
+        path: "docs/guides/getting-started.md".to_string(),
+    };
+    assert_eq!(route.to_path(), "/file/docs/guides/getting-started.md");
+
+    assert_eq!(
+        Some(AppRoute::File {
+            path: "docs/guides/getting-started.md".to_string()
+        }),
+        AppRoute::recognize("/file/docs/guides/getting-started.md")
+    );
+
+    let route_special = AppRoute::File {
+        path: "docs/my file (1)/notes.txt".to_string(),
+    };
+    assert_eq!(
+        route_special.to_path(),
+        "/file/docs/my%20file%20%281%29/notes.txt"
+    );
+
+    assert_eq!(
+        Some(AppRoute::File {
+            path: "docs/my file (1)/notes.txt".to_string()
+        }),
+        AppRoute::recognize("/file/docs/my%20file%20%281%29/notes.txt")
+    );
+
+    let user_route = AppRoute::User {
+        id: "a/b".to_string(),
+    };
+    assert_eq!(user_route.to_path(), "/user/a%2Fb");
+}
