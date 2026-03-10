@@ -18,20 +18,20 @@ pub fn stdout_tag_description_changelog(
     }
 
     if !fixes_logs.is_empty() {
-        writeln!(tag_changelog, "## 🛠 Fixes")?;
+        writeln!(tag_changelog, "### 🛠 Fixes")?;
         writeln!(tag_changelog)?;
         tag_changelog.extend(fixes_logs);
         writeln!(tag_changelog)?;
     }
 
     if !features_logs.is_empty() {
-        writeln!(tag_changelog, "## ⚡️ Features")?;
+        writeln!(tag_changelog, "### ⚡️ Features")?;
         writeln!(tag_changelog)?;
         tag_changelog.extend(features_logs);
     }
 
     if !breaking_changes_logs.is_empty() {
-        writeln!(tag_changelog, "## 🚨 Breaking changes")?;
+        writeln!(tag_changelog, "### 🚨 Breaking changes")?;
         writeln!(tag_changelog)?;
         tag_changelog.extend(breaking_changes_logs);
     }
