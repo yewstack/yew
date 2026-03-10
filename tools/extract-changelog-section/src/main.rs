@@ -18,7 +18,7 @@ fn extract_section(content: &str, package: &str, version: &str) -> Result<String
     let pkg_lower = package.to_lowercase();
     let version_needle = format!("**{version}**");
 
-    let mut lines = content.lines().peekable();
+    let mut lines = content.lines();
     let mut found_target = false;
 
     for line in lines.by_ref() {

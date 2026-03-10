@@ -79,8 +79,7 @@ jobs:
       - name: Extract changelog
         id: changelog
         run: |
-          cargo build --release -p extract-changelog-section
-          body=$(./target/release/extract-changelog-section "${{ steps.gettag.outputs.tag }}")
+          body=$(cargo run -p extract-changelog-section -- "${{ steps.gettag.outputs.tag }}")
           {
             echo "body<<CHANGELOG_EOF"
             echo "$body"
