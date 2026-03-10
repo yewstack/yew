@@ -1,0 +1,273 @@
+---
+title: '生命週期'
+description: '元件及其生命週期鉤子'
+---
+
+`Component` trait 有許多方法需要實作；Yew 會在元件的生命週期的不同階段呼叫這些方法。
+
+## 生命週期
+
+:::important 改進文檔
+`為文件做貢獻：` [新增自訂生命週期的組件範例](https://github.com/yewstack/yew/issues/1915)
+:::
+
+## 生命週期方法
+
+### Create
+
+當元件被建立時，它會從其父元件接收屬性，並儲存在傳遞給 `create` 方法的 `Context<Self>` 中。這些屬性可以用來初始化元件的狀態，而 "link" 可以用來註冊回呼或傳送訊息給元件。
+
+```rust
+use yew::{Component, Context, html, Html, Properties};
+
+#[derive(PartialEq, Properties)]
+pub struct Props;
+
+pub struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = Props;
+
+    // highlight-start
+    fn create(ctx: &Context<Self>) -> Self {
+        MyComponent
+    }
+    // highlight-end
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // 具體實現
+        }
+    }
+}
+```
+
+### View
+
+`view` 方法可讓您描述元件應該如何呈現到 DOM 中。使用Rust 函數編寫類似HTML 的程式碼可能會變得非常混亂，因此Yew 提供了一個名為`html!` 的宏，用於聲明HTML 和SVG 節點（以及將屬性和事件監聽器附加到它們）以及一種方便的方法來渲染子元件。這個宏在某種程度上類似於 React 的 JSX（除了程式語言的差異）。一個不同之處是 Yew 提供了一種類似 Svelte 的屬性的簡寫語法，其中您可以只寫 `{onclick}`，而不用寫 `onclick={onclick}`。
+
+```rust
+use yew::{Component, Context, html, Html, Properties};
+
+enum Msg {
+    Click,
+}
+
+#[derive(PartialEq, Properties)]
+struct Props {
+    button_text: String,
+}
+
+struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = Msg;
+    type Properties = Props;
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    // highlight-start
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let onclick = ctx.link().callback(|_| Msg::Click);
+        html! {
+            <button {onclick}>{ &ctx.props().button_text }</button>
+        }
+    }
+    // highlight-end
+}
+```
+
+就使用上的說明，請查看 [html! 指南](concepts/html/introduction.mdx)。
+
+### Rendered
+
+`rendered` 元件生命週期方法在 `view` 被調用並且 Yew 已經將結果渲染到 DOM 中後調用，但在瀏覽器刷新頁面之前。當您想要執行只能在元件渲染元素後完成的操作時，此方法非常有用。還有一個名為 `first_render` 的參數，可以用來確定此函數是在第一次渲染時調用，還是在後續渲染時調用。
+
+```rust
+use web_sys::HtmlInputElement;
+use yew::{
+    Component, Context, html, Html, NodeRef,
+};
+
+pub struct MyComponent {
+    node_ref: NodeRef,
+}
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <input ref={self.node_ref.clone()} type="text" />
+        }
+    }
+
+    // highlight-start
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        if first_render {
+            if let Some(input) = self.node_ref.cast::<HtmlInputElement>() {
+                input.focus();
+            }
+        }
+    }
+    // highlight-end
+}
+```
+
+:::tip note
+請注意，此生命週期方法不需要實現，並且預設不會執行任何操作。
+:::
+
+### Update
+
+與組件的通訊主要透過訊息進行，這些訊息由 `update` 生命週期方法處理。這允許元件根據訊息更新自身，並確定是否需要重新渲染自身。訊息可以由事件監聽器、子元件、Agents、Services 或 Futures 傳送。
+
+下面是 `update` 的實作範例：
+
+```rust
+use yew::{Component, Context, html, Html};
+
+// highlight-start
+pub enum Msg {
+    SetInputEnabled(bool)
+}
+// highlight-end
+
+struct MyComponent {
+    input_enabled: bool,
+}
+
+impl Component for MyComponent {
+    // highlight-next-line
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            input_enabled: false,
+        }
+    }
+
+    // highlight-start
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::SetInputEnabled(enabled) => {
+                if self.input_enabled != enabled {
+                    self.input_enabled = enabled;
+                    true // 重新渲染
+                } else {
+                    false
+                }
+            }
+        }
+    }
+    // highlight-end
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // 具體實現
+        }
+    }
+
+}
+```
+
+### Changed
+
+元件可能會被其父元件重新渲染。當這種情況發生時，它們可能會接收新的屬性並需要重新渲染。這種設計透過僅更改屬性的值來促進父子組件之間的通訊。當屬性更改時，有一個預設實作會重新渲染元件。
+
+### Destroy
+
+元件從 DOM 卸載後，Yew 會呼叫 `destroy` 生命週期方法；如果您需要在元件被銷毀之前執行清理操作，這是必要的。此方法是可選的，預設不執行任何操作。
+
+### 無限循環
+
+無限循環在 Yew 的生命週期方法中是可能的，但只有在嘗試在每次渲染後更新相同的元件時，當更新也要求重新渲染元件時才會發生。
+
+下面是一個簡單的範例：
+
+```rust
+use yew::{Context, Component, Html};
+
+struct Comp;
+
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, _msg: Self::Message) -> bool {
+        // 我們總是請求在任何訊息上重新渲染
+        true
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        // 無論渲染什麼都不重要
+        Html::default()
+        }
+
+    fn rendered(&mut self, ctx: &Context<Self>, _first_render: bool) {
+        // 請求使用此新訊息更新元件
+        ctx.link().send_message(());
+    }
+}
+```
+
+讓我們看看這裡發生了什麼：
+
+1. 使用 `create` 函數建立元件。
+2. 呼叫 `view` 方法，以便 Yew 知道要渲染到瀏覽器 DOM 中的內容。
+3. 呼叫 `rendered` 方法，使用 `Context` 連結安排更新訊息。
+4. Yew 完成後渲染階段。
+5. Yew 檢查已排程的事件，並看到更新訊息佇列不為空，因此處理訊息。
+6. 呼叫 `update` 方法，回傳 `true` 表示發生了變化，元件需要重新渲染。
+7. 跳回第 2 步。
+
+您仍然可以在 `rendered` 方法中安排更新，這通常是有用的，但是在這樣做時，請考慮您的元件將如何終止此循環。
+
+## 關聯類型
+
+`Component` trait 有两个关联类型：`Message` 和 `Properties`。
+
+```rust ,ignore
+impl Component for MyComponent {
+    type Message = Msg;
+    type Properties = Props;
+
+    // ...
+}
+```
+
+`Message` 類型用於在事件發生後向元件發送訊息；例如，您可能希望在使用者點擊按鈕或向下捲動頁面時執行某些操作。因為元件通常需要回應多個事件，所以 `Message` 類型通常是一個枚舉，其中每個變體都是要處理的事件。
+
+在組織程式碼庫時，將 `Message` 類型的定義包含在定義元件的相同模組中是明智的。您可能會發現採用一致的命名約定來命名訊息類型很有幫助。一個選項（儘管不是唯一的選項）是將類型命名為 `ComponentNameMsg`，例如，如果您的元件名為 `Homepage`，則可以將類型命名為 `HomepageMsg`。
+
+```rust
+enum Msg {
+    Click,
+    FormInput(String)
+}
+```
+
+`Properties` 表示從其父元件傳遞給元件的訊息。此類型必須實作 `Properties` trait（通常透過衍生它）並且可以指定某些屬性是必需的還是可選的。在建立和更新元件時使用此類型。在組件的模組中建立一個名為 `Props` 的結構體，並將其用作組件的 `Properties` 類型是一種常見做法。通常將 "properties" 縮寫為 "props"。由於 props 是從父元件傳遞下來的，因此應用程式的根元件通常具有 `Properties` 類型為 `()`。如果要為根元件指定屬性，請使用 `App::mount_with_props` 方法。
+
+:::info
+[了解更多關於屬性的資訊](./properties)
+:::
+
+## 生命週期上下文
+
+所有組件生命週期方法都接受一個上下文物件。此物件提供了對元件作用域的引用，允許向元件發送訊息並傳遞給元件的 props。

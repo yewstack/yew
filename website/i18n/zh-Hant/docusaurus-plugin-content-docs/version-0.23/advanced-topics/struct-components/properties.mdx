@@ -1,0 +1,134 @@
+---
+title: '屬性 (Props)'
+description: '父子元件通訊'
+---
+
+屬性 (Properties) 使子組件和父組件之間能夠進行通訊。每個元件都有一個關聯的屬性類型，用來描述從父元件傳遞下來的內容。理論上，這可以是任何實現了 `Properties` 特性的類型，但實際上，它應該是一個結構體，其中每個字段代表一個屬性。
+
+## 派生宏
+
+無需自己實作 `Properties` 特性，我們可以用 `#[derive(Properties)]` 來自動生成實作。派生 `Properties` 的型別也必須實作 `PartialEq`。
+
+### 欄位屬性
+
+在派生 `Properties` 時，預設情況下所有欄位都是必要的。以下屬性可讓您為屬性提供初始值，除非它們被設定為另一個值。
+
+:::tip
+屬性不會在 Rustdoc 產生的文件中顯示。您的屬性的文檔字串應該說明一個屬性是否是可選的，以及它是否有一個特殊的預設值。
+:::
+
+#### `#[prop_or_default]`
+
+使用欄位類型的預設值使用 `Default` 特性來初始化屬性值。
+
+#### `#[prop_or(value)]`
+
+使用 `value` 來初始化屬性值。 `value` 可以是傳回欄位類型的任何表達式。例如，要將布林屬性預設為 `true`，請使用屬性 `#[prop_or(true)]`。
+
+#### `#[prop_or_else(function)]`
+
+呼叫 `function` 來初始化屬性值。 `function` 應該有簽章 `FnMut() -> T`，其中 `T` 是欄位類型。
+
+## `PartialEq`
+
+`Properties` 需要實作 `PartialEq`。這樣，Yew 才能比較它們，以便在它們發生變化時呼叫 `changed` 方法。
+
+## 使用 Properties 的效能開銷
+
+內部屬性是基於引用計數的指標儲存的。這意味著只有一個指標被傳遞到元件樹中的屬性，以避免複製整個屬性所帶來的昂貴效能開銷。
+
+:::tip
+使用 `AttrValue`，這是我們提供的自訂屬性值類型，這樣就可以不用 String 或其他類似的需要克隆的類型。
+:::
+
+## 範例
+
+```rust
+use yew::Properties;
+/// 從 virtual_dom 中導入 AttrValue
+use yew::virtual_dom::AttrValue;
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// 鏈接必須有一個目標
+    href: AttrValue,
+    /// 還要注意我們使用的是 AttrValue 而不是 String
+    text: AttrValue,
+    /// 鏈接的顏色，默認為 `Blue`
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// 如果值為 None，則視圖函數不會指定大小
+    #[prop_or_default]
+    size: Option<u32>,
+    /// 當視圖函數沒有指定活動時，默認為 true
+    #[prop_or(true)]
+    active: bool,
+}
+```
+
+## Props 巨集
+
+`yew::props!` 巨集允許您以與 `html!` 巨集相同的方式建立屬性。
+
+這個巨集使用與結構體表達式相同的語法，只是您不能使用屬性或基本表達式 (`Foo { ..base }`)。類型路徑可以直接指向屬性 (`path::to::Props`)，也可以指向元件的關聯屬性 (`MyComp::Properties`)。
+
+```rust
+use yew::{props, Properties, virtual_dom::AttrValue};
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// 鏈接必須有一個目標
+    href: AttrValue,
+    /// 還要注意我們使用的是 AttrValue 而不是 String
+    text: AttrValue,
+    /// 鏈接的顏色，默認為 `Blue`
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// 如果值為 None，則視圖函數不會指定大小
+    #[prop_or_default]
+    size: Option<u32>,
+    /// 當視圖函數沒有指定活動時，默認為 true
+    #[prop_or(true)]
+    active: bool,
+}
+
+impl LinkProps {
+    /// 注意此函數接收 href 和 text 作為 String
+    /// 我們可以使用 `AttrValue::from` 將其轉換為 `AttrValue`
+    pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
+        // highlight-start
+        props! {LinkProps {
+            href: AttrValue::from(href),
+            text: AttrValue::from(text),
+            size,
+        }}
+        // highlight-end
+    }
+}
+```

@@ -1,0 +1,56 @@
+---
+title: '代理 (Agents)'
+description: "Yew's 的代理系统"
+---
+
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
+
+代理 (Agents) 是一种将任务卸载到 Web Workers 的方式。
+
+为了使代理能够并发运行，Yew 使用了 [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)。
+
+## 生命周期
+
+<!--
+The diagram is produced with nomnoml (nomnoml.com),
+The code can be found in the <desc> tag of the svgs.
+-->
+
+<ThemedImage
+    alt="agent lifecycle diagram"
+    sources={{
+        light: useBaseUrl('/img/agent-lifecycle-light.svg'),
+        dark: useBaseUrl('/img/agent-lifecycle-dark.svg'),
+    }}
+/>
+
+## 代理的类型
+
+### 范围
+
+- 公开 - 在任何给定时间，公共代理的实例最多只有一个。桥梁将在 Web Worker 中生成或连接到已经生成的代理。当没有桥梁连接到此代理时，代理将消失。
+
+- 私有 - 为每个新的桥梁在 Web Worker 中生成一个新的代理。这对于将与浏览器通信的共享但独立的行为从组件中移出是很好的。当连接的桥梁被丢弃时，代理将消失。
+
+- 全局 \(WIP\)
+
+## 代理与组件之间的通信
+
+### 通信桥 (Bridges)
+
+通信桥 (bridge) 是一个组件和代理之间的通信通道。它允许组件向代理发送消息，并接收来自代理的消息。
+
+`use_bridge` 钩子也提供了在函数组件中创建桥梁的功能。
+
+### 派发器 (Dispatchers)
+
+派发器 (Dispatchers) 允许组件和代理之间进行单向通信，组件以此方式向代理发送消息。
+
+## 开销
+
+代理使用 Web Workers（即私有和公开）。它们在发送和接收消息时会产生序列化开销。代理使用 [bincode](https://github.com/bincode-org/bincode) 与其他线程通信，因此成本比仅调用函数要高得多。
+
+## 进一步阅读
+
+- [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) 示例展示了组件如何向代理发送消息并接收来自代理的消息。
