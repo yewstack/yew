@@ -4300,7 +4300,7 @@ dependencies = [
 
 [[package]]
 name = "yew-macro"
-version = "0.22.1"
+version = "0.23.0"
 dependencies = [
  "implicit-clone",
  "prettyplease",
