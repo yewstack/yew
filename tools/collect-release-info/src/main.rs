@@ -132,7 +132,13 @@ fn main() -> Result<()> {
     let mut releases = Vec::new();
 
     for package in &packages {
-        let tag = find_latest_tag(package)?;
+        let tag = match find_latest_tag(package) {
+            Ok(tag) => tag,
+            Err(e) => {
+                eprintln!("skipping {package}: {e}");
+                continue;
+            }
+        };
         let (pkg, version) = parse_tag(&tag)?;
         let pkg = pkg.to_string();
         let version = version.to_string();
