@@ -21,7 +21,7 @@ bincode = { workspace = true }
 wasm-bindgen-futures.workspace = true
 serde = { workspace = true, features = ["derive"] }
 futures.workspace = true
-yew-agent-macro = { version = "0.3", path = "../yew-agent-macro" }
+yew-agent-macro = { version = "0.4", path = "../yew-agent-macro" }
 
 [dependencies.web-sys]
 workspace = true
