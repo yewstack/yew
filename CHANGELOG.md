@@ -110,7 +110,6 @@
 
  - **MSRV raised to 1.84.0.** [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3900](https://github.com/yewstack/yew/pull/3900)]
 
-----
 
 ## ✨ yew **0.21.0** *(2023-09-23)*
 
@@ -173,7 +172,6 @@
 
 - Agent v2. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#2773](https://github.com/yewstack/yew/pull/2773)]
 
-----
 
 ## ✨ yew **0.20.0** *(2022-11-xx)*
 

@@ -64,9 +64,9 @@ jobs:
       - name: Release yew
         run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm ${{ env.pkg }}
 
-      - name: Get tag
-        id: gettag
-        uses: WyriHaximus/github-action-get-previous-tag@v2
+      - name: Collect release info
+        id: releaseinfo
+        run: cargo run -p collect-release-info -- ${{ github.event.inputs.packages }}
 
       - name: Create a version branch
         if: github.event.inputs.level != 'patch'
@@ -74,21 +74,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          branch: ${{ steps.gettag.outputs.tag }}
+          branch: ${{ steps.releaseinfo.outputs.version_branch }}
 
-      - name: Extract changelog
-        id: changelog
+      - name: Create releases
+        env:
+          GH_TOKEN: ${{ secrets.YEWTEMPBOT_TOKEN }}
+          RELEASES: ${{ steps.releaseinfo.outputs.releases }}
         run: |
-          body=$(cargo run -p extract-changelog-section -- "${{ steps.gettag.outputs.tag }}")
-          {
-            echo "body<<CHANGELOG_EOF"
-            echo "$body"
-            echo "CHANGELOG_EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Create a Release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.YEWTEMPBOT_TOKEN }}
-          tag_name: ${{ steps.gettag.outputs.tag }}
-          body: ${{ steps.changelog.outputs.body }}
+          echo "$RELEASES" | jq -c '.[]' | while read -r release; do
+            tag=$(echo "$release" | jq -r '.tag')
+            name=$(echo "$release" | jq -r '.name')
+            body=$(echo "$release" | jq -r '.body')
+            gh release create "$tag" --title "$name" --notes "$body"
+          done

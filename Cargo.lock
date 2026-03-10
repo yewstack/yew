@@ -448,6 +448,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "collect-release-info"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -812,13 +820,6 @@ checksum = "778e2ac28f6c47af28e4907f13ffd1e1ddbd400980a9abd7c8df189bf578a5ad"
 dependencies = [
  "libc",
  "windows-sys 0.60.2",
-]
-
-[[package]]
-name = "extract-changelog-section"
-version = "0.1.0"
-dependencies = [
- "anyhow",
 ]
 
 [[package]]
