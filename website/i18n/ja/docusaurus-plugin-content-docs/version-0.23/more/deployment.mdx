@@ -1,0 +1,45 @@
+---
+title: 'デプロイ'
+description: 'Yew アプリケーションのデプロイ'
+---
+
+Yew アプリケーションをサーバーにデプロイする準備ができたら、いくつかのデプロイオプションがあります。
+
+`trunk build --release` は、リリースモードでアプリケーションをビルドします。HTTP サーバーを設定して、サイトにアクセスしたときに `index.html` を提供し、静的パス（例：`index_<hash>.js` および `index_bg_<hash>.wasm`）のリクエストに対して trunk が生成した dist ディレクトリから適切なコンテンツを提供する必要があります。
+
+:::important `trunk serve --release` について
+`trunk serve --release` を使用してアプリケーションを提供しないでください。
+これは開発中にリリースビルドをテストするためだけに使用されるべきです。
+:::
+
+## サーバー設定
+
+### `index.html` をフォールバックとして提供する
+
+アプリケーションが [Yew ルーター](concepts/router.mdx) を使用している場合、存在しないファイルへのリクエスト時にサーバーが `index.html` を返すように設定する必要があります。
+
+Yew ルーターを使用するアプリケーションは [シングルページアプリケーション (SPA)](https://developer.mozilla.org/en-US/docs/Glossary/SPA) として構築されています。ユーザーが実行中のクライアントから URL にナビゲートすると、ルーターが URL を解釈してそのページにルーティングします。
+
+しかし、ページをリフレッシュしたり、アドレスバーに URL を入力したりすると、これらの操作は実行中のアプリケーションではなく、ブラウザー自体によって処理されます。ブラウザーはその URL を直接サーバーにリクエストし、ルーターをバイパスします。誤って設定されたサーバーは 404 - 見つかりません 状態を返します。
+
+`index.html` を返すことで、アプリケーションは通常通りにロードされ、ルーターがルート `/show/42` を認識して適切なコンテンツを表示するまで、リクエストが `/` であるかのように動作します。
+
+### Web Assembly リソースに正しい MIME タイプを設定する
+
+WASM ファイルは `application/wasm` MIME タイプで [Content-Type ヘッダー](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) を設定する必要があります。
+
+ほとんどのサーバーとホスティングサービスはデフォルトでこれを行います。サーバーがこれを行わない場合は、そのドキュメントを参照してください。ほとんどの Web ブラウザーでは、誤った MIME タイプは次のようなエラーを引き起こします：
+
+```ignore
+`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:
+ TypeError: WebAssembly: Response has unsupported MIME type 'text/plain' expected 'application/wasm'
+```
+
+## 相対パスのビルド
+
+デフォルトでは、trunk はサイトが `/` で提供されると仮定し、それに応じてサイトをビルドします。この動作は、`index.html` ファイルに `<base data-trunk-public-url />` を追加することで上書きできます。Trunk はこのタグを書き換えて、`--public-url` に渡された値を含めます。Yew ルーターは `<base />` の存在を自動的に検出し、適切に処理します。
+
+## 環境変数を使用して動作をカスタマイズする
+
+通常、環境変数を使用してビルド環境をカスタマイズします。アプリケーションがブラウザで実行されるため、実行時に環境変数を読み取ることはできません。
+[`std::env!`](https://doc.rust-lang.org/std/macro.env.html) マクロは、コンパイル時に環境変数の値を取得できます。

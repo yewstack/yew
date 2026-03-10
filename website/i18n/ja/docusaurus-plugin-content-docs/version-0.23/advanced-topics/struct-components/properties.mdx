@@ -1,0 +1,134 @@
+---
+title: 'プロパティ (Props)'
+description: '親子コンポーネント間の通信'
+---
+
+プロパティ (Properties) は、子コンポーネントと親コンポーネントの間で通信を可能にします。各コンポーネントには、親コンポーネントから渡される内容を記述するための関連プロパティ型があります。理論的には、これは `Properties` トレイトを実装した任意の型である可能性がありますが、実際には、各フィールドがプロパティを表す構造体であるべきです。
+
+## 派生マクロ
+
+`Properties` トレイトを自分で実装する必要はありません。`#[derive(Properties)]` を使用して実装を自動生成できます。`Properties` を派生する型は `PartialEq` も実装する必要があります。
+
+### フィールド属性
+
+`Properties` を派生する際、デフォルトではすべてのフィールドが必須です。以下の属性を使用すると、他の値が設定されていない限り、プロパティに初期値を提供できます。
+
+:::tip
+プロパティは Rustdoc によって生成されたドキュメントには表示されません。プロパティのドキュメント文字列には、そのプロパティがオプションであるかどうか、または特別なデフォルト値があるかどうかを記載する必要があります。
+:::
+
+#### `#[prop_or_default]`
+
+フィールド型のデフォルト値を使用してプロパティ値を初期化します。これは `Default` トレイトを使用します。
+
+#### `#[prop_or(value)]`
+
+`value` を使用してプロパティ値を初期化します。`value` はフィールド型を返す任意の式である可能性があります。例えば、ブールプロパティをデフォルトで `true` にするには、属性 `#[prop_or(true)]` を使用します。
+
+#### `#[prop_or_else(function)]`
+
+`function` を呼び出してプロパティ値を初期化します。`function` は `FnMut() -> T` のシグネチャを持つ必要があります。ここで、`T` はフィールド型です。
+
+## `PartialEq`
+
+`Properties` は `PartialEq` を実装する必要があります。これにより、Yew はそれらを比較し、変更があった場合に `changed` メソッドを呼び出すことができます。
+
+## Properties のパフォーマンスオーバーヘッド
+
+内部プロパティは参照カウントされたポインタに基づいて格納されます。これにより、コンポーネントツリーに渡されるプロパティにはポインタのみが渡され、プロパティ全体をクローンすることによる高価なパフォーマンスオーバーヘッドを回避できます。
+
+:::tip
+`AttrValue` を使用してください。これは、クローンが必要な String やその他の類似の型を使用せずに済むようにするために提供されているカスタムプロパティ値型です。
+:::
+
+## 例
+
+```rust
+use yew::Properties;
+/// virtual_dom から AttrValue をインポート
+use yew::virtual_dom::AttrValue;
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// リンクにはターゲットが必要です
+    href: AttrValue,
+    /// また、String ではなく AttrValue を使用していることに注意してください
+    text: AttrValue,
+    /// リンクの色、デフォルトは `Blue`
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// 値が None の場合、ビュー関数はサイズを指定しません
+    #[prop_or_default]
+    size: Option<u32>,
+    /// ビュー関数がアクティブを指定しない場合、デフォルトは true
+    #[prop_or(true)]
+    active: bool,
+}
+```
+
+## Props マクロ
+
+`yew::props!` マクロを使用すると、`html!` マクロと同じ方法でプロパティを構築できます。
+
+このマクロは構造体の式と同じ構文を使用しますが、属性や基本式 (`Foo { ..base }`) を使用することはできません。型パスはプロパティ (`path::to::Props`) に直接指すことも、コンポーネントの関連プロパティ (`MyComp::Properties`) に指すこともできます。
+
+```rust
+use yew::{props, Properties, virtual_dom::AttrValue};
+
+#[derive(Clone, PartialEq)]
+pub enum LinkColor {
+    Blue,
+    Red,
+    Green,
+    Black,
+    Purple,
+}
+
+fn create_default_link_color() -> LinkColor {
+    LinkColor::Blue
+}
+
+#[derive(Properties, PartialEq)]
+pub struct LinkProps {
+    /// リンクにはターゲットが必要です
+    href: AttrValue,
+    /// また、String ではなく AttrValue を使用していることに注意してください
+    text: AttrValue,
+    /// リンクの色、デフォルトは `Blue`
+    #[prop_or_else(create_default_link_color)]
+    color: LinkColor,
+    /// 値が None の場合、ビュー関数はサイズを指定しません
+    #[prop_or_default]
+    size: Option<u32>,
+    /// ビュー関数がアクティブを指定しない場合、デフォルトは true
+    #[prop_or(true)]
+    active: bool,
+}
+
+impl LinkProps {
+    /// この関数は href と text を String として受け取ります
+    /// `AttrValue::from` を使用してそれらを `AttrValue` に変換できます
+    pub fn new_link_with_size(href: String, text: String, size: u32) -> Self {
+        // highlight-start
+        props! {LinkProps {
+            href: AttrValue::from(href),
+            text: AttrValue::from(text),
+            size,
+        }}
+        // highlight-end
+    }
+}
+```

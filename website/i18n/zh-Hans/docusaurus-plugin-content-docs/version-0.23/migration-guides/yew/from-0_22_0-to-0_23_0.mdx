@@ -1,0 +1,105 @@
+---
+title: '从 0.22.0 迁移到 0.23.0'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+## `use_reducer` 不再在恒等分发时重新渲染
+
+`use_reducer` 现在在 reducer 返回相同的 `Rc` 时（通过指针相等性判断）会跳过重新渲染。之前，每次分发都会触发重新渲染。
+
+如果你的 reducer 有一个返回 `self` 不变的代码路径，并且你依赖它来触发重新渲染，请用 `use_force_update` 替代：
+
+<Tabs>
+  <TabItem value="before" label="之前" default>
+
+```rust ,ignore
+use std::rc::Rc;
+use yew::prelude::*;
+
+pub enum Action {
+    Increment,
+    ForceRefresh,
+}
+
+struct State {
+    count: u32,
+}
+
+impl Reducible for State {
+    type Action = Action;
+
+    fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+        match action {
+            Action::Increment => Rc::new(Self {
+                count: self.count + 1,
+            }),
+            // 在 0.23 中这不再触发重新渲染！
+            Action::ForceRefresh => self,
+        }
+    }
+}
+
+#[component]
+pub fn App() -> Html {
+    use_effect(|| {
+        tracing::info!("This cursed component does some effects on render");
+    });
+    let state = use_reducer(|| State { count: 0 });
+    html! {
+        <div>
+            <p>{ state.count }</p>
+            <button onclick={move |_| state.dispatch(Action::Increment)}>{ "+1" }</button>
+            <button onclick={move |_| state.dispatch(Action::ForceRefresh)}>{ "刷新" }</button>
+        </div>
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="after" label="之后">
+
+```rust ,ignore
+use std::rc::Rc;
+use yew::prelude::*;
+
+pub enum Action {
+    Increment,
+}
+
+struct State {
+    count: u32,
+}
+
+impl Reducible for State {
+    type Action = Action;
+
+    fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
+        match action {
+            Action::Increment => Rc::new(Self {
+                count: self.count + 1,
+            }),
+        }
+    }
+}
+
+#[component]
+pub fn App() -> Html {
+    use_effect(|| {
+        tracing::info!("This cursed component does some effects on render");
+    });
+    let state = use_reducer(|| State { count: 0 });
+    let trigger = use_force_update();
+    html! {
+        <div>
+            <p>{ state.count }</p>
+            <button onclick={move |_| state.dispatch(Action::Increment)}>{ "+1" }</button>
+            <button onclick={move |_| trigger.force_update()}>{ "刷新" }</button>
+        </div>
+    }
+}
+```
+
+  </TabItem>
+</Tabs>

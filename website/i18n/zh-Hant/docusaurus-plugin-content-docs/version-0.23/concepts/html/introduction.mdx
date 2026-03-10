@@ -1,0 +1,208 @@
+---
+title: 'HTML'
+sidebar_label: Introduction
+description: '用於產生 HTML 和 SVG 的過程巨集'
+slug: /concepts/html
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`html!` 巨集可讓您聲明性地編寫 HTML 和 SVG 程式碼。它類似於 JSX（一種允許您在 JavaScript 中編寫類似 HTML 的程式碼的擴充）。
+
+**重要提示**
+
+1. `html! {}` 巨集只能接受一個根HTML 節點（您可以透過使用[fragments](./fragments.mdx) 或[iterators](./../html/lists.mdx) 來規避這一點）
+2. 空的 `html! {}` 呼叫是有效的，不會渲染任何內容
+3. 字面量必須永遠用引號引起來並用大括號括起來：`html! { <p>{ "Hello, World" }</p> }`
+4. `html!` 巨集會將所有標籤名稱轉換為小寫。若要使用大寫字元（某些SVG 元素所需的字元）請使用[動態標籤名稱](concepts/html/elements.mdx#dynamic-tag-names)：`html! { <@{"myTag"}>< /@> }`
+
+:::note
+`html!` 巨集可能會達到編譯器的預設遞歸限制。如果遇到編譯錯誤，請在 crate 根目錄中新增類似 `#![recursion_limit="1024"]` 的屬性以解決問題。
+:::
+
+## 標籤 (Tags) 結構
+
+標籤 (Tags) 是基於 HTML 標籤。元件、元素和清單都基於此標籤語法。
+
+標籤必須或自閉合 `<... />`，或對於每個開始標籤都有一個對應的結束標籤。
+
+<Tabs>
+  <TabItem value="Open - Close" label="Open - Close" default>
+
+```rust
+use yew::prelude::*;
+
+html! {
+  <div id="my_div"></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+html! {
+  <div id="my_div"> // <- 缺少閉合標籤
+};
+```
+
+  </TabItem>
+</Tabs>
+
+<Tabs>
+  <TabItem value="Self-closing" label="Self-closing">
+
+```rust
+use yew::prelude::*;
+
+html! {
+  <input id="my_input" />
+};
+```
+
+  </TabItem>
+  <TabItem value="Invalid" label="Invalid">
+
+```rust ,compile_fail
+use yew::prelude::*;
+
+html! {
+  <input id="my_input"> // <- 缺少閉合標籤
+};
+```
+
+  </TabItem>
+</Tabs>
+
+:::tip
+方便起見，通常需要閉合標籤的元素**允許**自閉合。例如，編寫 `html! { <div class="placeholder" /> }` 是有效的。
+:::
+
+建立複雜的巢狀 HTML 和 SVG 佈局還是很容易的：
+
+<Tabs>
+  <TabItem value="HTML" label="HTML">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div>
+        <div data-key="abc"></div>
+        <div class="parent">
+            <span class="child" value="anything"></span>
+            <label for="first-name">{ "First Name" }</label>
+            <input type="text" id="first-name" value="placeholder" />
+            <input type="checkbox" checked=true />
+            <textarea value="write a story" />
+            <select name="status">
+                <option selected=true disabled=false value="">{ "Selected" }</option>
+                <option selected=false disabled=true value="">{ "Unselected" }</option>
+            </select>
+        </div>
+    </div>
+};
+```
+
+  </TabItem>
+  <TabItem value="SVG" label="SVG">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
+        <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g filter="url(#filter0_d)">
+            <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
+            <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
+        </g>
+        <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
+        <defs>
+            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <@{"feGaussianBlur"} stdDeviation="2"/>
+                <@{"feColorMatrix"} in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+            </filter>
+        </defs>
+    </svg>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+## Lints
+
+如果您使用 Rust 編譯器的開發者版本編譯 Yew，巨集將警告您可能遇到的一些常見陷阱。當然，您可能需要使用穩定版編譯器（例如，您的組織可能有政策要求這樣做）進行發布構建，但即使您使用的是穩定工具鏈，運行`cargo +nightly check` 也可能會標記一些可以改進HTML 程式碼的方法。
+
+目前，這些 lint 主要與可訪問性相關。如果您有 lint 的想法，請隨時[在此問題中發表意見](https://github.com/yewstack/yew/issues/1334)。
+
+## 指定屬性和屬性
+
+屬性與普通 HTML 中的元素設定方式相同：
+
+```rust
+use yew::prelude::*;
+
+let value = "something";
+html! { <div attribute={value} /> };
+```
+
+屬性在元素名稱之前用 `~` 指定：
+
+```rust
+use yew::prelude::*;
+
+html! { <my-element ~property="abc" /> };
+```
+
+:::tip
+
+如果值是一個字面量的話，圍繞值的大括號可以省略。
+
+:::
+
+:::note 什麼是字面量
+
+字面量是 Rust 中所有有效的[字面量表達式](https://doc.rust-lang.org/reference/expressions/literal-expr.html)。請注意，[負數**不是**字面量](https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333)，因此必須用大括號括起來 `{-6}`。
+
+:::
+
+:::note 元件屬性
+元件屬性以 Rust 物件傳遞，與此處所述的元素參數 (Attributes) / 屬性 (Properties) 不同。
+在[元件屬性](../function-components/properties.mdx)中了解更多。
+:::
+
+### 特殊屬性
+
+有一些特殊屬性不會直接影響 DOM，而是作為 Yew 虛擬 DOM 的指令。目前有兩個這樣的特殊屬性：`ref` 和 `key`。
+
+`ref` 可讓您直接存取和操作底層 DOM 節點。有關更多詳細信息，請參閱 [Refs](../function-components/node-refs.mdx)。
+
+另一方面，`key` 為元素提供了一個唯一標識符，Yew 可以用於最佳化目的。
+
+:::info
+[了解更多相關內容](./html/lists)
+:::
+
+## 條件渲染
+
+可以透過使用 Rust 的條件結構來條件性地渲染標記。目前只支援 `if` 和 `if let`。
+
+```rust
+use yew::prelude::*;
+
+html! {
+  if true {
+      <p>{ "True case" }</p>
+  }
+};
+```
+
+:::info
+閱讀[條件渲染](./conditional-rendering.mdx)一節以了解更多
+:::
