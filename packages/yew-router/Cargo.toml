@@ -13,7 +13,7 @@ rust-version = "1.84.0"
 
 [dependencies]
 yew = { version = "0.23.0", path = "../yew", default-features= false }
-yew-router-macro = { version = "0.19.0", path = "../yew-router-macro" }
+yew-router-macro = { version = "0.20.0", path = "../yew-router-macro" }
 
 wasm-bindgen.workspace = true
 js-sys.workspace = true
