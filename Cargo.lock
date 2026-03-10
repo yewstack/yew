@@ -4315,7 +4315,7 @@ dependencies = [
 
 [[package]]
 name = "yew-router"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "gloo",
  "js-sys",
