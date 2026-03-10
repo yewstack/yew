@@ -1,7 +1,8 @@
 [package]
-name = "extract-changelog-section"
+name = "collect-release-info"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
+serde_json.workspace = true
