@@ -76,9 +76,19 @@ jobs:
         with:
           branch: ${{ steps.gettag.outputs.tag }}
 
+      - name: Extract changelog
+        id: changelog
+        run: |
+          body=$(cargo run -p extract-changelog-section -- "${{ steps.gettag.outputs.tag }}")
+          {
+            echo "body<<CHANGELOG_EOF"
+            echo "$body"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create a Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.YEWTEMPBOT_TOKEN }}
           tag_name: ${{ steps.gettag.outputs.tag }}
-          body: ${{ steps.changelog.outputs.stdout }}
+          body: ${{ steps.changelog.outputs.body }}
