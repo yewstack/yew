@@ -71,7 +71,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew = { version = "0.22", features = ["csr"] }
 ```
 
 :::info
@@ -475,8 +475,8 @@ Let's update the dependencies in `Cargo.toml` file:
 
 ```toml title="Cargo.toml" {2-6}
 [dependencies]
--yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
-+yew = { git = "https://github.com/yewstack/yew/", features = ["csr", "serde"] }
+-yew = { version = "0.22", features = ["csr"] }
++yew = { version = "0.22", features = ["csr", "serde"] }
 +gloo-net = "0.6"
 +serde = { version = "1.0", features = ["derive"] }
 +wasm-bindgen-futures = "0.4"

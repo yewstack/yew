@@ -13,7 +13,7 @@ then take the following steps:
 ### Checkout and customize project
 
 ```shell
-cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+cargo generate yewstack/yew-trunk-minimal-template
 ```
 
 ### Run project
@@ -69,8 +69,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# this is the development version of Yew
-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew = { version = "0.21", features = ["csr"] }
 ```
 
 :::info
