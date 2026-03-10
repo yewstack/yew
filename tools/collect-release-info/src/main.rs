@@ -165,19 +165,13 @@ fn main() -> Result<()> {
 
     releases.sort_by_key(|r| r.line_count);
 
-    let single = releases.len() == 1;
     let releases_json: Vec<serde_json::Value> = releases
         .iter()
         .map(|r| {
-            let body = if single || r.body.is_empty() {
-                r.body.clone()
-            } else {
-                format!("## {} v{}\n\n{}", r.package, r.version, r.body)
-            };
             json!({
                 "tag": r.tag,
                 "name": format!("{} v{}", r.package, r.version),
-                "body": body,
+                "body": r.body,
             })
         })
         .collect();
