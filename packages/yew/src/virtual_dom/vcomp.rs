@@ -14,11 +14,11 @@ use super::Key;
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
-use crate::html::BaseComponent;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::AnyScope;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
-#[cfg(any(feature = "ssr", feature = "csr"))]
-use crate::html::{AnyScope, Scope};
+use crate::html::{BaseComponent, Scope};
 use crate::scheduler::Shared;
 #[cfg(feature = "ssr")]
 use crate::{feat_ssr::VTagKind, platform::fmt::BufWriter};

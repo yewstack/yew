@@ -74,6 +74,7 @@ pub trait LazyComponent: 'static {
 
 enum LazyState<C: BaseComponent> {
     Pending(Suspension),
+    #[allow(unused)] // Only constructed with feature csr or ssr
     Created(LazyVTable<C>),
 }
 
@@ -124,6 +125,7 @@ impl<C: LazyComponent> BaseComponent for Lazy<C> {
                     // force a re-render with this new state (without a message exchange)
                     host_scope.schedule_render();
                 }
+                let _ = (host_scope, state, vtable);
             });
             RefCell::new(LazyState::Pending(suspension))
         });
