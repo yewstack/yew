@@ -13,13 +13,15 @@ use crate::suspense::Suspension;
 use crate::virtual_dom::VComp;
 use crate::{BaseComponent, Context};
 
+type ScopeRef<C> = Shared<Option<Scope<C>>>;
+
 #[derive(Debug)]
 struct CompVTableImpl<C: BaseComponent> {
     /// The way to create a component from properties and a way to reference it later.
     /// It is important that we return a structure that already captures the vtable to
     /// the component's functionality (Mountable), so that the linker doesn't see that
     /// the main module references C's BaseComponent impl.
-    wrap_html: fn(Rc<C::Properties>, Shared<Option<Scope<C>>>) -> VComp,
+    wrap_html: fn(Rc<C::Properties>, ScopeRef<C>) -> VComp,
 }
 /// Component vtable for a component.
 ///
@@ -92,7 +94,7 @@ impl<C: BaseComponent> std::fmt::Debug for LazyState<C> {
 /// This component suspends as long as the underlying component is still being fetched,
 /// then behaves as the underlying component itself.
 pub struct Lazy<C: LazyComponent> {
-    inner_scope: Shared<Option<Scope<C::Underlying>>>,
+    inner_scope: ScopeRef<C::Underlying>,
     // messages sent to the component before the inner_scope is set are buffered
     message_buffer: RefCell<Vec<<C::Underlying as BaseComponent>::Message>>,
     state: Shared<LazyState<C::Underlying>>,
@@ -187,26 +189,26 @@ impl<C: LazyComponent> BaseComponent for Lazy<C> {
 macro_rules! __declare_lazy_component {
     ($comp:ty as $lazy_name:ident in $module:ident) => {
         struct Proxy;
-        impl ::yew::lazy::LazyComponent for Proxy {
+        impl $crate::lazy::LazyComponent for Proxy {
             type Underlying = $comp;
 
-            async fn fetch() -> ::yew::lazy::LazyVTable<Self::Underlying> {
+            async fn fetch() -> $crate::lazy::LazyVTable<Self::Underlying> {
                 #[$crate::lazy::wasm_split::wasm_split($module, wasm_split_path = $crate::lazy::wasm_split)]
-                fn split_fetch() -> ::yew::lazy::LazyVTable<$comp> {
-                    ::yew::lazy::LazyVTable::<$comp>::vtable()
+                fn split_fetch() -> $crate::lazy::LazyVTable<$comp> {
+                    $crate::lazy::LazyVTable::<$comp>::vtable()
                 }
                 struct F(
                     ::std::option::Option<
                         ::std::pin::Pin<
                             ::std::boxed::Box<
-                                dyn ::std::future::Future<Output = ::yew::lazy::LazyVTable<$comp>>
+                                dyn ::std::future::Future<Output = $crate::lazy::LazyVTable<$comp>>
                                     + ::std::marker::Send,
                             >,
                         >,
                     >,
                 );
                 impl Future for F {
-                    type Output = ::yew::lazy::LazyVTable<$comp>;
+                    type Output = $crate::lazy::LazyVTable<$comp>;
 
                     fn poll(
                         mut self: ::std::pin::Pin<&mut Self>,
@@ -218,12 +220,12 @@ macro_rules! __declare_lazy_component {
                             .poll(cx)
                     }
                 }
-                static CACHE: ::yew::lazy::LazyCell<::yew::lazy::LazyVTable<$comp>, F> =
-                    ::yew::lazy::LazyCell::new(F(None));
+                static CACHE: $crate::lazy::LazyCell<$crate::lazy::LazyVTable<$comp>, F> =
+                    $crate::lazy::LazyCell::new(F(None));
                 *::std::pin::Pin::static_ref(&CACHE).await.get_ref()
             }
         }
-        type $lazy_name = ::yew::lazy::Lazy<Proxy>;
+        type $lazy_name = $crate::lazy::Lazy<Proxy>;
     };
 }
 #[doc(hidden)]
