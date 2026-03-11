@@ -12,8 +12,7 @@ THIS_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 TARGET_DIR=$(cd -- "$THIS_DIR"/../../target/ &> /dev/null && pwd)
 OPT=1
 
-RUSTFLAGS="-Clink-args=--emit-relocs$(case "$CARGO" in *nightly*) echo " -Zunstable-options -Cpanic=immediate-abort" ;; esac)" \
-    $CARGO build --target wasm32-unknown-unknown \
+$CARGO build --target wasm32-unknown-unknown \
     $(case $PROFILE in "debug") ;; "release") echo "--release" ;; *) echo '--profile "${PROFILE}"' ;; esac)
 
 mkdir -p dist/

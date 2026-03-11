@@ -53,6 +53,12 @@ impl<COMP: BaseComponent> Context<COMP> {
         &self.props
     }
 
+    /// The component's props as an Rc
+    #[inline]
+    pub(crate) fn rc_props(&self) -> &Rc<COMP::Properties> {
+        &self.props
+    }
+
     #[cfg(feature = "hydration")]
     pub(crate) fn creation_mode(&self) -> RenderMode {
         self.creation_mode
@@ -67,26 +73,6 @@ impl<COMP: BaseComponent> Context<COMP> {
         let state = self.prepared_state.as_deref();
 
         state
-    }
-
-    pub(crate) fn narrow_scope<D: BaseComponent<Properties = COMP::Properties>>(
-        &self,
-        inner: &Scope<D>,
-    ) -> Context<D> {
-        let mut ctx = Context {
-            scope: inner.clone(),
-            props: self.props.clone(),
-            #[cfg(feature = "hydration")]
-            creation_mode: self.creation_mode,
-            #[cfg(feature = "hydration")]
-            prepared_state: None,
-        };
-        let _ = &mut ctx; // silence warning due to feature conditional branch below
-        #[cfg(feature = "hydration")]
-        {
-            ctx.prepared_state = self.prepared_state.clone();
-        }
-        ctx
     }
 }
 

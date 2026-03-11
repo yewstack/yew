@@ -3,26 +3,23 @@
 // A simple wrapper is easy to implement. This module exists to support message passing and more
 // involved logic
 
+use std::cell::RefCell;
 use std::future::Future;
+use std::rc::Rc;
 
 use crate::html::Scope;
+use crate::scheduler::Shared;
 use crate::suspense::Suspension;
-use crate::{BaseComponent, Context, HtmlResult};
+use crate::virtual_dom::VComp;
+use crate::{BaseComponent, Context};
 
-// we might be able to erase the BaseComponent bound here, then monomorphize for some size savings
-/// This struct is (mentally) the same as a `dyn BaseComponent` but without informing the linker
-/// about this.
 #[derive(Debug)]
-#[repr(C)]
 struct CompVTableImpl<C: BaseComponent> {
-    create: fn(&Context<C>) -> C,
-    update: fn(&mut C, &Context<C>, C::Message) -> bool,
-    changed: fn(&mut C, &Context<C>, &C::Properties) -> bool,
-    view: fn(&C, &Context<C>) -> HtmlResult,
-    rendered: fn(&mut C, &Context<C>, bool),
-    destroy: fn(&mut C, &Context<C>),
-    prepare_state: fn(&C) -> Option<String>,
-    //...
+    /// The way to create a component from properties and a way to reference it later.
+    /// It is important that we return a structure that already captures the vtable to
+    /// the component's functionality (Mountable), so that the linker doesn't see that
+    /// the main module references C's BaseComponent impl.
+    wrap_html: fn(Rc<C::Properties>, Shared<Option<Scope<C>>>) -> VComp,
 }
 /// Component vtable for a component.
 ///
@@ -34,7 +31,7 @@ pub struct LazyVTable<C: BaseComponent> {
 impl<C: BaseComponent> std::fmt::Debug for LazyVTable<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("LazyVTable")
-            .field("vtable", &"...")
+            .field("vtable", &(self.imp as *const _))
             .finish()
     }
 }
@@ -50,16 +47,16 @@ impl<C: BaseComponent> LazyVTable<C> {
     ///
     /// Return this from [`LazyComponent::fetch`] for your lazy component.
     pub fn vtable() -> LazyVTable<C> {
+        fn wrap_html<C: BaseComponent>(
+            props: Rc<C::Properties>,
+            scope_ref: Shared<Option<Scope<C>>>,
+        ) -> VComp {
+            VComp::new_with_ref(props, scope_ref)
+        }
         LazyVTable {
             imp: &const {
                 CompVTableImpl {
-                    create: C::create,
-                    update: C::update,
-                    changed: C::changed,
-                    view: C::view,
-                    rendered: C::rendered,
-                    destroy: C::destroy,
-                    prepare_state: C::prepare_state,
+                    wrap_html: wrap_html::<C>,
                 }
             },
         }
@@ -75,118 +72,110 @@ pub trait LazyComponent: 'static {
     fn fetch() -> impl Future<Output = LazyVTable<Self::Underlying>> + Send;
 }
 
-#[derive(Debug)]
 enum LazyState<C: BaseComponent> {
     Pending(Suspension),
-    Created(LazyVTable<C>, C),
+    Created(LazyVTable<C>),
 }
+
+impl<C: BaseComponent> std::fmt::Debug for LazyState<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending(arg0) => f.debug_tuple("Pending").field(arg0).finish(),
+            Self::Created(arg0) => f.debug_tuple("Created").field(arg0).finish(),
+        }
+    }
+}
+
 /// Wrapper for a lazily fetched component
 ///
 /// This component suspends as long as the underlying component is still being fetched,
 /// then behaves as the underlying component itself.
-#[derive(Debug)]
 pub struct Lazy<C: LazyComponent> {
-    inner_scope: Scope<C::Underlying>,
-    state: LazyState<C::Underlying>,
+    inner_scope: Shared<Option<Scope<C::Underlying>>>,
+    // messages sent to the component before the inner_scope is set are buffered
+    message_buffer: RefCell<Vec<<C::Underlying as BaseComponent>::Message>>,
+    state: Shared<LazyState<C::Underlying>>,
 }
 
-/// Message to send to a lazy component
-#[derive(Debug)]
-pub enum LazyMessage<C: BaseComponent> {
-    /// Forward the message to the underlying component once that is fetched
-    Forward(C::Message),
-    #[doc(hidden)]
-    FetchFinished(LazyVTable<C>, C),
+impl<C: LazyComponent> std::fmt::Debug for Lazy<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Lazy")
+            .field("inner_scope", &self.inner_scope)
+            .field("message_buffer", &"...")
+            .field("state", &self.state)
+            .finish()
+    }
 }
 
 impl<C: LazyComponent> BaseComponent for Lazy<C> {
-    type Message = LazyMessage<C::Underlying>;
+    type Message = <C::Underlying as BaseComponent>::Message;
     type Properties = <C::Underlying as BaseComponent>::Properties;
 
     fn create(ctx: &Context<Self>) -> Self {
-        #[cfg(not(any(feature = "ssr", feature = "csr")))]
-        {
-            let _ = ctx;
-            todo!("Component shouldn't render without any rendering mode enabled");
-        }
-        #[allow(unreachable_code)]
-        let inner_scope;
-        #[cfg(any(feature = "ssr", feature = "csr"))]
-        {
-            inner_scope = Scope::new(Some(ctx.link().clone().into()));
-        }
-        let creation_ctx = ctx.narrow_scope(&inner_scope);
-
-        let link = ctx.link().clone();
-        let suspension = Suspension::from_future(async move {
-            // Ignore error in case receiver was dropped
-            let vtable = C::fetch().await;
-            let comp = (vtable.imp.create)(&creation_ctx);
-            link.send_message(LazyMessage::FetchFinished(vtable, comp));
+        let host_scope = ctx.link().clone();
+        let state = Rc::<RefCell<_>>::new_cyclic(move |state| {
+            let state = state.clone();
+            let suspension = Suspension::from_future(async move {
+                // Ignore error in case receiver was dropped
+                let vtable = C::fetch().await;
+                #[cfg(any(feature = "ssr", feature = "csr"))]
+                if let Some(state) = state.upgrade() {
+                    *state.borrow_mut() = LazyState::Created(vtable);
+                    // force a re-render with this new state (without a message exchange)
+                    host_scope.schedule_render();
+                }
+            });
+            RefCell::new(LazyState::Pending(suspension))
         });
         Self {
-            inner_scope,
-            state: LazyState::Pending(suspension),
+            inner_scope: Rc::default(),
+            message_buffer: RefCell::default(),
+            state,
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let msg = match msg {
-            LazyMessage::FetchFinished(vtable, comp) => {
-                self.state = LazyState::Created(vtable, comp);
-                return true;
-            }
-            LazyMessage::Forward(msg) => msg,
-        };
-        match &mut self.state {
-            LazyState::Pending(_) => {
-                // has a queueing implementation. We don't rerender until the suspension resolves
-                self.inner_scope.send_message(msg);
-                false
-            }
-            LazyState::Created(vtable, comp) => {
-                (vtable.imp.update)(comp, &ctx.narrow_scope(&self.inner_scope), msg)
-            }
-        }
-    }
-
-    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
-        if let LazyState::Created(vtable, comp) = &mut self.state {
-            (vtable.imp.changed)(comp, &ctx.narrow_scope(&self.inner_scope), old_props)
+    fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
+        if let Some(inner) = self.inner_scope.borrow().as_ref() {
+            inner.send_message(msg);
         } else {
-            false
+            self.message_buffer.borrow_mut().push(msg);
         }
+        false
+    }
+
+    fn changed(&mut self, _: &Context<Self>, _old_props: &Self::Properties) -> bool {
+        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> crate::HtmlResult {
-        match &self.state {
+        match &*self.state.borrow() {
             LazyState::Pending(suspension) => Err(suspension.clone().into()),
-            LazyState::Created(vtable, comp) => {
-                (vtable.imp.view)(comp, &ctx.narrow_scope(&self.inner_scope))
+            LazyState::Created(lazy_vtable) => {
+                let comp =
+                    (lazy_vtable.imp.wrap_html)(ctx.rc_props().clone(), self.inner_scope.clone());
+                Ok(comp.into())
             }
         }
     }
 
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if let LazyState::Created(vtable, comp) = &mut self.state {
-            (vtable.imp.rendered)(comp, &ctx.narrow_scope(&self.inner_scope), first_render)
+    fn rendered(&mut self, _: &Context<Self>, first_render: bool) {
+        if first_render {
+            let inner = self.inner_scope.borrow();
+            let inner = inner.as_ref().expect("lazy component to have rendered");
+            inner.send_message_batch(std::mem::take(&mut *self.message_buffer.borrow_mut()));
         } else {
-            unreachable!("can't get rendered before fetching the vtable")
+            #[cfg(debug_assertions)]
+            assert!(
+                self.message_buffer.borrow().is_empty(),
+                "no message in buffer after first render"
+            );
         }
     }
 
-    fn destroy(&mut self, ctx: &Context<Self>) {
-        if let LazyState::Created(vtable, comp) = &mut self.state {
-            (vtable.imp.destroy)(comp, &ctx.narrow_scope(&self.inner_scope))
-        }
-    }
+    fn destroy(&mut self, _: &Context<Self>) {}
 
     fn prepare_state(&self) -> Option<String> {
-        if let LazyState::Created(vtable, comp) = &self.state {
-            (vtable.imp.prepare_state)(comp)
-        } else {
-            None
-        }
+        None
     }
 }
 
