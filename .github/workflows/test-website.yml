@@ -6,12 +6,16 @@ on:
       - ".github/workflows/test-website.yml"
       - "packages/**/*"
       - "website/**/*"
+      - "yew-rs/**/*"
+      - "tools/doc-test-util/**/*"
+      - "tools/website-test/**/*"
+      - "tools/website-test-yew-rs/**/*"
   push:
     branches: [master]
 
 jobs:
   website_tests:
-    name: Tests Website Snippets
+    name: Test Website Snippets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -42,5 +46,8 @@ jobs:
 
       - uses: nanasess/setup-chromedriver@v2
 
-      - name: Run website code snippet tests
+      - name: Run website code snippet tests (MDX)
         run: cargo test -p website-test --target wasm32-unknown-unknown
+
+      - name: Run website code snippet tests (yew-rs)
+        run: cargo test -p website-test-yew-rs --target wasm32-unknown-unknown

@@ -1,0 +1,6 @@
+[package]
+name = "doc-test-util"
+version = "0.1.0"
+edition = "2021"
+publish = false
+rust-version = "1.84.0"

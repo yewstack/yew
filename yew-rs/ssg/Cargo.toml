@@ -1,0 +1,38 @@
+[package]
+name = "yew-site-ssg"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+anyhow = { workspace = true }
+clap = { workspace = true }
+atom_syndication = { version = "0.12", default-features = false, features = ["builders"] }
+rss = { version = "2", default-features = false, features = ["builders"] }
+syntect = { git = "https://github.com/Madoshakalaka/syntect.git", branch = "line-highlighting", default-features = false, features = ["parsing", "html", "default-syntaxes", "default-themes", "dump-load", "regex-fancy"] }
+inquire = "0.9"
+
+yew-site-home = { path = "../home", default-features = false, features = ["ssr"] }
+yew-site-docs = { path = "../docs", default-features = false, features = ["ssr"] }
+yew-site-docs-0-23 = { path = "../docs-0-23", default-features = false, features = ["ssr"] }
+yew-site-docs-0-22 = { path = "../docs-0-22", default-features = false, features = ["ssr"] }
+yew-site-docs-0-21 = { path = "../docs-0-21", default-features = false, features = ["ssr"] }
+yew-site-docs-0-20 = { path = "../docs-0-20", default-features = false, features = ["ssr"] }
+yew-site-docs-ja = { path = "../docs-ja", default-features = false, features = ["ssr"] }
+yew-site-docs-ja-0-23 = { path = "../docs-ja-0-23", default-features = false, features = ["ssr"] }
+yew-site-docs-ja-0-22 = { path = "../docs-ja-0-22", default-features = false, features = ["ssr"] }
+yew-site-docs-ja-0-21 = { path = "../docs-ja-0-21", default-features = false, features = ["ssr"] }
+yew-site-docs-ja-0-20 = { path = "../docs-ja-0-20", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hans = { path = "../docs-zh-hans", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hans-0-23 = { path = "../docs-zh-hans-0-23", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hans-0-22 = { path = "../docs-zh-hans-0-22", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hans-0-21 = { path = "../docs-zh-hans-0-21", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hans-0-20 = { path = "../docs-zh-hans-0-20", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hant = { path = "../docs-zh-hant", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hant-0-23 = { path = "../docs-zh-hant-0-23", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hant-0-22 = { path = "../docs-zh-hant-0-22", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hant-0-21 = { path = "../docs-zh-hant-0-21", default-features = false, features = ["ssr"] }
+yew-site-docs-zh-hant-0-20 = { path = "../docs-zh-hant-0-20", default-features = false, features = ["ssr"] }
+yew-site-blog = { path = "../blog", default-features = false, features = ["ssr"] }
+yew-site-community = { path = "../community", default-features = false, features = ["ssr"] }

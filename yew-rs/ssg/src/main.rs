@@ -1,0 +1,1285 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hasher;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+
+use anyhow::{bail, Context, Result};
+use clap::Parser;
+use inquire::{InquireError, MultiSelect};
+use syntect::highlighting::ThemeSet;
+use syntect::html::{css_for_theme_with_class_style, ClassStyle};
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpListener;
+
+fn filter_json_meta_rules(css: &str) -> String {
+    let mut result = String::new();
+    let mut skip_block = false;
+    for line in css.lines() {
+        let trimmed = line.trim();
+        if trimmed.contains(".sy-meta") && trimmed.contains(".sy-json") {
+            skip_block = true;
+            continue;
+        }
+        if skip_block {
+            if trimmed == "}" {
+                skip_block = false;
+            }
+            continue;
+        }
+        result.push_str(line);
+        result.push('\n');
+    }
+    result
+}
+
+fn generate_highlight_css() {
+    let ts = ThemeSet::load_defaults();
+    let style = ClassStyle::SpacedPrefixed { prefix: "sy-" };
+    let light_css = filter_json_meta_rules(
+        &css_for_theme_with_class_style(&ts.themes["InspiredGitHub"], style).unwrap(),
+    );
+    let dark_css = filter_json_meta_rules(
+        &css_for_theme_with_class_style(&ts.themes["base16-ocean.dark"], style).unwrap(),
+    );
+
+    println!("/* syntect light theme (InspiredGitHub) */");
+    print!("{light_css}");
+
+    println!();
+    println!("/* syntect dark theme (base16-ocean.dark) */");
+    for line in dark_css.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('.') || trimmed.starts_with("code") {
+            if let Some(brace) = trimmed.find('{') {
+                let selectors_part = &trimmed[..brace];
+                let rest = &trimmed[brace..];
+                let prefixed: Vec<String> = selectors_part
+                    .split(',')
+                    .map(|s| format!("[data-theme=\"dark\"] {}", s.trim()))
+                    .collect();
+                println!("{} {rest}", prefixed.join(", "));
+            } else {
+                println!("[data-theme=\"dark\"] {trimmed}");
+            }
+        } else if !trimmed.is_empty() {
+            println!("{trimmed}");
+        }
+    }
+}
+
+fn file_hash(path: &Path) -> Result<String> {
+    let bytes = std::fs::read(path).with_context(|| format!("reading {}", path.display()))?;
+    let mut hasher = DefaultHasher::new();
+    hasher.write(&bytes);
+    Ok(format!("{:016x}", hasher.finish()))
+}
+
+const BASE_URL: &str = "https://yew.rs";
+const GA_MEASUREMENT_ID: &str = "G-DENCL8P4YP";
+
+fn derive_locale(url_path: &str) -> &str {
+    if url_path.starts_with("/ja/") || url_path == "/ja" {
+        "ja"
+    } else if url_path.starts_with("/zh-Hans/") || url_path == "/zh-Hans" {
+        "zh-Hans"
+    } else if url_path.starts_with("/zh-Hant/") || url_path == "/zh-Hant" {
+        "zh-Hant"
+    } else {
+        "en"
+    }
+}
+
+fn locale_to_og(locale: &str) -> &str {
+    match locale {
+        "zh-Hans" => "zh_Hans",
+        "zh-Hant" => "zh_Hant",
+        _ => locale,
+    }
+}
+
+fn strip_locale_prefix(url_path: &str) -> &str {
+    for prefix in &["/ja/", "/zh-Hans/", "/zh-Hant/"] {
+        if let Some(rest) = url_path.strip_prefix(prefix) {
+            return rest;
+        }
+    }
+    url_path
+}
+
+fn derive_doc_version(url_path: &str) -> Option<&'static str> {
+    let path = strip_locale_prefix(url_path);
+    let path = path.strip_prefix('/').unwrap_or(path);
+    if !path.starts_with("docs") {
+        return None;
+    }
+    if path.starts_with("docs/0.23/") {
+        Some("0.23")
+    } else if path.starts_with("docs/0.22/") {
+        Some("0.22")
+    } else if path.starts_with("docs/0.21/") {
+        Some("0.21")
+    } else if path.starts_with("docs/0.20/") {
+        Some("0.20")
+    } else {
+        Some("next")
+    }
+}
+
+fn generate_hreflang_tags(url_path: &str) -> String {
+    let base_path = strip_locale_prefix(url_path);
+    let base_path = if base_path.starts_with('/') {
+        base_path.to_string()
+    } else {
+        format!("/{base_path}")
+    };
+
+    if !base_path.starts_with("/docs") {
+        return format!(
+            "    <link rel=\"alternate\" href=\"{BASE_URL}{url_path}\" hreflang=\"en\" />\n\x20   \
+             <link rel=\"alternate\" href=\"{BASE_URL}{url_path}\" hreflang=\"x-default\" />\n"
+        );
+    }
+
+    let mut tags = String::new();
+    for (lang, prefix) in [
+        ("en", ""),
+        ("ja", "/ja"),
+        ("zh-Hans", "/zh-Hans"),
+        ("zh-Hant", "/zh-Hant"),
+    ] {
+        tags.push_str(&format!(
+            "    <link rel=\"alternate\" href=\"{BASE_URL}{prefix}{base_path}\" \
+             hreflang=\"{lang}\" />\n"
+        ));
+    }
+    tags.push_str(&format!(
+        "    <link rel=\"alternate\" href=\"{BASE_URL}{base_path}\" hreflang=\"x-default\" />\n"
+    ));
+    tags
+}
+
+fn generate_og_locale_tags(url_path: &str) -> String {
+    let locale = derive_locale(url_path);
+    let og_locale = locale_to_og(locale);
+    let mut tags = format!("    <meta property=\"og:locale\" content=\"{og_locale}\" />\n");
+
+    let base_path = strip_locale_prefix(url_path);
+    let base_path = if base_path.starts_with('/') {
+        base_path
+    } else {
+        return tags;
+    };
+
+    if base_path.starts_with("/docs") {
+        for alt in ["en", "ja", "zh_Hans", "zh_Hant"] {
+            if alt != og_locale {
+                tags.push_str(&format!(
+                    "    <meta property=\"og:locale:alternate\" content=\"{alt}\" />\n"
+                ));
+            }
+        }
+    }
+    tags
+}
+
+fn generate_breadcrumb_jsonld(url_path: &str, title: &str) -> String {
+    let base_path = strip_locale_prefix(url_path);
+    let base_path = base_path.strip_prefix('/').unwrap_or(base_path);
+    let segments: Vec<&str> = base_path.split('/').filter(|s| !s.is_empty()).collect();
+
+    if segments.len() <= 1 {
+        return String::new();
+    }
+
+    let mut items = Vec::new();
+    let mut accumulated = String::new();
+
+    for (i, seg) in segments.iter().enumerate() {
+        accumulated.push('/');
+        accumulated.push_str(seg);
+
+        let name = if i == segments.len() - 1 {
+            title.to_string()
+        } else {
+            seg.split('-')
+                .map(|w| {
+                    let mut c = w.chars();
+                    match c.next() {
+                        Some(ch) => format!("{}{}", ch.to_uppercase(), c.as_str()),
+                        None => String::new(),
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(" ")
+        };
+
+        let name = name.replace('"', "\\\"");
+        items.push(format!(
+            r#"{{"@type":"ListItem","position":{},"name":"{}","item":"{BASE_URL}{accumulated}"}}"#,
+            i + 1,
+            name,
+        ));
+    }
+
+    format!(
+        "    <script type=\"application/ld+json\">{{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{}]}}</script>\n",
+        items.join(",")
+    )
+}
+
+fn extract_description(html_body: &str) -> String {
+    let mut search_from = 0;
+    while let Some(p_pos) = html_body[search_from..].find("<p") {
+        let abs_pos = search_from + p_pos;
+        let next_char = html_body.as_bytes().get(abs_pos + 2).copied();
+        if next_char != Some(b'>') && next_char != Some(b' ') {
+            search_from = abs_pos + 1;
+            continue;
+        }
+        let after = &html_body[abs_pos..];
+        if let Some(gt) = after.find('>') {
+            let content_start = abs_pos + gt + 1;
+            if let Some(p_end) = html_body[content_start..].find("</p>") {
+                let inner = &html_body[content_start..content_start + p_end];
+                let text = strip_html_tags(inner);
+                let text = text.trim().to_string();
+                if !text.is_empty() {
+                    if text.len() > 160 {
+                        let end = text
+                            .char_indices()
+                            .nth(157)
+                            .map(|(i, _)| i)
+                            .unwrap_or(text.len());
+                        return format!("{}...", &text[..end]);
+                    }
+                    return text;
+                }
+            }
+        }
+        search_from = abs_pos + 1;
+    }
+    "A framework for creating reliable and efficient web applications.".to_string()
+}
+
+fn strip_html_tags(s: &str) -> String {
+    let mut result = String::new();
+    let mut in_tag = false;
+    for c in s.chars() {
+        if c == '<' {
+            in_tag = true;
+        } else if c == '>' {
+            in_tag = false;
+        } else if !in_tag {
+            result.push(c);
+        }
+    }
+    result
+}
+
+#[derive(Parser)]
+struct Args {
+    #[arg(long, default_value = "website/build")]
+    output_dir: PathBuf,
+
+    #[arg(long, default_value = "yew-rs")]
+    source_dir: PathBuf,
+
+    #[arg(long, default_value = "4")]
+    jobs: usize,
+
+    #[arg(long)]
+    skip_build: bool,
+
+    #[arg(long)]
+    skip_capture: bool,
+
+    #[arg(long)]
+    skip_wasm_opt: bool,
+
+    #[arg(long)]
+    gen_highlight_css: bool,
+
+    /// Build only pages whose URL path contains this substring.
+    /// Example: --page /docs/getting-started
+    /// Can be specified multiple times: --page /docs/tutorial --page /blog
+    #[arg(long)]
+    page: Vec<String>,
+
+    /// After building, serve the output directory on this port.
+    /// Example: --serve 8080
+    #[arg(long)]
+    serve: Option<u16>,
+}
+
+struct PageBinary {
+    bin_name: String,
+    url_path: String,
+    title: String,
+    crate_name: String,
+}
+
+const CRATES: &[(&str, &str, &str)] = &[
+    ("docs", "docs", ""),
+    ("docs-0-23", "docs/0.23", "v0-23-"),
+    ("docs-0-22", "docs/0.22", "v0-22-"),
+    ("docs-0-21", "docs/0.21", "v0-21-"),
+    ("docs-0-20", "docs/0.20", "v0-20-"),
+    ("docs-ja", "ja/docs", "ja-"),
+    ("docs-ja-0-23", "ja/docs/0.23", "ja-0-23-"),
+    ("docs-ja-0-22", "ja/docs/0.22", "ja-0-22-"),
+    ("docs-ja-0-21", "ja/docs/0.21", "ja-0-21-"),
+    ("docs-ja-0-20", "ja/docs/0.20", "ja-0-20-"),
+    ("docs-zh-hans", "zh-Hans/docs", "zh-hans-"),
+    ("docs-zh-hans-0-23", "zh-Hans/docs/0.23", "zh-hans-0-23-"),
+    ("docs-zh-hans-0-22", "zh-Hans/docs/0.22", "zh-hans-0-22-"),
+    ("docs-zh-hans-0-21", "zh-Hans/docs/0.21", "zh-hans-0-21-"),
+    ("docs-zh-hans-0-20", "zh-Hans/docs/0.20", "zh-hans-0-20-"),
+    ("docs-zh-hant", "zh-Hant/docs", "zh-hant-"),
+    ("docs-zh-hant-0-23", "zh-Hant/docs/0.23", "zh-hant-0-23-"),
+    ("docs-zh-hant-0-22", "zh-Hant/docs/0.22", "zh-hant-0-22-"),
+    ("docs-zh-hant-0-21", "zh-Hant/docs/0.21", "zh-hant-0-21-"),
+    ("docs-zh-hant-0-20", "zh-Hant/docs/0.20", "zh-hant-0-20-"),
+    ("community", "community", ""),
+];
+
+fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
+    let mut pages = Vec::new();
+
+    pages.push(PageBinary {
+        bin_name: "yew-site-home".to_string(),
+        url_path: "/".to_string(),
+        title: "Yew".to_string(),
+        crate_name: "yew-site-home".to_string(),
+    });
+
+    pages.push(PageBinary {
+        bin_name: "search".to_string(),
+        url_path: "/search".to_string(),
+        title: "Search".to_string(),
+        crate_name: "yew-site-home".to_string(),
+    });
+
+    pages.push(PageBinary {
+        bin_name: "not-found".to_string(),
+        url_path: "/404".to_string(),
+        title: "Page Not Found".to_string(),
+        crate_name: "yew-site-home".to_string(),
+    });
+
+    for &(crate_name, url_prefix, bin_prefix) in CRATES {
+        let crate_dir = source_dir.join(crate_name);
+        let pages_dir = crate_dir.join("src/pages");
+        if !pages_dir.exists() {
+            continue;
+        }
+
+        let cargo_crate_name = format!("yew-site-{crate_name}");
+
+        let mut page_files = Vec::new();
+        collect_page_files(&pages_dir, &pages_dir, &mut page_files);
+
+        for rel_path in page_files {
+            let mut url_segments: Vec<String> = rel_path
+                .iter()
+                .map(|s| s.to_string_lossy().replace('_', "-"))
+                .collect();
+            if url_segments.last().is_some_and(|s| s == "introduction") {
+                url_segments.pop();
+            }
+            let url_path = if url_segments.is_empty() {
+                format!("/{}", url_prefix)
+            } else {
+                format!("/{}/{}", url_prefix, url_segments.join("/"))
+            };
+            let bin_name = format!(
+                "{}{}",
+                bin_prefix,
+                rel_path
+                    .iter()
+                    .map(|s| s.to_string_lossy().replace('_', "-"))
+                    .collect::<Vec<_>>()
+                    .join("-")
+            );
+            let title = url_segments
+                .last()
+                .map(|s| {
+                    s.split('-')
+                        .map(|w| {
+                            let mut c = w.chars();
+                            match c.next() {
+                                Some(ch) => format!("{}{}", ch.to_uppercase(), c.as_str()),
+                                None => String::new(),
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                })
+                .unwrap_or_default();
+
+            pages.push(PageBinary {
+                bin_name,
+                url_path,
+                title,
+                crate_name: cargo_crate_name.clone(),
+            });
+        }
+    }
+
+    const BLOG_PAGES: &[(&str, &str, &str)] = &[
+        ("blog-index", "/blog", "Blog"),
+        ("hello-yew", "/blog/2022/01/20/hello-yew", "Hello Yew"),
+        (
+            "release-0-20",
+            "/blog/2022/11/24/release-0-20",
+            "Releasing Yew 0.20",
+        ),
+        (
+            "release-0-21",
+            "/blog/2023/09/23/release-0-21",
+            "Announcing Yew 0.21",
+        ),
+        (
+            "release-0-22",
+            "/blog/2024/10/14/release-0-22",
+            "Announcing Yew 0.22",
+        ),
+        (
+            "release-0-22-1",
+            "/blog/2025/11/29/release-0-22",
+            "Yew 0.22 - For Real This Time",
+        ),
+    ];
+
+    for &(bin_name, url_path, title) in BLOG_PAGES {
+        pages.push(PageBinary {
+            bin_name: bin_name.to_string(),
+            url_path: url_path.to_string(),
+            title: title.to_string(),
+            crate_name: "yew-site-blog".to_string(),
+        });
+    }
+
+    Ok(pages)
+}
+
+fn collect_page_files(base: &Path, dir: &Path, results: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            let mod_rs = path.join("mod.rs");
+            if mod_rs.exists() {
+                let has_page = std::fs::read_to_string(&mod_rs)
+                    .map(|c| {
+                        c.contains("pub fn Page")
+                            || c.contains("doc_page!")
+                            || c.contains("blog_page!")
+                            || c.contains("community_page!")
+                            || c.contains("simple_page!")
+                    })
+                    .unwrap_or(false);
+                if has_page {
+                    let rel = path.strip_prefix(base).unwrap();
+                    results.push(rel.to_path_buf());
+                }
+            }
+            collect_page_files(base, &path, results);
+        } else if path.extension().is_some_and(|e| e == "rs") {
+            let name = path.file_stem().unwrap().to_string_lossy();
+            if name != "mod" {
+                let rel = path.strip_prefix(base).unwrap().with_extension("");
+                results.push(rel);
+            }
+        }
+    }
+}
+
+fn cargo_build_all(source_dir: &Path, pages: &[PageBinary], jobs: usize) -> Result<()> {
+    let mut crate_names: Vec<&str> = pages.iter().map(|p| p.crate_name.as_str()).collect();
+    crate_names.sort();
+    crate_names.dedup();
+
+    let mut args = vec![
+        "build".to_string(),
+        "--release".to_string(),
+        "--target".to_string(),
+        "wasm32-unknown-unknown".to_string(),
+        "-j".to_string(),
+        jobs.to_string(),
+    ];
+    for name in &crate_names {
+        args.push("-p".to_string());
+        args.push(name.to_string());
+    }
+
+    println!(
+        "Compiling {} crates ({} parallel jobs)...",
+        crate_names.len(),
+        jobs
+    );
+    let status = Command::new("cargo")
+        .args(&args)
+        .env("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "1")
+        .current_dir(source_dir.join(".."))
+        .status()
+        .context("Failed to run cargo build")?;
+
+    if !status.success() {
+        bail!("cargo build failed");
+    }
+
+    Ok(())
+}
+
+fn process_page(
+    page: &PageBinary,
+    output_dir: &Path,
+    target_dir: &Path,
+    cpu_id: usize,
+    skip_wasm_opt: bool,
+) -> Result<()> {
+    let page_output = if page.url_path == "/" {
+        output_dir.to_path_buf()
+    } else {
+        output_dir.join(page.url_path.trim_start_matches('/'))
+    };
+    std::fs::create_dir_all(&page_output)?;
+
+    let wasm_input = target_dir
+        .join("wasm32-unknown-unknown/release")
+        .join(format!("{}.wasm", page.bin_name));
+
+    if !wasm_input.exists() {
+        bail!("WASM binary not found: {}", wasm_input.display());
+    }
+
+    let bindgen_out = Command::new("wasm-bindgen")
+        .args([
+            "--target",
+            "web",
+            "--no-typescript",
+            "--out-dir",
+            &page_output.display().to_string(),
+            &wasm_input.display().to_string(),
+        ])
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .output()
+        .context("Failed to run wasm-bindgen")?;
+
+    if !bindgen_out.status.success() {
+        bail!(
+            "wasm-bindgen failed for {}:\n{}",
+            page.bin_name,
+            String::from_utf8_lossy(&bindgen_out.stderr)
+        );
+    }
+
+    let wasm_bg = page_output.join(format!("{}_bg.wasm", page.bin_name));
+    if !skip_wasm_opt && wasm_bg.exists() {
+        let opt_out = Command::new("taskset")
+            .args(["-c", &cpu_id.to_string()])
+            .arg("wasm-opt")
+            .args(["-Oz", "-o"])
+            .arg(&wasm_bg)
+            .arg(&wasm_bg)
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .output()
+            .context("Failed to run wasm-opt")?;
+
+        if !opt_out.status.success() {
+            bail!(
+                "wasm-opt failed for {}:\n{}",
+                page.bin_name,
+                String::from_utf8_lossy(&opt_out.stderr)
+            );
+        }
+    }
+
+    let wasm_hash = file_hash(&wasm_bg)?;
+    let wasm_hashed_name = format!("{}_bg-{}.wasm", page.bin_name, wasm_hash);
+    std::fs::rename(&wasm_bg, page_output.join(&wasm_hashed_name))?;
+
+    let js_path = page_output.join(format!("{}.js", page.bin_name));
+    let js_content = std::fs::read_to_string(&js_path)?;
+    let js_content = js_content.replace(&format!("{}_bg.wasm", page.bin_name), &wasm_hashed_name);
+    let js_hash = {
+        let mut hasher = DefaultHasher::new();
+        hasher.write(js_content.as_bytes());
+        format!("{:016x}", hasher.finish())
+    };
+    let js_hashed_name = format!("{}-{}.js", page.bin_name, js_hash);
+    std::fs::write(page_output.join(&js_hashed_name), &js_content)?;
+    std::fs::remove_file(&js_path)?;
+
+    let public_url = if page.url_path == "/" {
+        String::new()
+    } else {
+        page.url_path.clone()
+    };
+
+    let locale = derive_locale(&page.url_path);
+    let lang = locale;
+    let canonical_url = format!("{BASE_URL}{}", page.url_path);
+    let display_title = if page.url_path == "/" {
+        "Yew".to_string()
+    } else {
+        format!("{} | Yew", page.title)
+    };
+    let og_locale_tags = generate_og_locale_tags(&page.url_path);
+    let hreflang_tags = generate_hreflang_tags(&page.url_path);
+    let breadcrumb_jsonld = generate_breadcrumb_jsonld(&page.url_path, &page.title);
+    let docsearch_meta = derive_doc_version(&page.url_path)
+        .map(|v| {
+            format!(
+                "    <meta name=\"docsearch:language\" content=\"{locale}\" />\n\x20   <meta \
+                 name=\"docsearch:version\" content=\"{v}\" />\n"
+            )
+        })
+        .unwrap_or_default();
+
+    let ga_id = GA_MEASUREMENT_ID;
+
+    let html = format!(
+        r#"<!DOCTYPE html>
+<html lang="{lang}" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{display_title}</title>
+    <meta property="og:title" content="{display_title}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:url" content="{canonical_url}" />
+{og_locale_tags}{docsearch_meta}    <link rel="icon" href="/img/logo.svg" />
+    <link rel="canonical" href="{canonical_url}" />
+{hreflang_tags}    <link rel="preconnect" href="https://F8S2ICRD2T-dsn.algolia.net" crossorigin="anonymous" />
+{breadcrumb_jsonld}    <link rel="alternate" type="application/rss+xml" href="/blog/rss.xml" title="Yew RSS Feed" />
+    <link rel="alternate" type="application/atom+xml" href="/blog/atom.xml" title="Yew Atom Feed" />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id={ga_id}"></script>
+    <script>function gtag(){{dataLayer.push(arguments)}}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","{ga_id}",{{anonymize_ip:!0}})</script>
+    <link rel="search" type="application/opensearchdescription+xml" title="Yew" href="/opensearch.xml" />
+    <script>
+(function(){{var c=localStorage.getItem('theme')||'system',d=document.documentElement;function a(v){{var t=v==='system'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):v;d.setAttribute('data-theme',t);d.setAttribute('data-theme-choice',v)}}a(c);matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(){{var s=localStorage.getItem('theme');if(!s||s==='system')a('system')}});}})();
+    </script>
+    <script type="module">
+import init, * as bindings from '{public_url}/{js_hashed_name}';
+const wasm = await init({{ module_or_path: '{public_url}/{wasm_hashed_name}' }});
+window.wasmBindings = bindings;
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {{detail: {{wasm}}}}));
+    </script>
+    <link rel="modulepreload" href="{public_url}/{js_hashed_name}" />
+    <link rel="preload" href="{public_url}/{wasm_hashed_name}" as="fetch" type="application/wasm" crossorigin />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3" />
+</head>
+<body></body>
+</html>"#,
+    );
+
+    std::fs::write(page_output.join("index.html"), html)?;
+
+    Ok(())
+}
+
+fn build_pages_parallel(
+    pages: &[PageBinary],
+    output_dir: &Path,
+    target_dir: &Path,
+    jobs: usize,
+    skip_wasm_opt: bool,
+) -> Result<()> {
+    let total = pages.len();
+    let counter = Arc::new(AtomicUsize::new(0));
+    let next_page = Arc::new(AtomicUsize::new(0));
+    let errors: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+
+    std::thread::scope(|s| {
+        let mut handles = Vec::new();
+
+        for thread_id in 0..jobs {
+            let counter = counter.clone();
+            let next_page = next_page.clone();
+            let errors = &errors;
+
+            handles.push(s.spawn(move || loop {
+                let idx = next_page.fetch_add(1, Ordering::Relaxed);
+                if idx >= pages.len() {
+                    break;
+                }
+                let page = &pages[idx];
+                let n = counter.fetch_add(1, Ordering::Relaxed) + 1;
+                println!(
+                    "[{n}/{total}] Processing: {} -> {}",
+                    page.bin_name, page.url_path
+                );
+
+                if let Err(e) = process_page(page, output_dir, target_dir, thread_id, skip_wasm_opt)
+                {
+                    eprintln!("  FAILED: {e}");
+                    errors
+                        .lock()
+                        .unwrap()
+                        .push(format!("{}: {e}", page.bin_name));
+                }
+            }));
+        }
+
+        for h in handles {
+            h.join().unwrap();
+        }
+    });
+
+    let errs = errors.into_inner().unwrap();
+    if !errs.is_empty() {
+        bail!("Build failures:\n{}", errs.join("\n"));
+    }
+
+    Ok(())
+}
+
+async fn render_and_inject(output_dir: &Path, page_filter: Option<&Vec<String>>) -> Result<()> {
+    let all_rendered = render_all_pages().await;
+
+    for (url_path, body_html, styles_html) in &all_rendered {
+        if let Some(filters) = page_filter {
+            if !filters.iter().any(|f| url_path.contains(f.as_str())) {
+                continue;
+            }
+        }
+        let rel = url_path.trim_start_matches('/');
+        let html_path = if rel.is_empty() {
+            output_dir.join("index.html")
+        } else {
+            output_dir.join(rel).join("index.html")
+        };
+
+        if !html_path.exists() {
+            println!("Warning: no index.html for {url_path}, skipping");
+            continue;
+        }
+
+        println!("Injecting: {url_path}");
+        let original = std::fs::read_to_string(&html_path)?;
+        let description = extract_description(body_html);
+        let escaped_desc = description
+            .replace('&', "&amp;")
+            .replace('"', "&quot;")
+            .replace('<', "&lt;")
+            .replace('>', "&gt;");
+        let mut extra_head = styles_html.clone();
+        if !escaped_desc.is_empty() {
+            extra_head.push_str(&format!(
+                "    <meta name=\"description\" content=\"{escaped_desc}\" />\n\x20   <meta \
+                 property=\"og:description\" content=\"{escaped_desc}\" />\n"
+            ));
+        }
+        let updated = inject_styles(&inject_body(&original, body_html), &extra_head);
+        std::fs::write(&html_path, updated)?;
+    }
+
+    Ok(())
+}
+
+async fn render_all_pages() -> Vec<(&'static str, String, String)> {
+    let mut all = Vec::new();
+    all.extend(yew_site_home::render_pages().await);
+    all.extend(yew_site_docs::render_pages().await);
+    all.extend(yew_site_docs_0_23::render_pages().await);
+    all.extend(yew_site_docs_0_22::render_pages().await);
+    all.extend(yew_site_docs_0_21::render_pages().await);
+    all.extend(yew_site_docs_0_20::render_pages().await);
+    all.extend(yew_site_docs_ja::render_pages().await);
+    all.extend(yew_site_docs_ja_0_23::render_pages().await);
+    all.extend(yew_site_docs_ja_0_22::render_pages().await);
+    all.extend(yew_site_docs_ja_0_21::render_pages().await);
+    all.extend(yew_site_docs_ja_0_20::render_pages().await);
+    all.extend(yew_site_docs_zh_hans::render_pages().await);
+    all.extend(yew_site_docs_zh_hans_0_23::render_pages().await);
+    all.extend(yew_site_docs_zh_hans_0_22::render_pages().await);
+    all.extend(yew_site_docs_zh_hans_0_21::render_pages().await);
+    all.extend(yew_site_docs_zh_hans_0_20::render_pages().await);
+    all.extend(yew_site_docs_zh_hant::render_pages().await);
+    all.extend(yew_site_docs_zh_hant_0_23::render_pages().await);
+    all.extend(yew_site_docs_zh_hant_0_22::render_pages().await);
+    all.extend(yew_site_docs_zh_hant_0_21::render_pages().await);
+    all.extend(yew_site_docs_zh_hant_0_20::render_pages().await);
+    all.extend(yew_site_blog::render_pages().await);
+    all.extend(yew_site_community::render_pages().await);
+    all
+}
+
+fn inject_styles(html: &str, styles: &str) -> String {
+    if let Some(pos) = html.find("</head>") {
+        format!("{}{styles}{}", &html[..pos], &html[pos..])
+    } else {
+        html.to_string()
+    }
+}
+
+fn inject_body(html: &str, body_content: &str) -> String {
+    if let Some(body_start) = html.find("<body>") {
+        if let Some(body_end) = html.find("</body>") {
+            return format!(
+                "{}<body>{}</body>{}",
+                &html[..body_start],
+                body_content,
+                &html[body_end + "</body>".len()..]
+            );
+        }
+    }
+    html.replace("<body></body>", &format!("<body>{body_content}</body>"))
+}
+
+fn generate_sitemap(pages: &[PageBinary], output_dir: &Path, base_url: &str) -> Result<()> {
+    let mut xml = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+         <urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n",
+    );
+
+    for page in pages {
+        let loc = if page.url_path == "/" {
+            base_url.to_string()
+        } else {
+            format!("{}{}", base_url, page.url_path)
+        };
+        xml.push_str(&format!(
+            "<url><loc>{loc}</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>\n"
+        ));
+    }
+
+    xml.push_str("</urlset>\n");
+    std::fs::write(output_dir.join("sitemap.xml"), xml)?;
+    Ok(())
+}
+
+fn date_to_rfc2822(date: &str) -> String {
+    let parts: Vec<&str> = date.split('-').collect();
+    let (y, m, d): (i32, u32, u32) = (
+        parts[0].parse().unwrap(),
+        parts[1].parse().unwrap(),
+        parts[2].parse().unwrap(),
+    );
+    let months = [
+        "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    let days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    let a = (14 - m) / 12;
+    let y2 = y as u32 + 4800 - a;
+    let m2 = m + 12 * a - 3;
+    let jdn = d + (153 * m2 + 2) / 5 + 365 * y2 + y2 / 4 - y2 / 100 + y2 / 400 - 32045;
+    let dow = (jdn % 7) as usize;
+    format!(
+        "{}, {:02} {} {} 00:00:00 GMT",
+        days[dow], d, months[m as usize], y
+    )
+}
+
+fn generate_blog_feeds(output_dir: &Path) -> Result<()> {
+    let blog_dir = output_dir.join("blog");
+    std::fs::create_dir_all(&blog_dir)?;
+
+    let posts = yew_site_blog::BLOG_POSTS;
+
+    {
+        use rss::{ChannelBuilder, GuidBuilder, ItemBuilder};
+
+        let items: Vec<_> = posts
+            .iter()
+            .map(|post| {
+                let url = format!("{BASE_URL}{}", post.url_path());
+                let pub_date = date_to_rfc2822(post.date);
+                ItemBuilder::default()
+                    .title(post.title.to_string())
+                    .link(url.clone())
+                    .description(post.description.to_string())
+                    .pub_date(pub_date)
+                    .guid(GuidBuilder::default().value(url).permalink(true).build())
+                    .build()
+            })
+            .collect();
+
+        let last_build_date = date_to_rfc2822(posts[0].date);
+
+        let channel = ChannelBuilder::default()
+            .title("Yew Blog")
+            .link(format!("{BASE_URL}/blog"))
+            .description("Yew Blog")
+            .last_build_date(Some(last_build_date))
+            .docs(Some(
+                "https://validator.w3.org/feed/docs/rss2.html".to_string(),
+            ))
+            .language("en".to_string())
+            .items(items)
+            .build();
+
+        std::fs::write(blog_dir.join("rss.xml"), channel.to_string())?;
+    }
+
+    {
+        use atom_syndication::{EntryBuilder, FeedBuilder, LinkBuilder, PersonBuilder, Text};
+
+        let entries: Vec<_> = posts
+            .iter()
+            .map(|post| {
+                let url = format!("{BASE_URL}{}", post.url_path());
+                let updated = format!("{}T00:00:00+00:00", post.date);
+                EntryBuilder::default()
+                    .title(post.title)
+                    .id(url.clone())
+                    .updated(updated.parse::<atom_syndication::FixedDateTime>().unwrap())
+                    .published(updated.parse::<atom_syndication::FixedDateTime>().ok())
+                    .summary(Some(Text::plain(post.description)))
+                    .authors(vec![PersonBuilder::default()
+                        .name(post.author_name)
+                        .uri(Some(post.author_url.to_string()))
+                        .build()])
+                    .links(vec![LinkBuilder::default()
+                        .href(url)
+                        .rel("alternate")
+                        .build()])
+                    .build()
+            })
+            .collect();
+
+        let feed = FeedBuilder::default()
+            .title("Yew Blog")
+            .id(format!("{BASE_URL}/blog"))
+            .updated(
+                format!("{}T00:00:00+00:00", posts[0].date)
+                    .parse::<atom_syndication::FixedDateTime>()
+                    .unwrap(),
+            )
+            .subtitle(Some(Text::plain("Yew Blog")))
+            .icon(Some(format!("{BASE_URL}/img/logo.svg")))
+            .links(vec![
+                LinkBuilder::default()
+                    .href(format!("{BASE_URL}/blog"))
+                    .rel("alternate")
+                    .build(),
+                LinkBuilder::default()
+                    .href(format!("{BASE_URL}/blog/atom.xml"))
+                    .rel("self")
+                    .build(),
+            ])
+            .entries(entries)
+            .build();
+
+        std::fs::write(blog_dir.join("atom.xml"), feed.to_string())?;
+    }
+
+    Ok(())
+}
+
+fn generate_redirects(output_dir: &Path) -> Result<()> {
+    const REDIRECTS: &[(&str, &str)] = &[("/docs/next", "/docs/getting-started")];
+
+    for &(from, to) in REDIRECTS {
+        let dir = output_dir.join(from.trim_start_matches('/'));
+        std::fs::create_dir_all(&dir)?;
+        let html = format!(
+            r#"<!DOCTYPE html><html><head><meta charset="utf-8"/><meta http-equiv="refresh" content="0;url={to}"/><link rel="canonical" href="{BASE_URL}{to}"/></head><body><a href="{to}">Redirect</a></body></html>"#,
+        );
+        std::fs::write(dir.join("index.html"), html)?;
+        println!("  {from} -> {to}");
+    }
+    Ok(())
+}
+
+fn copy_static_assets(source_dir: &Path, output_dir: &Path) -> Result<()> {
+    let static_dir = source_dir.join("../website/static");
+    if static_dir.exists() {
+        println!("Copying static assets from {}", static_dir.display());
+        copy_dir_recursive(&static_dir, output_dir)?;
+    }
+    Ok(())
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if src_path.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else {
+            std::fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
+}
+
+async fn serve_dir(dir: &Path, port: u16) -> Result<()> {
+    let listener = TcpListener::bind(format!("127.0.0.1:{port}")).await?;
+    let dir = dir.to_path_buf();
+
+    loop {
+        let (mut stream, _) = listener.accept().await?;
+        let dir = dir.clone();
+        tokio::spawn(async move {
+            let mut buf = vec![0u8; 8192];
+            let n = match tokio::io::AsyncReadExt::read(&mut stream, &mut buf).await {
+                Ok(n) if n > 0 => n,
+                _ => return,
+            };
+            let request = String::from_utf8_lossy(&buf[..n]);
+            let path = request
+                .lines()
+                .next()
+                .and_then(|line| line.split_whitespace().nth(1))
+                .unwrap_or("/");
+
+            let decoded = percent_decode(path.split('?').next().unwrap_or(path));
+
+            let mut file_path = dir.join(decoded.trim_start_matches('/'));
+            if file_path.is_dir() {
+                file_path = file_path.join("index.html");
+            }
+            if !file_path.exists() && file_path.extension().is_none() {
+                let with_html = file_path.with_extension("html");
+                if with_html.exists() {
+                    file_path = with_html;
+                }
+            }
+            if !file_path.exists() {
+                let not_found = dir.join("404.html");
+                let body = std::fs::read(&not_found).unwrap_or_else(|_| b"404 Not Found".to_vec());
+                let resp = format!(
+                    "HTTP/1.1 404 Not Found\r\nContent-Length: {}\r\nContent-Type: \
+                     text/html\r\n\r\n",
+                    body.len()
+                );
+                let _ = stream.write_all(resp.as_bytes()).await;
+                let _ = stream.write_all(&body).await;
+                return;
+            }
+
+            let mime = match file_path.extension().and_then(|e| e.to_str()) {
+                Some("html") => "text/html; charset=utf-8",
+                Some("js") => "application/javascript",
+                Some("wasm") => "application/wasm",
+                Some("css") => "text/css",
+                Some("svg") => "image/svg+xml",
+                Some("png") => "image/png",
+                Some("jpg" | "jpeg") => "image/jpeg",
+                Some("json") => "application/json",
+                Some("xml") => "application/xml",
+                Some("ico") => "image/x-icon",
+                Some("txt") => "text/plain",
+                Some("woff2") => "font/woff2",
+                _ => "application/octet-stream",
+            };
+
+            match std::fs::read(&file_path) {
+                Ok(body) => {
+                    let resp = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: \
+                         {mime}\r\nCache-Control: no-cache\r\n\r\n",
+                        body.len()
+                    );
+                    let _ = stream.write_all(resp.as_bytes()).await;
+                    let _ = stream.write_all(&body).await;
+                }
+                Err(_) => {
+                    let _ = stream
+                        .write_all(b"HTTP/1.1 500 Internal Server Error\r\n\r\n")
+                        .await;
+                }
+            }
+        });
+    }
+}
+
+fn percent_decode(s: &str) -> String {
+    let mut result = Vec::new();
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Ok(byte) = u8::from_str_radix(&String::from_utf8_lossy(&bytes[i + 1..i + 3]), 16)
+            {
+                result.push(byte);
+                i += 3;
+                continue;
+            }
+        }
+        result.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&result).into_owned()
+}
+
+fn interactive_page_select(pages: &[PageBinary]) -> Option<Vec<usize>> {
+    let options: Vec<String> = pages.iter().map(|p| p.url_path.clone()).collect();
+
+    let result = MultiSelect::new(
+        "Select pages to build (type to filter, space to toggle, enter to confirm):",
+        options,
+    )
+    .with_page_size(20)
+    .with_help_message("Press a to toggle all, esc to build all pages")
+    .prompt();
+
+    match result {
+        Ok(selected) if selected.is_empty() => None,
+        Ok(selected) => {
+            let indices: Vec<usize> = pages
+                .iter()
+                .enumerate()
+                .filter(|(_, p)| selected.contains(&p.url_path))
+                .map(|(i, _)| i)
+                .collect();
+            Some(indices)
+        }
+        Err(InquireError::NotTTY) => {
+            println!("Non-interactive mode, building all pages");
+            None
+        }
+        Err(InquireError::OperationCanceled | InquireError::OperationInterrupted) => {
+            println!("Building all pages");
+            None
+        }
+        Err(e) => {
+            eprintln!("Prompt error: {e}, building all pages");
+            None
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::parse();
+
+    if args.gen_highlight_css {
+        generate_highlight_css();
+        return Ok(());
+    }
+
+    let output_dir = &args.output_dir;
+    std::fs::create_dir_all(output_dir)?;
+
+    let output_dir = if output_dir.is_absolute() {
+        output_dir.clone()
+    } else {
+        std::env::current_dir()?.join(output_dir)
+    };
+
+    let total_start = std::time::Instant::now();
+
+    println!("Discovering pages...");
+    let all_pages = discover_pages(&args.source_dir)?;
+    println!("Found {} pages", all_pages.len());
+
+    let pages: Vec<PageBinary> = if !args.page.is_empty() {
+        let filtered: Vec<PageBinary> = all_pages
+            .into_iter()
+            .filter(|p| args.page.iter().any(|f| p.url_path.contains(f.as_str())))
+            .collect();
+        if filtered.is_empty() {
+            bail!(
+                "No pages matched filters: {:?}\nTry a broader substring, e.g. --page \
+                 /docs/getting-started",
+                args.page
+            );
+        }
+        println!(
+            "Filtered to {} pages (from --page {:?})",
+            filtered.len(),
+            args.page
+        );
+        filtered
+    } else {
+        match interactive_page_select(&all_pages) {
+            Some(indices) => {
+                let selected: Vec<PageBinary> = all_pages
+                    .into_iter()
+                    .enumerate()
+                    .filter(|(i, _)| indices.contains(i))
+                    .map(|(_, p)| p)
+                    .collect();
+                println!("Selected {} pages", selected.len());
+                selected
+            }
+            None => all_pages,
+        }
+    };
+    println!("Building {} pages", pages.len());
+
+    if !args.skip_build {
+        let t = std::time::Instant::now();
+        println!("\n=== Compile phase ===");
+        cargo_build_all(&args.source_dir, &pages, args.jobs)?;
+        println!("Compile phase: {:.1}s", t.elapsed().as_secs_f64());
+
+        let target_dir = args.source_dir.join("..").join("target");
+
+        let t = std::time::Instant::now();
+        println!(
+            "\n=== Bundle phase ({} parallel jobs{}) ===",
+            args.jobs,
+            if args.skip_wasm_opt {
+                ", wasm-opt skipped"
+            } else {
+                ""
+            }
+        );
+        build_pages_parallel(
+            &pages,
+            &output_dir,
+            &target_dir,
+            args.jobs,
+            args.skip_wasm_opt,
+        )?;
+        println!("Bundle phase: {:.1}s", t.elapsed().as_secs_f64());
+
+        println!("\nCopying static assets...");
+        copy_static_assets(&args.source_dir, &output_dir)?;
+
+        if args.page.is_empty() {
+            println!("Generating sitemap.xml...");
+            generate_sitemap(&pages, &output_dir, "https://yew.rs")?;
+
+            println!("Generating blog feeds...");
+            generate_blog_feeds(&output_dir)?;
+
+            println!("Generating redirects...");
+            generate_redirects(&output_dir)?;
+        }
+    }
+
+    if !args.skip_capture {
+        let t = std::time::Instant::now();
+        println!("\n=== SSR Capture phase ===");
+        println!("Rendering pages via ServerRenderer...");
+        let page_filter = if args.page.is_empty() {
+            None
+        } else {
+            Some(&args.page)
+        };
+        render_and_inject(&output_dir, page_filter).await?;
+        println!("SSR phase: {:.1}s", t.elapsed().as_secs_f64());
+    }
+
+    let not_found_src = output_dir.join("404/index.html");
+    if not_found_src.exists() {
+        std::fs::copy(&not_found_src, output_dir.join("404.html"))?;
+        println!("Copied 404/index.html -> 404.html");
+    }
+
+    println!("\nTotal: {:.1}s", total_start.elapsed().as_secs_f64());
+    println!("Done! Static site at: {}", output_dir.display());
+
+    if let Some(port) = args.serve {
+        println!("\nServing on http://localhost:{port}");
+        serve_dir(&output_dir, port).await?;
+    }
+
+    Ok(())
+}

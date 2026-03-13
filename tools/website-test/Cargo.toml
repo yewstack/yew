@@ -36,4 +36,5 @@ features = [
 ]
 
 [build-dependencies]
+doc-test-util = { path = "../doc-test-util" }
 glob = "0.3"

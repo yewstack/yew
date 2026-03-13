@@ -1,0 +1,66 @@
+crate::doc_page!(
+    "",
+    "/zh-Hans/docs/getting-started/build-a-sample-app",
+    Content::new(vec![
+        h1(vec![text("第一个简单的 App")]),
+        p(vec![text("首先创建一个二进制项目:")]),
+        code_block(
+            "bash",
+            r#"cargo generate yewstack/yew-trunk-minimal-template"#
+        ),
+        p(vec![
+            text("添加 "),
+            code("yew"),
+            text(" 到你的依赖库中（"),
+            link("https://docs.rs/yew", vec![text("这里")]),
+            text(" 可以查看最新版本的 Yew）"),
+        ]),
+        code_block("text", r#"trunk serve"#),
+        p(vec![
+            text("将这份代码复制到你的 "),
+            code("src/main.rs"),
+            text(" 文件中:"),
+        ]),
+        code_block("rust", r#"cargo new yew-app"#),
+        p(vec![
+            text("这份代码将构建你的称为 "),
+            code("Model"),
+            text(" 的 "),
+            code("Component"),
+            text(" 根组件，它会显示一个按钮，当你点击它时，"),
+            code("Model"),
+            text(" 将会更新自己的状态。特别注意 "),
+            code("main()"),
+            text(" 中的 "),
+            code("App::<Model>::new().mount_to_body()"),
+            text("，它会启动你的应用并将其挂载到页面的 "),
+            code("<body>"),
+            text(" 标签中。如果你想使用任何动态属性来启动应用程序，则可以使用 "),
+            code("App::<Model>::new().mount_to_body_with_props(..)"),
+            text("。"),
+        ]),
+        h2(vec![text("运行你的应用程序!")]),
+        p(vec![
+            text("启动并运行你的应用的最快方式就是使用 "),
+            link(
+                "https://github.com/koute/cargo-web",
+                vec![text("cargo-web")]
+            ),
+            text("。如果你还没有的话，请用 "),
+            code("cargo install cargo-web"),
+            text(" 命令来安装这个工具然后通过运行下述命令来构建和启动一个开发服务器："),
+        ]),
+        code_block("bash", r#"cd yew-app"#),
+        p(vec![
+            code("cargo-web"),
+            text(" 将会自动为你添加 "),
+            code("wasm32-unknown-unknown"),
+            text(" 作为目标代码，然后构建你的应用，你的应用将默认在 "),
+            text("[http://\\"),
+            text("[::1\\]:8000](http://"),
+            text("[::1]:8000) 被访问。可以通过 "),
+            code("cargo web start --help"),
+            text(" 命令来获取更多选项和帮助。"),
+        ]),
+    ])
+);

@@ -3,14 +3,20 @@ on:
   pull_request:
     branches: [master]
     paths:
-      - "website/**"
-      - "firebase.json"
+      - "yew-rs/**"
+      - "website/static/**"
+      - "tools/website-e2e/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - ".github/workflows/*-website.yml"
   push:
     branches: [master]
     paths:
-      - "website/**"
-      - "firebase.json"
+      - "yew-rs/**"
+      - "website/static/**"
+      - "tools/website-e2e/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - ".github/workflows/*-website.yml"
 
 jobs:
@@ -20,40 +26,36 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup node
-        uses: actions/setup-node@v6
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          node-version: "lts/Jod"
-          package-manager-cache: false
+          toolchain: stable
+          targets: wasm32-unknown-unknown
 
-      - name: Install dependencies
-        run: |
-          cd website
-          npm ci
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
-      - name: Run prettier
-        id: fmt
-        continue-on-error: true
-        run: |
-          cd website
-          npm run fmt
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
-      - if: steps.fmt.outcome == 'failure'
-        run: |
-          cd website
-          npm run fmt:write
-          git diff
-          exit 1
+      - name: Get latest wasm-opt version
+        id: wasm-opt
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: WebAssembly/binaryen
+          excludes: prerelease, draft
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check Translations
+      - name: Install wasm-opt
         run: |
-          cd website
-          npm run check-translations
+          VERSION="${{ steps.wasm-opt.outputs.release }}"
+          curl -sL "https://github.com/WebAssembly/binaryen/releases/download/${VERSION}/binaryen-${VERSION}-x86_64-linux.tar.gz" | tar xz
+          sudo install "binaryen-${VERSION}/bin/wasm-opt" /usr/local/bin/
 
-      - name: Build
-        run: |
-          cd website
-          npm run build
+      - name: Build site
+        run: cargo run --release -p yew-site-ssg
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
@@ -75,3 +77,38 @@ jobs:
           include-hidden-files: true
           path: .PR_INFO
           retention-days: 1
+
+  e2e:
+    name: Website E2E Navigation
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: website
+          path: website/build/
+
+      - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start geckodriver
+        run: geckodriver --port 4444 &
+
+      - name: Run e2e tests
+        env:
+          HEADLESS: "1"
+          WEBDRIVER_URL: "http://localhost:4444"
+        run: cargo test -p website-e2e -- --test-threads=1
