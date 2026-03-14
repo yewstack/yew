@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use crate::generator::{Generated, Generator};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Author {
     pub seed: u32,
     pub name: String,
@@ -22,7 +24,7 @@ impl Generated for Author {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PostMeta {
     pub seed: u32,
     pub title: String,
@@ -48,7 +50,7 @@ impl Generated for PostMeta {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Post {
     pub meta: PostMeta,
     pub content: Vec<PostPart>,
@@ -68,7 +70,7 @@ impl Generated for Post {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PostPart {
     Section(Section),
     Quote(Quote),
@@ -87,7 +89,7 @@ impl Generated for PostPart {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Section {
     pub title: String,
     pub paragraphs: Vec<String>,
@@ -112,7 +114,7 @@ impl Generated for Section {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Quote {
     pub author: Author,
     pub content: String,

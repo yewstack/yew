@@ -56,3 +56,29 @@ pub fn push_route(path: &str) {
         .push_state_with_url(&JsValue::NULL, "", Some(path))
         .unwrap();
 }
+
+fn performance() -> web_sys::Performance {
+    web_sys::window().unwrap().performance().unwrap()
+}
+
+/// Counts completed network requests to URLs containing `needle` using the
+/// Performance Resource Timing API. This works regardless of how the request
+/// was initiated (gloo-net, window.fetch, XMLHttpRequest, etc.) because it
+/// observes the browser's actual network activity.
+pub fn resource_request_count(needle: &str) -> u32 {
+    let entries = performance().get_entries_by_type("resource");
+    let mut count = 0;
+    for i in 0..entries.length() {
+        let entry: web_sys::PerformanceEntry = entries.get(i).unchecked_into();
+        if entry.name().contains(needle) {
+            count += 1;
+        }
+    }
+    count
+}
+
+/// Clears all resource timing entries so that subsequent calls to
+/// [`resource_request_count`] only see new requests.
+pub fn clear_resource_timings() {
+    performance().clear_resource_timings();
+}
