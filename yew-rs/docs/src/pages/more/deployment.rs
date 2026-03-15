@@ -91,7 +91,7 @@ pub fn page_content() -> yew_site_lib::Content {
              in an error similar to the following:",
         )]),
         code_block(
-            "text",
+            "ignore",
             r#"`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:
  TypeError: WebAssembly: Response has unsupported MIME type 'text/plain' expected 'application/wasm'"#,
         ),

@@ -40,211 +40,211 @@ macro_rules! doc_page {
 pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     let mut pages = Vec::new();
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/children",
+        "/zh-Hans/docs/advanced-topics/children",
         pages::advanced_topics::children::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/how-it-works",
+        "/zh-Hans/docs/advanced-topics/how-it-works",
         pages::advanced_topics::how_it_works::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/immutable",
+        "/zh-Hans/docs/advanced-topics/immutable",
         pages::advanced_topics::immutable::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/optimizations",
+        "/zh-Hans/docs/advanced-topics/optimizations",
         pages::advanced_topics::optimizations::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/portals",
+        "/zh-Hans/docs/advanced-topics/portals",
         pages::advanced_topics::portals::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/server-side-rendering",
+        "/zh-Hans/docs/advanced-topics/server-side-rendering",
         pages::advanced_topics::server_side_rendering::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components/callbacks",
+        "/zh-Hans/docs/advanced-topics/struct-components/callbacks",
         pages::advanced_topics::struct_components::callbacks::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components/hoc",
+        "/zh-Hans/docs/advanced-topics/struct-components/hoc",
         pages::advanced_topics::struct_components::hoc::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components",
+        "/zh-Hans/docs/advanced-topics/struct-components",
         pages::advanced_topics::struct_components::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components/lifecycle",
+        "/zh-Hans/docs/advanced-topics/struct-components/lifecycle",
         pages::advanced_topics::struct_components::lifecycle::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components/properties",
+        "/zh-Hans/docs/advanced-topics/struct-components/properties",
         pages::advanced_topics::struct_components::properties::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components/refs",
+        "/zh-Hans/docs/advanced-topics/struct-components/refs",
         pages::advanced_topics::struct_components::refs::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/advanced-topics/struct-components/scope",
+        "/zh-Hans/docs/advanced-topics/struct-components/scope",
         pages::advanced_topics::struct_components::scope::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/agents",
+        "/zh-Hans/docs/concepts/agents",
         pages::concepts::agents::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/basic-web-technologies/css",
+        "/zh-Hans/docs/concepts/basic-web-technologies/css",
         pages::concepts::basic_web_technologies::css::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/basic-web-technologies/html",
+        "/zh-Hans/docs/concepts/basic-web-technologies/html",
         pages::concepts::basic_web_technologies::html::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/basic-web-technologies/js",
+        "/zh-Hans/docs/concepts/basic-web-technologies/js",
         pages::concepts::basic_web_technologies::js::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/basic-web-technologies/wasm-bindgen",
+        "/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen",
         pages::concepts::basic_web_technologies::wasm_bindgen::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/basic-web-technologies/web-sys",
+        "/zh-Hans/docs/concepts/basic-web-technologies/web-sys",
         pages::concepts::basic_web_technologies::web_sys::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/contexts",
+        "/zh-Hans/docs/concepts/contexts",
         pages::concepts::contexts::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/callbacks",
+        "/zh-Hans/docs/concepts/function-components/callbacks",
         pages::concepts::function_components::callbacks::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/children",
+        "/zh-Hans/docs/concepts/function-components/children",
         pages::concepts::function_components::children::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/communication",
+        "/zh-Hans/docs/concepts/function-components/communication",
         pages::concepts::function_components::communication::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/generics",
+        "/zh-Hans/docs/concepts/function-components/generics",
         pages::concepts::function_components::generics::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/hooks/custom-hooks",
+        "/zh-Hans/docs/concepts/function-components/hooks/custom-hooks",
         pages::concepts::function_components::hooks::custom_hooks::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/hooks",
+        "/zh-Hans/docs/concepts/function-components/hooks",
         pages::concepts::function_components::hooks::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components",
+        "/zh-Hans/docs/concepts/function-components",
         pages::concepts::function_components::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/node-refs",
+        "/zh-Hans/docs/concepts/function-components/node-refs",
         pages::concepts::function_components::node_refs::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/properties",
+        "/zh-Hans/docs/concepts/function-components/properties",
         pages::concepts::function_components::properties::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/pure-components",
+        "/zh-Hans/docs/concepts/function-components/pure-components",
         pages::concepts::function_components::pure_components::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/function-components/state",
+        "/zh-Hans/docs/concepts/function-components/state",
         pages::concepts::function_components::state::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/classes",
+        "/zh-Hans/docs/concepts/html/classes",
         pages::concepts::html::classes::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/components",
+        "/zh-Hans/docs/concepts/html/components",
         pages::concepts::html::components::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/conditional-rendering",
+        "/zh-Hans/docs/concepts/html/conditional-rendering",
         pages::concepts::html::conditional_rendering::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/elements",
+        "/zh-Hans/docs/concepts/html/elements",
         pages::concepts::html::elements::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/events",
+        "/zh-Hans/docs/concepts/html/events",
         pages::concepts::html::events::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/fragments",
+        "/zh-Hans/docs/concepts/html/fragments",
         pages::concepts::html::fragments::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html",
+        "/zh-Hans/docs/concepts/html",
         pages::concepts::html::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/lists",
+        "/zh-Hans/docs/concepts/html/lists",
         pages::concepts::html::lists::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/html/literals-and-expressions",
+        "/zh-Hans/docs/concepts/html/literals-and-expressions",
         pages::concepts::html::literals_and_expressions::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/router",
+        "/zh-Hans/docs/concepts/router",
         pages::concepts::router::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/concepts/suspense",
+        "/zh-Hans/docs/concepts/suspense",
         pages::concepts::suspense::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/getting-started/build-a-sample-app",
+        "/zh-Hans/docs/getting-started/build-a-sample-app",
         pages::getting_started::build_a_sample_app::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/getting-started/editor-setup",
+        "/zh-Hans/docs/getting-started/editor-setup",
         pages::getting_started::editor_setup::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/getting-started/examples",
+        "/zh-Hans/docs/getting-started/examples",
         pages::getting_started::examples::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/getting-started",
+        "/zh-Hans/docs/getting-started",
         pages::getting_started::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/more/css",
+        "/zh-Hans/docs/more/css",
         pages::more::css::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/more/debugging",
+        "/zh-Hans/docs/more/debugging",
         pages::more::debugging::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/more/deployment",
+        "/zh-Hans/docs/more/deployment",
         pages::more::deployment::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/more/roadmap",
+        "/zh-Hans/docs/more/roadmap",
         pages::more::roadmap::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/more/testing",
+        "/zh-Hans/docs/more/testing",
         pages::more::testing::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/zh-Hans/docs/0.23/tutorial",
+        "/zh-Hans/docs/tutorial",
         pages::tutorial::Page
     ));
     pages

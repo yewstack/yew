@@ -13,13 +13,7 @@ pub struct NavbarProps {
     pub current_path: AttrValue,
 }
 
-const VERSION_SLUGS: &[(&str, &str)] = &[
-    ("Next", ""),
-    ("0.23", "0.23"),
-    ("0.22", "0.22"),
-    ("0.21", "0.21"),
-    ("0.20", "0.20"),
-];
+const VERSION_SLUGS: &[(&str, &str)] = crate::VERSIONS;
 
 const LANGUAGES: &[(&str, &str)] = &[
     ("English", ""),
@@ -106,7 +100,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         top: 0;
         left: 0;
         right: 0;
-        height: var(--navbar-height);
+        min-height: var(--navbar-height);
         background: var(--color-bg);
         border-bottom: 1px solid var(--color-border);
         z-index: 100;
@@ -333,10 +327,9 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         <img class="logo" src="/img/logo.svg" alt="Yew" />
                         <strong class="title">{"Yew"}</strong>
                     </a>
-                    if has_doc_version {
-                        <div class={classes!("dropdown", (*version_open).then_some("dropdown--open"))}>
-                            <button class="dropdown-btn" onclick={toggle_version}>
-                                {&props.doc_version}
+                    <div class={classes!("dropdown", (*version_open).then_some("dropdown--open"))}>
+                        <button class="dropdown-btn" onclick={toggle_version}>
+                            {if has_doc_version { props.doc_version.to_string() } else { "Next".to_string() }}
                                 <svg class="dropdown-caret" viewBox="0 0 24 24" width="12" height="12">
                                     <path fill="currentColor" d="M7 10l5 5 5-5z"/>
                                 </svg>
@@ -395,8 +388,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                                     })}
                                 </ul>
                             }
-                        </div>
-                    }
+                    </div>
                     { for nav_items.iter().map(|(label, href, _)| {
                         let active_class = if *label == active_nav_label {
                             "link link--active"
@@ -462,36 +454,34 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     <a class="link" href="https://docs.rs/yew" target="_blank" rel="noopener noreferrer">
                         {"API"}
                     </a>
-                    if has_doc_version {
-                        <div class="mobile-divider" />
-                        <span class="mobile-label">{"Version"}</span>
-                        { for VERSION_SLUGS.iter().map(|(label, slug)| {
-                            let is_active = *label == props.doc_version.as_str();
-                            let href = compute_version_url(
-                                props.current_path.as_str(),
-                                props.lang.as_str(),
-                                props.doc_version.as_str(),
-                                slug,
-                            );
-                            html! {
-                                <a class={classes!("link", is_active.then_some("link--active"))} href={href}>{label}</a>
-                            }
-                        })}
-                        <div class="mobile-divider" />
-                        <span class="mobile-label">{"Language"}</span>
-                        { for LANGUAGES.iter().map(|(label, code)| {
-                            let is_active = *code == props.lang.as_str();
-                            let href = compute_lang_url(
-                                props.current_path.as_str(),
-                                props.lang.as_str(),
-                                props.doc_version.as_str(),
-                                code,
-                            );
-                            html! {
-                                <a class={classes!("link", is_active.then_some("link--active"))} href={href}>{label}</a>
-                            }
-                        })}
-                    }
+                    <div class="mobile-divider" />
+                    <span class="mobile-label">{"Version"}</span>
+                    { for VERSION_SLUGS.iter().map(|(label, slug)| {
+                        let is_active = has_doc_version && *label == props.doc_version.as_str();
+                        let href = compute_version_url(
+                            props.current_path.as_str(),
+                            props.lang.as_str(),
+                            props.doc_version.as_str(),
+                            slug,
+                        );
+                        html! {
+                            <a class={classes!("link", is_active.then_some("link--active"))} href={href}>{label}</a>
+                        }
+                    })}
+                    <div class="mobile-divider" />
+                    <span class="mobile-label">{"Language"}</span>
+                    { for LANGUAGES.iter().map(|(label, code)| {
+                        let is_active = *code == props.lang.as_str();
+                        let href = compute_lang_url(
+                            props.current_path.as_str(),
+                            props.lang.as_str(),
+                            props.doc_version.as_str(),
+                            code,
+                        );
+                        html! {
+                            <a class={classes!("link", is_active.then_some("link--active"))} href={href}>{label}</a>
+                        }
+                    })}
                 </div>
             }
         </nav>
@@ -513,9 +503,16 @@ fn compute_version_url(
         current_path.strip_prefix(&lp).unwrap_or(current_path)
     };
 
-    let without_docs = without_lang
-        .strip_prefix("/docs/")
-        .unwrap_or("getting-started");
+    let is_docs_page = without_lang.starts_with("/docs/");
+
+    if !is_docs_page {
+        if target_slug.is_empty() {
+            return format!("{prefix}/");
+        }
+        return format!("{prefix}/{target_slug}/");
+    }
+
+    let without_docs = without_lang.strip_prefix("/docs/").unwrap();
 
     let current_slug = VERSION_SLUGS
         .iter()
@@ -612,6 +609,21 @@ fn compute_lang_url(
         let lp = lang_prefix(current_lang);
         current_path.strip_prefix(&lp).unwrap_or(current_path)
     };
+
+    if !without_lang.starts_with("/docs/") {
+        let version_slug = VERSION_SLUGS
+            .iter()
+            .find(|(label, _)| *label == current_version)
+            .map(|(_, slug)| *slug)
+            .unwrap_or("");
+        if version_slug.is_empty() {
+            if target_prefix.is_empty() {
+                return "/".to_string();
+            }
+            return format!("{target_prefix}/");
+        }
+        return format!("{target_prefix}/{version_slug}/");
+    }
 
     let page_path = without_lang
         .strip_prefix("/docs/")

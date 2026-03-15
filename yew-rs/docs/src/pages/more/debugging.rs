@@ -9,7 +9,7 @@ pub fn page_content() -> yew_site_lib::Content {
             code("console.log()"),
             text(" is used to log to the browser console. Some options for Yew are listed below."),
         ]),
-        h3(vec![link("https://crates.io/crates/wasm-logger", vec![text("wasm-logger")])]),
+        h3(vec![link("https://crates.io/crates/wasm-logger", vec![code("wasm-logger")])]),
         p(vec![
             code("wasm-logger"),
             text(" crate integrates with "),
@@ -25,7 +25,7 @@ fn main() {
     let object = JsValue::from("world");
     info!("Hello {}", object.as_string().unwrap());
 }"#),
-        h3(vec![link("https://crates.io/crates/gloo-console", vec![text("gloo-console")])]),
+        h3(vec![link("https://crates.io/crates/gloo-console", vec![code("gloo-console")])]),
         p(vec![
             text("This crate is part of Gloo, a collection of libraries providing ergonomic Rust wrappers for browser APIs. \
               The "),
@@ -43,7 +43,7 @@ fn main() {
     let object = JsValue::from("world");
     log!("Hello", object)
 }"#),
-        h3(vec![link("https://crates.io/crates/tracing-web", vec![text("tracing-web")])]),
+        h3(vec![link("https://crates.io/crates/tracing-web", vec![code("tracing-web")])]),
         p(vec![
             code("tracing-web"),
             text(" can be used with "),

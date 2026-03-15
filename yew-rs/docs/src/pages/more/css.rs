@@ -24,7 +24,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ]),
         admonition(
             AdmonitionType::Important,
-            Some("Contribute"),
+            Some("contribute"),
             vec![p(vec![text(
                 "If you're developing a project adding styles to Yew please submit a PR adding \
                  yourself to this list!",

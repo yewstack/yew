@@ -47,13 +47,13 @@ pub fn page_content() -> yew_site_lib::Content {
                  special default value.",
             )])],
         ),
-        h4(vec![text("#[prop_or_default]")]),
+        h4(vec![code("#[prop_or_default]")]),
         p(vec![
             text("Initialize the prop value with the default value of the field's type using the "),
             code("Default"),
             text(" trait."),
         ]),
-        h4(vec![text("#[prop_or(value)]")]),
+        h4(vec![code("#[prop_or(value)]")]),
         p(vec![
             text("Use "),
             code("value"),
@@ -68,7 +68,7 @@ pub fn page_content() -> yew_site_lib::Content {
             code("#[prop_or(true)]"),
             text("."),
         ]),
-        h4(vec![text("#[prop_or_else(function)]")]),
+        h4(vec![code("#[prop_or_else(function)]")]),
         p(vec![
             text("Call "),
             code("function"),
@@ -80,7 +80,7 @@ pub fn page_content() -> yew_site_lib::Content {
             code("T"),
             text(" is the field type."),
         ]),
-        h2(vec![text("PartialEq")]),
+        h2(vec![code("PartialEq")]),
         p(vec![
             code("Properties"),
             text(" require "),

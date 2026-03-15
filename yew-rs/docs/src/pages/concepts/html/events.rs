@@ -111,9 +111,11 @@ html! {
                 code("Event::CAPTURING_PHASE"),
                 text(". Internally, the event will behave as if it was in the bubbling \
                   phase, the event propagation is replayed and the event "),
-                link("#event-bubbling", vec![text("bubbles up")]),
+                link("#event-bubbling", vec![text("bubbles "), italic(vec![text("up")])]),
                 text(", i.e. event listeners higher up in \
-                  the virtual DOM will trigger after event listeners below them. Currently, capturing listeners is not supported by Yew. \
+                  the virtual DOM will trigger "),
+                italic(vec![text("after")]),
+                text(" event listeners below them. Currently, capturing listeners is not supported by Yew. \
                   This also means that events registered by Yew will usually fire before other event listeners."),
             ]),
         ]),
@@ -183,7 +185,7 @@ html! {
         code_block("rust", r#"pub enum Msg {
     InputValue(String),
 }"#),
-        h3(vec![text("Using JsCast")]),
+        h3(vec![text("Using "), code("JsCast")]),
         p(vec![
             text("The "),
             link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html", vec![
@@ -308,7 +310,7 @@ fn MyComponent() -> Html {
                 text(" As safe as anything can be when JS land is involved."),
             ]),
         ]),
-        h3(vec![text("Using TargetCast")]),
+        h3(vec![text("Using "), code("TargetCast")]),
         p(vec![
             bold(vec![text("It is highly recommended to read ")]),
             link("#using-jscast", vec![text("Using JsCast")]),
@@ -400,7 +402,7 @@ fn MyComponent() -> Html {
         p(vec![
             text("If you followed the advice above and read about "),
             code("JsCast"),
-            text(", you can probably see that "),
+            text(", or know the trait, you can probably see that "),
             code("TargetCast::target_dyn_into"),
             text(" feels similar to "),
             code("JsCast::dyn_into"),
@@ -414,7 +416,7 @@ fn MyComponent() -> Html {
             code("TargetCast"),
             text("."),
         ]),
-        h3(vec![text("Using NodeRef")]),
+        h3(vec![text("Using "), code("NodeRef")]),
         p(vec![
             link("/docs/concepts/function-components/node-refs", vec![
                 code("NodeRef"),
@@ -482,7 +484,7 @@ fn MyComponent() -> Html {
             code("NodeRef"),
             text(" we don't have to send the "),
             code("String"),
-            text(" back into state as we always have access to "),
+            text(" back into state as we always access to "),
             code("input_node_ref"),
             text(" - so we could do the following:"),
         ]),
@@ -563,7 +565,7 @@ fn MyComponent() -> Html {
             ]),
             text(" in order to convert to the type required."),
         ]),
-        h3(vec![text("Using Closure (verbose)")]),
+        h3(vec![text("Using "), code("Closure"), text(" (verbose)")]),
         p(vec![
             text("Using the "),
             code("web-sys"),

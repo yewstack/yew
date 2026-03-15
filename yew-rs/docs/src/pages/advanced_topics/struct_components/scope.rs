@@ -11,13 +11,13 @@ pub fn page_content() -> yew_site_lib::Content {
             code("link()"),
             text(" on the context object passed to the component."),
         ]),
-        h3(vec![text("send_message")]),
+        h3(vec![code("send_message")]),
         p(vec![
             text("Sends a message to the component. Messages are handled by the "),
             code("update"),
             text(" method which determines whether the component should re-render."),
         ]),
-        h3(vec![text("send_message_batch")]),
+        h3(vec![code("send_message_batch")]),
         p(vec![
             text("Sends multiple messages to the component at the same time. This is similar to "),
             code("send_message"),
@@ -33,7 +33,7 @@ pub fn page_content() -> yew_site_lib::Content {
         p(vec![text(
             "If the given vector is empty, this function does nothing.",
         )]),
-        h3(vec![text("callback")]),
+        h3(vec![code("callback")]),
         p(vec![
             text(
                 "Create a callback that will send a message to the component when it is executed. \
@@ -82,7 +82,7 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h3(vec![text("batch_callback")]),
+        h3(vec![code("batch_callback")]),
         p(vec![
             text(
                 "Create a callback that will send a batch of messages to the component when it is \

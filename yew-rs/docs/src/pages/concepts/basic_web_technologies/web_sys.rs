@@ -199,7 +199,7 @@ fn with_jscast(node_ref: NodeRef) {
     var y = e.clientY - rect.top //y position within the element.
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }"),
-        h3(vec![text("web-sys example")]),
+        h3(vec![code("web-sys"), text(" example")]),
         p(vec![
             text("Using "),
             code("web-sys"),

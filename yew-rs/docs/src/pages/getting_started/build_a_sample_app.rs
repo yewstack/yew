@@ -22,9 +22,12 @@ pub fn page_content_versioned(version: Option<&str>) -> yew_site_lib::Content {
             text(" by following their installation instructions then take the following steps:"),
         ]),
         h3(vec![text("Checkout and customize project")]),
-        code_block("bash", "cargo generate yewstack/yew-trunk-minimal-template"),
+        code_block(
+            "shell",
+            "cargo generate yewstack/yew-trunk-minimal-template",
+        ),
         h3(vec![text("Run project")]),
-        code_block("bash", "trunk serve"),
+        code_block("shell", "trunk serve"),
         admonition(
             AdmonitionType::Note,
             None,

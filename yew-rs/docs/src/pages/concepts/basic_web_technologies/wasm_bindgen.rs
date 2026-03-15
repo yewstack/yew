@@ -57,7 +57,7 @@ pub fn page_content() -> yew_site_lib::Content {
             code("wasm-bindgen"),
             text(" crate and that is the macro and some types/traits you will see pop up again and again."),
         ]),
-        h3(vec![text("#[wasm_bindgen] macro")]),
+        h3(vec![code("#[wasm_bindgen]"), text(" macro")]),
         p(vec![
             text("The "),
             code("#[wasm_bindgen]"),
@@ -356,7 +356,7 @@ fn handle_event(event: Event) {
             text(". An example of using a "),
             code("Closure"),
             text(" in Yew can be found in the "),
-            link("/docs/concepts/html/events#using-closure-verbose", vec![text("Using Closure section")]),
+            link("/docs/concepts/html/events#using-closure-verbose", vec![text("Using "), code("Closure"), text(" section")]),
             text(" on the "),
             link("/docs/concepts/html/events", vec![text("Events")]),
             text(" page."),

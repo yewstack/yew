@@ -89,7 +89,9 @@ html! {
         ]),
         admonition(AdmonitionType::Tip, None, vec![
             p(vec![
-                text("For convenience, elements which usually require a closing tag are "),
+                text("For convenience, elements which "),
+                italic(vec![text("usually")]),
+                text(" require a closing tag are "),
                 bold(vec![text("allowed")]),
                 text(" to self-close. For example, writing "),
                 code("html! { <div class=\"placeholder\" /> }"),

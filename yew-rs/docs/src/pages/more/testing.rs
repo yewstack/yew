@@ -27,7 +27,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ]),
         admonition(
             AdmonitionType::Important,
-            Some("Contribute"),
+            Some("contribute"),
             vec![p(vec![text(
                 "Help improve the documentation for snapshot testing.",
             )])],

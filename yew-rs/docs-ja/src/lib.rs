@@ -40,187 +40,187 @@ macro_rules! doc_page {
 pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     let mut pages = Vec::new();
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/children",
+        "/ja/docs/next/advanced-topics/children",
         pages::advanced_topics::children::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/how-it-works",
+        "/ja/docs/next/advanced-topics/how-it-works",
         pages::advanced_topics::how_it_works::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/immutable",
+        "/ja/docs/next/advanced-topics/immutable",
         pages::advanced_topics::immutable::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/optimizations",
+        "/ja/docs/next/advanced-topics/optimizations",
         pages::advanced_topics::optimizations::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/portals",
+        "/ja/docs/next/advanced-topics/portals",
         pages::advanced_topics::portals::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/server-side-rendering",
+        "/ja/docs/next/advanced-topics/server-side-rendering",
         pages::advanced_topics::server_side_rendering::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components/callbacks",
+        "/ja/docs/next/advanced-topics/struct-components/callbacks",
         pages::advanced_topics::struct_components::callbacks::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components/hoc",
+        "/ja/docs/next/advanced-topics/struct-components/hoc",
         pages::advanced_topics::struct_components::hoc::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components",
+        "/ja/docs/next/advanced-topics/struct-components",
         pages::advanced_topics::struct_components::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components/lifecycle",
+        "/ja/docs/next/advanced-topics/struct-components/lifecycle",
         pages::advanced_topics::struct_components::lifecycle::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components/properties",
+        "/ja/docs/next/advanced-topics/struct-components/properties",
         pages::advanced_topics::struct_components::properties::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components/refs",
+        "/ja/docs/next/advanced-topics/struct-components/refs",
         pages::advanced_topics::struct_components::refs::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/advanced-topics/struct-components/scope",
+        "/ja/docs/next/advanced-topics/struct-components/scope",
         pages::advanced_topics::struct_components::scope::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/agents",
+        "/ja/docs/next/concepts/agents",
         pages::concepts::agents::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/basic-web-technologies/css",
+        "/ja/docs/next/concepts/basic-web-technologies/css",
         pages::concepts::basic_web_technologies::css::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/basic-web-technologies/html",
+        "/ja/docs/next/concepts/basic-web-technologies/html",
         pages::concepts::basic_web_technologies::html::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/basic-web-technologies/js",
+        "/ja/docs/next/concepts/basic-web-technologies/js",
         pages::concepts::basic_web_technologies::js::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/basic-web-technologies/wasm-bindgen",
+        "/ja/docs/next/concepts/basic-web-technologies/wasm-bindgen",
         pages::concepts::basic_web_technologies::wasm_bindgen::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/basic-web-technologies/web-sys",
+        "/ja/docs/next/concepts/basic-web-technologies/web-sys",
         pages::concepts::basic_web_technologies::web_sys::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/contexts",
+        "/ja/docs/next/concepts/contexts",
         pages::concepts::contexts::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/callbacks",
+        "/ja/docs/next/concepts/function-components/callbacks",
         pages::concepts::function_components::callbacks::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/children",
+        "/ja/docs/next/concepts/function-components/children",
         pages::concepts::function_components::children::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/communication",
+        "/ja/docs/next/concepts/function-components/communication",
         pages::concepts::function_components::communication::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/generics",
+        "/ja/docs/next/concepts/function-components/generics",
         pages::concepts::function_components::generics::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/hooks/custom-hooks",
+        "/ja/docs/next/concepts/function-components/hooks/custom-hooks",
         pages::concepts::function_components::hooks::custom_hooks::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/hooks",
+        "/ja/docs/next/concepts/function-components/hooks",
         pages::concepts::function_components::hooks::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components",
+        "/ja/docs/next/concepts/function-components",
         pages::concepts::function_components::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/node-refs",
+        "/ja/docs/next/concepts/function-components/node-refs",
         pages::concepts::function_components::node_refs::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/properties",
+        "/ja/docs/next/concepts/function-components/properties",
         pages::concepts::function_components::properties::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/pure-components",
+        "/ja/docs/next/concepts/function-components/pure-components",
         pages::concepts::function_components::pure_components::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/function-components/state",
+        "/ja/docs/next/concepts/function-components/state",
         pages::concepts::function_components::state::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/classes",
+        "/ja/docs/next/concepts/html/classes",
         pages::concepts::html::classes::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/components",
+        "/ja/docs/next/concepts/html/components",
         pages::concepts::html::components::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/conditional-rendering",
+        "/ja/docs/next/concepts/html/conditional-rendering",
         pages::concepts::html::conditional_rendering::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/elements",
+        "/ja/docs/next/concepts/html/elements",
         pages::concepts::html::elements::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/events",
+        "/ja/docs/next/concepts/html/events",
         pages::concepts::html::events::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/fragments",
+        "/ja/docs/next/concepts/html/fragments",
         pages::concepts::html::fragments::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html",
+        "/ja/docs/next/concepts/html",
         pages::concepts::html::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/lists",
+        "/ja/docs/next/concepts/html/lists",
         pages::concepts::html::lists::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/html/literals-and-expressions",
+        "/ja/docs/next/concepts/html/literals-and-expressions",
         pages::concepts::html::literals_and_expressions::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/router",
+        "/ja/docs/next/concepts/router",
         pages::concepts::router::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/concepts/suspense",
+        "/ja/docs/next/concepts/suspense",
         pages::concepts::suspense::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/getting-started/build-a-sample-app",
+        "/ja/docs/next/getting-started/build-a-sample-app",
         pages::getting_started::build_a_sample_app::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/getting-started/editor-setup",
+        "/ja/docs/next/getting-started/editor-setup",
         pages::getting_started::editor_setup::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/getting-started/examples",
+        "/ja/docs/next/getting-started/examples",
         pages::getting_started::examples::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/getting-started",
+        "/ja/docs/next/getting-started",
         pages::getting_started::introduction::Page
     ));
     pages.push(yew_site_lib::render_page!(
@@ -268,27 +268,27 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
         pages::migration_guides::yew_router::from_0_19_0_to_0_20_0::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/more/css",
+        "/ja/docs/next/more/css",
         pages::more::css::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/more/debugging",
+        "/ja/docs/next/more/debugging",
         pages::more::debugging::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/more/deployment",
+        "/ja/docs/next/more/deployment",
         pages::more::deployment::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/more/roadmap",
+        "/ja/docs/next/more/roadmap",
         pages::more::roadmap::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/more/testing",
+        "/ja/docs/next/more/testing",
         pages::more::testing::Page
     ));
     pages.push(yew_site_lib::render_page!(
-        "/ja/docs/tutorial",
+        "/ja/docs/next/tutorial",
         pages::tutorial::Page
     ));
     pages

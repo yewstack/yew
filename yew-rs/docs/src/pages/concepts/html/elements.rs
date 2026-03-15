@@ -202,7 +202,7 @@ html! {
             "Attempting to provide children to these elements will result in a compilation error \
              or, if the element tag is chosen dynamically, in a panic.",
         )]),
-        h3(vec![text("The case of <textarea>")]),
+        h3(vec![text("The case of "), code("<textarea>")]),
         p(vec![
             text("The "),
             code("<textarea>"),

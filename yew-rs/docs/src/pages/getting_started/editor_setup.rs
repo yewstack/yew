@@ -3,7 +3,7 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         admonition(
             AdmonitionType::Important,
-            Some("Contribute"),
+            Some("contribute"),
             vec![p(vec![text(
                 "Using a different editor? Feel free to add instructions for your editor of \
                  choice.",

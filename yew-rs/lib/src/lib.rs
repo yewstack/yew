@@ -10,6 +10,16 @@ pub use components::sidebar::{
 };
 pub use content::Content;
 
+pub const LATEST_STABLE: &str = "0.23";
+
+pub const VERSIONS: &[(&str, &str)] = &[
+    ("Next", "next"),
+    ("0.23", ""),
+    ("0.22", "0.22"),
+    ("0.21", "0.21"),
+    ("0.20", "0.20"),
+];
+
 #[cfg(feature = "ssr")]
 pub mod ssr_reexports {
     pub use stylist::manager::{render_static, StyleManager};

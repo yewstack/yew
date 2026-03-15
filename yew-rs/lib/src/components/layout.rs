@@ -38,12 +38,49 @@ pub struct LayoutProps {
     pub toc: Vec<TocEntry>,
 }
 
-fn version_slug(doc_version: &str) -> &str {
-    if doc_version == "Next" || doc_version.is_empty() {
-        ""
-    } else {
-        doc_version
+fn version_banner(doc_version: &AttrValue, lang: &AttrValue) -> Html {
+    use yew::virtual_dom::VNode;
+    if doc_version.is_empty() || doc_version.as_str() == crate::LATEST_STABLE {
+        return VNode::default();
     }
+    let lang_p = if lang.is_empty() {
+        String::new()
+    } else {
+        format!("/{lang}")
+    };
+    let latest_path = format!("{lang_p}/docs/getting-started");
+    let latest_label = format!("latest version ({})", crate::LATEST_STABLE);
+    if doc_version.as_str() == "Next" {
+        html! {
+            <div class="version-banner" role="alert">
+                <div>{"This is unreleased documentation for Yew "}<b>{"Next"}</b>{" version."}</div>
+                <div class="banner-secondary">
+                    {"For up-to-date documentation, see the "}
+                    <b><a href={latest_path}>{latest_label}</a></b>
+                    {"."}
+                </div>
+            </div>
+        }
+    } else {
+        html! {
+            <div class="version-banner" role="alert">
+                <div>{"This is documentation for Yew "}<b>{doc_version.to_string()}</b>{", which is no longer actively maintained."}</div>
+                <div class="banner-secondary">
+                    {"For up-to-date documentation, see the "}
+                    <b><a href={latest_path}>{latest_label}</a></b>
+                    {"."}
+                </div>
+            </div>
+        }
+    }
+}
+
+fn version_slug(doc_version: &str) -> &str {
+    crate::VERSIONS
+        .iter()
+        .find(|(label, _)| *label == doc_version)
+        .map(|(_, slug)| *slug)
+        .unwrap_or("")
 }
 
 pub fn rewrite_doc_href(href: &str, lang: &str, doc_version: &str) -> String {
@@ -165,10 +202,15 @@ pub fn Layout(props: &LayoutProps) -> Html {
         })
     };
 
-    use_effect_with((), |_| {
-        init_page_features();
-        || {}
-    });
+    let content_ref = use_node_ref();
+
+    {
+        let content_ref = content_ref.clone();
+        use_effect_with((), move |_| {
+            scroll_to_hash(&content_ref);
+            || {}
+        });
+    }
 
     let style = css!(
         r#"
@@ -315,6 +357,26 @@ pub fn Layout(props: &LayoutProps) -> Html {
             margin-bottom: 1rem;
         }
 
+        .version-banner {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e6a700;
+            border-radius: 6px;
+            background: #fff8e1;
+            color: #5a4600;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .version-banner a {
+            color: #1a73e8;
+            font-weight: 600;
+        }
+
+        .version-banner .banner-secondary {
+            margin-top: 0.5rem;
+        }
+
         .pagination {
             display: flex;
             justify-content: space-between;
@@ -398,9 +460,8 @@ pub fn Layout(props: &LayoutProps) -> Html {
         }
 
         .copy-md-btn {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
+            float: right;
+            margin: 0 0 0.5rem 0.5rem;
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
@@ -412,7 +473,6 @@ pub fn Layout(props: &LayoutProps) -> Html {
             font-family: inherit;
             color: var(--color-text-secondary);
             cursor: pointer;
-            z-index: 1;
             transition: border-color 0.2s, color 0.2s;
         }
 
@@ -486,6 +546,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
             cursor: pointer;
             color: var(--color-text);
             margin-bottom: 1rem;
+            margin-right: 0.75rem;
             font-family: inherit;
             font-weight: 500;
         }
@@ -601,8 +662,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         />
                     </div>
                 }
-                <main class={classes!("content", "doc-content", props.full_width.then_some("content--full-width"))}>
-                    {copy_md_button}
+                <main ref={content_ref.clone()} class={classes!("content", "doc-content", props.full_width.then_some("content--full-width"))}>
                     if has_sidebar {
                         <button class="mobile-sidebar-toggle" onclick={toggle_mobile_sidebar}>
                             <svg viewBox="0 0 24 24" width="16" height="16">
@@ -614,6 +674,9 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                 {"Show menu"}
                             }
                         </button>
+                    }
+                    if has_sidebar {
+                        {version_banner(&props.doc_version, &props.lang)}
                     }
                     if let Some(trail) = &breadcrumbs {
                         <nav class="breadcrumbs" aria-label="Breadcrumbs">
@@ -651,11 +714,12 @@ pub fn Layout(props: &LayoutProps) -> Html {
                             </ul>
                         </nav>
                     }
-                    if !props.doc_version.is_empty() {
+                    if has_sidebar && !props.doc_version.is_empty() {
                         <span class="version-badge">
                             {"Version: "}{&props.doc_version}
                         </span>
                     }
+                    {copy_md_button}
                     if !props.title.is_empty() {
                         <h1 class="page-title">{&props.title}</h1>
                     }
@@ -690,7 +754,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                     }
                 </main>
                 if has_sidebar && !props.toc.is_empty() {
-                    <Toc entries={props.toc.clone()} />
+                    <Toc entries={props.toc.clone()} content_ref={content_ref.clone()} />
                 }
             </div>
             <Footer />
@@ -699,18 +763,18 @@ pub fn Layout(props: &LayoutProps) -> Html {
 }
 
 #[cfg(feature = "csr")]
-fn init_page_features() {
+fn scroll_to_hash(content_ref: &NodeRef) {
     let window = match web_sys::window() {
         Some(w) => w,
         None => return,
     };
     let hash = window.location().hash().unwrap_or_default();
-    if !hash.is_empty() {
-        let document = match window.document() {
-            Some(d) => d,
+    if hash.len() > 1 {
+        let content_el = match content_ref.cast::<web_sys::Element>() {
+            Some(el) => el,
             None => return,
         };
-        if let Some(el) = document.get_element_by_id(&hash[1..]) {
+        if let Ok(Some(el)) = content_el.query_selector(&format!("[id=\"{}\"]", &hash[1..])) {
             gloo::timers::callback::Timeout::new(100, move || {
                 el.scroll_into_view();
             })
@@ -720,11 +784,12 @@ fn init_page_features() {
 }
 
 #[cfg(not(feature = "csr"))]
-fn init_page_features() {}
+fn scroll_to_hash(_content_ref: &NodeRef) {}
 
 #[derive(Clone, PartialEq, Properties)]
 struct TocProps {
     entries: Vec<TocEntry>,
+    content_ref: NodeRef,
 }
 
 #[cfg(feature = "csr")]
@@ -735,9 +800,12 @@ fn Toc(props: &TocProps) -> Html {
     {
         let active_id = active_id.clone();
         let entries = props.entries.clone();
+        let content_ref = props.content_ref.clone();
         use_effect_with(entries.clone(), move |_| {
             let window = web_sys::window().unwrap();
             let document = window.document().unwrap();
+
+            let content_el = content_ref.cast::<web_sys::Element>();
 
             let navbar_height: f64 = document
                 .query_selector(".navbar")
@@ -754,14 +822,20 @@ fn Toc(props: &TocProps) -> Html {
             let compute = {
                 let ids = ids.clone();
                 let active_id = active_id.clone();
-                let document = document.clone();
+                let content_el = content_el.clone();
                 let window = window.clone();
                 move || {
+                    let content = match &content_el {
+                        Some(el) => el,
+                        None => return,
+                    };
                     let mut active: Option<AttrValue> = None;
                     let mut next_visible_idx: Option<usize> = None;
 
                     for (i, id) in ids.iter().enumerate() {
-                        if let Some(el) = document.get_element_by_id(id.as_str()) {
+                        if let Ok(Some(el)) =
+                            content.query_selector(&format!("[id=\"{}\"]", id.as_str()))
+                        {
                             let rect = el.get_bounding_client_rect();
                             if rect.top() >= navbar_height {
                                 next_visible_idx = Some(i);
@@ -771,7 +845,9 @@ fn Toc(props: &TocProps) -> Html {
                     }
 
                     if let Some(idx) = next_visible_idx {
-                        if let Some(el) = document.get_element_by_id(ids[idx].as_str()) {
+                        if let Ok(Some(el)) =
+                            content.query_selector(&format!("[id=\"{}\"]", ids[idx].as_str()))
+                        {
                             let rect = el.get_bounding_client_rect();
                             let vh = window
                                 .inner_height()

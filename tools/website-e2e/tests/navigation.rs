@@ -146,6 +146,32 @@ async fn assert_no_element(client: &fantoccini::Client, css: &str) {
     assert!(els.is_empty(), "expected no elements for: {css}");
 }
 
+async fn click_version_option(client: &fantoccini::Client, label: &str) {
+    let btn = client
+        .find(Locator::Css(
+            ".items > .dropdown:nth-of-type(1) .dropdown-btn",
+        ))
+        .await
+        .unwrap();
+    btn.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(200)).await;
+
+    let items = client
+        .find_all(Locator::Css(
+            ".items > .dropdown:nth-of-type(1) .dropdown-item",
+        ))
+        .await
+        .unwrap();
+    for item in items {
+        if item.text().await.unwrap().trim() == label {
+            item.click().await.unwrap();
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            return;
+        }
+    }
+    panic!("version option '{}' not found", label);
+}
+
 async fn assert_hreflang_set(client: &fantoccini::Client, expected: &[&str]) {
     let els = client
         .find_all(Locator::Css("link[hreflang]"))
@@ -169,17 +195,17 @@ async fn version_and_language_navigation() {
     let base = format!("http://{addr}");
     let client = make_client().await;
 
-    // Step 1: visit /docs/concepts/router
+    // Step 1: visit /docs/concepts/router (now 0.23, latest stable)
     client
         .goto(&format!("{base}/docs/concepts/router"))
         .await
         .unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    assert_version_selector(&client, "Next").await;
+    assert_version_selector(&client, "0.23").await;
     assert_lang_selector(&client, "English").await;
 
-    // Step 2: expand version selector, verify options, click 0.23
+    // Step 2: expand version selector, verify options, click Next
     {
         let btn = client
             .find(Locator::Css(
@@ -204,8 +230,8 @@ async fn version_and_language_navigation() {
             v
         };
         assert!(
-            labels.contains(&"0.23".to_string()),
-            "0.23 not in version options: {:?}",
+            labels.contains(&"Next".to_string()),
+            "Next not in version options: {:?}",
             labels
         );
         assert!(
@@ -225,7 +251,7 @@ async fn version_and_language_navigation() {
         );
 
         for item in items {
-            if item.text().await.unwrap().trim() == "0.23" {
+            if item.text().await.unwrap().trim() == "Next" {
                 item.click().await.unwrap();
                 break;
             }
@@ -233,19 +259,19 @@ async fn version_and_language_navigation() {
         tokio::time::sleep(Duration::from_millis(500)).await;
     }
 
-    // Step 3: should be at /docs/0.23/concepts/router
+    // Step 3: should be at /docs/next/concepts/router
     let url = client.current_url().await.unwrap();
-    assert_path(&url, "/docs/0.23/concepts/router");
-    assert_version_selector(&client, "0.23").await;
+    assert_path(&url, "/docs/next/concepts/router");
+    assert_version_selector(&client, "Next").await;
     assert_lang_selector(&client, "English").await;
 
     // Step 4: switch language to Japanese
     click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
 
     let url = client.current_url().await.unwrap();
-    assert_path(&url, "/ja/docs/0.23/concepts/router");
+    assert_path(&url, "/ja/docs/next/concepts/router");
     assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
-    assert_version_selector(&client, "0.23").await;
+    assert_version_selector(&client, "Next").await;
 
     let body_text = client
         .find(Locator::Css("main"))
@@ -256,15 +282,15 @@ async fn version_and_language_navigation() {
         .unwrap();
     assert!(
         page_looks_japanese(&body_text),
-        "page at /ja/docs/0.23/concepts/router does not look Japanese"
+        "page at /ja/docs/next/concepts/router does not look Japanese"
     );
 
     // Step 5: click "Getting Started" sidebar category
     click_sidebar_category(&client, "Getting Started").await;
 
     let url = client.current_url().await.unwrap();
-    assert_path(&url, "/ja/docs/0.23/getting-started");
-    assert_version_selector(&client, "0.23").await;
+    assert_path(&url, "/ja/docs/next/getting-started");
+    assert_version_selector(&client, "Next").await;
     assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
 
     client.close().await.unwrap();
@@ -491,7 +517,7 @@ async fn head_meta_tags() {
     assert_no_element(&client, r#"meta[name="docsearch:version"]"#).await;
     assert_no_element(&client, r#"script[type="application/ld+json"]"#).await;
 
-    // --- English docs page ---
+    // --- English docs page (0.23, latest stable) ---
     client
         .goto(&format!("{base}/docs/concepts/router"))
         .await
@@ -539,7 +565,7 @@ async fn head_meta_tags() {
         &client,
         r#"meta[name="docsearch:version"]"#,
         "content",
-        "next",
+        "0.23",
     )
     .await;
 
@@ -547,9 +573,25 @@ async fn head_meta_tags() {
     assert_meta_exists(&client, r#"meta[property="og:description"]"#).await;
     assert_meta_exists(&client, r#"script[type="application/ld+json"]"#).await;
 
-    // --- Japanese versioned docs page ---
+    // --- English Next docs page ---
     client
-        .goto(&format!("{base}/ja/docs/0.23/concepts/router"))
+        .goto(&format!("{base}/docs/next/concepts/router"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    assert_meta_attr(&client, "html", "lang", "en").await;
+    assert_meta_attr(
+        &client,
+        r#"meta[name="docsearch:version"]"#,
+        "content",
+        "next",
+    )
+    .await;
+
+    // --- Japanese docs page (0.23, latest stable) ---
+    client
+        .goto(&format!("{base}/ja/docs/concepts/router"))
         .await
         .unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
@@ -573,14 +615,14 @@ async fn head_meta_tags() {
         &client,
         r#"meta[property="og:url"]"#,
         "content",
-        "https://yew.rs/ja/docs/0.23/concepts/router",
+        "https://yew.rs/ja/docs/concepts/router",
     )
     .await;
     assert_meta_attr(
         &client,
         r#"link[rel="canonical"]"#,
         "href",
-        "https://yew.rs/ja/docs/0.23/concepts/router",
+        "https://yew.rs/ja/docs/concepts/router",
     )
     .await;
     assert_meta_attr(&client, r#"meta[property="og:locale"]"#, "content", "ja").await;
@@ -642,6 +684,130 @@ async fn hreflang_tags() {
     client.goto(&format!("{base}/blog")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
     assert_hreflang_set(&client, &["en", "x-default"]).await;
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn home_page_versioned_urls_exist() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+
+    // Main home pages (latest stable)
+    assert_status(&base, "/", 200).await;
+    assert_status(&base, "/ja/", 200).await;
+    assert_status(&base, "/zh-Hans/", 200).await;
+    assert_status(&base, "/zh-Hant/", 200).await;
+
+    // Next versioned home pages
+    assert_status(&base, "/next/", 200).await;
+    assert_status(&base, "/ja/next/", 200).await;
+    assert_status(&base, "/zh-Hans/next/", 200).await;
+    assert_status(&base, "/zh-Hant/next/", 200).await;
+
+    // 0.22 versioned home pages
+    assert_status(&base, "/0.22/", 200).await;
+    assert_status(&base, "/ja/0.22/", 200).await;
+    assert_status(&base, "/zh-Hans/0.22/", 200).await;
+    assert_status(&base, "/zh-Hant/0.22/", 200).await;
+
+    // 0.21 versioned home pages
+    assert_status(&base, "/0.21/", 200).await;
+    assert_status(&base, "/ja/0.21/", 200).await;
+
+    // 0.20 versioned home pages
+    assert_status(&base, "/0.20/", 200).await;
+    assert_status(&base, "/ja/0.20/", 200).await;
+}
+
+#[tokio::test]
+async fn home_page_version_selector() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    // Main home shows latest stable (0.23)
+    client.goto(&format!("{base}/")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    assert_version_selector(&client, "0.23").await;
+    assert_lang_selector(&client, "English").await;
+
+    // No version badge or version banner on home page
+    assert_no_element(&client, ".version-badge").await;
+    assert_no_element(&client, ".version-banner").await;
+
+    // Click Next in version selector, navigate to /next/
+    click_version_option(&client, "Next").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/next");
+    assert_version_selector(&client, "Next").await;
+    assert_no_element(&client, ".version-badge").await;
+    assert_no_element(&client, ".version-banner").await;
+
+    // Switch language to Japanese on versioned home
+    click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/ja/next");
+    assert_version_selector(&client, "Next").await;
+    assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+
+    // Switch version to 0.22
+    click_version_option(&client, "0.22").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/ja/0.22");
+    assert_version_selector(&client, "0.22").await;
+
+    // Switch back to latest (0.23), should go to /ja/
+    click_version_option(&client, "0.23").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/ja");
+    assert_version_selector(&client, "0.23").await;
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn home_page_learn_more_links() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    // English home: "Learn more" links point to /docs/... (latest stable)
+    client.goto(&format!("{base}/")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let links = client
+        .find_all(Locator::Css(".card-footer a"))
+        .await
+        .unwrap();
+    assert!(!links.is_empty(), "no Learn more links found");
+    for link in &links {
+        let href = link.attr("href").await.unwrap().unwrap();
+        assert!(
+            href.starts_with("/docs/"),
+            "Learn more link should start with /docs/, got: {href}"
+        );
+        assert!(
+            !href.contains("/docs/docs/"),
+            "Learn more link has double /docs/: {href}"
+        );
+    }
+
+    // Japanese versioned home: links point to /ja/docs/0.22/...
+    client.goto(&format!("{base}/ja/0.22/")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let links = client
+        .find_all(Locator::Css(".card-footer a"))
+        .await
+        .unwrap();
+    for link in &links {
+        let href = link.attr("href").await.unwrap().unwrap();
+        assert!(
+            href.starts_with("/ja/docs/0.22/"),
+            "ja/0.22 Learn more link should start with /ja/docs/0.22/, got: {href}"
+        );
+    }
 
     client.close().await.unwrap();
 }

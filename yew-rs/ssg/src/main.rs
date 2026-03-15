@@ -114,8 +114,8 @@ fn derive_doc_version(url_path: &str) -> Option<&'static str> {
     if !path.starts_with("docs") {
         return None;
     }
-    if path.starts_with("docs/0.23/") {
-        Some("0.23")
+    if path.starts_with("docs/next/") || path == "docs/next" {
+        Some("next")
     } else if path.starts_with("docs/0.22/") {
         Some("0.22")
     } else if path.starts_with("docs/0.21/") {
@@ -123,7 +123,7 @@ fn derive_doc_version(url_path: &str) -> Option<&'static str> {
     } else if path.starts_with("docs/0.20/") {
         Some("0.20")
     } else {
-        Some("next")
+        Some("0.23")
     }
 }
 
@@ -321,23 +321,23 @@ struct PageBinary {
 }
 
 const CRATES: &[(&str, &str, &str)] = &[
-    ("docs", "docs", ""),
-    ("docs-0-23", "docs/0.23", "v0-23-"),
+    ("docs", "docs/next", ""),
+    ("docs-0-23", "docs", "v0-23-"),
     ("docs-0-22", "docs/0.22", "v0-22-"),
     ("docs-0-21", "docs/0.21", "v0-21-"),
     ("docs-0-20", "docs/0.20", "v0-20-"),
-    ("docs-ja", "ja/docs", "ja-"),
-    ("docs-ja-0-23", "ja/docs/0.23", "ja-0-23-"),
+    ("docs-ja", "ja/docs/next", "ja-"),
+    ("docs-ja-0-23", "ja/docs", "ja-0-23-"),
     ("docs-ja-0-22", "ja/docs/0.22", "ja-0-22-"),
     ("docs-ja-0-21", "ja/docs/0.21", "ja-0-21-"),
     ("docs-ja-0-20", "ja/docs/0.20", "ja-0-20-"),
-    ("docs-zh-hans", "zh-Hans/docs", "zh-hans-"),
-    ("docs-zh-hans-0-23", "zh-Hans/docs/0.23", "zh-hans-0-23-"),
+    ("docs-zh-hans", "zh-Hans/docs/next", "zh-hans-"),
+    ("docs-zh-hans-0-23", "zh-Hans/docs", "zh-hans-0-23-"),
     ("docs-zh-hans-0-22", "zh-Hans/docs/0.22", "zh-hans-0-22-"),
     ("docs-zh-hans-0-21", "zh-Hans/docs/0.21", "zh-hans-0-21-"),
     ("docs-zh-hans-0-20", "zh-Hans/docs/0.20", "zh-hans-0-20-"),
-    ("docs-zh-hant", "zh-Hant/docs", "zh-hant-"),
-    ("docs-zh-hant-0-23", "zh-Hant/docs/0.23", "zh-hant-0-23-"),
+    ("docs-zh-hant", "zh-Hant/docs/next", "zh-hant-"),
+    ("docs-zh-hant-0-23", "zh-Hant/docs", "zh-hant-0-23-"),
     ("docs-zh-hant-0-22", "zh-Hant/docs/0.22", "zh-hant-0-22-"),
     ("docs-zh-hant-0-21", "zh-Hant/docs/0.21", "zh-hant-0-21-"),
     ("docs-zh-hant-0-20", "zh-Hant/docs/0.20", "zh-hant-0-20-"),
@@ -345,27 +345,76 @@ const CRATES: &[(&str, &str, &str)] = &[
 ];
 
 fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
+    let home = "yew-site-home".to_string();
+    let home_langs: &[(&str, &str)] = &[
+        ("", ""),
+        ("ja", "ja"),
+        ("zh-Hans", "zh-hans"),
+        ("zh-Hant", "zh-hant"),
+    ];
+
+    let home_versions: &[(&str, &str)] = &[
+        ("next", "next"),
+        ("0.22", "v022"),
+        ("0.21", "v021"),
+        ("0.20", "v020"),
+    ];
+
     let mut pages = Vec::new();
 
-    pages.push(PageBinary {
-        bin_name: "yew-site-home".to_string(),
-        url_path: "/".to_string(),
-        title: "Yew".to_string(),
-        crate_name: "yew-site-home".to_string(),
-    });
+    // Main home pages (latest stable = 0.23, at /, /ja/, etc.)
+    for &(lang, lsuffix) in home_langs {
+        let bin_name = if lsuffix.is_empty() {
+            "yew-site-home".to_string()
+        } else {
+            format!("home-{lsuffix}")
+        };
+        let url_path = if lang.is_empty() {
+            "/".to_string()
+        } else {
+            format!("/{lang}/")
+        };
+        pages.push(PageBinary {
+            bin_name,
+            url_path,
+            title: "Yew".to_string(),
+            crate_name: home.clone(),
+        });
+    }
+
+    // Versioned home pages at /{lang}/{version}/
+    for &(version_slug, vsuffix) in home_versions {
+        for &(lang, lsuffix) in home_langs {
+            let bin_name = match (lsuffix, vsuffix) {
+                ("", v) => format!("home-{v}"),
+                (l, v) => format!("home-{l}-{v}"),
+            };
+            let lang_prefix = if lang.is_empty() {
+                String::new()
+            } else {
+                format!("/{lang}")
+            };
+            let url_path = format!("{lang_prefix}/{version_slug}/");
+            pages.push(PageBinary {
+                bin_name,
+                url_path,
+                title: "Yew".to_string(),
+                crate_name: home.clone(),
+            });
+        }
+    }
 
     pages.push(PageBinary {
         bin_name: "search".to_string(),
         url_path: "/search".to_string(),
         title: "Search".to_string(),
-        crate_name: "yew-site-home".to_string(),
+        crate_name: home.clone(),
     });
-
     pages.push(PageBinary {
         bin_name: "not-found".to_string(),
         url_path: "/404".to_string(),
         title: "Page Not Found".to_string(),
-        crate_name: "yew-site-home".to_string(),
+        crate_name: home,
     });
 
     for &(crate_name, url_prefix, bin_prefix) in CRATES {
@@ -388,10 +437,21 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
             if url_segments.last().is_some_and(|s| s == "introduction") {
                 url_segments.pop();
             }
-            let url_path = if url_segments.is_empty() {
-                format!("/{}", url_prefix)
+            let is_migration_guide = url_segments
+                .first()
+                .is_some_and(|s| s == "migration-guides");
+            let effective_prefix = if is_migration_guide {
+                url_prefix
+                    .replace("/next", "")
+                    .replace("next/", "")
+                    .replace("next", "docs")
             } else {
-                format!("/{}/{}", url_prefix, url_segments.join("/"))
+                url_prefix.to_string()
+            };
+            let url_path = if url_segments.is_empty() {
+                format!("/{}", effective_prefix)
+            } else {
+                format!("/{}/{}", effective_prefix, url_segments.join("/"))
             };
             let bin_name = format!(
                 "{}{}",
