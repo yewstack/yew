@@ -275,7 +275,61 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     </a>
                 </div>
                 <div class={css!(display: flex; align-items: center; gap: 0.5rem;)}>
-                    <div class={css!(margin-right: 0.5rem;)} id="docsearch" />
+                    <div class={css!(margin-right: 0.5rem;)} id="docsearch">
+                        <button type="button" aria-label="Search (Ctrl+K)" class={css!(
+                            align-items: center;
+                            background: var(--docsearch-searchbox-background, #ebedf0);
+                            border: 0;
+                            border-radius: 40px;
+                            color: var(--docsearch-muted-color, #969faf);
+                            cursor: pointer;
+                            display: flex;
+                            font-weight: 500;
+                            height: 36px;
+                            justify-content: space-between;
+                            margin: 0 0 0 16px;
+                            padding: 0 8px;
+                            user-select: none;
+                        )}>
+                            <span class={css!(align-items: center; display: flex;)}>
+                                <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" class={css!(stroke-width: 1.6;)}>
+                                    <path d="M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z" stroke="currentColor" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <span class={css!(font-size: 1rem; padding: 0 12px 0 6px;)}>{"Search"}</span>
+                            </span>
+                            <span class={css!("display: flex; min-width: calc(40px + 0.8em);")}>
+                                <kbd class={css!(r#"
+                                    align-items: center;
+                                    background: var(--docsearch-key-gradient, linear-gradient(-225deg, #d5dbe4, #f8f8f8));
+                                    border-radius: 3px;
+                                    box-shadow: var(--docsearch-key-shadow, inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 1px 2px 1px rgba(30, 35, 90, 0.4));
+                                    color: var(--docsearch-muted-color, #969faf);
+                                    display: flex;
+                                    height: 18px;
+                                    justify-content: center;
+                                    margin-right: 0.4em;
+                                    padding: 0 0 2px;
+                                    width: 20px;
+                                "#)}>
+                                    <svg width="15" height="15">
+                                        <path d="M4.505 4.496h2M5.505 5.496v5M8.216 4.496l.055 5.993M10 7.5c.333.333.5.667.5 1v2M12.326 4.5v5.996M8.384 4.496c1.674 0 2.116 0 2.116 1.5s-.442 1.5-2.116 1.5M3.205 9.303c-.09.448-.277 1.21-1.241 1.203C1 10.5.5 9.513.5 8V7c0-1.57.5-2.5 1.464-2.494.964.006 1.134.598 1.24 1.342M12.553 10.5h1.953" stroke-width="1.2" stroke="currentColor" fill="none" stroke-linecap="square" />
+                                    </svg>
+                                </kbd>
+                                <kbd class={css!(r#"
+                                    align-items: center;
+                                    background: var(--docsearch-key-gradient, linear-gradient(-225deg, #d5dbe4, #f8f8f8));
+                                    border-radius: 3px;
+                                    box-shadow: var(--docsearch-key-shadow, inset 0 -2px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 1px 2px 1px rgba(30, 35, 90, 0.4));
+                                    color: var(--docsearch-muted-color, #969faf);
+                                    display: flex;
+                                    height: 18px;
+                                    justify-content: center;
+                                    padding: 0 0 2px;
+                                    width: 20px;
+                                "#)}>{"K"}</kbd>
+                            </span>
+                        </button>
+                    </div>
                     <button class={css!(
                         background: none;
                         border: none;
