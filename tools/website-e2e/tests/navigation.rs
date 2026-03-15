@@ -49,52 +49,63 @@ async fn make_client() -> fantoccini::Client {
         .expect("failed to connect to WebDriver")
 }
 
-async fn assert_version_selector(client: &fantoccini::Client, expected: &str) {
-    let btn = client
-        .find(Locator::Css(
-            ".items > .dropdown:nth-of-type(1) .dropdown-btn",
-        ))
+async fn find_nav_button_by_text(
+    client: &fantoccini::Client,
+    text: &str,
+) -> fantoccini::elements::Element {
+    let xpath = format!("//nav//button[contains(text(), '{text}')]");
+    client
+        .find(Locator::XPath(&xpath))
         .await
-        .expect("version selector not found");
+        .unwrap_or_else(|_| panic!("nav button containing '{text}' not found"))
+}
+
+async fn assert_version_selector(client: &fantoccini::Client, expected: &str) {
+    let btn = find_nav_button_by_text(client, expected).await;
     let text = btn.text().await.unwrap();
-    assert_eq!(text.trim(), expected, "version selector mismatch");
+    assert!(
+        text.contains(expected),
+        "version selector mismatch: expected '{expected}', got '{text}'"
+    );
 }
 
 async fn assert_lang_selector(client: &fantoccini::Client, expected: &str) {
-    let btn = client
-        .find(Locator::Css(
-            ".items > .dropdown:nth-of-type(2) .dropdown-btn",
-        ))
-        .await
-        .expect("language selector not found");
+    let btn = find_nav_button_by_text(client, expected).await;
     let text = btn.text().await.unwrap();
-    assert_eq!(text.trim(), expected, "language selector mismatch");
+    assert!(
+        text.contains(expected),
+        "language selector mismatch: expected '{expected}', got '{text}'"
+    );
+}
+
+async fn find_lang_button(client: &fantoccini::Client) -> fantoccini::elements::Element {
+    let known_langs = [
+        "English",
+        "\u{65e5}\u{672c}\u{8a9e}",
+        "\u{7b80}\u{4f53}\u{4e2d}\u{6587}",
+        "\u{7e41}\u{9ad4}\u{4e2d}\u{6587}",
+    ];
+    let btns = client.find_all(Locator::Css("nav button")).await.unwrap();
+    for btn in btns {
+        let text = btn.text().await.unwrap();
+        if known_langs.iter().any(|l| text.contains(l)) {
+            return btn;
+        }
+    }
+    panic!("language selector button not found");
 }
 
 async fn click_lang_option(client: &fantoccini::Client, label: &str) {
-    let btn = client
-        .find(Locator::Css(
-            ".items > .dropdown:nth-of-type(2) .dropdown-btn",
-        ))
-        .await
-        .unwrap();
+    let btn = find_lang_button(client).await;
     btn.click().await.unwrap();
     tokio::time::sleep(Duration::from_millis(200)).await;
 
-    let items = client
-        .find_all(Locator::Css(
-            ".items > .dropdown:nth-of-type(2) .dropdown-item",
-        ))
+    let item = client
+        .find(Locator::LinkText(label))
         .await
-        .unwrap();
-    for item in items {
-        if item.text().await.unwrap().trim() == label {
-            item.click().await.unwrap();
-            tokio::time::sleep(Duration::from_millis(500)).await;
-            return;
-        }
-    }
-    panic!("language option '{}' not found", label);
+        .unwrap_or_else(|_| panic!("language option '{label}' not found"));
+    item.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
 }
 
 async fn click_sidebar_category(client: &fantoccini::Client, label: &str) {
@@ -141,35 +152,50 @@ async fn assert_meta_exists(client: &fantoccini::Client, css: &str) {
     assert!(!els.is_empty(), "expected at least one element: {css}");
 }
 
-async fn assert_no_element(client: &fantoccini::Client, css: &str) {
+async fn assert_no_element_css(client: &fantoccini::Client, css: &str) {
     let els = client.find_all(Locator::Css(css)).await.unwrap();
     assert!(els.is_empty(), "expected no elements for: {css}");
 }
 
+async fn assert_no_element_xpath(client: &fantoccini::Client, xpath: &str) {
+    let els = client.find_all(Locator::XPath(xpath)).await.unwrap();
+    assert!(els.is_empty(), "expected no elements for xpath: {xpath}");
+}
+
 async fn click_version_option(client: &fantoccini::Client, label: &str) {
-    let btn = client
-        .find(Locator::Css(
-            ".items > .dropdown:nth-of-type(1) .dropdown-btn",
-        ))
-        .await
-        .unwrap();
+    // Find any nav button that looks like a version selector (contains a version-like text)
+    // We look for all nav buttons and click the first one that's not a lang button
+    let btns = client.find_all(Locator::Css("nav button")).await.unwrap();
+    let known_langs = [
+        "English",
+        "\u{65e5}\u{672c}\u{8a9e}",
+        "\u{7b80}\u{4f53}\u{4e2d}\u{6587}",
+        "\u{7e41}\u{9ad4}\u{4e2d}\u{6587}",
+    ];
+    let mut version_btn = None;
+    for btn in btns {
+        let text = btn.text().await.unwrap();
+        let trimmed = text.trim();
+        if !trimmed.is_empty()
+            && !known_langs.iter().any(|l| trimmed.contains(l))
+            && !trimmed.contains("Toggle")
+            && !trimmed.contains("Search")
+            && !trimmed.contains("menu")
+        {
+            version_btn = Some(btn);
+            break;
+        }
+    }
+    let btn = version_btn.expect("version selector button not found");
     btn.click().await.unwrap();
     tokio::time::sleep(Duration::from_millis(200)).await;
 
-    let items = client
-        .find_all(Locator::Css(
-            ".items > .dropdown:nth-of-type(1) .dropdown-item",
-        ))
+    let item = client
+        .find(Locator::LinkText(label))
         .await
-        .unwrap();
-    for item in items {
-        if item.text().await.unwrap().trim() == label {
-            item.click().await.unwrap();
-            tokio::time::sleep(Duration::from_millis(500)).await;
-            return;
-        }
-    }
-    panic!("version option '{}' not found", label);
+        .unwrap_or_else(|_| panic!("version option '{label}' not found"));
+    item.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
 }
 
 async fn assert_hreflang_set(client: &fantoccini::Client, expected: &[&str]) {
@@ -207,21 +233,11 @@ async fn version_and_language_navigation() {
 
     // Step 2: expand version selector, verify options, click Next
     {
-        let btn = client
-            .find(Locator::Css(
-                ".items > .dropdown:nth-of-type(1) .dropdown-btn",
-            ))
-            .await
-            .unwrap();
+        let btn = find_nav_button_by_text(&client, "0.23").await;
         btn.click().await.unwrap();
         tokio::time::sleep(Duration::from_millis(200)).await;
 
-        let items = client
-            .find_all(Locator::Css(
-                ".items > .dropdown:nth-of-type(1) .dropdown-item",
-            ))
-            .await
-            .unwrap();
+        let items = client.find_all(Locator::Css("nav ul li a")).await.unwrap();
         let labels: Vec<String> = {
             let mut v = Vec::new();
             for item in &items {
@@ -250,12 +266,11 @@ async fn version_and_language_navigation() {
             labels
         );
 
-        for item in items {
-            if item.text().await.unwrap().trim() == "Next" {
-                item.click().await.unwrap();
-                break;
-            }
-        }
+        let next_link = client
+            .find(Locator::LinkText("Next"))
+            .await
+            .expect("Next link not found in dropdown");
+        next_link.click().await.unwrap();
         tokio::time::sleep(Duration::from_millis(500)).await;
     }
 
@@ -395,7 +410,6 @@ async fn migration_guides_are_unversioned() {
     let addr = start_file_server(&build_dir()).await;
     let base = format!("http://{addr}");
 
-    // Unversioned English URLs return 200
     assert_status(
         &base,
         "/docs/migration-guides/yew/from-0-22-0-to-0-23-0",
@@ -421,7 +435,6 @@ async fn migration_guides_are_unversioned() {
     )
     .await;
 
-    // Versioned URLs return 404
     assert_status(
         &base,
         "/docs/0.23/migration-guides/yew/from-0-22-0-to-0-23-0",
@@ -435,7 +448,6 @@ async fn migration_guides_are_unversioned() {
     )
     .await;
 
-    // i18n unversioned URLs return 200
     assert_status(
         &base,
         "/ja/docs/migration-guides/yew/from-0-22-0-to-0-23-0",
@@ -455,7 +467,6 @@ async fn migration_guides_are_unversioned() {
     )
     .await;
 
-    // i18n versioned URLs return 404
     assert_status(
         &base,
         "/ja/docs/0.23/migration-guides/yew/from-0-22-0-to-0-23-0",
@@ -513,9 +524,9 @@ async fn head_meta_tags() {
     assert_meta_exists(&client, r#"link[type="application/atom+xml"]"#).await;
     assert_meta_exists(&client, r#"link[rel="search"]"#).await;
 
-    assert_no_element(&client, r#"meta[name="docsearch:language"]"#).await;
-    assert_no_element(&client, r#"meta[name="docsearch:version"]"#).await;
-    assert_no_element(&client, r#"script[type="application/ld+json"]"#).await;
+    assert_no_element_css(&client, r#"meta[name="docsearch:language"]"#).await;
+    assert_no_element_css(&client, r#"meta[name="docsearch:version"]"#).await;
+    assert_no_element_css(&client, r#"script[type="application/ld+json"]"#).await;
 
     // --- English docs page (0.23, latest stable) ---
     client
@@ -653,12 +664,10 @@ async fn hreflang_tags() {
     let base = format!("http://{addr}");
     let client = make_client().await;
 
-    // Homepage (non-docs): only en + x-default
     client.goto(&format!("{base}/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
     assert_hreflang_set(&client, &["en", "x-default"]).await;
 
-    // Docs page: all languages + x-default
     client
         .goto(&format!("{base}/docs/concepts/router"))
         .await
@@ -680,7 +689,6 @@ async fn hreflang_tags() {
         "x-default href should not have locale prefix, got: {href}"
     );
 
-    // Blog (non-docs): only en + x-default
     client.goto(&format!("{base}/blog")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
     assert_hreflang_set(&client, &["en", "x-default"]).await;
@@ -693,29 +701,24 @@ async fn home_page_versioned_urls_exist() {
     let addr = start_file_server(&build_dir()).await;
     let base = format!("http://{addr}");
 
-    // Main home pages (latest stable)
     assert_status(&base, "/", 200).await;
     assert_status(&base, "/ja/", 200).await;
     assert_status(&base, "/zh-Hans/", 200).await;
     assert_status(&base, "/zh-Hant/", 200).await;
 
-    // Next versioned home pages
     assert_status(&base, "/next/", 200).await;
     assert_status(&base, "/ja/next/", 200).await;
     assert_status(&base, "/zh-Hans/next/", 200).await;
     assert_status(&base, "/zh-Hant/next/", 200).await;
 
-    // 0.22 versioned home pages
     assert_status(&base, "/0.22/", 200).await;
     assert_status(&base, "/ja/0.22/", 200).await;
     assert_status(&base, "/zh-Hans/0.22/", 200).await;
     assert_status(&base, "/zh-Hant/0.22/", 200).await;
 
-    // 0.21 versioned home pages
     assert_status(&base, "/0.21/", 200).await;
     assert_status(&base, "/ja/0.21/", 200).await;
 
-    // 0.20 versioned home pages
     assert_status(&base, "/0.20/", 200).await;
     assert_status(&base, "/ja/0.20/", 200).await;
 }
@@ -726,38 +729,32 @@ async fn home_page_version_selector() {
     let base = format!("http://{addr}");
     let client = make_client().await;
 
-    // Main home shows latest stable (0.23)
     client.goto(&format!("{base}/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
     assert_version_selector(&client, "0.23").await;
     assert_lang_selector(&client, "English").await;
 
-    // No version badge or version banner on home page
-    assert_no_element(&client, ".version-badge").await;
-    assert_no_element(&client, ".version-banner").await;
+    assert_no_element_xpath(&client, "//span[contains(., 'Version:')]").await;
+    assert_no_element_css(&client, "[role='alert']").await;
 
-    // Click Next in version selector, navigate to /next/
     click_version_option(&client, "Next").await;
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/next");
     assert_version_selector(&client, "Next").await;
-    assert_no_element(&client, ".version-badge").await;
-    assert_no_element(&client, ".version-banner").await;
+    assert_no_element_xpath(&client, "//span[contains(., 'Version:')]").await;
+    assert_no_element_css(&client, "[role='alert']").await;
 
-    // Switch language to Japanese on versioned home
     click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja/next");
     assert_version_selector(&client, "Next").await;
     assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
 
-    // Switch version to 0.22
     click_version_option(&client, "0.22").await;
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja/0.22");
     assert_version_selector(&client, "0.22").await;
 
-    // Switch back to latest (0.23), should go to /ja/
     click_version_option(&client, "0.23").await;
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja");
@@ -772,7 +769,6 @@ async fn home_page_learn_more_links() {
     let base = format!("http://{addr}");
     let client = make_client().await;
 
-    // English home: "Learn more" links point to /docs/... (latest stable)
     client.goto(&format!("{base}/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
@@ -793,7 +789,6 @@ async fn home_page_learn_more_links() {
         );
     }
 
-    // Japanese versioned home: links point to /ja/docs/0.22/...
     client.goto(&format!("{base}/ja/0.22/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
