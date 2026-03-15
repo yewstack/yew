@@ -135,7 +135,7 @@ macro_rules! blog_page {
 
         pub const META: &$crate::BlogMeta = $meta;
 
-        #[component]
+        #[::stylist::yew::styled_component]
         pub fn Page() -> Html {
             let meta = META;
             let content: yew_site_lib::Content = $content;
@@ -174,22 +174,35 @@ macro_rules! blog_page {
                     sidebar_title="Recent posts"
                     sidebar_all_open={true}
                 >
-                    <div class="blog-post-header">
-                        <time class="blog-post-date">{date_display}</time>
-                        <div class="blog-post-author">
+                    <div class={css!(margin-bottom: 1.5rem;)}>
+                        <time class={css!(r#"
+                            display: block;
+                            font-size: 0.875rem;
+                            color: var(--color-text-secondary);
+                            margin-bottom: 0.75rem;
+                        "#)}>{date_display}</time>
+                        <div class={css!(display: flex; align-items: center; gap: 0.625rem;)}>
                             <img
-                                class="blog-post-avatar"
+                                class={css!(width: 48px; height: 48px; border-radius: 50%;)}
                                 src={meta.author_image_url}
                                 alt={meta.author_name}
                                 width="48"
                                 height="48"
                                 loading="lazy"
                             />
-                            <div class="blog-post-author-info">
-                                <a class="blog-post-author-name" href={meta.author_url}>
+                            <div class={css!(display: flex; flex-direction: column;)}>
+                                <a class={css!(r#"
+                                    font-weight: 600;
+                                    color: var(--color-text);
+                                    text-decoration: none;
+                                    &:hover { color: var(--color-primary); }
+                                "#)} href={meta.author_url}>
                                     {meta.author_name}
                                 </a>
-                                <span class="blog-post-author-title">{meta.author_title}</span>
+                                <span class={css!(r#"
+                                    font-size: 0.8125rem;
+                                    color: var(--color-text-secondary);
+                                "#)}>{meta.author_title}</span>
                             </div>
                         </div>
                     </div>

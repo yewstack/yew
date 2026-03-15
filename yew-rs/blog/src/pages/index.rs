@@ -1,99 +1,11 @@
-use stylist::css;
+use stylist::yew::styled_component;
 use yew::prelude::*;
 use yew_site_lib::Layout;
 
 use crate::BLOG_POSTS;
 
-#[component]
+#[styled_component]
 pub fn Page() -> Html {
-    let style = css!(
-        r#"
-        .blog-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .blog-list-item {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .blog-list-item:last-child {
-            border-bottom: none;
-        }
-
-        .blog-list-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 0 0.5rem 0;
-        }
-
-        .blog-list-title a {
-            color: var(--color-text);
-            text-decoration: none;
-        }
-
-        .blog-list-title a:hover {
-            color: var(--color-primary);
-        }
-
-        .blog-list-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .blog-list-date {
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .blog-list-author {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .blog-list-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-        }
-
-        .blog-list-author-name {
-            font-size: 0.875rem;
-            color: var(--color-text-secondary);
-            text-decoration: none;
-        }
-
-        .blog-list-author-name:hover {
-            color: var(--color-primary);
-        }
-
-        .blog-list-description {
-            color: var(--color-text-secondary);
-            margin: 0;
-            line-height: 1.6;
-        }
-
-        .blog-list-read-more {
-            display: inline-block;
-            margin-top: 0.5rem;
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .blog-list-read-more:hover {
-            text-decoration: underline;
-        }
-        "#
-    );
-
     let format_date = |date: &str| -> String {
         let parts: Vec<&str> = date.split('-').collect();
         let month = match parts[1] {
@@ -117,38 +29,71 @@ pub fn Page() -> Html {
 
     html! {
         <Layout title="Blog" active_nav="Blog">
-            <div class={style}>
-                <ul class="blog-list">
-                    { for BLOG_POSTS.iter().map(|post| {
-                        let url = post.url_path();
-                        html! {
-                            <li class="blog-list-item">
-                                <h2 class="blog-list-title">
-                                    <a href={url.clone()}>{post.title}</a>
-                                </h2>
-                                <div class="blog-list-meta">
-                                    <time class="blog-list-date">{format_date(post.date)}</time>
-                                    <div class="blog-list-author">
-                                        <img
-                                            class="blog-list-avatar"
-                                            src={post.author_image_url}
-                                            alt={post.author_name}
-                                            width="24"
-                                            height="24"
-                                            loading="lazy"
-                                        />
-                                        <a class="blog-list-author-name" href={post.author_url}>
-                                            {post.author_name}
-                                        </a>
-                                    </div>
+            <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
+                { for BLOG_POSTS.iter().map(|post| {
+                    let url = post.url_path();
+                    html! {
+                        <li class={css!(r#"
+                            margin-bottom: 2rem;
+                            padding-bottom: 2rem;
+                            border-bottom: 1px solid var(--color-border);
+                            &:last-child {
+                                border-bottom: none;
+                            }
+                        "#)}>
+                            <h2 class={css!(font-size: 1.5rem; font-weight: 700; margin: 0 0 0.5rem 0;)}>
+                                <a class={css!(r#"
+                                    color: var(--color-text);
+                                    text-decoration: none;
+                                    &:hover { color: var(--color-primary); }
+                                "#)} href={url.clone()}>{post.title}</a>
+                            </h2>
+                            <div class={css!(r#"
+                                display: flex;
+                                align-items: center;
+                                gap: 0.75rem;
+                                margin-bottom: 0.75rem;
+                            "#)}>
+                                <time class={css!(color: var(--color-text-secondary); font-size: 0.875rem;)}>
+                                    {format_date(post.date)}
+                                </time>
+                                <div class={css!(display: flex; align-items: center; gap: 0.5rem;)}>
+                                    <img
+                                        class={css!(width: 24px; height: 24px; border-radius: 50%;)}
+                                        src={post.author_image_url}
+                                        alt={post.author_name}
+                                        width="24"
+                                        height="24"
+                                        loading="lazy"
+                                    />
+                                    <a class={css!(r#"
+                                        font-size: 0.875rem;
+                                        color: var(--color-text-secondary);
+                                        text-decoration: none;
+                                        &:hover { color: var(--color-primary); }
+                                    "#)} href={post.author_url}>
+                                        {post.author_name}
+                                    </a>
                                 </div>
-                                <p class="blog-list-description">{post.description}</p>
-                                <a class="blog-list-read-more" href={url}>{"Read more"}</a>
-                            </li>
-                        }
-                    })}
-                </ul>
-            </div>
+                            </div>
+                            <p class={css!(r#"
+                                color: var(--color-text-secondary);
+                                margin: 0;
+                                line-height: 1.6;
+                            "#)}>{post.description}</p>
+                            <a class={css!(r#"
+                                display: inline-block;
+                                margin-top: 0.5rem;
+                                color: var(--color-primary);
+                                text-decoration: none;
+                                font-weight: 600;
+                                font-size: 0.875rem;
+                                &:hover { text-decoration: underline; }
+                            "#)} href={url}>{"Read more"}</a>
+                        </li>
+                    }
+                })}
+            </ul>
         </Layout>
     }
 }

@@ -52,6 +52,9 @@ pub fn GlobalStyles() -> Html {
                     --theme-sun-display: none;
                     --theme-moon-display: none;
                     --theme-system-display: block;
+
+                    --color-bg-offset: #ebedf0;
+                    --color-primary-rgb: 0, 117, 90;
                 }
 
                 [data-theme="dark"] {
@@ -85,6 +88,9 @@ pub fn GlobalStyles() -> Html {
                     --theme-moon-display: block;
                     --theme-system-display: none;
 
+                    --color-bg-offset: #3a3a3c;
+                    --color-primary-rgb: 40, 210, 173;
+
                     color-scheme: dark;
                 }
 
@@ -117,15 +123,6 @@ pub fn GlobalStyles() -> Html {
                     color: var(--color-text);
                     background: var(--color-bg);
                     line-height: 1.65;
-                }
-
-                a {
-                    color: var(--color-primary);
-                    text-decoration: none;
-                }
-
-                a:hover {
-                    text-decoration: underline;
                 }
 
                 h1, h2, h3, h4, h5, h6 {
@@ -177,16 +174,6 @@ pub fn GlobalStyles() -> Html {
 
                 [data-theme="dark"] .themed-img-dark {
                     display: block;
-                }
-
-                :root {
-                    --color-bg-offset: #ebedf0;
-                    --color-primary-rgb: 0, 117, 90;
-                }
-
-                [data-theme="dark"] {
-                    --color-bg-offset: #3a3a3c;
-                    --color-primary-rgb: 40, 210, 173;
                 }
             "#)} />
             <Global css={syntect_light} />

@@ -38,40 +38,48 @@ pub struct LayoutProps {
     pub toc: Vec<TocEntry>,
 }
 
-fn version_banner(doc_version: &AttrValue, lang: &AttrValue) -> Html {
+#[derive(Clone, PartialEq, Properties)]
+struct VersionBannerProps {
+    doc_version: AttrValue,
+    lang: AttrValue,
+}
+
+#[styled_component]
+fn VersionBanner(props: &VersionBannerProps) -> Html {
     use yew::virtual_dom::VNode;
-    if doc_version.is_empty() || doc_version.as_str() == crate::LATEST_STABLE {
+    if props.doc_version.is_empty() || props.doc_version.as_str() == crate::LATEST_STABLE {
         return VNode::default();
     }
-    let lang_p = if lang.is_empty() {
+    let lang_p = if props.lang.is_empty() {
         String::new()
     } else {
-        format!("/{lang}")
+        format!("/{}", props.lang)
     };
     let latest_path = format!("{lang_p}/docs/getting-started");
     let latest_label = format!("latest version ({})", crate::LATEST_STABLE);
-    if doc_version.as_str() == "Next" {
-        html! {
-            <div class="version-banner" role="alert">
+    let is_next = props.doc_version.as_str() == "Next";
+    html! {
+        <div class={css!(
+            padding: 0.75rem 1rem;
+            border: 1px solid #e6a700;
+            border-radius: 6px;
+            background: #fff8e1;
+            color: #5a4600;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        )} role="alert">
+            if is_next {
                 <div>{"This is unreleased documentation for Yew "}<b>{"Next"}</b>{" version."}</div>
-                <div class="banner-secondary">
-                    {"For up-to-date documentation, see the "}
-                    <b><a href={latest_path}>{latest_label}</a></b>
-                    {"."}
-                </div>
+            } else {
+                <div>{"This is documentation for Yew "}<b>{props.doc_version.to_string()}</b>{", which is no longer actively maintained."}</div>
+            }
+            <div class={css!(margin-top: 0.5rem;)}>
+                {"For up-to-date documentation, see the "}
+                <b><a class={css!(color: #1a73e8; font-weight: 600;)} href={latest_path}>{latest_label}</a></b>
+                {"."}
             </div>
-        }
-    } else {
-        html! {
-            <div class="version-banner" role="alert">
-                <div>{"This is documentation for Yew "}<b>{doc_version.to_string()}</b>{", which is no longer actively maintained."}</div>
-                <div class="banner-secondary">
-                    {"For up-to-date documentation, see the "}
-                    <b><a href={latest_path}>{latest_label}</a></b>
-                    {"."}
-                </div>
-            </div>
-        }
+        </div>
     }
 }
 
@@ -177,14 +185,13 @@ pub fn Layout(props: &LayoutProps) -> Html {
         })
     };
 
-    #[cfg(feature = "csr")]
     let copied = use_state(|| false);
 
     #[cfg(feature = "csr")]
     let on_copy_md = {
         let md = props.markdown.clone();
         let copied = copied.clone();
-        Callback::from(move |_: MouseEvent| {
+        Some(Callback::from(move |_: MouseEvent| {
             let md = md.clone();
             let copied = copied.clone();
             wasm_bindgen_futures::spawn_local(async move {
@@ -199,8 +206,10 @@ pub fn Layout(props: &LayoutProps) -> Html {
                     .forget();
                 }
             });
-        })
+        }))
     };
+    #[cfg(not(feature = "csr"))]
+    let on_copy_md = None::<Callback<MouseEvent>>;
 
     let content_ref = use_node_ref();
 
@@ -211,380 +220,6 @@ pub fn Layout(props: &LayoutProps) -> Html {
             || {}
         });
     }
-
-    let style = css!(
-        r#"
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            margin-top: var(--navbar-height);
-            max-width: 1440px;
-            margin-left: auto;
-            margin-right: auto;
-            width: 100%;
-        }
-
-        .main--with-sidebar {
-            flex-direction: row;
-        }
-
-        .content {
-            flex: 1;
-            max-width: var(--content-max-width);
-            padding: 2rem;
-            width: 100%;
-            position: relative;
-            margin: 0 auto;
-        }
-
-        .content--full-width {
-            max-width: none;
-            padding: 0;
-        }
-
-        .main--with-sidebar .content {
-            margin: 0;
-        }
-
-        .page-title {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-        }
-
-        .blog-post-header {
-            margin-bottom: 1.5rem;
-        }
-
-        .blog-post-date {
-            display: block;
-            font-size: 0.875rem;
-            color: var(--color-text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        .blog-post-author {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-        }
-
-        .blog-post-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-        }
-
-        .blog-post-author-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .blog-post-author-name {
-            font-weight: 600;
-            color: var(--color-text);
-            text-decoration: none;
-        }
-
-        .blog-post-author-name:hover {
-            color: var(--color-primary);
-        }
-
-        .blog-post-author-title {
-            font-size: 0.8125rem;
-            color: var(--color-text-secondary);
-        }
-
-        .breadcrumbs {
-            margin-bottom: 0.5rem;
-        }
-
-        .breadcrumbs-list {
-            display: flex;
-            align-items: center;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            flex-wrap: wrap;
-            font-size: 0.875rem;
-        }
-
-        .breadcrumbs-item {
-            display: flex;
-            align-items: center;
-        }
-
-        .breadcrumbs-item + .breadcrumbs-item::before {
-            content: "/";
-            margin: 0 0.5rem;
-            color: var(--color-text-secondary);
-            opacity: 0.5;
-        }
-
-        .breadcrumbs-link {
-            color: var(--color-text-secondary);
-            text-decoration: none;
-        }
-
-        a.breadcrumbs-link:hover {
-            color: var(--color-primary);
-        }
-
-        .breadcrumbs-item--active .breadcrumbs-link {
-            color: var(--color-text);
-            font-weight: 600;
-        }
-
-        .breadcrumbs-home-icon {
-            width: 18px;
-            height: 18px;
-            display: block;
-        }
-
-        .version-badge {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.125rem 0.5rem;
-            border-radius: 4px;
-            background: var(--color-bg-secondary);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .version-banner {
-            padding: 0.75rem 1rem;
-            border: 1px solid #e6a700;
-            border-radius: 6px;
-            background: #fff8e1;
-            color: #5a4600;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .version-banner a {
-            color: #1a73e8;
-            font-weight: 600;
-        }
-
-        .version-banner .banner-secondary {
-            margin-top: 0.5rem;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--color-border);
-        }
-
-        .pagination-spacer {
-            flex: 1;
-        }
-
-        .pagination-link {
-            display: flex;
-            flex-direction: column;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            text-decoration: none;
-            color: var(--color-text);
-            max-width: 45%;
-            transition: border-color 0.2s;
-        }
-
-        .pagination-link:hover {
-            border-color: var(--color-primary);
-        }
-
-        .pagination-link--next {
-            text-align: right;
-            margin-left: auto;
-        }
-
-        .pagination-sublabel {
-            font-size: 0.75rem;
-            color: var(--color-text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .pagination-label {
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--color-primary);
-        }
-
-        .edit-page {
-            margin-top: 2rem;
-        }
-
-        .edit-page-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .edit-page-link:hover {
-            color: var(--color-primary);
-        }
-
-        .edit-page-icon {
-            flex-shrink: 0;
-        }
-
-        .toc-column {
-            width: 250px;
-            flex-shrink: 0;
-        }
-
-        .toc-container {
-            position: sticky;
-            top: calc(var(--navbar-height) + 1rem);
-            max-height: calc(100vh - var(--navbar-height) - 2rem);
-            overflow-y: auto;
-            padding: 0 0.75rem;
-            font-size: 0.8125rem;
-            border-left: 1px solid var(--color-border);
-        }
-
-        .copy-md-btn {
-            float: right;
-            margin: 0 0 0.5rem 0.5rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            background: var(--color-bg-secondary);
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-            font-family: inherit;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            transition: border-color 0.2s, color 0.2s;
-        }
-
-        .copy-md-btn:hover {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-        }
-
-        .copy-md-btn svg {
-            flex-shrink: 0;
-        }
-
-        .anchor {
-            scroll-margin-top: calc(var(--navbar-height) + 1rem);
-        }
-
-        .hash-link {
-            opacity: 0;
-            transition: opacity 0.2s;
-            padding-left: 0.5rem;
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: normal;
-        }
-
-        .anchor:hover .hash-link,
-        .hash-link:focus {
-            opacity: 1;
-            text-decoration: none;
-        }
-
-        .toc-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .toc-link {
-            display: block;
-            padding: 0.25rem 0;
-            color: var(--color-text-secondary);
-            text-decoration: none;
-            line-height: 1.3;
-            transition: color 0.2s;
-        }
-
-        .toc-link:hover,
-        .toc-link--active {
-            color: var(--color-primary);
-        }
-
-        .toc-link--active {
-            font-weight: 600;
-        }
-
-        @media (max-width: 996px) {
-            .toc-column {
-                display: none;
-            }
-        }
-
-        .mobile-sidebar-toggle {
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background: var(--color-bg-secondary);
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            color: var(--color-text);
-            margin-bottom: 1rem;
-            margin-right: 0.75rem;
-            font-family: inherit;
-            font-weight: 500;
-        }
-
-        .mobile-sidebar-toggle:hover {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-        }
-
-        .sidebar-wrapper {
-            display: contents;
-        }
-
-        @media (max-width: 700px) {
-            .mobile-sidebar-toggle {
-                display: inline-flex;
-            }
-
-            .sidebar-wrapper {
-                display: none;
-            }
-
-            .sidebar-wrapper--open {
-                display: block;
-                border-bottom: 1px solid var(--color-border);
-                margin-bottom: 0.5rem;
-            }
-
-            .main--with-sidebar {
-                flex-direction: column;
-            }
-
-            .copy-md-btn {
-                display: none;
-            }
-        }
-    "#
-    );
 
     let breadcrumbs = props
         .sidebar
@@ -612,36 +247,17 @@ pub fn Layout(props: &LayoutProps) -> Html {
         String::new()
     };
 
-    #[cfg(feature = "csr")]
-    let copy_md_button = if !props.full_width && !props.markdown.is_empty() {
-        html! {
-            <button class="copy-md-btn" onclick={on_copy_md} title="Copy page content as Markdown">
-                <svg viewBox="0 0 24 24" width="14" height="14">
-                    <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
-                if *copied { {"Copied!"} } else { {"Copy as Markdown"} }
-            </button>
-        }
+    let main_dir = if has_sidebar { "row" } else { "column" };
+    let content_max_w = if props.full_width {
+        "none"
     } else {
-        html! {}
+        "var(--content-max-width)"
     };
-
-    #[cfg(not(feature = "csr"))]
-    let copy_md_button = if !props.full_width && !props.markdown.is_empty() {
-        html! {
-            <button class="copy-md-btn" title="Copy page content as Markdown">
-                <svg viewBox="0 0 24 24" width="14" height="14">
-                    <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
-                {"Copy as Markdown"}
-            </button>
-        }
-    } else {
-        html! {}
-    };
+    let content_pad = if props.full_width { "0" } else { "2rem" };
+    let content_margin = if has_sidebar { "0" } else { "0 auto" };
 
     html! {
-        <div class={style}>
+        <div class={css!(display: flex; flex-direction: column; min-height: 100vh;)}>
             <GlobalStyles />
             <Navbar
                 active={props.active_nav.clone()}
@@ -649,9 +265,37 @@ pub fn Layout(props: &LayoutProps) -> Html {
                 lang={props.lang.clone()}
                 current_path={props.active_sidebar_path.clone()}
             />
-            <div class={classes!("main", has_sidebar.then_some("main--with-sidebar"))}>
+            <div class={css!(
+                flex: 1;
+                display: flex;
+                flex-direction: ${main_dir};
+                margin-top: var(--navbar-height);
+                max-width: 1440px;
+                margin-left: auto;
+                margin-right: auto;
+                width: 100%;
+                @media (max-width: 700px) {
+                    flex-direction: column;
+                }
+            )}>
                 if let Some(entries) = &props.sidebar {
-                    <div class={classes!("sidebar-wrapper", (*mobile_sidebar_open).then_some("sidebar-wrapper--open"))}>
+                    <div class={if *mobile_sidebar_open {
+                        css!(
+                            display: contents;
+                            @media (max-width: 700px) {
+                                display: block;
+                                border-bottom: 1px solid var(--color-border);
+                                margin-bottom: 0.5rem;
+                            }
+                        )
+                    } else {
+                        css!(
+                            display: contents;
+                            @media (max-width: 700px) {
+                                display: none;
+                            }
+                        )
+                    }}>
                         <Sidebar
                             entries={entries.clone()}
                             active_path={props.active_sidebar_path.clone()}
@@ -662,9 +306,38 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         />
                     </div>
                 }
-                <main ref={content_ref.clone()} class={classes!("content", "doc-content", props.full_width.then_some("content--full-width"))}>
+                <main ref={content_ref.clone()} class={css!(
+                    flex: 1;
+                    max-width: ${content_max_w};
+                    padding: ${content_pad};
+                    width: 100%;
+                    position: relative;
+                    margin: ${content_margin};
+                )}>
                     if has_sidebar {
-                        <button class="mobile-sidebar-toggle" onclick={toggle_mobile_sidebar}>
+                        <button class={css!(
+                            display: none;
+                            align-items: center;
+                            gap: 0.5rem;
+                            padding: 0.5rem 0.75rem;
+                            background: var(--color-bg-secondary);
+                            border: 1px solid var(--color-border);
+                            border-radius: 4px;
+                            font-size: 0.875rem;
+                            cursor: pointer;
+                            color: var(--color-text);
+                            margin-bottom: 1rem;
+                            margin-right: 0.75rem;
+                            font-family: inherit;
+                            font-weight: 500;
+                            &:hover {
+                                border-color: var(--color-primary);
+                                color: var(--color-primary);
+                            }
+                            @media (max-width: 700px) {
+                                display: inline-flex;
+                            }
+                        )} onclick={toggle_mobile_sidebar}>
                             <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
                             </svg>
@@ -676,14 +349,26 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         </button>
                     }
                     if has_sidebar {
-                        {version_banner(&props.doc_version, &props.lang)}
+                        <VersionBanner doc_version={props.doc_version.clone()} lang={props.lang.clone()} />
                     }
                     if let Some(trail) = &breadcrumbs {
-                        <nav class="breadcrumbs" aria-label="Breadcrumbs">
-                            <ul class="breadcrumbs-list">
-                                <li class="breadcrumbs-item">
-                                    <a class="breadcrumbs-link" href="/" aria-label="Home page">
-                                        <svg viewBox="0 0 24 24" class="breadcrumbs-home-icon">
+                        <nav class={css!(margin-bottom: 0.5rem;)} aria-label="Breadcrumbs">
+                            <ul class={css!(
+                                display: flex;
+                                align-items: center;
+                                list-style: none;
+                                padding: 0;
+                                margin: 0;
+                                flex-wrap: wrap;
+                                font-size: 0.875rem;
+                            )}>
+                                <li class={css!(display: flex; align-items: center;)}>
+                                    <a class={css!(
+                                        color: var(--color-text-secondary);
+                                        text-decoration: none;
+                                        &:hover { color: var(--color-primary); }
+                                    )} href="/" aria-label="Home page">
+                                        <svg viewBox="0 0 24 24" class={css!(width: 18px; height: 18px; display: block;)}>
                                             <path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"/>
                                         </svg>
                                     </a>
@@ -692,21 +377,46 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                     let is_last = i == trail.len() - 1;
                                     if is_last {
                                         html! {
-                                            <li class="breadcrumbs-item breadcrumbs-item--active">
-                                                <span class="breadcrumbs-link">{label}</span>
+                                            <li class={css!(display: flex; align-items: center;)}>
+                                                <span class={css!(
+                                                    margin: 0 0.5rem;
+                                                    color: var(--color-text-secondary);
+                                                    opacity: 0.5;
+                                                )}>{"/"}</span>
+                                                <span class={css!(
+                                                    color: var(--color-text);
+                                                    font-weight: 600;
+                                                )}>{label}</span>
                                             </li>
                                         }
                                     } else if let Some(h) = href {
                                         let rewritten = rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str());
                                         html! {
-                                            <li class="breadcrumbs-item">
-                                                <a class="breadcrumbs-link" href={rewritten}>{label}</a>
+                                            <li class={css!(display: flex; align-items: center;)}>
+                                                <span class={css!(
+                                                    margin: 0 0.5rem;
+                                                    color: var(--color-text-secondary);
+                                                    opacity: 0.5;
+                                                )}>{"/"}</span>
+                                                <a class={css!(
+                                                    color: var(--color-text-secondary);
+                                                    text-decoration: none;
+                                                    &:hover { color: var(--color-primary); }
+                                                )} href={rewritten}>{label}</a>
                                             </li>
                                         }
                                     } else {
                                         html! {
-                                            <li class="breadcrumbs-item">
-                                                <span class="breadcrumbs-link">{label}</span>
+                                            <li class={css!(display: flex; align-items: center;)}>
+                                                <span class={css!(
+                                                    margin: 0 0.5rem;
+                                                    color: var(--color-text-secondary);
+                                                    opacity: 0.5;
+                                                )}>{"/"}</span>
+                                                <span class={css!(
+                                                    color: var(--color-text-secondary);
+                                                    text-decoration: none;
+                                                )}>{label}</span>
                                             </li>
                                         }
                                     }
@@ -715,19 +425,69 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         </nav>
                     }
                     if has_sidebar && !props.doc_version.is_empty() {
-                        <span class="version-badge">
+                        <span class={css!(
+                            display: inline-block;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            padding: 0.125rem 0.5rem;
+                            border-radius: 4px;
+                            background: var(--color-bg-secondary);
+                            border: 1px solid var(--color-border);
+                            color: var(--color-text-secondary);
+                            margin-bottom: 1rem;
+                        )}>
                             {"Version: "}{&props.doc_version}
                         </span>
                     }
-                    {copy_md_button}
+                    if !props.full_width && !props.markdown.is_empty() {
+                        <button class={css!(
+                            float: right;
+                            margin: 0 0 0.5rem 0.5rem;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 0.25rem;
+                            background: var(--color-bg-secondary);
+                            border: 1px solid var(--color-border);
+                            border-radius: 4px;
+                            padding: 0.25rem 0.5rem;
+                            font-size: 0.75rem;
+                            font-family: inherit;
+                            color: var(--color-text-secondary);
+                            cursor: pointer;
+                            transition: border-color 0.2s, color 0.2s;
+                            &:hover {
+                                border-color: var(--color-primary);
+                                color: var(--color-primary);
+                            }
+                            @media (max-width: 700px) {
+                                display: none;
+                            }
+                        )} onclick={on_copy_md} title="Copy page content as Markdown">
+                            <svg class={css!(flex-shrink: 0;)} viewBox="0 0 24 24" width="14" height="14">
+                                <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                            if *copied { {"Copied!"} } else { {"Copy as Markdown"} }
+                        </button>
+                    }
                     if !props.title.is_empty() {
-                        <h1 class="page-title">{&props.title}</h1>
+                        <h1 class={css!(margin-top: 0; margin-bottom: 1.5rem;)}>{&props.title}</h1>
                     }
                     {props.children.clone()}
                     if !edit_url.is_empty() {
-                        <div class="edit-page">
-                            <a class="edit-page-link" href={edit_url.clone()} target="_blank" rel="noopener noreferrer">
-                                <svg viewBox="0 0 24 24" width="16" height="16" class="edit-page-icon">
+                        <div class={css!(margin-top: 2rem;)}>
+                            <a class={css!(
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 0.375rem;
+                                color: var(--color-text-secondary);
+                                font-size: 0.875rem;
+                                text-decoration: none;
+                                transition: color 0.2s;
+                                &:hover {
+                                    color: var(--color-primary);
+                                }
+                            )} href={edit_url.clone()} target="_blank" rel="noopener noreferrer">
+                                <svg viewBox="0 0 24 24" width="16" height="16" class={css!(flex-shrink: 0;)}>
                                     <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                 </svg>
                                 {"Edit this page"}
@@ -735,19 +495,71 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         </div>
                     }
                     if let Some((prev, next)) = &pagination {
-                        <nav class="pagination" aria-label="Docs pages">
+                        <nav class={css!(
+                            display: flex;
+                            justify-content: space-between;
+                            margin-top: 2rem;
+                            padding-top: 1.5rem;
+                            border-top: 1px solid var(--color-border);
+                        )} aria-label="Docs pages">
                             if let Some((label, href)) = prev {
-                                <a class="pagination-link pagination-link--prev" href={href.clone()}>
-                                    <span class="pagination-sublabel">{"Previous"}</span>
-                                    <span class="pagination-label">{label}</span>
+                                <a class={css!(
+                                    display: flex;
+                                    flex-direction: column;
+                                    padding: 0.75rem 1rem;
+                                    border: 1px solid var(--color-border);
+                                    border-radius: 4px;
+                                    text-decoration: none;
+                                    color: var(--color-text);
+                                    max-width: 45%;
+                                    transition: border-color 0.2s;
+                                    &:hover {
+                                        border-color: var(--color-primary);
+                                        text-decoration: none;
+                                    }
+                                )} href={href.clone()}>
+                                    <span class={css!(
+                                        font-size: 0.75rem;
+                                        color: var(--color-text-secondary);
+                                        margin-bottom: 0.25rem;
+                                    )}>{"Previous"}</span>
+                                    <span class={css!(
+                                        font-size: 0.9375rem;
+                                        font-weight: 600;
+                                        color: var(--color-primary);
+                                    )}>{label}</span>
                                 </a>
                             } else {
-                                <span class="pagination-spacer" />
+                                <span class={css!(flex: 1;)} />
                             }
                             if let Some((label, href)) = next {
-                                <a class="pagination-link pagination-link--next" href={href.clone()}>
-                                    <span class="pagination-sublabel">{"Next"}</span>
-                                    <span class="pagination-label">{label}</span>
+                                <a class={css!(
+                                    display: flex;
+                                    flex-direction: column;
+                                    padding: 0.75rem 1rem;
+                                    border: 1px solid var(--color-border);
+                                    border-radius: 4px;
+                                    text-decoration: none;
+                                    color: var(--color-text);
+                                    max-width: 45%;
+                                    transition: border-color 0.2s;
+                                    text-align: right;
+                                    margin-left: auto;
+                                    &:hover {
+                                        border-color: var(--color-primary);
+                                        text-decoration: none;
+                                    }
+                                )} href={href.clone()}>
+                                    <span class={css!(
+                                        font-size: 0.75rem;
+                                        color: var(--color-text-secondary);
+                                        margin-bottom: 0.25rem;
+                                    )}>{"Next"}</span>
+                                    <span class={css!(
+                                        font-size: 0.9375rem;
+                                        font-weight: 600;
+                                        color: var(--color-primary);
+                                    )}>{label}</span>
                                 </a>
                             }
                         </nav>
@@ -793,7 +605,7 @@ struct TocProps {
 }
 
 #[cfg(feature = "csr")]
-#[component]
+#[styled_component]
 fn Toc(props: &TocProps) -> Html {
     let active_id = use_state(|| Option::<AttrValue>::None);
 
@@ -882,9 +694,23 @@ fn Toc(props: &TocProps) -> Html {
     }
 
     html! {
-        <aside class="toc-column">
-            <nav class="toc-container">
-                <ul class="toc-list">
+        <aside class={css!(
+            width: 250px;
+            flex-shrink: 0;
+            @media (max-width: 996px) {
+                display: none;
+            }
+        )}>
+            <nav class={css!(r#"
+                position: sticky;
+                top: calc(var(--navbar-height) + 1rem);
+                max-height: calc(100vh - var(--navbar-height) - 2rem);
+                overflow-y: auto;
+                padding: 0 0.75rem;
+                font-size: 0.8125rem;
+                border-left: 1px solid var(--color-border);
+            "#)}>
+                <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
                     { for props.entries.iter().map(|entry| {
                         let pad = match entry.level {
                             3 => "padding-left:1rem",
@@ -893,9 +719,22 @@ fn Toc(props: &TocProps) -> Html {
                         };
                         let href = format!("#{}", entry.id);
                         let is_active = *active_id == Some(entry.id.clone());
+                        let color = if is_active { "var(--color-primary)" } else { "var(--color-text-secondary)" };
+                        let fw = if is_active { "600" } else { "normal" };
                         html! {
                             <li style={pad}>
-                                <a class={classes!("toc-link", is_active.then_some("toc-link--active"))} href={href}>{&entry.text}</a>
+                                <a class={css!(
+                                    display: block;
+                                    padding: 0.25rem 0;
+                                    color: ${color};
+                                    text-decoration: none;
+                                    line-height: 1.3;
+                                    transition: color 0.2s;
+                                    font-weight: ${fw};
+                                    &:hover {
+                                        color: var(--color-primary);
+                                    }
+                                )} href={href}>{&entry.text}</a>
                             </li>
                         }
                     })}
@@ -906,12 +745,26 @@ fn Toc(props: &TocProps) -> Html {
 }
 
 #[cfg(not(feature = "csr"))]
-#[component]
+#[styled_component]
 fn Toc(props: &TocProps) -> Html {
     html! {
-        <aside class="toc-column">
-            <nav class="toc-container">
-                <ul class="toc-list">
+        <aside class={css!(
+            width: 250px;
+            flex-shrink: 0;
+            @media (max-width: 996px) {
+                display: none;
+            }
+        )}>
+            <nav class={css!(r#"
+                position: sticky;
+                top: calc(var(--navbar-height) + 1rem);
+                max-height: calc(100vh - var(--navbar-height) - 2rem);
+                overflow-y: auto;
+                padding: 0 0.75rem;
+                font-size: 0.8125rem;
+                border-left: 1px solid var(--color-border);
+            "#)}>
+                <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
                     { for props.entries.iter().map(|entry| {
                         let pad = match entry.level {
                             3 => "padding-left:1rem",
@@ -921,7 +774,17 @@ fn Toc(props: &TocProps) -> Html {
                         let href = format!("#{}", entry.id);
                         html! {
                             <li style={pad}>
-                                <a class="toc-link" href={href}>{&entry.text}</a>
+                                <a class={css!(
+                                    display: block;
+                                    padding: 0.25rem 0;
+                                    color: var(--color-text-secondary);
+                                    text-decoration: none;
+                                    line-height: 1.3;
+                                    transition: color 0.2s;
+                                    &:hover {
+                                        color: var(--color-primary);
+                                    }
+                                )} href={href}>{&entry.text}</a>
                             </li>
                         }
                     })}

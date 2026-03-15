@@ -13,7 +13,7 @@ pub enum AdmonitionType {
 }
 
 impl AdmonitionType {
-    fn css_class(self) -> &'static str {
+    pub fn label(self) -> &'static str {
         match self {
             Self::Note => "note",
             Self::Tip => "tip",
@@ -25,15 +25,26 @@ impl AdmonitionType {
         }
     }
 
-    pub fn label(self) -> &'static str {
+    fn bg(self) -> &'static str {
         match self {
-            Self::Note => "note",
-            Self::Tip => "tip",
-            Self::Info => "info",
-            Self::Warning => "warning",
-            Self::Danger => "danger",
-            Self::Caution => "caution",
-            Self::Important => "important",
+            Self::Note => "var(--admonition-note-bg)",
+            Self::Tip => "var(--admonition-tip-bg)",
+            Self::Info => "var(--admonition-info-bg)",
+            Self::Warning => "var(--admonition-warning-bg)",
+            Self::Danger => "var(--admonition-danger-bg)",
+            Self::Caution => "var(--admonition-caution-bg)",
+            Self::Important => "var(--admonition-important-bg)",
+        }
+    }
+
+    fn border(self) -> &'static str {
+        match self {
+            Self::Note => "#636770",
+            Self::Tip => "#00a400",
+            Self::Info => "#4c8dff",
+            Self::Warning | Self::Caution => "#e6a700",
+            Self::Danger => "#e13238",
+            Self::Important => "#a855f7",
         }
     }
 }
@@ -55,68 +66,27 @@ pub fn Admonition(props: &AdmonitionProps) -> Html {
         props.title.to_string()
     };
 
-    let style = css!(
-        r#"
-        margin-bottom: 1.5rem;
-        padding: 1rem 1.25rem;
-        border-radius: 8px;
-        border-left: 4px solid;
-
-        &.note {
-            background: var(--admonition-note-bg);
-            border-color: #636770;
-        }
-
-        &.tip {
-            background: var(--admonition-tip-bg);
-            border-color: #00a400;
-        }
-
-        &.info {
-            background: var(--admonition-info-bg);
-            border-color: #4c8dff;
-        }
-
-        &.warning {
-            background: var(--admonition-warning-bg);
-            border-color: #e6a700;
-        }
-
-        &.danger {
-            background: var(--admonition-danger-bg);
-            border-color: #e13238;
-        }
-
-        &.caution {
-            background: var(--admonition-caution-bg);
-            border-color: #e6a700;
-        }
-
-        &.important {
-            background: var(--admonition-important-bg);
-            border-color: #a855f7;
-        }
-
-        .heading {
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.8125rem;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .content p:last-child {
-            margin-bottom: 0;
-        }
-    "#
-    );
+    let bg = props.kind.bg();
+    let border = props.kind.border();
 
     html! {
-        <div class={classes!(style, props.kind.css_class())}>
-            <div class="heading">
+        <div class={css!(
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            border-left: 4px solid ${border};
+            background: ${bg};
+        )}>
+            <div class={css!(r#"
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 0.8125rem;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.5rem;
+            "#)}>
                 <span>{title}</span>
             </div>
-            <div class="content">
+            <div class={css!("p:last-child { margin-bottom: 0; }")}>
                 {props.children.clone()}
             </div>
         </div>

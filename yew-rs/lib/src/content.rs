@@ -1,9 +1,61 @@
+use stylist::yew::styled_component;
 use yew::prelude::*;
 
 use crate::components::admonition::Admonition;
 pub use crate::components::admonition::AdmonitionType;
 use crate::components::code_block::CodeBlock;
 use crate::components::tabs::{TabItem, Tabs};
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct ContentLinkProps {
+    pub href: AttrValue,
+    pub children: Html,
+}
+
+#[styled_component]
+pub fn ContentLink(props: &ContentLinkProps) -> Html {
+    html! {
+        <a class={css!(
+            color: var(--color-primary);
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        )} href={props.href.clone()}>{props.children.clone()}</a>
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+struct AnchorHeadingProps {
+    level: u8,
+    id: AttrValue,
+    children: Html,
+    hash_href: AttrValue,
+    hash_label: AttrValue,
+}
+
+#[styled_component]
+fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
+    let class = css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);");
+    let id = Some(props.id.clone());
+    let content = html! { <>
+        {props.children.clone()}
+        <a class={css!(r#"
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding-left: 0.5rem;
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: normal;
+        "#)} href={props.hash_href.clone()} aria-label={props.hash_label.clone()}>{"#"}</a>
+    </> };
+    match props.level {
+        2 => html! { <h2 {id} class={class.clone()}>{content}</h2> },
+        3 => html! { <h3 {id} class={class.clone()}>{content}</h3> },
+        _ => html! { <h4 {id} {class}>{content}</h4> },
+    }
+}
 
 #[derive(Clone, PartialEq)]
 pub enum Inline {
@@ -314,7 +366,7 @@ impl Inline {
                 html! { <em>{ for children.iter().map(Inline::to_html) }</em> }
             }
             Inline::Link { href, children } => html! {
-                <a href={href.clone()}>{ for children.iter().map(Inline::to_html) }</a>
+                <ContentLink href={href.clone()}>{ for children.iter().map(Inline::to_html) }</ContentLink>
             },
             Inline::LineBreak => html! { <br /> },
             Inline::Superscript(children) => {
@@ -446,15 +498,10 @@ impl Block {
                 if *level >= 2 && *level <= 4 && !id.is_empty() {
                     let href = format!("#{id}");
                     let label = format!("Direct link to {text}");
-                    let content = html! { <>
-                        { for inner }
-                        <a class="hash-link" href={href} aria-label={label}>{"#"}</a>
-                    </> };
-                    let id = Some(id);
-                    match level {
-                        2 => html! { <h2 {id} class="anchor">{content}</h2> },
-                        3 => html! { <h3 {id} class="anchor">{content}</h3> },
-                        _ => html! { <h4 {id} class="anchor">{content}</h4> },
+                    html! {
+                        <AnchorHeading level={*level} id={id} hash_href={href} hash_label={label}>
+                            { for inner }
+                        </AnchorHeading>
                     }
                 } else {
                     let id = if id.is_empty() { None } else { Some(id) };
