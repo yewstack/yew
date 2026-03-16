@@ -1,0 +1,25 @@
+[package]
+name = "yew-site-spa-zh-hans"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+
+[features]
+default = ["csr"]
+csr = ["yew/csr", "yew-site-lib/csr", "dep:yew-router"]
+ssr = ["yew/ssr", "yew-site-lib/ssr"]
+
+[dependencies]
+yew = "0.23"
+yew-site-lib = { path = "../lib", default-features = false }
+yew-router = { version = "0.20", default-features = false, optional = true }
+yew-site-docs = { path = "../docs", default-features = false }
+yew-site-docs-zh-hans = { path = "../docs-zh-hans", default-features = false }
+yew-site-docs-zh-hans-0-23 = { path = "../docs-zh-hans-0-23", default-features = false }
+yew-site-docs-zh-hans-0-22 = { path = "../docs-zh-hans-0-22", default-features = false }
+yew-site-docs-zh-hans-0-21 = { path = "../docs-zh-hans-0-21", default-features = false }
+yew-site-docs-zh-hans-0-20 = { path = "../docs-zh-hans-0-20", default-features = false }
+
+[[bin]]
+name = "spa-zh-hans"
+path = "src/main.rs"

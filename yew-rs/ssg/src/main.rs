@@ -320,28 +320,138 @@ struct PageBinary {
     crate_name: String,
 }
 
-const CRATES: &[(&str, &str, &str)] = &[
-    ("docs", "docs/next", ""),
-    ("docs-0-23", "docs", "v0-23-"),
-    ("docs-0-22", "docs/0.22", "v0-22-"),
-    ("docs-0-21", "docs/0.21", "v0-21-"),
-    ("docs-0-20", "docs/0.20", "v0-20-"),
-    ("docs-ja", "ja/docs/next", "ja-"),
-    ("docs-ja-0-23", "ja/docs", "ja-0-23-"),
-    ("docs-ja-0-22", "ja/docs/0.22", "ja-0-22-"),
-    ("docs-ja-0-21", "ja/docs/0.21", "ja-0-21-"),
-    ("docs-ja-0-20", "ja/docs/0.20", "ja-0-20-"),
-    ("docs-zh-hans", "zh-Hans/docs/next", "zh-hans-"),
-    ("docs-zh-hans-0-23", "zh-Hans/docs", "zh-hans-0-23-"),
-    ("docs-zh-hans-0-22", "zh-Hans/docs/0.22", "zh-hans-0-22-"),
-    ("docs-zh-hans-0-21", "zh-Hans/docs/0.21", "zh-hans-0-21-"),
-    ("docs-zh-hans-0-20", "zh-Hans/docs/0.20", "zh-hans-0-20-"),
-    ("docs-zh-hant", "zh-Hant/docs/next", "zh-hant-"),
-    ("docs-zh-hant-0-23", "zh-Hant/docs", "zh-hant-0-23-"),
-    ("docs-zh-hant-0-22", "zh-Hant/docs/0.22", "zh-hant-0-22-"),
-    ("docs-zh-hant-0-21", "zh-Hant/docs/0.21", "zh-hant-0-21-"),
-    ("docs-zh-hant-0-20", "zh-Hant/docs/0.20", "zh-hant-0-20-"),
-    ("community", "community", ""),
+// (content_crate_dir, url_prefix, bin_prefix, spa_bin_name, spa_crate_name)
+// spa_bin_name: if non-empty, this content crate's pages are served by a SPA binary
+const CRATES: &[(&str, &str, &str, &str, &str)] = &[
+    ("docs", "docs/next", "", "spa-en", "yew-site-spa-en"),
+    ("docs-0-23", "docs", "v0-23-", "spa-en", "yew-site-spa-en"),
+    (
+        "docs-0-22",
+        "docs/0.22",
+        "v0-22-",
+        "spa-en",
+        "yew-site-spa-en",
+    ),
+    (
+        "docs-0-21",
+        "docs/0.21",
+        "v0-21-",
+        "spa-en",
+        "yew-site-spa-en",
+    ),
+    (
+        "docs-0-20",
+        "docs/0.20",
+        "v0-20-",
+        "spa-en",
+        "yew-site-spa-en",
+    ),
+    (
+        "docs-ja",
+        "ja/docs/next",
+        "ja-",
+        "spa-ja",
+        "yew-site-spa-ja",
+    ),
+    (
+        "docs-ja-0-23",
+        "ja/docs",
+        "ja-0-23-",
+        "spa-ja",
+        "yew-site-spa-ja",
+    ),
+    (
+        "docs-ja-0-22",
+        "ja/docs/0.22",
+        "ja-0-22-",
+        "spa-ja",
+        "yew-site-spa-ja",
+    ),
+    (
+        "docs-ja-0-21",
+        "ja/docs/0.21",
+        "ja-0-21-",
+        "spa-ja",
+        "yew-site-spa-ja",
+    ),
+    (
+        "docs-ja-0-20",
+        "ja/docs/0.20",
+        "ja-0-20-",
+        "spa-ja",
+        "yew-site-spa-ja",
+    ),
+    (
+        "docs-zh-hans",
+        "zh-Hans/docs/next",
+        "zh-hans-",
+        "spa-zh-hans",
+        "yew-site-spa-zh-hans",
+    ),
+    (
+        "docs-zh-hans-0-23",
+        "zh-Hans/docs",
+        "zh-hans-0-23-",
+        "spa-zh-hans",
+        "yew-site-spa-zh-hans",
+    ),
+    (
+        "docs-zh-hans-0-22",
+        "zh-Hans/docs/0.22",
+        "zh-hans-0-22-",
+        "spa-zh-hans",
+        "yew-site-spa-zh-hans",
+    ),
+    (
+        "docs-zh-hans-0-21",
+        "zh-Hans/docs/0.21",
+        "zh-hans-0-21-",
+        "spa-zh-hans",
+        "yew-site-spa-zh-hans",
+    ),
+    (
+        "docs-zh-hans-0-20",
+        "zh-Hans/docs/0.20",
+        "zh-hans-0-20-",
+        "spa-zh-hans",
+        "yew-site-spa-zh-hans",
+    ),
+    (
+        "docs-zh-hant",
+        "zh-Hant/docs/next",
+        "zh-hant-",
+        "spa-zh-hant",
+        "yew-site-spa-zh-hant",
+    ),
+    (
+        "docs-zh-hant-0-23",
+        "zh-Hant/docs",
+        "zh-hant-0-23-",
+        "spa-zh-hant",
+        "yew-site-spa-zh-hant",
+    ),
+    (
+        "docs-zh-hant-0-22",
+        "zh-Hant/docs/0.22",
+        "zh-hant-0-22-",
+        "spa-zh-hant",
+        "yew-site-spa-zh-hant",
+    ),
+    (
+        "docs-zh-hant-0-21",
+        "zh-Hant/docs/0.21",
+        "zh-hant-0-21-",
+        "spa-zh-hant",
+        "yew-site-spa-zh-hant",
+    ),
+    (
+        "docs-zh-hant-0-20",
+        "zh-Hant/docs/0.20",
+        "zh-hant-0-20-",
+        "spa-zh-hant",
+        "yew-site-spa-zh-hant",
+    ),
+    ("community", "community", "", "", "yew-site-community"),
 ];
 
 fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
@@ -417,14 +527,19 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
         crate_name: home,
     });
 
-    for &(crate_name, url_prefix, bin_prefix) in CRATES {
+    for &(crate_name, url_prefix, bin_prefix, spa_bin, spa_crate) in CRATES {
         let crate_dir = source_dir.join(crate_name);
         let pages_dir = crate_dir.join("src/pages");
         if !pages_dir.exists() {
             continue;
         }
 
-        let cargo_crate_name = format!("yew-site-{crate_name}");
+        let is_spa = !spa_bin.is_empty();
+        let effective_crate_name = if is_spa {
+            spa_crate.to_string()
+        } else {
+            format!("yew-site-{crate_name}")
+        };
 
         let mut page_files = Vec::new();
         collect_page_files(&pages_dir, &pages_dir, &mut page_files);
@@ -453,15 +568,19 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
             } else {
                 format!("/{}/{}", effective_prefix, url_segments.join("/"))
             };
-            let bin_name = format!(
-                "{}{}",
-                bin_prefix,
-                rel_path
-                    .iter()
-                    .map(|s| s.to_string_lossy().replace('_', "-"))
-                    .collect::<Vec<_>>()
-                    .join("-")
-            );
+            let bin_name = if is_spa {
+                spa_bin.to_string()
+            } else {
+                format!(
+                    "{}{}",
+                    bin_prefix,
+                    rel_path
+                        .iter()
+                        .map(|s| s.to_string_lossy().replace('_', "-"))
+                        .collect::<Vec<_>>()
+                        .join("-")
+                )
+            };
             let title = url_segments
                 .last()
                 .map(|s| {
@@ -482,7 +601,7 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
                 bin_name,
                 url_path,
                 title,
-                crate_name: cargo_crate_name.clone(),
+                crate_name: effective_crate_name.clone(),
             });
         }
     }
@@ -596,23 +715,25 @@ fn cargo_build_all(source_dir: &Path, pages: &[PageBinary], jobs: usize) -> Resu
     Ok(())
 }
 
-fn process_page(
-    page: &PageBinary,
-    output_dir: &Path,
+struct ProcessedBinary {
+    js_hashed_name: String,
+    wasm_hashed_name: String,
+    js_content: String,
+    wasm_source: PathBuf,
+}
+
+fn process_binary(
+    bin_name: &str,
+    staging_dir: &Path,
     target_dir: &Path,
     cpu_id: usize,
     skip_wasm_opt: bool,
-) -> Result<()> {
-    let page_output = if page.url_path == "/" {
-        output_dir.to_path_buf()
-    } else {
-        output_dir.join(page.url_path.trim_start_matches('/'))
-    };
-    std::fs::create_dir_all(&page_output)?;
+) -> Result<ProcessedBinary> {
+    std::fs::create_dir_all(staging_dir)?;
 
     let wasm_input = target_dir
         .join("wasm32-unknown-unknown/release")
-        .join(format!("{}.wasm", page.bin_name));
+        .join(format!("{bin_name}.wasm"));
 
     if !wasm_input.exists() {
         bail!("WASM binary not found: {}", wasm_input.display());
@@ -624,7 +745,7 @@ fn process_page(
             "web",
             "--no-typescript",
             "--out-dir",
-            &page_output.display().to_string(),
+            &staging_dir.display().to_string(),
             &wasm_input.display().to_string(),
         ])
         .stdout(std::process::Stdio::piped())
@@ -634,13 +755,12 @@ fn process_page(
 
     if !bindgen_out.status.success() {
         bail!(
-            "wasm-bindgen failed for {}:\n{}",
-            page.bin_name,
+            "wasm-bindgen failed for {bin_name}:\n{}",
             String::from_utf8_lossy(&bindgen_out.stderr)
         );
     }
 
-    let wasm_bg = page_output.join(format!("{}_bg.wasm", page.bin_name));
+    let wasm_bg = staging_dir.join(format!("{bin_name}_bg.wasm"));
     if !skip_wasm_opt && wasm_bg.exists() {
         let opt_out = Command::new("taskset")
             .args(["-c", &cpu_id.to_string()])
@@ -655,28 +775,51 @@ fn process_page(
 
         if !opt_out.status.success() {
             bail!(
-                "wasm-opt failed for {}:\n{}",
-                page.bin_name,
+                "wasm-opt failed for {bin_name}:\n{}",
                 String::from_utf8_lossy(&opt_out.stderr)
             );
         }
     }
 
     let wasm_hash = file_hash(&wasm_bg)?;
-    let wasm_hashed_name = format!("{}_bg-{}.wasm", page.bin_name, wasm_hash);
-    std::fs::rename(&wasm_bg, page_output.join(&wasm_hashed_name))?;
+    let wasm_hashed_name = format!("{bin_name}_bg-{wasm_hash}.wasm");
+    let wasm_final = staging_dir.join(&wasm_hashed_name);
+    std::fs::rename(&wasm_bg, &wasm_final)?;
 
-    let js_path = page_output.join(format!("{}.js", page.bin_name));
+    let js_path = staging_dir.join(format!("{bin_name}.js"));
     let js_content = std::fs::read_to_string(&js_path)?;
-    let js_content = js_content.replace(&format!("{}_bg.wasm", page.bin_name), &wasm_hashed_name);
+    let js_content = js_content.replace(&format!("{bin_name}_bg.wasm"), &wasm_hashed_name);
     let js_hash = {
         let mut hasher = DefaultHasher::new();
         hasher.write(js_content.as_bytes());
         format!("{:016x}", hasher.finish())
     };
-    let js_hashed_name = format!("{}-{}.js", page.bin_name, js_hash);
-    std::fs::write(page_output.join(&js_hashed_name), &js_content)?;
+    let js_hashed_name = format!("{bin_name}-{js_hash}.js");
     std::fs::remove_file(&js_path)?;
+
+    Ok(ProcessedBinary {
+        js_hashed_name,
+        wasm_hashed_name,
+        js_content,
+        wasm_source: wasm_final,
+    })
+}
+
+fn emit_page_files(page: &PageBinary, output_dir: &Path, pb: &ProcessedBinary) -> Result<()> {
+    let page_output = if page.url_path == "/" {
+        output_dir.to_path_buf()
+    } else {
+        output_dir.join(page.url_path.trim_start_matches('/'))
+    };
+    std::fs::create_dir_all(&page_output)?;
+
+    let js_dest = page_output.join(&pb.js_hashed_name);
+    std::fs::write(&js_dest, &pb.js_content)?;
+
+    let wasm_dest = page_output.join(&pb.wasm_hashed_name);
+    if std::fs::hard_link(&pb.wasm_source, &wasm_dest).is_err() {
+        std::fs::copy(&pb.wasm_source, &wasm_dest)?;
+    }
 
     let public_url = if page.url_path == "/" {
         String::new()
@@ -705,6 +848,8 @@ fn process_page(
         .unwrap_or_default();
 
     let ga_id = GA_MEASUREMENT_ID;
+    let js_hashed_name = &pb.js_hashed_name;
+    let wasm_hashed_name = &pb.wasm_hashed_name;
 
     let html = format!(
         r#"<!DOCTYPE html>
@@ -744,7 +889,6 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {{detail: {{wasm}}}}));
     );
 
     std::fs::write(page_output.join("index.html"), html)?;
-
     Ok(())
 }
 
@@ -755,38 +899,57 @@ fn build_pages_parallel(
     jobs: usize,
     skip_wasm_opt: bool,
 ) -> Result<()> {
-    let total = pages.len();
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+
+    let mut unique_bins: Vec<String> = pages.iter().map(|p| p.bin_name.clone()).collect();
+    unique_bins.sort();
+    unique_bins.dedup();
+
+    println!(
+        "Processing {} unique binaries for {} pages...",
+        unique_bins.len(),
+        pages.len()
+    );
+
+    let staging_base = output_dir.join("_spa_staging");
+    let _ = std::fs::remove_dir_all(&staging_base);
+
+    let processed: Mutex<HashMap<String, ProcessedBinary>> = Mutex::new(HashMap::new());
     let counter = Arc::new(AtomicUsize::new(0));
-    let next_page = Arc::new(AtomicUsize::new(0));
-    let errors: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+    let next_bin = Arc::new(AtomicUsize::new(0));
+    let errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
+    let total_bins = unique_bins.len();
 
     std::thread::scope(|s| {
         let mut handles = Vec::new();
 
-        for thread_id in 0..jobs {
+        for thread_id in 0..jobs.min(total_bins) {
             let counter = counter.clone();
-            let next_page = next_page.clone();
+            let next_bin = next_bin.clone();
             let errors = &errors;
+            let processed = &processed;
+            let staging_base = &staging_base;
+            let unique_bins = &unique_bins;
 
             handles.push(s.spawn(move || loop {
-                let idx = next_page.fetch_add(1, Ordering::Relaxed);
-                if idx >= pages.len() {
+                let idx = next_bin.fetch_add(1, Ordering::Relaxed);
+                if idx >= unique_bins.len() {
                     break;
                 }
-                let page = &pages[idx];
+                let bin_name = &unique_bins[idx];
                 let n = counter.fetch_add(1, Ordering::Relaxed) + 1;
-                println!(
-                    "[{n}/{total}] Processing: {} -> {}",
-                    page.bin_name, page.url_path
-                );
+                println!("[{n}/{total_bins}] Processing binary: {bin_name}");
 
-                if let Err(e) = process_page(page, output_dir, target_dir, thread_id, skip_wasm_opt)
-                {
-                    eprintln!("  FAILED: {e}");
-                    errors
-                        .lock()
-                        .unwrap()
-                        .push(format!("{}: {e}", page.bin_name));
+                let staging_dir = staging_base.join(bin_name);
+                match process_binary(bin_name, &staging_dir, target_dir, thread_id, skip_wasm_opt) {
+                    Ok(pb) => {
+                        processed.lock().unwrap().insert(bin_name.clone(), pb);
+                    }
+                    Err(e) => {
+                        eprintln!("  FAILED: {e}");
+                        errors.lock().unwrap().push(format!("{bin_name}: {e}"));
+                    }
                 }
             }));
         }
@@ -795,6 +958,33 @@ fn build_pages_parallel(
             h.join().unwrap();
         }
     });
+
+    let errs_so_far = errors.lock().unwrap().clone();
+    if !errs_so_far.is_empty() {
+        bail!("Binary processing failures:\n{}", errs_so_far.join("\n"));
+    }
+
+    let processed = processed.into_inner().unwrap();
+
+    println!("Emitting {} page files...", pages.len());
+    for (i, page) in pages.iter().enumerate() {
+        if let Some(pb) = processed.get(&page.bin_name) {
+            if let Err(e) = emit_page_files(page, output_dir, pb) {
+                eprintln!(
+                    "[{}/{}] FAILED emitting {}: {e}",
+                    i + 1,
+                    pages.len(),
+                    page.url_path
+                );
+                errors
+                    .lock()
+                    .unwrap()
+                    .push(format!("{}: {e}", page.url_path));
+            }
+        }
+    }
+
+    let _ = std::fs::remove_dir_all(&staging_base);
 
     let errs = errors.into_inner().unwrap();
     if !errs.is_empty() {
@@ -850,26 +1040,10 @@ async fn render_and_inject(output_dir: &Path, page_filter: Option<&Vec<String>>)
 async fn render_all_pages() -> Vec<(&'static str, String, String)> {
     let mut all = Vec::new();
     all.extend(yew_site_home::render_pages().await);
-    all.extend(yew_site_docs::render_pages().await);
-    all.extend(yew_site_docs_0_23::render_pages().await);
-    all.extend(yew_site_docs_0_22::render_pages().await);
-    all.extend(yew_site_docs_0_21::render_pages().await);
-    all.extend(yew_site_docs_0_20::render_pages().await);
-    all.extend(yew_site_docs_ja::render_pages().await);
-    all.extend(yew_site_docs_ja_0_23::render_pages().await);
-    all.extend(yew_site_docs_ja_0_22::render_pages().await);
-    all.extend(yew_site_docs_ja_0_21::render_pages().await);
-    all.extend(yew_site_docs_ja_0_20::render_pages().await);
-    all.extend(yew_site_docs_zh_hans::render_pages().await);
-    all.extend(yew_site_docs_zh_hans_0_23::render_pages().await);
-    all.extend(yew_site_docs_zh_hans_0_22::render_pages().await);
-    all.extend(yew_site_docs_zh_hans_0_21::render_pages().await);
-    all.extend(yew_site_docs_zh_hans_0_20::render_pages().await);
-    all.extend(yew_site_docs_zh_hant::render_pages().await);
-    all.extend(yew_site_docs_zh_hant_0_23::render_pages().await);
-    all.extend(yew_site_docs_zh_hant_0_22::render_pages().await);
-    all.extend(yew_site_docs_zh_hant_0_21::render_pages().await);
-    all.extend(yew_site_docs_zh_hant_0_20::render_pages().await);
+    all.extend(yew_site_spa_en::render_pages().await);
+    all.extend(yew_site_spa_ja::render_pages().await);
+    all.extend(yew_site_spa_zh_hans::render_pages().await);
+    all.extend(yew_site_spa_zh_hant::render_pages().await);
     all.extend(yew_site_blog::render_pages().await);
     all.extend(yew_site_community::render_pages().await);
     all

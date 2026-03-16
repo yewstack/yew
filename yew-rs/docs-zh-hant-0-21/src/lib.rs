@@ -13,9 +13,13 @@ macro_rules! doc_page {
         #[allow(unused_imports)]
         use $crate::sidebar_data::docs_sidebar;
 
+        pub fn page_content() -> yew_site_lib::Content {
+            $content
+        }
+
         #[component]
         pub fn Page() -> Html {
-            let content: yew_site_lib::Content = $content;
+            let content: yew_site_lib::Content = page_content();
             let toc = content.toc_entries();
             let markdown = content.to_markdown();
             html! {

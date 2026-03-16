@@ -534,6 +534,14 @@ struct DropdownItemProps {
 
 #[styled_component]
 fn DropdownItem(props: &DropdownItemProps) -> Html {
+    let nav_ctx = use_context::<crate::NavigationContext>();
+    let onclick = nav_ctx.as_ref().map(|ctx| {
+        let navigate = ctx.navigate.clone();
+        let href = AttrValue::from(props.href.clone());
+        Callback::from(move |e: MouseEvent| {
+            navigate.emit((e, href.clone()));
+        })
+    });
     let color = if props.active {
         "var(--color-primary)"
     } else {
@@ -554,7 +562,7 @@ fn DropdownItem(props: &DropdownItemProps) -> Html {
                     background: var(--color-bg-offset);
                     color: var(--color-primary);
                 }
-            )} href={props.href.clone()}>
+            )} href={props.href.clone()} {onclick}>
                 {props.children.clone()}
             </a>
         </li>

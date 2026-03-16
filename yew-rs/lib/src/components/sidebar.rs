@@ -210,6 +210,8 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
     "#
     );
 
+    let nav_ctx = use_context::<crate::NavigationContext>();
+
     let aria_label = if props.title.is_empty() {
         "Docs sidebar"
     } else {
@@ -223,11 +225,23 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
                     <div class="sidebar-title">{&props.title}</div>
                 }
                 <ul class="list">
-                    { for props.entries.iter().map(|entry| render_entry(entry, &active_path, &open_categories, props.lang.as_str(), props.doc_version.as_str())) }
+                    { for props.entries.iter().map(|entry| render_entry(entry, &active_path, &open_categories, props.lang.as_str(), props.doc_version.as_str(), &nav_ctx)) }
                 </ul>
             </nav>
         </aside>
     }
+}
+
+fn make_nav_onclick(
+    nav_ctx: &Option<crate::NavigationContext>,
+    href: &str,
+) -> Option<Callback<MouseEvent>> {
+    let nav = nav_ctx.as_ref()?;
+    let navigate = nav.navigate.clone();
+    let href = AttrValue::from(href.to_owned());
+    Some(Callback::from(move |e: MouseEvent| {
+        navigate.emit((e, href.clone()));
+    }))
 }
 
 fn render_entry(
@@ -236,6 +250,7 @@ fn render_entry(
     open_categories: &UseStateHandle<HashSet<&'static str>>,
     lang: &str,
     doc_version: &str,
+    nav_ctx: &Option<crate::NavigationContext>,
 ) -> Html {
     use super::layout::rewrite_doc_href;
 
@@ -243,11 +258,13 @@ fn render_entry(
         SidebarEntry::Item(item) => {
             let is_active = active_path == item.href;
             let href = rewrite_doc_href(item.href, lang, doc_version);
+            let onclick = make_nav_onclick(nav_ctx, &href);
             html! {
                 <li class="item">
                     <a
                         class={classes!("link", is_active.then_some("link--active"))}
                         href={href}
+                        {onclick}
                     >
                         {item.label}
                     </a>
@@ -269,6 +286,10 @@ fn render_entry(
                     open_categories.set(new_set);
                 })
             };
+            let cat_href = cat.link.map(|h| rewrite_doc_href(h, lang, doc_version));
+            let cat_onclick = cat_href
+                .as_deref()
+                .and_then(|h| make_nav_onclick(nav_ctx, h));
             html! {
                 <li class={classes!(
                     "item",
@@ -281,8 +302,8 @@ fn render_entry(
                         aria-expanded={is_open.to_string()}
                         aria-label={format!("{} category '{}'", if is_open { "Collapse" } else { "Expand" }, cat.label)}
                     >
-                        if let Some(href) = cat.link {
-                            <a class="cat-label cat-label--link" href={rewrite_doc_href(href, lang, doc_version)}>
+                        if let Some(href) = &cat_href {
+                            <a class="cat-label cat-label--link" href={href.clone()} onclick={cat_onclick}>
                                 {cat.label}
                             </a>
                         } else {
@@ -296,7 +317,7 @@ fn render_entry(
                     </div>
                     if is_open {
                         <ul class="list list--nested">
-                            { for cat.items.iter().map(|e| render_entry(e, active_path, open_categories, lang, doc_version)) }
+                            { for cat.items.iter().map(|e| render_entry(e, active_path, open_categories, lang, doc_version, nav_ctx)) }
                         </ul>
                     }
                 </li>

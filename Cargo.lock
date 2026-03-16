@@ -1216,7 +1216,7 @@ dependencies = [
  "serde",
  "wasm-logger",
  "yew 0.23.0",
- "yew-router",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -3220,7 +3220,7 @@ dependencies = [
  "serde",
  "wasm-logger",
  "yew 0.23.0",
- "yew-router",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -3640,7 +3640,7 @@ dependencies = [
  "wasm-bindgen-test",
  "wasm-logger",
  "yew 0.23.0",
- "yew-router",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -4472,7 +4472,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "yew 0.23.0",
- "yew-router",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -4706,7 +4706,7 @@ dependencies = [
  "yew 0.23.0",
  "yew-agent",
  "yew-autoprops",
- "yew-router",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -4728,7 +4728,7 @@ dependencies = [
  "yew 0.23.0",
  "yew-agent",
  "yew-autoprops",
- "yew-router",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -5227,7 +5227,26 @@ dependencies = [
  "wasm-bindgen-test",
  "web-sys",
  "yew 0.23.0",
- "yew-router-macro",
+ "yew-router-macro 0.20.0",
+]
+
+[[package]]
+name = "yew-router"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "870bd2a1aa6d608c0c789c122654e25f4927bb6bfe344cc0da3b630ac3c73260"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "route-recognizer",
+ "serde",
+ "serde_urlencoded",
+ "tracing",
+ "urlencoding",
+ "wasm-bindgen",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router-macro 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -5239,7 +5258,18 @@ dependencies = [
  "rustversion",
  "syn 2.0.117",
  "trybuild",
- "yew-router",
+ "yew-router 0.20.0",
+]
+
+[[package]]
+name = "yew-router-macro"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8399f1d134ab8e69abc7cded19f114621d520bd9c79c5a0f34091bf664d7325b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -5463,6 +5493,66 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "yew-site-spa-en"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-0-20",
+ "yew-site-docs-0-21",
+ "yew-site-docs-0-22",
+ "yew-site-docs-0-23",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-spa-ja"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-ja",
+ "yew-site-docs-ja-0-20",
+ "yew-site-docs-ja-0-21",
+ "yew-site-docs-ja-0-22",
+ "yew-site-docs-ja-0-23",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-spa-zh-hans"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-zh-hans",
+ "yew-site-docs-zh-hans-0-20",
+ "yew-site-docs-zh-hans-0-21",
+ "yew-site-docs-zh-hans-0-22",
+ "yew-site-docs-zh-hans-0-23",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-spa-zh-hant"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-zh-hant",
+ "yew-site-docs-zh-hant-0-20",
+ "yew-site-docs-zh-hant-0-21",
+ "yew-site-docs-zh-hant-0-22",
+ "yew-site-docs-zh-hant-0-23",
+ "yew-site-lib",
 ]
 
 [[package]]
@@ -5478,27 +5568,11 @@ dependencies = [
  "tokio",
  "yew-site-blog",
  "yew-site-community",
- "yew-site-docs",
- "yew-site-docs-0-20",
- "yew-site-docs-0-21",
- "yew-site-docs-0-22",
- "yew-site-docs-0-23",
- "yew-site-docs-ja",
- "yew-site-docs-ja-0-20",
- "yew-site-docs-ja-0-21",
- "yew-site-docs-ja-0-22",
- "yew-site-docs-ja-0-23",
- "yew-site-docs-zh-hans",
- "yew-site-docs-zh-hans-0-20",
- "yew-site-docs-zh-hans-0-21",
- "yew-site-docs-zh-hans-0-22",
- "yew-site-docs-zh-hans-0-23",
- "yew-site-docs-zh-hant",
- "yew-site-docs-zh-hant-0-20",
- "yew-site-docs-zh-hant-0-21",
- "yew-site-docs-zh-hant-0-22",
- "yew-site-docs-zh-hant-0-23",
  "yew-site-home",
+ "yew-site-spa-en",
+ "yew-site-spa-ja",
+ "yew-site-spa-zh-hans",
+ "yew-site-spa-zh-hant",
 ]
 
 [[package]]

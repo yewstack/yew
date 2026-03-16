@@ -1,5 +1,4 @@
-pub fn page_content() -> yew_site_lib::Content {
-    use yew_site_lib::content::*;
+crate::doc_page!("Testing apps", "/ja/docs/more/testing", {
     Content::new(vec![
         p(vec![text("<TODO>")]),
         h2(vec![text("wasm_bindgen_test")]),
@@ -16,6 +15,4 @@ pub fn page_content() -> yew_site_lib::Content {
             text("に記載されています。"),
         ]),
     ])
-}
-
-crate::doc_page!("Testing apps", "/ja/docs/more/testing", page_content());
+});

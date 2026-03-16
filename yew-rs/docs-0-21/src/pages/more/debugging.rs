@@ -1,5 +1,4 @@
-pub fn page_content() -> yew_site_lib::Content {
-    use yew_site_lib::content::*;
+crate::doc_page!("Debugging", "/docs/more/debugging", {
     Content::new(vec![
         h2(vec![text("Panics")]),
         p(vec![text("Yew automatically logs panics in the browser console.")]),
@@ -150,6 +149,4 @@ fn main() {
             ]),
         ]),
     ])
-}
-
-crate::doc_page!("Debugging", "/docs/more/debugging", page_content());
+});

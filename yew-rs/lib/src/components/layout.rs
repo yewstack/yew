@@ -173,9 +173,22 @@ fn build_breadcrumbs(
     None
 }
 
+fn nav_link_onclick(
+    nav_ctx: &Option<crate::NavigationContext>,
+    href: &str,
+) -> Option<Callback<MouseEvent>> {
+    let nav = nav_ctx.as_ref()?;
+    let navigate = nav.navigate.clone();
+    let href = AttrValue::from(href.to_owned());
+    Some(Callback::from(move |e: MouseEvent| {
+        navigate.emit((e, href.clone()));
+    }))
+}
+
 #[styled_component]
 pub fn Layout(props: &LayoutProps) -> Html {
     let has_sidebar = props.sidebar.is_some();
+    let nav_ctx = use_context::<crate::NavigationContext>();
 
     let mobile_sidebar_open = use_state(|| false);
     let toggle_mobile_sidebar = {
@@ -391,6 +404,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                         }
                                     } else if let Some(h) = href {
                                         let rewritten = rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str());
+                                        let bc_onclick = nav_link_onclick(&nav_ctx, &rewritten);
                                         html! {
                                             <li class={css!(display: flex; align-items: center;)}>
                                                 <span class={css!(
@@ -402,7 +416,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                                     color: var(--color-text-secondary);
                                                     text-decoration: none;
                                                     &:hover { color: var(--color-primary); }
-                                                )} href={rewritten}>{label}</a>
+                                                )} href={rewritten} onclick={bc_onclick}>{label}</a>
                                             </li>
                                         }
                                     } else {
@@ -517,7 +531,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                         border-color: var(--color-primary);
                                         text-decoration: none;
                                     }
-                                )} href={href.clone()}>
+                                )} href={href.clone()} onclick={nav_link_onclick(&nav_ctx, href)}>
                                     <span class={css!(
                                         font-size: 0.75rem;
                                         color: var(--color-text-secondary);
@@ -549,7 +563,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                         border-color: var(--color-primary);
                                         text-decoration: none;
                                     }
-                                )} href={href.clone()}>
+                                )} href={href.clone()} onclick={nav_link_onclick(&nav_ctx, href)}>
                                     <span class={css!(
                                         font-size: 0.75rem;
                                         color: var(--color-text-secondary);
