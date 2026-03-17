@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Yew • Split WASM</title>
+    <base href="/" />
+
+<script type="module">
+import init, * as bindings from '/main.js';
+const wasm = await init({ module_or_path: '/main_bg.wasm' });
+
+window.globalFoo = 42;
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+  <link rel="modulepreload" href="/main.js" crossorigin="anonymous">
+  <link rel="preload" href="/main_bg.wasm" crossorigin="anonymous" as="fetch" type="application/wasm">
+  <link rel="modulepreload" href="/__wasm_split.js" crossorigin="anonymous">
+  <!--link rel="preload" href="/lazy_addon.wasm" crossorigin="anonymous" as="fetch" type="application/wasm"-->
+</head>
+
+  <body></body>
+</html>

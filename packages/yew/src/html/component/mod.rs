@@ -53,6 +53,12 @@ impl<COMP: BaseComponent> Context<COMP> {
         &self.props
     }
 
+    /// The component's props as an Rc
+    #[inline]
+    pub(crate) fn rc_props(&self) -> &Rc<COMP::Properties> {
+        &self.props
+    }
+
     #[cfg(feature = "hydration")]
     pub(crate) fn creation_mode(&self) -> RenderMode {
         self.creation_mode

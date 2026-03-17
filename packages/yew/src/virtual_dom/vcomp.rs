@@ -14,11 +14,12 @@ use super::Key;
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
-use crate::html::BaseComponent;
+#[cfg(any(feature = "ssr", feature = "csr"))]
+use crate::html::AnyScope;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
-#[cfg(any(feature = "ssr", feature = "csr"))]
-use crate::html::{AnyScope, Scope};
+use crate::html::{BaseComponent, Scope};
+use crate::scheduler::Shared;
 #[cfg(feature = "ssr")]
 use crate::{feat_ssr::VTagKind, platform::fmt::BufWriter};
 
@@ -92,11 +93,25 @@ pub(crate) trait Mountable {
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
     props: Rc<COMP::Properties>,
+    scope_ref: Option<Shared<Option<Scope<COMP>>>>,
 }
 
 impl<COMP: BaseComponent> PropsWrapper<COMP> {
     pub fn new(props: Rc<COMP::Properties>) -> Self {
-        Self { props }
+        Self {
+            props,
+            scope_ref: None,
+        }
+    }
+
+    pub fn new_with_ref(
+        props: Rc<COMP::Properties>,
+        scope_ref: Shared<Option<Scope<COMP>>>,
+    ) -> Self {
+        Self {
+            props,
+            scope_ref: Some(scope_ref),
+        }
     }
 }
 
@@ -104,6 +119,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
     fn copy(&self) -> Box<dyn Mountable> {
         let wrapper: PropsWrapper<COMP> = PropsWrapper {
             props: Rc::clone(&self.props),
+            scope_ref: self.scope_ref.clone(),
         };
         Box::new(wrapper)
     }
@@ -128,6 +144,9 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         slot: DomSlot,
     ) -> (Box<dyn Scoped>, DynamicDomSlot) {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
+        if let Some(scope_ref) = self.scope_ref {
+            *scope_ref.borrow_mut() = Some(scope.clone());
+        }
         let own_slot = scope.mount_in_place(root.clone(), parent, slot, self.props);
 
         (Box::new(scope), own_slot)
@@ -245,6 +264,19 @@ impl VComp {
             type_id: TypeId::of::<COMP>(),
             mountable: Box::new(PropsWrapper::<COMP>::new(props)),
             key,
+            _marker: 0,
+        }
+    }
+
+    /// Attach a ref into which the scope of the child will be written when it is mounted
+    pub(crate) fn new_with_ref<COMP: BaseComponent>(
+        props: Rc<COMP::Properties>,
+        scope_ref: Shared<Option<Scope<COMP>>>,
+    ) -> Self {
+        VComp {
+            type_id: TypeId::of::<COMP>(),
+            mountable: Box::new(PropsWrapper::<COMP>::new_with_ref(props, scope_ref)),
+            key: None,
             _marker: 0,
         }
     }

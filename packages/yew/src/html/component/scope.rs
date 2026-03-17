@@ -390,7 +390,7 @@ mod feat_csr_ssr {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
-    use crate::html::component::lifecycle::UpdateRunner;
+    use crate::html::component::lifecycle::{RenderRunner, UpdateRunner};
     use crate::scheduler::{self, Shared};
 
     #[derive(Debug)]
@@ -471,6 +471,16 @@ mod feat_csr_ssr {
             }));
             // Not guaranteed to already have the scheduler started
             scheduler::start();
+        }
+
+        #[inline]
+        pub(crate) fn schedule_render(&self) {
+            scheduler::push_component_render(
+                self.id,
+                Box::new(RenderRunner {
+                    state: self.state.clone(),
+                }),
+            );
         }
 
         #[inline]
