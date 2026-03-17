@@ -5507,6 +5507,7 @@ dependencies = [
  "yew-site-docs-0-21",
  "yew-site-docs-0-22",
  "yew-site-docs-0-23",
+ "yew-site-home",
  "yew-site-lib",
 ]
 
@@ -5522,6 +5523,7 @@ dependencies = [
  "yew-site-docs-ja-0-21",
  "yew-site-docs-ja-0-22",
  "yew-site-docs-ja-0-23",
+ "yew-site-home",
  "yew-site-lib",
 ]
 
@@ -5537,6 +5539,7 @@ dependencies = [
  "yew-site-docs-zh-hans-0-21",
  "yew-site-docs-zh-hans-0-22",
  "yew-site-docs-zh-hans-0-23",
+ "yew-site-home",
  "yew-site-lib",
 ]
 
@@ -5552,6 +5555,7 @@ dependencies = [
  "yew-site-docs-zh-hant-0-21",
  "yew-site-docs-zh-hant-0-22",
  "yew-site-docs-zh-hant-0-23",
+ "yew-site-home",
  "yew-site-lib",
 ]
 

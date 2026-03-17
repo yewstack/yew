@@ -8,6 +8,16 @@ use yew_site_lib::{Layout, NavigationContext};
 #[cfg(feature = "csr")]
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
+    #[at("/")]
+    Home,
+    #[at("/next/")]
+    HomeNext,
+    #[at("/0.22/")]
+    HomeV022,
+    #[at("/0.21/")]
+    HomeV021,
+    #[at("/0.20/")]
+    HomeV020,
     #[at("/docs/next/*path")]
     DocsNext { path: String },
     #[at("/docs/0.22/*path")]
@@ -1210,7 +1220,24 @@ pub fn resolve_page(route: &Route) -> Option<PageData> {
         Route::DocsV021 { path } => resolve_v021(path),
         Route::DocsV020 { path } => resolve_v020(path),
         Route::MigrationGuides { path } => resolve_migration(path),
-        Route::NotFound => None,
+        Route::Home
+        | Route::HomeNext
+        | Route::HomeV022
+        | Route::HomeV021
+        | Route::HomeV020
+        | Route::NotFound => None,
+    }
+}
+
+#[cfg(feature = "csr")]
+fn resolve_home(route: &Route) -> Option<(&'static str, &'static str, &'static str)> {
+    match route {
+        Route::Home => Some(("en", "", "0.23")),
+        Route::HomeNext => Some(("en", "next", "Next")),
+        Route::HomeV022 => Some(("en", "0.22", "0.22")),
+        Route::HomeV021 => Some(("en", "0.21", "0.21")),
+        Route::HomeV020 => Some(("en", "0.20", "0.20")),
+        _ => None,
     }
 }
 
@@ -1262,6 +1289,25 @@ fn AppInner() -> Html {
                     toc={toc}
                 >
                     { content.to_html() }
+                </Layout>
+            </ContextProvider<NavigationContext>>
+        }
+    } else if let Some((locale, version_slug, doc_version)) = resolve_home(&route) {
+        let current_path = if version_slug.is_empty() {
+            "/".to_string()
+        } else {
+            format!("/{version_slug}/")
+        };
+        html! {
+            <ContextProvider<NavigationContext> context={nav_ctx}>
+                <Layout
+                    title=""
+                    full_width=true
+                    lang=""
+                    doc_version={doc_version}
+                    active_sidebar_path={current_path}
+                >
+                    { yew_site_home::home_html(locale, version_slug) }
                 </Layout>
             </ContextProvider<NavigationContext>>
         }
@@ -2525,6 +2571,24 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
         resolve_migration,
         "yew-router/from-0-19-0-to-0-20-0"
     );
+
+    pages.push(yew_site_lib::render_page!("/", yew_site_home::Page));
+    pages.push(yew_site_lib::render_page!(
+        "/next/",
+        yew_site_home::PageNext
+    ));
+    pages.push(yew_site_lib::render_page!(
+        "/0.22/",
+        yew_site_home::PageV022
+    ));
+    pages.push(yew_site_lib::render_page!(
+        "/0.21/",
+        yew_site_home::PageV021
+    ));
+    pages.push(yew_site_lib::render_page!(
+        "/0.20/",
+        yew_site_home::PageV020
+    ));
 
     pages
 }

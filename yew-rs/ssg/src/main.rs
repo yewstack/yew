@@ -456,49 +456,32 @@ const CRATES: &[(&str, &str, &str, &str, &str)] = &[
 
 fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
     let home = "yew-site-home".to_string();
-    let home_langs: &[(&str, &str)] = &[
-        ("", ""),
-        ("ja", "ja"),
-        ("zh-Hans", "zh-hans"),
-        ("zh-Hant", "zh-hant"),
+
+    let home_spa_langs: &[(&str, &str, &str)] = &[
+        ("", "spa-en", "yew-site-spa-en"),
+        ("ja", "spa-ja", "yew-site-spa-ja"),
+        ("zh-Hans", "spa-zh-hans", "yew-site-spa-zh-hans"),
+        ("zh-Hant", "spa-zh-hant", "yew-site-spa-zh-hant"),
     ];
 
-    let home_versions: &[(&str, &str)] = &[
-        ("next", "next"),
-        ("0.22", "v022"),
-        ("0.21", "v021"),
-        ("0.20", "v020"),
-    ];
+    let home_versions: &[&str] = &["next", "0.22", "0.21", "0.20"];
 
     let mut pages = Vec::new();
 
-    // Main home pages (latest stable = 0.23, at /, /ja/, etc.)
-    for &(lang, lsuffix) in home_langs {
-        let bin_name = if lsuffix.is_empty() {
-            "yew-site-home".to_string()
-        } else {
-            format!("home-{lsuffix}")
-        };
+    for &(lang, spa_bin, spa_crate) in home_spa_langs {
         let url_path = if lang.is_empty() {
             "/".to_string()
         } else {
             format!("/{lang}/")
         };
         pages.push(PageBinary {
-            bin_name,
+            bin_name: spa_bin.to_string(),
             url_path,
             title: "Yew".to_string(),
-            crate_name: home.clone(),
+            crate_name: spa_crate.to_string(),
         });
-    }
 
-    // Versioned home pages at /{lang}/{version}/
-    for &(version_slug, vsuffix) in home_versions {
-        for &(lang, lsuffix) in home_langs {
-            let bin_name = match (lsuffix, vsuffix) {
-                ("", v) => format!("home-{v}"),
-                (l, v) => format!("home-{l}-{v}"),
-            };
+        for version_slug in home_versions {
             let lang_prefix = if lang.is_empty() {
                 String::new()
             } else {
@@ -506,10 +489,10 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
             };
             let url_path = format!("{lang_prefix}/{version_slug}/");
             pages.push(PageBinary {
-                bin_name,
+                bin_name: spa_bin.to_string(),
                 url_path,
                 title: "Yew".to_string(),
-                crate_name: home.clone(),
+                crate_name: spa_crate.to_string(),
             });
         }
     }
@@ -1039,11 +1022,11 @@ async fn render_and_inject(output_dir: &Path, page_filter: Option<&Vec<String>>)
 
 async fn render_all_pages() -> Vec<(&'static str, String, String)> {
     let mut all = Vec::new();
-    all.extend(yew_site_home::render_pages().await);
     all.extend(yew_site_spa_en::render_pages().await);
     all.extend(yew_site_spa_ja::render_pages().await);
     all.extend(yew_site_spa_zh_hans::render_pages().await);
     all.extend(yew_site_spa_zh_hant::render_pages().await);
+    all.extend(yew_site_home::render_search_and_404().await);
     all.extend(yew_site_blog::render_pages().await);
     all.extend(yew_site_community::render_pages().await);
     all

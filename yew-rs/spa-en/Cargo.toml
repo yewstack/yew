@@ -13,6 +13,7 @@ ssr = ["yew/ssr", "yew-site-lib/ssr"]
 yew = "0.23"
 yew-site-lib = { path = "../lib", default-features = false }
 yew-router = { version = "0.20", default-features = false, optional = true }
+yew-site-home = { path = "../home", default-features = false }
 yew-site-docs = { path = "../docs", default-features = false }
 yew-site-docs-0-23 = { path = "../docs-0-23", default-features = false }
 yew-site-docs-0-22 = { path = "../docs-0-22", default-features = false }

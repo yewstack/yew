@@ -453,6 +453,15 @@ fn home_url(locale: &str, version_slug: &str) -> String {
     }
 }
 
+pub fn home_html(locale: &'static str, version_slug: &'static str) -> Html {
+    html! {
+        <>
+            <Hero locale={locale} version_slug={version_slug} />
+            <Features locale={locale} version_slug={version_slug} />
+        </>
+    }
+}
+
 fn home_page(locale: &'static str, version_slug: &'static str) -> Html {
     let strings = strings_for_locale(locale);
     let lang = if locale == "en" { "" } else { locale };
@@ -517,35 +526,37 @@ home_component!(PageZhHansV020, "zh-Hans", "0.20");
 home_component!(PageZhHantV020, "zh-Hant", "0.20");
 
 #[cfg(feature = "ssr")]
-pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+pub async fn render_search_and_404() -> Vec<(&'static str, String, String)> {
     vec![
-        // Main home (latest stable = 0.23, at /, /ja/, etc.)
+        yew_site_lib::render_page!("/search", search::Page),
+        yew_site_lib::render_page!("/404", not_found::Page),
+    ]
+}
+
+#[cfg(feature = "ssr")]
+pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+    let mut pages = render_search_and_404().await;
+    pages.extend(vec![
         yew_site_lib::render_page!("/", Page),
         yew_site_lib::render_page!("/ja/", PageJa),
         yew_site_lib::render_page!("/zh-Hans/", PageZhHans),
         yew_site_lib::render_page!("/zh-Hant/", PageZhHant),
-        // Next
         yew_site_lib::render_page!("/next/", PageNext),
         yew_site_lib::render_page!("/ja/next/", PageJaNext),
         yew_site_lib::render_page!("/zh-Hans/next/", PageZhHansNext),
         yew_site_lib::render_page!("/zh-Hant/next/", PageZhHantNext),
-        // 0.22
         yew_site_lib::render_page!("/0.22/", PageV022),
         yew_site_lib::render_page!("/ja/0.22/", PageJaV022),
         yew_site_lib::render_page!("/zh-Hans/0.22/", PageZhHansV022),
         yew_site_lib::render_page!("/zh-Hant/0.22/", PageZhHantV022),
-        // 0.21
         yew_site_lib::render_page!("/0.21/", PageV021),
         yew_site_lib::render_page!("/ja/0.21/", PageJaV021),
         yew_site_lib::render_page!("/zh-Hans/0.21/", PageZhHansV021),
         yew_site_lib::render_page!("/zh-Hant/0.21/", PageZhHantV021),
-        // 0.20
         yew_site_lib::render_page!("/0.20/", PageV020),
         yew_site_lib::render_page!("/ja/0.20/", PageJaV020),
         yew_site_lib::render_page!("/zh-Hans/0.20/", PageZhHansV020),
         yew_site_lib::render_page!("/zh-Hant/0.20/", PageZhHantV020),
-        // Utility
-        yew_site_lib::render_page!("/search", search::Page),
-        yew_site_lib::render_page!("/404", not_found::Page),
-    ]
+    ]);
+    pages
 }

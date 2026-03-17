@@ -227,6 +227,22 @@ pub fn Layout(props: &LayoutProps) -> Html {
     let content_ref = use_node_ref();
 
     {
+        let title = props.title.clone();
+        use_effect_with(title.clone(), move |_| {
+            #[cfg(feature = "csr")]
+            if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
+                let display = if title.is_empty() {
+                    "Yew".to_string()
+                } else {
+                    format!("{title} | Yew")
+                };
+                doc.set_title(&display);
+            }
+            || {}
+        });
+    }
+
+    {
         let content_ref = content_ref.clone();
         use_effect_with((), move |_| {
             scroll_to_hash(&content_ref);
