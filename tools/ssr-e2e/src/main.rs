@@ -92,7 +92,9 @@ async fn wait_for_server(url: &str, timeout: Duration) -> bool {
 fn shutdown_server(server: &mut Child) {
     #[cfg(unix)]
     if let Some(id) = server.id() {
-        let _ = unsafe { libc::kill(-(id as i32), libc::SIGTERM) };
+        unsafe {
+            libc::kill(-(id as i32), libc::SIGTERM);
+        }
         return;
     }
 
