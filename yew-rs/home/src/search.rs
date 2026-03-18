@@ -20,139 +20,45 @@ pub fn Page() -> Html {
 
     html! {
         <Layout title="Search" active_nav="">
-            <div class={css!(
-        r#"
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
+            <div class={css!(r#"
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem 1rem;
 
-        .search-header {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            font-size: 1.125rem;
-            border: 2px solid var(--color-border);
-            border-radius: 6px;
-            background: var(--color-bg);
-            color: var(--color-text);
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: var(--color-primary);
-        }
-
-        .search-version {
-            padding: 0.75rem 0.75rem;
-            font-size: 0.9375rem;
-            border: 2px solid var(--color-border);
-            border-radius: 6px;
-            background: var(--color-bg);
-            color: var(--color-text);
-            font-family: inherit;
-            cursor: pointer;
-        }
-
-        .search-results {
-            min-height: 200px;
-        }
-
-        .search-result {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .search-result:last-child {
-            border-bottom: none;
-        }
-
-        .search-result h3 {
-            margin: 0 0 0.25rem;
-            font-size: 1.125rem;
-        }
-
-        .search-result h3 a {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
-
-        .search-result h3 a:hover {
-            text-decoration: underline;
-        }
-
-        .search-result-breadcrumb {
-            font-size: 0.8125rem;
-            color: var(--color-text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .search-result-content {
-            margin: 0;
-            color: var(--color-text-secondary);
-            font-size: 0.9375rem;
-            line-height: 1.5;
-        }
-
-        .search-result-content mark {
-            background: rgba(var(--color-primary-rgb, 37, 194, 160), 0.2);
-            color: inherit;
-            padding: 0 0.125rem;
-            border-radius: 2px;
-        }
-
-        .search-empty {
-            color: var(--color-text-secondary);
-            font-size: 1.125rem;
-            text-align: center;
-            padding: 3rem 0;
-        }
-
-        .search-loading {
-            color: var(--color-text-secondary);
-            text-align: center;
-            padding: 2rem 0;
-        }
-
-        .search-footer {
-            text-align: center;
-            padding: 1rem 0;
-            font-size: 0.8125rem;
-            color: var(--color-text-secondary);
-        }
-
-        .search-footer a {
-            color: var(--color-primary);
-        }
-        "#
-    )}>
-                <div class="search-header">
+                .search-result {
+                    margin-bottom: 1.5rem;
+                    padding-bottom: 1.5rem;
+                    border-bottom: 1px solid var(--color-border);
+                }
+                .search-result:last-child { border-bottom: none; }
+                .search-result h3 { margin: 0 0 0.25rem; font-size: 1.125rem; }
+                .search-result h3 a { color: var(--color-primary); text-decoration: none; }
+                .search-result h3 a:hover { text-decoration: underline; }
+                .search-result-breadcrumb { font-size: 0.8125rem; color: var(--color-text-secondary); margin-bottom: 0.25rem; }
+                .search-result-content { margin: 0; color: var(--color-text-secondary); font-size: 0.9375rem; line-height: 1.5; }
+                .search-result-content mark { background: rgba(var(--color-primary-rgb, 37, 194, 160), 0.2); color: inherit; padding: 0 0.125rem; border-radius: 2px; }
+                .search-empty { color: var(--color-text-secondary); font-size: 1.125rem; text-align: center; padding: 3rem 0; }
+                .search-loading { color: var(--color-text-secondary); text-align: center; padding: 2rem 0; }
+            "#)}>
+                <div class={css!(display: flex; gap: 0.75rem; align-items: center; margin-bottom: 2rem;)}>
                     <input
-                        class="search-input"
+                        class={css!(flex: 1; padding: 0.75rem 1rem; font-size: 1.125rem; border: 2px solid var(--color-border); border-radius: 6px; background: var(--color-bg); color: var(--color-text); font-family: inherit; outline: none; transition: border-color 0.2s; &:focus { border-color: var(--color-primary); })}
                         id="search-input"
                         type="search"
                         placeholder="Search docs..."
                         autocomplete="off"
                         autofocus=true
                     />
-                    <select class="search-version" id="search-version">
-                        { for VERSIONS.iter().map(|(label, value)| html! {
+                    <select class={css!(padding: 0.75rem 0.75rem; font-size: 0.9375rem; border: 2px solid var(--color-border); border-radius: 6px; background: var(--color-bg); color: var(--color-text); font-family: inherit; cursor: pointer;)} id="search-version">
+                        for (label, value) in VERSIONS.iter() {
                             <option value={*value}>{label}</option>
-                        })}
+                        }
                     </select>
                 </div>
                 <div class="search-results" id="search-results" />
-                <div class="search-footer">
+                <div class={css!(text-align: center; padding: 1rem 0; font-size: 0.8125rem; color: var(--color-text-secondary);)}>
                     {"Search by "}
-                    <a href="https://www.algolia.com/developers/" target="_blank" rel="noopener noreferrer">
+                    <a class={css!(color: var(--color-primary);)} href="https://www.algolia.com/developers/" target="_blank" rel="noopener noreferrer">
                         {"Algolia"}
                     </a>
                 </div>

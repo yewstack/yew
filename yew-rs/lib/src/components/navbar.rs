@@ -51,6 +51,22 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         });
     }
 
+    {
+        let version_open = version_open.clone();
+        let lang_open = lang_open.clone();
+        let path = props.current_path.clone();
+        use_effect_with(path, move |_| {
+            version_open.set(false);
+            lang_open.set(false);
+            || {}
+        });
+    }
+
+    yew_hooks::use_effect_once(|| {
+        init_docsearch();
+        || {}
+    });
+
     let toggle_mobile = {
         let mobile_open = mobile_open.clone();
         Callback::from(move |_: MouseEvent| {
@@ -69,22 +85,6 @@ pub fn Navbar(props: &NavbarProps) -> Html {
             lang_open.toggle();
         })
     };
-
-    {
-        let version_open = version_open.clone();
-        let lang_open = lang_open.clone();
-        let path = props.current_path.clone();
-        use_effect_with(path, move |_| {
-            version_open.set(false);
-            lang_open.set(false);
-            || {}
-        });
-    }
-
-    yew_hooks::use_effect_once(|| {
-        init_docsearch();
-        || {}
-    });
 
     let nav_ctx = use_context::<crate::NavigationContext>();
 
@@ -182,7 +182,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             cursor: pointer;
                             font-family: inherit;
                             &:hover { border-color: var(--color-primary); }
-                        )} onclick={toggle_version}>
+                        )} onclick={toggle_version.clone()}>
                             {if has_doc_version { props.doc_version.to_string() } else { "Next".to_string() }}
                             <svg class={css!(
                                 transition: transform 0.2s;
@@ -193,16 +193,12 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         </button>
                         if *version_open {
                             <DropdownMenu>
-                                { for VERSION_SLUGS.iter().map(|(label, slug)| {
-                                    let is_active = *label == props.doc_version.as_str();
-                                    let href = compute_version_url(
-                                        props.current_path.as_str(),
-                                        props.lang.as_str(),
-                                        props.doc_version.as_str(),
-                                        slug,
-                                    );
-                                    html! { <DropdownItem {href} active={is_active}>{label}</DropdownItem> }
-                                })}
+                                for (label, slug) in VERSION_SLUGS {
+                                    <DropdownItem
+                                        href={compute_version_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), slug)}
+                                        active={*label == props.doc_version.as_str()}
+                                    >{label}</DropdownItem>
+                                }
                             </DropdownMenu>
                         }
                     </div>
@@ -224,7 +220,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             cursor: pointer;
                             font-family: inherit;
                             &:hover { border-color: var(--color-primary); }
-                        )} onclick={toggle_lang}>
+                        )} onclick={toggle_lang.clone()}>
                             {current_lang_label}
                             <svg class={css!(
                                 transition: transform 0.2s;
@@ -235,30 +231,19 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         </button>
                         if *lang_open {
                             <DropdownMenu>
-                                { for LANGUAGES.iter().map(|(label, code)| {
-                                    let is_active = *code == props.lang.as_str();
-                                    let href = compute_lang_url(
-                                        props.current_path.as_str(),
-                                        props.lang.as_str(),
-                                        props.doc_version.as_str(),
-                                        code,
-                                    );
-                                    html! { <DropdownItem {href} active={is_active}>{label}</DropdownItem> }
-                                })}
+                                for (label, code) in LANGUAGES {
+                                    <DropdownItem
+                                        href={compute_lang_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), code)}
+                                        active={*code == props.lang.as_str()}
+                                    >{label}</DropdownItem>
+                                }
                             </DropdownMenu>
                         }
                     </div>
-                    { for nav_items.iter().map(|(label, href, _)| {
-                        let color = if *label == active_nav_label { "var(--color-primary)" } else { "var(--color-text)" };
-                        let onclick = nav_ctx.as_ref().map(|ctx| {
-                            let navigate = ctx.navigate.clone();
-                            let h = AttrValue::from(*href);
-                            Callback::from(move |e: MouseEvent| {
-                                navigate.emit((e, h.clone()));
-                            })
-                        });
-                        html! {
-                            <a class={css!(
+                    for (label, href, _) in nav_items {
+                        <a class={{
+                            let color = if *label == active_nav_label { "var(--color-primary)" } else { "var(--color-text)" };
+                            css!(
                                 color: ${color};
                                 text-decoration: none;
                                 padding: 0.5rem 0.75rem;
@@ -269,9 +254,17 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                                 gap: 0.25rem;
                                 &:hover { color: var(--color-primary); text-decoration: none; }
                                 @media (max-width: 700px) { display: none; }
-                            )} href={*href} {onclick}>{label}</a>
-                        }
-                    })}
+                            )
+                        }} href={*href} onclick={{
+                            nav_ctx.as_ref().map(|ctx| {
+                                let navigate = ctx.navigate.clone();
+                                let h = AttrValue::from(*href);
+                                Callback::from(move |e: MouseEvent| {
+                                    navigate.emit((e, h.clone()));
+                                })
+                            })
+                        }}>{label}</a>
+                    }
                     <a class={css!(
                         color: var(--color-text);
                         text-decoration: none;
@@ -406,7 +399,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         color: var(--color-text);
                         padding: 0.5rem;
                         @media (max-width: 700px) { display: block; }
-                    )} onclick={toggle_mobile} aria-label="Toggle navigation">
+                    )} onclick={toggle_mobile.clone()} aria-label="Toggle navigation">
                         <svg viewBox="0 0 30 30" width="30" height="30">
                             <path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"/>
                         </svg>
@@ -423,27 +416,26 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     max-height: calc(100vh - 60px);
                     overflow-y: auto;
                 )}>
-                    { for nav_items.iter().map(|(label, href, _)| {
-                        let onclick = nav_ctx.as_ref().map(|ctx| {
-                            let navigate = ctx.navigate.clone();
-                            let h = AttrValue::from(*href);
-                            Callback::from(move |e: MouseEvent| {
-                                navigate.emit((e, h.clone()));
+                    for (label, href, _) in nav_items {
+                        <a class={css!(
+                            color: var(--color-text);
+                            text-decoration: none;
+                            padding: 0.75rem 0;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            display: inline-flex;
+                            align-items: center;
+                            &:hover { color: var(--color-primary); text-decoration: none; }
+                        )} href={*href} onclick={{
+                            nav_ctx.as_ref().map(|ctx| {
+                                let navigate = ctx.navigate.clone();
+                                let h = AttrValue::from(*href);
+                                Callback::from(move |e: MouseEvent| {
+                                    navigate.emit((e, h.clone()));
+                                })
                             })
-                        });
-                        html! {
-                            <a class={css!(
-                                color: var(--color-text);
-                                text-decoration: none;
-                                padding: 0.75rem 0;
-                                font-size: 0.875rem;
-                                font-weight: 500;
-                                display: inline-flex;
-                                align-items: center;
-                                &:hover { color: var(--color-primary); text-decoration: none; }
-                            )} href={*href} {onclick}>{label}</a>
-                        }
-                    })}
+                        }}>{label}</a>
+                    }
                     <a class={css!(
                         color: var(--color-text);
                         text-decoration: none;
@@ -478,28 +470,18 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         padding: 0.5rem 0 0.25rem;
                         display: block;
                     "#)}>{"Version"}</span>
-                    { for VERSION_SLUGS.iter().map(|(label, slug)| {
-                        let is_active = has_doc_version && *label == props.doc_version.as_str();
-                        let color = if is_active { "var(--color-primary)" } else { "var(--color-text)" };
-                        let href = compute_version_url(
-                            props.current_path.as_str(),
-                            props.lang.as_str(),
-                            props.doc_version.as_str(),
-                            slug,
-                        );
-                        html! {
-                            <a class={css!(
-                                color: ${color};
-                                text-decoration: none;
-                                padding: 0.75rem 0;
-                                font-size: 0.875rem;
-                                font-weight: 500;
-                                display: inline-flex;
-                                align-items: center;
-                                &:hover { color: var(--color-primary); text-decoration: none; }
-                            )} href={href}>{label}</a>
-                        }
-                    })}
+                    for (label, slug) in VERSION_SLUGS {
+                        <a class={css!(
+                            color: ${if has_doc_version && *label == props.doc_version.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
+                            text-decoration: none;
+                            padding: 0.75rem 0;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            display: inline-flex;
+                            align-items: center;
+                            &:hover { color: var(--color-primary); text-decoration: none; }
+                        )} href={compute_version_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), slug)}>{label}</a>
+                    }
                     <div class={css!(height: 1px; background: var(--color-border); margin: 0.25rem 0;)} />
                     <span class={css!(r#"
                         font-size: 0.75rem;
@@ -510,28 +492,18 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         padding: 0.5rem 0 0.25rem;
                         display: block;
                     "#)}>{"Language"}</span>
-                    { for LANGUAGES.iter().map(|(label, code)| {
-                        let is_active = *code == props.lang.as_str();
-                        let color = if is_active { "var(--color-primary)" } else { "var(--color-text)" };
-                        let href = compute_lang_url(
-                            props.current_path.as_str(),
-                            props.lang.as_str(),
-                            props.doc_version.as_str(),
-                            code,
-                        );
-                        html! {
-                            <a class={css!(
-                                color: ${color};
-                                text-decoration: none;
-                                padding: 0.75rem 0;
-                                font-size: 0.875rem;
-                                font-weight: 500;
-                                display: inline-flex;
-                                align-items: center;
-                                &:hover { color: var(--color-primary); text-decoration: none; }
-                            )} href={href}>{label}</a>
-                        }
-                    })}
+                    for (label, code) in LANGUAGES {
+                        <a class={css!(
+                            color: ${if *code == props.lang.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
+                            text-decoration: none;
+                            padding: 0.75rem 0;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            display: inline-flex;
+                            align-items: center;
+                            &:hover { color: var(--color-primary); text-decoration: none; }
+                        )} href={compute_lang_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), code)}>{label}</a>
+                    }
                 </div>
             }
         </nav>

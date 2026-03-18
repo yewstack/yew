@@ -110,8 +110,7 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
     };
 
     html! {
-        <aside class={css!(
-            r#"
+        <aside class={css!(r#"
             width: var(--sidebar-width);
             flex-shrink: 0;
             border-right: 1px solid var(--color-border);
@@ -120,94 +119,6 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
             top: var(--navbar-height);
             height: calc(100vh - var(--navbar-height));
             padding: 0.5rem 0;
-
-            .nav {
-                padding: 0 0.5rem;
-            }
-
-            .list {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            .list--nested {
-                padding-left: 0.75rem;
-            }
-
-            .item {
-                margin: 1px 0;
-            }
-
-            .link {
-                display: block;
-                padding: 0.375rem 0.75rem;
-                color: var(--color-text-secondary);
-                font-size: 0.875rem;
-                border-radius: 4px;
-                text-decoration: none;
-            }
-
-            .link:hover {
-                color: var(--color-primary);
-                background: var(--color-bg-secondary);
-                text-decoration: none;
-            }
-
-            .link--active {
-                color: var(--color-primary);
-                background: var(--color-bg-secondary);
-                font-weight: 600;
-            }
-
-            .cat-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                cursor: pointer;
-            }
-
-            .cat-label {
-                display: block;
-                flex: 1;
-                padding: 0.375rem 0.75rem;
-                font-size: 0.875rem;
-                font-weight: 600;
-                color: var(--color-text);
-            }
-
-            .cat-label--link {
-                color: var(--color-text);
-                text-decoration: none;
-            }
-
-            .cat-label--link:hover {
-                color: var(--color-primary);
-                text-decoration: none;
-            }
-
-            .caret {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0.25rem;
-                color: var(--color-text-secondary);
-                flex-shrink: 0;
-                transition: transform 0.2s;
-            }
-
-            .item--collapsed .caret svg {
-                transform: rotate(-90deg);
-            }
-
-            .sidebar-title {
-                font-size: 0.875rem;
-                font-weight: 700;
-                padding: 0.375rem 0.75rem;
-                margin-bottom: 0.25rem;
-                color: var(--color-text);
-            }
-
             @media (max-width: 700px) {
                 & {
                     width: 100%;
@@ -216,14 +127,13 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
                     border-right: none;
                 }
             }
-        "#
-        )}>
-            <nav class="nav" aria-label={aria_label}>
+        "#)}>
+            <nav class={css!(padding: 0 0.5rem;)} aria-label={aria_label}>
                 if !props.title.is_empty() {
-                    <div class="sidebar-title">{&props.title}</div>
+                    <div class={css!(font-size: 0.875rem; font-weight: 700; padding: 0.375rem 0.75rem; margin-bottom: 0.25rem; color: var(--color-text);)}>{&props.title}</div>
                 }
-                <ul class="list">
-                    { for props.entries.iter().map(|entry| render_entry(entry, &active_path, &open_categories, props.lang.as_str(), props.doc_version.as_str(), &nav_ctx)) }
+                <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
+                    for entry in props.entries.iter() { {render_entry(entry, &active_path, &open_categories, props.lang.as_str(), props.doc_version.as_str(), &nav_ctx)} }
                 </ul>
             </nav>
         </aside>
@@ -250,6 +160,8 @@ fn render_entry(
     doc_version: &str,
     nav_ctx: &Option<crate::NavigationContext>,
 ) -> Html {
+    use stylist::css;
+
     use super::layout::rewrite_doc_href;
 
     match entry {
@@ -257,10 +169,21 @@ fn render_entry(
             let is_active = active_path == item.href;
             let href = rewrite_doc_href(item.href, lang, doc_version);
             let onclick = make_nav_onclick(nav_ctx, &href);
+            let link_color = if is_active {
+                "var(--color-primary)"
+            } else {
+                "var(--color-text-secondary)"
+            };
+            let link_bg = if is_active {
+                "var(--color-bg-secondary)"
+            } else {
+                "transparent"
+            };
+            let link_fw = if is_active { "600" } else { "normal" };
             html! {
-                <li class="item">
+                <li class={css!(margin: 1px 0;)}>
                     <a
-                        class={classes!("link", is_active.then_some("link--active"))}
+                        class={css!(display: block; padding: 0.375rem 0.75rem; color: ${link_color}; font-size: 0.875rem; border-radius: 4px; text-decoration: none; background: ${link_bg}; font-weight: ${link_fw}; &:hover { color: var(--color-primary); background: var(--color-bg-secondary); text-decoration: none; })}
                         href={href}
                         {onclick}
                     >
@@ -286,34 +209,32 @@ fn render_entry(
             let cat_onclick = cat_href
                 .as_deref()
                 .and_then(|h| make_nav_onclick(nav_ctx, h));
+            let caret_rot = if is_open { "none" } else { "rotate(-90deg)" };
             html! {
-                <li class={classes!(
-                    "item",
-                    (!is_open).then_some("item--collapsed"),
-                )}>
+                <li class={css!(margin: 1px 0;)}>
                     <div
-                        class="cat-header"
+                        class={css!(display: flex; align-items: center; justify-content: space-between; cursor: pointer;)}
                         onclick={toggle}
                         role="button"
                         aria-expanded={is_open.to_string()}
                         aria-label={format!("{} category '{}'", if is_open { "Collapse" } else { "Expand" }, cat.label)}
                     >
                         if let Some(href) = &cat_href {
-                            <a class="cat-label cat-label--link" href={href.clone()} onclick={cat_onclick}>
+                            <a class={css!(display: block; flex: 1; padding: 0.375rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: var(--color-text); text-decoration: none; &:hover { color: var(--color-primary); text-decoration: none; })} href={href.clone()} onclick={cat_onclick}>
                                 {cat.label}
                             </a>
                         } else {
-                            <span class="cat-label">{cat.label}</span>
+                            <span class={css!(display: block; flex: 1; padding: 0.375rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: var(--color-text);)}>{cat.label}</span>
                         }
-                        <span class="caret">
-                            <svg viewBox="0 0 24 24" width="16" height="16">
+                        <span class={css!(display: flex; align-items: center; justify-content: center; padding: 0.25rem; color: var(--color-text-secondary); flex-shrink: 0;)}>
+                            <svg class={css!(transition: transform 0.2s; transform: ${caret_rot};)} viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
                             </svg>
                         </span>
                     </div>
                     if is_open {
-                        <ul class="list list--nested">
-                            { for cat.items.iter().map(|e| render_entry(e, active_path, open_categories, lang, doc_version, nav_ctx)) }
+                        <ul class={css!(list-style: none; padding: 0; margin: 0; padding-left: 0.75rem;)}>
+                            for e in cat.items.iter() { {render_entry(e, active_path, open_categories, lang, doc_version, nav_ctx)} }
                         </ul>
                     }
                 </li>

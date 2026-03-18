@@ -182,135 +182,19 @@ fn Hero(props: &HomeProps) -> Html {
     let get_started_href = docs_href(&props.locale, &props.version_slug, "/getting-started");
 
     html! {
-        <div class={css!(
-        r#"
-        background: var(--color-hero-bg);
-        padding: 4rem 2rem;
-        text-align: center;
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: calc(var(--h1-font-size) / 2);
-            padding: var(--h1-font-size);
-        }
-
-        .logo {
-            width: calc(var(--h1-font-size) * 5);
-            height: calc(var(--h1-font-size) * 5);
-        }
-
-        .title {
-            font-size: calc(var(--h1-font-size) * 3);
-            margin: 0;
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            color: var(--color-text-secondary);
-            padding: 1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            text-decoration: none;
-            border: 2px solid transparent;
-        }
-
-        .button:hover {
-            text-decoration: none;
-        }
-
-        .button.primary {
-            background: var(--color-primary);
-            color: #fff;
-            border-color: var(--color-primary);
-        }
-
-        .button.primary:hover {
-            background: var(--color-primary-dark);
-            border-color: var(--color-primary-dark);
-            color: #fff;
-        }
-
-        .button.outline {
-            background: transparent;
-            color: var(--color-primary);
-            border-color: var(--color-primary);
-        }
-
-        .button.outline:hover {
-            background: var(--color-primary);
-            color: #fff;
-        }
-
-        .button.secondary {
-            background: var(--color-bg-secondary);
-            color: var(--color-text);
-            border-color: var(--color-border);
-        }
-
-        .button.secondary:hover {
-            background: var(--color-border);
-        }
-
-        .button.lg {
-            padding: 1rem 2rem;
-            font-size: 1.125rem;
-        }
-
-        @media (max-width: 700px) {
-            .header {
-                flex-direction: column;
-            }
-
-            .title {
-                font-size: calc(var(--h1-font-size) * 1.5);
-            }
-
-            .logo {
-                width: calc(var(--h1-font-size) * 3);
-                height: calc(var(--h1-font-size) * 3);
-            }
-
-            .actions {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
-    "#
-    )}>
-            <div class="header">
-                <img class="logo" src="/img/logo.svg" alt="Yew" />
-                <h1 class="title">{"Yew"}</h1>
+        <div class={css!(background: var(--color-hero-bg); padding: 4rem 2rem; text-align: center; @media (max-width: 700px) { padding: 2rem 1rem; })}>
+            <div class={css!(display: flex; align-items: center; justify-content: center; gap: calc(var(--h1-font-size) / 2); padding: var(--h1-font-size); @media (max-width: 700px) { flex-direction: column; })}>
+                <img class={css!(r#"width: calc(var(--h1-font-size) * 5); height: calc(var(--h1-font-size) * 5); @media (max-width: 700px) { width: calc(var(--h1-font-size) * 3); height: calc(var(--h1-font-size) * 3); }"#)} src="/img/logo.svg" alt="Yew" />
+                <h1 class={css!(r#"font-size: calc(var(--h1-font-size) * 3); margin: 0; @media (max-width: 700px) { font-size: calc(var(--h1-font-size) * 1.5); }"#)}>{"Yew"}</h1>
             </div>
-            <p class="subtitle">
+            <p class={css!(font-size: 1.25rem; color: var(--color-text-secondary); padding: 1rem; max-width: 600px; margin: 0 auto;)}>
                 {strings.subtitle}
             </p>
-            <div class="actions">
-                <a class="button lg outline primary" href={get_started_href}>
+            <div class={css!(display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; @media (max-width: 700px) { flex-direction: column; align-items: center; })}>
+                <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border-radius: 6px; font-weight: 600; font-size: 1.125rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); &:hover { background: var(--color-primary); color: #fff; text-decoration: none; })} href={get_started_href}>
                     {strings.get_started}
                 </a>
-                <a class="button lg outline secondary" href="https://play.yew.rs" target="_blank" rel="noopener noreferrer">
+                <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border-radius: 6px; font-weight: 600; font-size: 1.125rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: var(--color-bg-secondary); color: var(--color-text); border: 2px solid var(--color-border); &:hover { background: var(--color-border); text-decoration: none; })} href="https://play.yew.rs" target="_blank" rel="noopener noreferrer">
                     {strings.playground}
                     <svg viewBox="0 0 24 24" width="16" height="16">
                         <path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/>
@@ -326,112 +210,24 @@ fn Features(props: &HomeProps) -> Html {
     let strings = strings_for_locale(&props.locale);
 
     html! {
-        <article class={css!(
-        r#"
-        padding: 3rem 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-
-        & h2 {
-            font-size: calc(1.5rem * 1.5);
-            margin-bottom: 1.5rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            padding: 1rem 0;
-        }
-
-        @media (min-width: 700px) {
-            .grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .card {
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: box-shadow 0.2s;
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-header {
-            padding: 1.25rem 1.25rem 0;
-        }
-
-        .card-header h3 {
-            margin: 0;
-        }
-
-        .card-body {
-            padding: 0.75rem 1.25rem;
-            color: var(--color-text-secondary);
-        }
-
-        .card-body p {
-            margin: 0;
-        }
-
-        .card-footer {
-            padding: 0 1.25rem 1.25rem;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            text-decoration: none;
-            border: 2px solid transparent;
-        }
-
-        .button:hover {
-            text-decoration: none;
-        }
-
-        .button.secondary {
-            background: var(--color-bg-secondary);
-            color: var(--color-text);
-            border-color: var(--color-border);
-        }
-
-        .button.secondary:hover {
-            background: var(--color-border);
-        }
-    "#
-    )}>
+        <article class={css!(r#"padding: 3rem 2rem; max-width: 1200px; margin: 0 auto; & h2 { font-size: calc(1.5rem * 1.5); margin-bottom: 1.5rem; }"#)}>
             <h2>{strings.features_title}</h2>
-            <section class="grid">
-                { for strings.features.iter().map(|f| {
-                    let href = docs_href(&props.locale, &props.version_slug, f.path);
-                    html! {
-                        <div class="card">
-                            <div class="card-header">
-                                <h3>{f.header}</h3>
-                            </div>
-                            <div class="card-body">
-                                <p>{f.body}</p>
-                            </div>
-                            <div class="card-footer">
-                                <a class="button secondary" href={href}>
-                                    {strings.learn_more}
-                                </a>
-                            </div>
+            <section class={css!(display: grid; grid-template-columns: 1fr; gap: 2rem; padding: 1rem 0; @media (min-width: 700px) { grid-template-columns: repeat(3, 1fr); })}>
+                for f in strings.features.iter() {
+                    <div class={css!(background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; transition: box-shadow 0.2s; &:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); })}>
+                        <div class={css!(padding: 1.25rem 1.25rem 0;)}>
+                            <h3 class={css!(margin: 0;)}>{f.header}</h3>
                         </div>
-                    }
-                })}
+                        <div class={css!(padding: 0.75rem 1.25rem; color: var(--color-text-secondary);)}>
+                            <p class={css!(margin: 0;)}>{f.body}</p>
+                        </div>
+                        <div class={css!(padding: 0 1.25rem 1.25rem;)}>
+                            <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: var(--color-bg-secondary); color: var(--color-text); border: 2px solid var(--color-border); &:hover { background: var(--color-border); text-decoration: none; })} href={docs_href(&props.locale, &props.version_slug, f.path)}>
+                                {strings.learn_more}
+                            </a>
+                        </div>
+                    </div>
+                }
             </section>
         </article>
     }

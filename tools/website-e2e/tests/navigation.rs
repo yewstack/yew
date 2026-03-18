@@ -109,18 +109,13 @@ async fn click_lang_option(client: &fantoccini::Client, label: &str) {
 }
 
 async fn click_sidebar_category(client: &fantoccini::Client, label: &str) {
-    let links = client
-        .find_all(Locator::Css(".cat-label--link"))
+    let xpath = format!("//aside//a[normalize-space(text())='{label}']");
+    let link = client
+        .find(Locator::XPath(&xpath))
         .await
-        .unwrap();
-    for link in links {
-        if link.text().await.unwrap().trim() == label {
-            link.click().await.unwrap();
-            tokio::time::sleep(Duration::from_millis(500)).await;
-            return;
-        }
-    }
-    panic!("sidebar category '{}' not found", label);
+        .unwrap_or_else(|_| panic!("sidebar category '{label}' not found"));
+    link.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
 }
 
 fn assert_path(url: &::url::Url, expected: &str) {
@@ -772,10 +767,7 @@ async fn home_page_learn_more_links() {
     client.goto(&format!("{base}/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    let links = client
-        .find_all(Locator::Css(".card-footer a"))
-        .await
-        .unwrap();
+    let links = client.find_all(Locator::Css("section a")).await.unwrap();
     assert!(!links.is_empty(), "no Learn more links found");
     for link in &links {
         let href = link.attr("href").await.unwrap().unwrap();
@@ -792,10 +784,7 @@ async fn home_page_learn_more_links() {
     client.goto(&format!("{base}/ja/0.22/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    let links = client
-        .find_all(Locator::Css(".card-footer a"))
-        .await
-        .unwrap();
+    let links = client.find_all(Locator::Css("section a")).await.unwrap();
     for link in &links {
         let href = link.attr("href").await.unwrap().unwrap();
         assert!(

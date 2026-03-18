@@ -175,12 +175,12 @@ macro_rules! blog_page {
                     sidebar_all_open={true}
                 >
                     <div class={css!(margin-bottom: 1.5rem;)}>
-                        <time class={css!(r#"
+                        <time class={css!(
                             display: block;
                             font-size: 0.875rem;
                             color: var(--color-text-secondary);
                             margin-bottom: 0.75rem;
-                        "#)}>{date_display}</time>
+                        )}>{date_display}</time>
                         <div class={css!(display: flex; align-items: center; gap: 0.625rem;)}>
                             <img
                                 class={css!(width: 48px; height: 48px; border-radius: 50%;)}
@@ -191,18 +191,18 @@ macro_rules! blog_page {
                                 loading="lazy"
                             />
                             <div class={css!(display: flex; flex-direction: column;)}>
-                                <a class={css!(r#"
+                                <a class={css!(
                                     font-weight: 600;
                                     color: var(--color-text);
                                     text-decoration: none;
                                     &:hover { color: var(--color-primary); }
-                                "#)} href={meta.author_url}>
+                                )} href={meta.author_url}>
                                     {meta.author_name}
                                 </a>
-                                <span class={css!(r#"
+                                <span class={css!(
                                     font-size: 0.8125rem;
                                     color: var(--color-text-secondary);
-                                "#)}>{meta.author_title}</span>
+                                )}>{meta.author_title}</span>
                             </div>
                         </div>
                     </div>

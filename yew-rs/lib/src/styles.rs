@@ -1,8 +1,8 @@
-use stylist::yew::Global;
-use stylist::{css, StyleSource};
+use stylist::yew::{styled_component, Global};
+use stylist::StyleSource;
 use yew::prelude::*;
 
-#[component]
+#[styled_component]
 pub fn GlobalStyles() -> Html {
     let syntect_light: StyleSource = SYNTECT_LIGHT_THEME
         .try_into()

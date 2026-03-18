@@ -24,79 +24,27 @@ pub fn Tabs(props: &TabsProps) -> Html {
     });
 
     html! {
-        <div class={css!(
-            r#"
-            margin-bottom: 1.5rem;
+        <div class={css!(margin-bottom: 1.5rem;)}>
+            <ul class={css!(display: flex; list-style: none; padding: 0; margin: 0; border-bottom: 2px solid var(--color-border); gap: 0;)} role="tablist">
+                for child in props.children.iter(){
+                    <li
+                        class={{
+                            let value = child.props.value.clone();
+                            let is_active = *active == value.as_str();
+                            css!(padding: 0.75rem 1.25rem; cursor: pointer; font-weight: 500; font-size: 0.875rem; color: ${if is_active { "var(--color-primary)" } else { "var(--color-text-secondary)" }}; border-bottom: 2px solid ${if is_active { "var(--color-primary)" } else { "transparent" }}; margin-bottom: -2px; transition: color 0.2s, border-color 0.2s; user-select: none; &:hover { color: var(--color-primary); }) }}
+                        role="tab"
+                        onclick={let active = active.clone(); let value = child.props.value.clone(); move |_: MouseEvent| active.set(value.to_string())}
+                    >
+                        {child.props.label.clone()}
+                    </li>
 
-            .tabs {
-                display: flex;
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                border-bottom: 2px solid var(--color-border);
-                gap: 0;
-            }
-
-            .item {
-                padding: 0.75rem 1.25rem;
-                cursor: pointer;
-                font-weight: 500;
-                font-size: 0.875rem;
-                color: var(--color-text-secondary);
-                border-bottom: 2px solid transparent;
-                margin-bottom: -2px;
-                transition: color 0.2s, border-color 0.2s;
-                user-select: none;
-            }
-
-            .item:hover {
-                color: var(--color-primary);
-            }
-
-            .item--active {
-                color: var(--color-primary);
-                border-bottom-color: var(--color-primary);
-            }
-
-            .panel--hidden {
-                display: none;
-            }
-
-            .panel {
-                padding: 1rem 0;
-            }
-        "#
-        )}>
-            <ul class="tabs" role="tablist">
-                { for props.children.iter().map(|child| {
-                    let value = child.props.value.clone();
-                    let is_active = *active == value.as_str();
-                    let onclick = {
-                        let active = active.clone();
-                        let value = value.clone();
-                        Callback::from(move |_: MouseEvent| {
-                            active.set(value.to_string());
-                        })
-                    };
-                    html! {
-                        <li
-                            class={classes!("item", is_active.then_some("item--active"))}
-                            role="tab"
-                            {onclick}
-                        >
-                            {&child.props.label}
-                        </li>
-                    }
-                })}
-            </ul>
-            { for props.children.iter().map(|child| {
-                let is_active = *active == child.props.value.as_str();
-                html! {
-                    <div class={classes!("panel", (!is_active).then_some("panel--hidden"))} role="tabpanel">
-                        {child.props.children.clone()}
-                    </div>
                 }
-            })}
+            </ul>
+            for child in props.children.iter(){
+                <div class={css!(display: ${if *active == child.props.value.as_str() { "block" } else { "none" }}; padding: 1rem 0;)} role="tabpanel">
+                    {child.props.children.clone()}
+                </div>
+            }
         </div>
     }
 }

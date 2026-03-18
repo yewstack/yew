@@ -191,13 +191,6 @@ pub fn Layout(props: &LayoutProps) -> Html {
     let nav_ctx = use_context::<crate::NavigationContext>();
 
     let mobile_sidebar_open = use_state(|| false);
-    let toggle_mobile_sidebar = {
-        let mobile_sidebar_open = mobile_sidebar_open.clone();
-        Callback::from(move |_: MouseEvent| {
-            mobile_sidebar_open.set(!*mobile_sidebar_open);
-        })
-    };
-
     let copied = use_state(|| false);
 
     #[cfg(feature = "csr")]
@@ -361,7 +354,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                             @media (max-width: 700px) {
                                 display: inline-flex;
                             }
-                        )} onclick={toggle_mobile_sidebar}>
+                        )} onclick={let mobile_sidebar_open = mobile_sidebar_open.clone(); move |_: MouseEvent| mobile_sidebar_open.set(!*mobile_sidebar_open)}>
                             <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
                             </svg>
@@ -397,55 +390,57 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                         </svg>
                                     </a>
                                 </li>
-                                { for trail.iter().enumerate().map(|(i, (label, href))| {
-                                    let is_last = i == trail.len() - 1;
-                                    if is_last {
-                                        html! {
-                                            <li class={css!(display: flex; align-items: center;)}>
-                                                <span class={css!(
-                                                    margin: 0 0.5rem;
-                                                    color: var(--color-text-secondary);
-                                                    opacity: 0.5;
-                                                )}>{"/"}</span>
-                                                <span class={css!(
-                                                    color: var(--color-text);
-                                                    font-weight: 600;
-                                                )}>{label}</span>
-                                            </li>
+                                for (i, (label, href)) in trail.iter().enumerate() {
+                                    {{
+                                        let is_last = i == trail.len() - 1;
+                                        if is_last {
+                                            html! {
+                                                <li class={css!(display: flex; align-items: center;)}>
+                                                    <span class={css!(
+                                                        margin: 0 0.5rem;
+                                                        color: var(--color-text-secondary);
+                                                        opacity: 0.5;
+                                                    )}>{"/"}</span>
+                                                    <span class={css!(
+                                                        color: var(--color-text);
+                                                        font-weight: 600;
+                                                    )}>{label}</span>
+                                                </li>
+                                            }
+                                        } else if let Some(h) = href {
+                                            let rewritten = rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str());
+                                            let bc_onclick = nav_link_onclick(&nav_ctx, &rewritten);
+                                            html! {
+                                                <li class={css!(display: flex; align-items: center;)}>
+                                                    <span class={css!(
+                                                        margin: 0 0.5rem;
+                                                        color: var(--color-text-secondary);
+                                                        opacity: 0.5;
+                                                    )}>{"/"}</span>
+                                                    <a class={css!(
+                                                        color: var(--color-text-secondary);
+                                                        text-decoration: none;
+                                                        &:hover { color: var(--color-primary); }
+                                                    )} href={rewritten} onclick={bc_onclick}>{label}</a>
+                                                </li>
+                                            }
+                                        } else {
+                                            html! {
+                                                <li class={css!(display: flex; align-items: center;)}>
+                                                    <span class={css!(
+                                                        margin: 0 0.5rem;
+                                                        color: var(--color-text-secondary);
+                                                        opacity: 0.5;
+                                                    )}>{"/"}</span>
+                                                    <span class={css!(
+                                                        color: var(--color-text-secondary);
+                                                        text-decoration: none;
+                                                    )}>{label}</span>
+                                                </li>
+                                            }
                                         }
-                                    } else if let Some(h) = href {
-                                        let rewritten = rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str());
-                                        let bc_onclick = nav_link_onclick(&nav_ctx, &rewritten);
-                                        html! {
-                                            <li class={css!(display: flex; align-items: center;)}>
-                                                <span class={css!(
-                                                    margin: 0 0.5rem;
-                                                    color: var(--color-text-secondary);
-                                                    opacity: 0.5;
-                                                )}>{"/"}</span>
-                                                <a class={css!(
-                                                    color: var(--color-text-secondary);
-                                                    text-decoration: none;
-                                                    &:hover { color: var(--color-primary); }
-                                                )} href={rewritten} onclick={bc_onclick}>{label}</a>
-                                            </li>
-                                        }
-                                    } else {
-                                        html! {
-                                            <li class={css!(display: flex; align-items: center;)}>
-                                                <span class={css!(
-                                                    margin: 0 0.5rem;
-                                                    color: var(--color-text-secondary);
-                                                    opacity: 0.5;
-                                                )}>{"/"}</span>
-                                                <span class={css!(
-                                                    color: var(--color-text-secondary);
-                                                    text-decoration: none;
-                                                )}>{label}</span>
-                                            </li>
-                                        }
-                                    }
-                                })}
+                                    }}
+                                }
                             </ul>
                         </nav>
                     }
@@ -723,33 +718,29 @@ fn Toc(props: &TocProps) -> Html {
                 border-left: 1px solid var(--color-border);
             "#)}>
                 <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
-                    { for props.entries.iter().map(|entry| {
-                        let pad = match entry.level {
-                            3 => "padding-left:1rem",
-                            4 => "padding-left:2rem",
-                            _ => "",
-                        };
-                        let href = format!("#{}", entry.id);
-                        let is_active = *active_id == Some(entry.id.clone());
-                        let color = if is_active { "var(--color-primary)" } else { "var(--color-text-secondary)" };
-                        let fw = if is_active { "600" } else { "normal" };
-                        html! {
-                            <li style={pad}>
-                                <a class={css!(
-                                    display: block;
-                                    padding: 0.25rem 0;
-                                    color: ${color};
-                                    text-decoration: none;
-                                    line-height: 1.3;
-                                    transition: color 0.2s;
-                                    font-weight: ${fw};
-                                    &:hover {
-                                        color: var(--color-primary);
-                                    }
-                                )} href={href}>{&entry.text}</a>
-                            </li>
-                        }
-                    })}
+                    for TocEntry { id, text, level } in &props.entries {
+                        <li style={match level {
+                                3 => "padding-left:1rem",
+                                4 => "padding-left:2rem",
+                                _ => "",
+                            }}>
+                        <a class={{
+                            let is_active = matches!(&*active_id, Some(i) if id.eq(i));
+                            css!(
+                            display: block;
+                            padding: 0.25rem 0;
+                            color: ${if is_active { "var(--color-primary)" } else { "var(--color-text-secondary)" }};
+                            text-decoration: none;
+                            line-height: 1.3;
+                            transition: color 0.2s;
+                            font-weight: ${if is_active { "600" } else { "normal" }};
+                            &:hover {
+                                color: var(--color-primary);
+                            }
+                        ) }} href={format!("#{}", id)}>{text}</a>
+                        </li>
+
+                    }
                 </ul>
             </nav>
         </aside>
@@ -777,29 +768,25 @@ fn Toc(props: &TocProps) -> Html {
                 border-left: 1px solid var(--color-border);
             "#)}>
                 <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
-                    { for props.entries.iter().map(|entry| {
-                        let pad = match entry.level {
-                            3 => "padding-left:1rem",
-                            4 => "padding-left:2rem",
-                            _ => "",
-                        };
-                        let href = format!("#{}", entry.id);
-                        html! {
-                            <li style={pad}>
-                                <a class={css!(
-                                    display: block;
-                                    padding: 0.25rem 0;
-                                    color: var(--color-text-secondary);
-                                    text-decoration: none;
-                                    line-height: 1.3;
-                                    transition: color 0.2s;
-                                    &:hover {
-                                        color: var(--color-primary);
-                                    }
-                                )} href={href}>{&entry.text}</a>
-                            </li>
-                        }
-                    })}
+                    for TocEntry { id, text, level } in &props.entries {
+                        <li style={match level {
+                                3 => "padding-left:1rem",
+                                4 => "padding-left:2rem",
+                                _ => "",
+                            }}>
+                            <a class={css!(
+                                display: block;
+                                padding: 0.25rem 0;
+                                color: var(--color-text-secondary);
+                                text-decoration: none;
+                                line-height: 1.3;
+                                transition: color 0.2s;
+                                &:hover {
+                                    color: var(--color-primary);
+                                }
+                            )} href={format!("#{}", id)}>{text}</a>
+                        </li>
+                    }
                 </ul>
             </nav>
         </aside>

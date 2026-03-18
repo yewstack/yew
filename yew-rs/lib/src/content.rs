@@ -37,23 +37,28 @@ struct AnchorHeadingProps {
 
 #[styled_component]
 fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
-    let class = css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);");
     let id = Some(props.id.clone());
     let content = html! { <>
         {props.children.clone()}
-        <a class={css!(r#"
+        <a class={css!(
             opacity: 0;
             transition: opacity 0.2s;
             padding-left: 0.5rem;
             color: var(--color-primary);
             text-decoration: none;
             font-weight: normal;
-        "#)} href={props.hash_href.clone()} aria-label={props.hash_label.clone()}>{"#"}</a>
+        )} href={props.hash_href.clone()} aria-label={props.hash_label.clone()}>{"#"}</a>
     </> };
     match props.level {
-        2 => html! { <h2 {id} class={class.clone()}>{content}</h2> },
-        3 => html! { <h3 {id} class={class.clone()}>{content}</h3> },
-        _ => html! { <h4 {id} {class}>{content}</h4> },
+        2 => {
+            html! { <h2 {id} class={css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);")}>{content}</h2> }
+        }
+        3 => {
+            html! { <h3 {id} class={css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);")}>{content}</h3> }
+        }
+        _ => {
+            html! { <h4 {id} class={css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);")}>{content}</h4> }
+        }
     }
 }
 
@@ -360,17 +365,17 @@ impl Inline {
             Inline::Text(t) => html! { {t} },
             Inline::Code(c) => html! { <code>{c}</code> },
             Inline::Bold(children) => {
-                html! { <strong>{ for children.iter().map(Inline::to_html) }</strong> }
+                html! { <strong>for child in children { {child.to_html()} }</strong> }
             }
             Inline::Italic(children) => {
-                html! { <em>{ for children.iter().map(Inline::to_html) }</em> }
+                html! { <em>for child in children { {child.to_html()} }</em> }
             }
             Inline::Link { href, children } => html! {
-                <ContentLink href={href.clone()}>{ for children.iter().map(Inline::to_html) }</ContentLink>
+                <ContentLink href={href.clone()}>for child in children { {child.to_html()} }</ContentLink>
             },
             Inline::LineBreak => html! { <br /> },
             Inline::Superscript(children) => {
-                html! { <sup>{ for children.iter().map(Inline::to_html) }</sup> }
+                html! { <sup>for child in children { {child.to_html()} }</sup> }
             }
         }
     }
@@ -494,18 +499,17 @@ impl Block {
                 let id = id
                     .clone()
                     .unwrap_or_else(|| AttrValue::from(slugify(&text)));
-                let inner = children.iter().map(Inline::to_html);
                 if *level >= 2 && *level <= 4 && !id.is_empty() {
                     let href = format!("#{id}");
                     let label = format!("Direct link to {text}");
                     html! {
                         <AnchorHeading level={*level} id={id} hash_href={href} hash_label={label}>
-                            { for inner }
+                            for child in children { {child.to_html()} }
                         </AnchorHeading>
                     }
                 } else {
                     let id = if id.is_empty() { None } else { Some(id) };
-                    let content = html! { <>{ for inner }</> };
+                    let content = html! { <>for child in children { {child.to_html()} }</> };
                     match level {
                         1 => html! { <h1 {id}>{content}</h1> },
                         2 => html! { <h2 {id}>{content}</h2> },
@@ -517,7 +521,7 @@ impl Block {
                 }
             }
             Block::Paragraph(children) => html! {
-                <p>{ for children.iter().map(Inline::to_html) }</p>
+                <p>for child in children { {child.to_html()} }</p>
             },
             Block::CodeBlock {
                 language,
@@ -532,50 +536,50 @@ impl Block {
             }
             Block::UnorderedList(items) => html! {
                 <ul>
-                    { for items.iter().map(|item| match item {
+                    for item in items { {match item {
                         ListItem::Inline(inlines) => html! {
-                            <li>{ for inlines.iter().map(Inline::to_html) }</li>
+                            <li>for inline in inlines { {inline.to_html()} }</li>
                         },
                         ListItem::Blocks(blocks) => html! {
-                            <li>{ for blocks.iter().map(Block::to_html) }</li>
+                            <li>for block in blocks { {block.to_html()} }</li>
                         },
-                    })}
+                    }} }
                 </ul>
             },
             Block::OrderedList(items) => html! {
                 <ol>
-                    { for items.iter().map(|item| match item {
+                    for item in items { {match item {
                         ListItem::Inline(inlines) => html! {
-                            <li>{ for inlines.iter().map(Inline::to_html) }</li>
+                            <li>for inline in inlines { {inline.to_html()} }</li>
                         },
                         ListItem::Blocks(blocks) => html! {
-                            <li>{ for blocks.iter().map(Block::to_html) }</li>
+                            <li>for block in blocks { {block.to_html()} }</li>
                         },
-                    })}
+                    }} }
                 </ol>
             },
             Block::Table { headers, rows } => html! {
                 <table>
                     <thead>
                         <tr>
-                            { for headers.iter().map(|h| html! {
-                                <th>{ for h.iter().map(Inline::to_html) }</th>
-                            })}
+                            for h in headers {
+                                <th>for inline in h { {inline.to_html()} }</th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
-                        { for rows.iter().map(|row| html! {
+                        for row in rows {
                             <tr>
-                                { for row.iter().map(|cell| html! {
-                                    <td>{ for cell.iter().map(Inline::to_html) }</td>
-                                })}
+                                for cell in row {
+                                    <td>for inline in cell { {inline.to_html()} }</td>
+                                }
                             </tr>
-                        })}
+                        }
                     </tbody>
                 </table>
             },
             Block::Blockquote(children) => html! {
-                <blockquote>{ for children.iter().map(Block::to_html) }</blockquote>
+                <blockquote>for child in children { {child.to_html()} }</blockquote>
             },
             Block::Admonition {
                 kind,
@@ -585,7 +589,7 @@ impl Block {
                 let title_str = title.clone().unwrap_or_default();
                 html! {
                     <Admonition kind={*kind} title={title_str}>
-                        { for children.iter().map(Block::to_html) }
+                        for child in children { {child.to_html()} }
                     </Admonition>
                 }
             }
@@ -596,7 +600,7 @@ impl Block {
                 let tab_children = items.iter().map(|t| {
                     yew::html_nested! {
                         <TabItem value={t.value.clone()} label={t.label.clone()}>
-                            { for t.children.iter().map(Block::to_html) }
+                            for child in t.children.iter() { {child.to_html()} }
                         </TabItem>
                     }
                 });
@@ -806,7 +810,7 @@ impl Content {
     }
 
     pub fn to_html(&self) -> Html {
-        html! { <>{ for self.blocks.iter().map(Block::to_html) }</> }
+        html! { <>for block in &self.blocks { {block.to_html()} }</> }
     }
 
     pub fn to_markdown(&self) -> String {

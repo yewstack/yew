@@ -44,37 +44,17 @@ pub fn Page() -> Html {
     html! {
         <Layout title="" active_nav="" full_width=true>
             <div class={css!(
-        r#"
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 4rem 2rem;
-        text-align: center;
-        min-height: 40vh;
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 1.5rem;
-            opacity: 0.6;
-        }
-
-        h1 {
-            font-size: 2rem;
-            margin: 0 0 0.75rem;
-        }
-
-        p {
-            color: var(--color-text-secondary);
-            font-size: 1.125rem;
-            margin: 0;
-        }
-        "#
-    )}>
-                <img class="logo" src="/img/logo.svg" alt="" />
-                <h1>{title}</h1>
-                <p>{message}</p>
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 4rem 2rem;
+                text-align: center;
+                min-height: 40vh;
+            )}>
+                <img class={css!(width: 80px; height: 80px; margin-bottom: 1.5rem; opacity: 0.6;)} src="/img/logo.svg" alt="" />
+                <h1 class={css!(font-size: 2rem; margin: 0 0 0.75rem;)}>{title}</h1>
+                <p class={css!(color: var(--color-text-secondary); font-size: 1.125rem; margin: 0;)}>{message}</p>
             </div>
         </Layout>
     }
