@@ -73,4 +73,13 @@ fn main() {
             </div>
         }
     }
+
+    let children = ::yew::Children::new(::std::vec![::yew::html! { <span>{"x"}</span> }]);
+    _ = ::yew::html! {
+        <ul>
+            for child in &children {
+                <li>{child}</li>
+            }
+        </ul>
+    };
 }

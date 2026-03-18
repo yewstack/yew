@@ -261,6 +261,15 @@ impl<T: Clone> IntoIterator for ChildrenRenderer<T> {
     }
 }
 
+impl<T: Clone> IntoIterator for &ChildrenRenderer<T> {
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter().collect::<Vec<_>>().into_iter()
+    }
+}
+
 impl From<ChildrenRenderer<Html>> for Html {
     fn from(mut val: ChildrenRenderer<Html>) -> Self {
         if let Some(children) = val.children.as_mut() {
