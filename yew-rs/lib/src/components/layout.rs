@@ -205,20 +205,15 @@ pub fn Layout(props: &LayoutProps) -> Html {
         let md = props.markdown.clone();
         let copied = copied.clone();
         Some(Callback::from(move |_: MouseEvent| {
-            let md = md.clone();
-            let copied = copied.clone();
-            wasm_bindgen_futures::spawn_local(async move {
-                if let Some(window) = web_sys::window() {
-                    let clipboard = window.navigator().clipboard();
-                    let _ = wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&md)).await;
-                    copied.set(true);
-                    let copied2 = copied.clone();
-                    gloo::timers::callback::Timeout::new(2000, move || {
-                        copied2.set(false);
-                    })
-                    .forget();
-                }
-            });
+            if let Some(window) = web_sys::window() {
+                let _ = window.navigator().clipboard().write_text(&md);
+                copied.set(true);
+                let copied2 = copied.clone();
+                gloo::timers::callback::Timeout::new(2000, move || {
+                    copied2.set(false);
+                })
+                .forget();
+            }
         }))
     };
     #[cfg(not(feature = "csr"))]
@@ -230,13 +225,13 @@ pub fn Layout(props: &LayoutProps) -> Html {
         let title = props.title.clone();
         use_effect_with(title.clone(), move |_| {
             #[cfg(feature = "csr")]
-            if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
+            {
                 let display = if title.is_empty() {
                     "Yew".to_string()
                 } else {
                     format!("{title} | Yew")
                 };
-                doc.set_title(&display);
+                gloo::utils::document().set_title(&display);
             }
             || {}
         });
@@ -244,7 +239,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
 
     {
         let content_ref = content_ref.clone();
-        use_effect_with((), move |_| {
+        yew_hooks::use_effect_once(move || {
             scroll_to_hash(&content_ref);
             || {}
         });
@@ -639,89 +634,76 @@ struct TocProps {
 fn Toc(props: &TocProps) -> Html {
     let active_id = use_state(|| Option::<AttrValue>::None);
 
-    {
+    let compute = {
         let active_id = active_id.clone();
         let entries = props.entries.clone();
         let content_ref = props.content_ref.clone();
-        use_effect_with(entries.clone(), move |_| {
+        use_memo(entries, move |entries| {
             let window = web_sys::window().unwrap();
-            let document = window.document().unwrap();
-
             let content_el = content_ref.cast::<web_sys::Element>();
-
-            let navbar_height: f64 = document
-                .query_selector(".navbar")
-                .ok()
-                .flatten()
+            let navbar_height: f64 = window
+                .document()
+                .and_then(|d| d.query_selector(".navbar").ok().flatten())
                 .map(|el| {
                     let html: web_sys::HtmlElement = el.unchecked_into();
                     html.client_height() as f64
                 })
                 .unwrap_or(60.0);
-
             let ids: Vec<AttrValue> = entries.iter().map(|e| e.id.clone()).collect();
-
-            let compute = {
-                let ids = ids.clone();
-                let active_id = active_id.clone();
-                let content_el = content_el.clone();
-                let window = window.clone();
-                move || {
-                    let content = match &content_el {
-                        Some(el) => el,
-                        None => return,
-                    };
-                    let mut active: Option<AttrValue> = None;
-                    let mut next_visible_idx: Option<usize> = None;
-
-                    for (i, id) in ids.iter().enumerate() {
-                        if let Ok(Some(el)) =
-                            content.query_selector(&format!("[id=\"{}\"]", id.as_str()))
-                        {
-                            let rect = el.get_bounding_client_rect();
-                            if rect.top() >= navbar_height {
-                                next_visible_idx = Some(i);
-                                break;
-                            }
+            std::rc::Rc::new(move || {
+                let content = match &content_el {
+                    Some(el) => el,
+                    None => return,
+                };
+                let mut active: Option<AttrValue> = None;
+                let mut next_visible_idx: Option<usize> = None;
+                for (i, id) in ids.iter().enumerate() {
+                    if let Ok(Some(el)) =
+                        content.query_selector(&format!("[id=\"{}\"]", id.as_str()))
+                    {
+                        let rect = el.get_bounding_client_rect();
+                        if rect.top() >= navbar_height {
+                            next_visible_idx = Some(i);
+                            break;
                         }
                     }
-
-                    if let Some(idx) = next_visible_idx {
-                        if let Ok(Some(el)) =
-                            content.query_selector(&format!("[id=\"{}\"]", ids[idx].as_str()))
-                        {
-                            let rect = el.get_bounding_client_rect();
-                            let vh = window
-                                .inner_height()
-                                .ok()
-                                .and_then(|v| v.as_f64())
-                                .unwrap_or(800.0);
-                            if rect.top() > 0.0 && rect.bottom() < vh / 2.0 {
-                                active = Some(ids[idx].clone());
-                            } else if idx > 0 {
-                                active = Some(ids[idx - 1].clone());
-                            }
-                        }
-                    } else if !ids.is_empty() {
-                        active = Some(ids[ids.len() - 1].clone());
-                    }
-
-                    active_id.set(active);
                 }
-            };
+                if let Some(idx) = next_visible_idx {
+                    if let Ok(Some(el)) =
+                        content.query_selector(&format!("[id=\"{}\"]", ids[idx].as_str()))
+                    {
+                        let rect = el.get_bounding_client_rect();
+                        let vh = window
+                            .inner_height()
+                            .ok()
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(800.0);
+                        if rect.top() > 0.0 && rect.bottom() < vh / 2.0 {
+                            active = Some(ids[idx].clone());
+                        } else if idx > 0 {
+                            active = Some(ids[idx - 1].clone());
+                        }
+                    }
+                } else if !ids.is_empty() {
+                    active = Some(ids[ids.len() - 1].clone());
+                }
+                active_id.set(active);
+            })
+        })
+    };
 
+    {
+        let compute = compute.clone();
+        yew_hooks::use_effect_once(move || {
             compute();
-
-            let compute_scroll = compute.clone();
-            let scroll_listener =
-                gloo::events::EventListener::new(&document, "scroll", move |_| compute_scroll());
-
-            let resize_listener =
-                gloo::events::EventListener::new(&window, "resize", move |_| compute());
-
-            move || drop((scroll_listener, resize_listener))
+            || {}
         });
     }
+    {
+        let compute = compute.clone();
+        yew_hooks::use_event_with_window("scroll", move |_: Event| compute());
+    }
+    yew_hooks::use_event_with_window("resize", move |_: Event| compute());
 
     html! {
         <aside class={css!(

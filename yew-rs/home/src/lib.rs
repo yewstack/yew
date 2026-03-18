@@ -179,7 +179,10 @@ struct HomeProps {
 fn Hero(props: &HomeProps) -> Html {
     let strings = strings_for_locale(&props.locale);
 
-    let style = css!(
+    let get_started_href = docs_href(&props.locale, &props.version_slug, "/getting-started");
+
+    html! {
+        <div class={css!(
         r#"
         background: var(--color-hero-bg);
         padding: 4rem 2rem;
@@ -295,12 +298,7 @@ fn Hero(props: &HomeProps) -> Html {
             }
         }
     "#
-    );
-
-    let get_started_href = docs_href(&props.locale, &props.version_slug, "/getting-started");
-
-    html! {
-        <div class={style}>
+    )}>
             <div class="header">
                 <img class="logo" src="/img/logo.svg" alt="Yew" />
                 <h1 class="title">{"Yew"}</h1>
@@ -327,7 +325,8 @@ fn Hero(props: &HomeProps) -> Html {
 fn Features(props: &HomeProps) -> Html {
     let strings = strings_for_locale(&props.locale);
 
-    let style = css!(
+    html! {
+        <article class={css!(
         r#"
         padding: 3rem 2rem;
         max-width: 1200px;
@@ -412,10 +411,7 @@ fn Features(props: &HomeProps) -> Html {
             background: var(--color-border);
         }
     "#
-    );
-
-    html! {
-        <article class={style}>
+    )}>
             <h2>{strings.features_title}</h2>
             <section class="grid">
                 { for strings.features.iter().map(|f| {

@@ -41,7 +41,9 @@ pub fn Page() -> Html {
     let locale = detect_locale();
     let (title, message) = localized_strings(locale);
 
-    let style = css!(
+    html! {
+        <Layout title="" active_nav="" full_width=true>
+            <div class={css!(
         r#"
         display: flex;
         flex-direction: column;
@@ -69,11 +71,7 @@ pub fn Page() -> Html {
             margin: 0;
         }
         "#
-    );
-
-    html! {
-        <Layout title="" active_nav="" full_width=true>
-            <div class={style}>
+    )}>
                 <img class="logo" src="/img/logo.svg" alt="" />
                 <h1>{title}</h1>
                 <p>{message}</p>

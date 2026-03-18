@@ -99,116 +99,7 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
         }
     };
 
-    let open_categories = use_state(move || initially_open);
-
-    let style = css!(
-        r#"
-        width: var(--sidebar-width);
-        flex-shrink: 0;
-        border-right: 1px solid var(--color-border);
-        overflow-y: auto;
-        position: sticky;
-        top: var(--navbar-height);
-        height: calc(100vh - var(--navbar-height));
-        padding: 0.5rem 0;
-
-        .nav {
-            padding: 0 0.5rem;
-        }
-
-        .list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .list--nested {
-            padding-left: 0.75rem;
-        }
-
-        .item {
-            margin: 1px 0;
-        }
-
-        .link {
-            display: block;
-            padding: 0.375rem 0.75rem;
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-            border-radius: 4px;
-            text-decoration: none;
-        }
-
-        .link:hover {
-            color: var(--color-primary);
-            background: var(--color-bg-secondary);
-            text-decoration: none;
-        }
-
-        .link--active {
-            color: var(--color-primary);
-            background: var(--color-bg-secondary);
-            font-weight: 600;
-        }
-
-        .cat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-
-        .cat-label {
-            display: block;
-            flex: 1;
-            padding: 0.375rem 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--color-text);
-        }
-
-        .cat-label--link {
-            color: var(--color-text);
-            text-decoration: none;
-        }
-
-        .cat-label--link:hover {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
-
-        .caret {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.25rem;
-            color: var(--color-text-secondary);
-            flex-shrink: 0;
-            transition: transform 0.2s;
-        }
-
-        .item--collapsed .caret svg {
-            transform: rotate(-90deg);
-        }
-
-        .sidebar-title {
-            font-size: 0.875rem;
-            font-weight: 700;
-            padding: 0.375rem 0.75rem;
-            margin-bottom: 0.25rem;
-            color: var(--color-text);
-        }
-
-        @media (max-width: 700px) {
-            & {
-                width: 100%;
-                position: static;
-                height: auto;
-                border-right: none;
-            }
-        }
-    "#
-    );
+    let open_categories = yew_hooks::use_set(initially_open);
 
     let nav_ctx = use_context::<crate::NavigationContext>();
 
@@ -219,7 +110,114 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
     };
 
     html! {
-        <aside class={style}>
+        <aside class={css!(
+            r#"
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+            position: sticky;
+            top: var(--navbar-height);
+            height: calc(100vh - var(--navbar-height));
+            padding: 0.5rem 0;
+
+            .nav {
+                padding: 0 0.5rem;
+            }
+
+            .list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .list--nested {
+                padding-left: 0.75rem;
+            }
+
+            .item {
+                margin: 1px 0;
+            }
+
+            .link {
+                display: block;
+                padding: 0.375rem 0.75rem;
+                color: var(--color-text-secondary);
+                font-size: 0.875rem;
+                border-radius: 4px;
+                text-decoration: none;
+            }
+
+            .link:hover {
+                color: var(--color-primary);
+                background: var(--color-bg-secondary);
+                text-decoration: none;
+            }
+
+            .link--active {
+                color: var(--color-primary);
+                background: var(--color-bg-secondary);
+                font-weight: 600;
+            }
+
+            .cat-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                cursor: pointer;
+            }
+
+            .cat-label {
+                display: block;
+                flex: 1;
+                padding: 0.375rem 0.75rem;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--color-text);
+            }
+
+            .cat-label--link {
+                color: var(--color-text);
+                text-decoration: none;
+            }
+
+            .cat-label--link:hover {
+                color: var(--color-primary);
+                text-decoration: none;
+            }
+
+            .caret {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.25rem;
+                color: var(--color-text-secondary);
+                flex-shrink: 0;
+                transition: transform 0.2s;
+            }
+
+            .item--collapsed .caret svg {
+                transform: rotate(-90deg);
+            }
+
+            .sidebar-title {
+                font-size: 0.875rem;
+                font-weight: 700;
+                padding: 0.375rem 0.75rem;
+                margin-bottom: 0.25rem;
+                color: var(--color-text);
+            }
+
+            @media (max-width: 700px) {
+                & {
+                    width: 100%;
+                    position: static;
+                    height: auto;
+                    border-right: none;
+                }
+            }
+        "#
+        )}>
             <nav class="nav" aria-label={aria_label}>
                 if !props.title.is_empty() {
                     <div class="sidebar-title">{&props.title}</div>
@@ -247,7 +245,7 @@ fn make_nav_onclick(
 fn render_entry(
     entry: &SidebarEntry,
     active_path: &str,
-    open_categories: &UseStateHandle<HashSet<&'static str>>,
+    open_categories: &yew_hooks::UseSetHandle<&'static str>,
     lang: &str,
     doc_version: &str,
     nav_ctx: &Option<crate::NavigationContext>,
@@ -272,18 +270,16 @@ fn render_entry(
             }
         }
         SidebarEntry::Category(cat) => {
-            let is_open = open_categories.contains(cat.label);
+            let is_open = open_categories.current().contains(cat.label);
             let toggle = {
                 let open_categories = open_categories.clone();
                 let label = cat.label;
                 Callback::from(move |_: MouseEvent| {
-                    let mut new_set = (*open_categories).clone();
-                    if new_set.contains(label) {
-                        new_set.remove(label);
+                    if open_categories.current().contains(label) {
+                        open_categories.remove(&label);
                     } else {
-                        new_set.insert(label);
+                        open_categories.insert(label);
                     }
-                    open_categories.set(new_set);
                 })
             };
             let cat_href = cat.link.map(|h| rewrite_doc_href(h, lang, doc_version));

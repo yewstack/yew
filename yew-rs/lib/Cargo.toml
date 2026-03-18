@@ -6,7 +6,7 @@ rust-version = "1.84"
 
 [features]
 default = ["csr"]
-csr = ["yew/csr", "dep:web-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures", "dep:js-sys", "dep:gloo", "dep:yew-router"]
+csr = ["yew/csr", "dep:web-sys", "dep:wasm-bindgen", "dep:js-sys", "dep:gloo", "dep:yew-router"]
 ssr = ["yew/ssr", "stylist/ssr"]
 
 [dependencies]
@@ -15,7 +15,7 @@ stylist = { version = "0.15", features = ["yew_integration", "parser"] }
 syntect = { git = "https://github.com/Madoshakalaka/syntect.git", branch = "line-highlighting", default-features = false, features = ["parsing", "html", "default-syntaxes", "dump-load", "regex-fancy"] }
 web-sys = { workspace = true, features = ["Window", "Document", "DomRect", "Element", "EventTarget", "HtmlElement", "HtmlHeadElement", "Location", "MediaQueryList", "Navigator", "Node", "Clipboard"], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
-wasm-bindgen-futures = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 gloo = { workspace = true, optional = true }
 yew-router = { version = "0.20", default-features = false, optional = true }
+yew-hooks = "0.6"

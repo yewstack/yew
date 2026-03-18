@@ -5184,6 +5184,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "yew-hooks"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6908e90e5568e190baf974c4ad8f1962e68a0df217c2d19c8445cd6f3871f47"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "log",
+ "serde",
+ "serde_json",
+ "urlencoding",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "yew-macro"
 version = "0.23.0"
 dependencies = [
@@ -5478,6 +5496,7 @@ dependencies = [
  "stylist",
  "web-sys",
  "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-hooks",
  "yew-site-lib",
 ]
 
@@ -5490,9 +5509,9 @@ dependencies = [
  "stylist",
  "syntect",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "web-sys",
  "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-hooks",
  "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

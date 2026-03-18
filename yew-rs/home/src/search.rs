@@ -13,12 +13,14 @@ const VERSIONS: &[(&str, &str)] = &[
 
 #[styled_component]
 pub fn Page() -> Html {
-    use_effect_with((), |_| {
+    yew_hooks::use_effect_once(|| {
         init_search();
         || {}
     });
 
-    let style = css!(
+    html! {
+        <Layout title="Search" active_nav="">
+            <div class={css!(
         r#"
         max-width: 800px;
         margin: 0 auto;
@@ -131,11 +133,7 @@ pub fn Page() -> Html {
             color: var(--color-primary);
         }
         "#
-    );
-
-    html! {
-        <Layout title="Search" active_nav="">
-            <div class={style}>
+    )}>
                 <div class="search-header">
                     <input
                         class="search-input"

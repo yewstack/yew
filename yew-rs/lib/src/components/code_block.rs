@@ -97,68 +97,6 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
     let (cleaned_code, highlighted) = highlight_code(&props.code, &props.language);
     let highlighted_html = Html::from_html_unchecked(AttrValue::from(highlighted));
 
-    let style = css!(
-        r#"
-        margin-bottom: 1.5rem;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid var(--color-border);
-
-        .title {
-            background: var(--color-bg-secondary);
-            padding: 0.5rem 1rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            border-bottom: 1px solid var(--color-border);
-            font-family: var(--font-mono);
-        }
-
-        .wrapper {
-            position: relative;
-        }
-
-        .copy {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            background: var(--color-bg-secondary);
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            cursor: pointer;
-            padding: 0.25rem 0.375rem;
-            color: var(--color-text-secondary);
-            opacity: 0;
-            transition: opacity 0.2s, background 0.2s, color 0.2s;
-            display: flex;
-            align-items: center;
-            z-index: 1;
-        }
-
-        &:hover .copy {
-            opacity: 1;
-        }
-
-        .copy:hover {
-            background: var(--color-border);
-            color: var(--color-text);
-        }
-
-        .copy--copied {
-            opacity: 1;
-            color: #00a400;
-        }
-
-        .pre {
-            margin: 0;
-            padding: 1rem;
-            overflow-x: auto;
-            background: var(--color-code-bg);
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-    "#
-    );
-
     #[cfg(feature = "csr")]
     let copy_button = {
         let copied = use_state(|| false);
@@ -166,21 +104,15 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
             let code = AttrValue::from(cleaned_code);
             let copied = copied.clone();
             Callback::from(move |_: MouseEvent| {
-                let code = code.clone();
-                let copied = copied.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    if let Some(window) = web_sys::window() {
-                        let clipboard = window.navigator().clipboard();
-                        let _ =
-                            wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&code)).await;
-                        copied.set(true);
-                        let copied2 = copied.clone();
-                        gloo::timers::callback::Timeout::new(2000, move || {
-                            copied2.set(false);
-                        })
-                        .forget();
-                    }
-                });
+                if let Some(window) = web_sys::window() {
+                    let _ = window.navigator().clipboard().write_text(&code);
+                    copied.set(true);
+                    let copied2 = copied.clone();
+                    gloo::timers::callback::Timeout::new(2000, move || {
+                        copied2.set(false);
+                    })
+                    .forget();
+                }
             })
         };
         html! {
@@ -206,7 +138,67 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
     let copy_button = html! {};
 
     html! {
-        <div class={style}>
+        <div class={css!(
+            r#"
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+
+            .title {
+                background: var(--color-bg-secondary);
+                padding: 0.5rem 1rem;
+                font-size: 0.8125rem;
+                font-weight: 600;
+                border-bottom: 1px solid var(--color-border);
+                font-family: var(--font-mono);
+            }
+
+            .wrapper {
+                position: relative;
+            }
+
+            .copy {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                background: var(--color-bg-secondary);
+                border: 1px solid var(--color-border);
+                border-radius: 4px;
+                cursor: pointer;
+                padding: 0.25rem 0.375rem;
+                color: var(--color-text-secondary);
+                opacity: 0;
+                transition: opacity 0.2s, background 0.2s, color 0.2s;
+                display: flex;
+                align-items: center;
+                z-index: 1;
+            }
+
+            &:hover .copy {
+                opacity: 1;
+            }
+
+            .copy:hover {
+                background: var(--color-border);
+                color: var(--color-text);
+            }
+
+            .copy--copied {
+                opacity: 1;
+                color: #00a400;
+            }
+
+            .pre {
+                margin: 0;
+                padding: 1rem;
+                overflow-x: auto;
+                background: var(--color-code-bg);
+                font-size: 0.875rem;
+                line-height: 1.5;
+            }
+        "#
+        )}>
             if !props.title.is_empty() {
                 <div class="title">{&props.title}</div>
             }

@@ -17,9 +17,9 @@ const VERSION_SLUGS: &[(&str, &str)] = crate::VERSIONS;
 
 const LANGUAGES: &[(&str, &str)] = &[
     ("English", ""),
-    ("\u{65e5}\u{672c}\u{8a9e}", "ja"),
-    ("\u{7b80}\u{4f53}\u{4e2d}\u{6587}", "zh-Hans"),
-    ("\u{7e41}\u{9ad4}\u{4e2d}\u{6587}", "zh-Hant"),
+    ("日本語", "ja"),
+    ("简体中文", "zh-Hans"),
+    ("繁體中文", "zh-Hant"),
 ];
 
 fn lang_prefix(lang: &str) -> String {
@@ -32,28 +32,41 @@ fn lang_prefix(lang: &str) -> String {
 
 #[styled_component]
 pub fn Navbar(props: &NavbarProps) -> Html {
-    let mobile_open = use_state(|| false);
-    let version_open = use_state(|| false);
-    let lang_open = use_state(|| false);
+    let mobile_open = yew_hooks::use_bool_toggle(false);
+    let version_open = yew_hooks::use_bool_toggle(false);
+    let lang_open = yew_hooks::use_bool_toggle(false);
+    let version_ref = use_node_ref();
+    let lang_ref = use_node_ref();
+
+    {
+        let version_open = version_open.clone();
+        yew_hooks::use_click_away(version_ref.clone(), move |_: Event| {
+            version_open.set(false);
+        });
+    }
+    {
+        let lang_open = lang_open.clone();
+        yew_hooks::use_click_away(lang_ref.clone(), move |_: Event| {
+            lang_open.set(false);
+        });
+    }
 
     let toggle_mobile = {
         let mobile_open = mobile_open.clone();
         Callback::from(move |_: MouseEvent| {
-            mobile_open.set(!*mobile_open);
+            mobile_open.toggle();
         })
     };
-
     let toggle_version = {
         let version_open = version_open.clone();
         Callback::from(move |_: MouseEvent| {
-            version_open.set(!*version_open);
+            version_open.toggle();
         })
     };
-
     let toggle_lang = {
         let lang_open = lang_open.clone();
         Callback::from(move |_: MouseEvent| {
-            lang_open.set(!*lang_open);
+            lang_open.toggle();
         })
     };
 
@@ -68,10 +81,12 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         });
     }
 
-    use_effect_with((), |_| {
+    yew_hooks::use_effect_once(|| {
         init_docsearch();
         || {}
     });
+
+    let nav_ctx = use_context::<crate::NavigationContext>();
 
     let has_doc_version = !props.doc_version.is_empty();
 
@@ -149,7 +164,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         <img class={css!(height: 2rem; width: 2rem;)} src="/img/logo.svg" alt="Yew" />
                         <strong class={css!(font-size: 1.25rem;)}>{"Yew"}</strong>
                     </a>
-                    <div class={css!(
+                    <div ref={version_ref.clone()} class={css!(
                         position: relative;
                         margin-right: 0.5rem;
                         @media (max-width: 700px) { display: none; }
@@ -191,7 +206,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             </DropdownMenu>
                         }
                     </div>
-                    <div class={css!(
+                    <div ref={lang_ref.clone()} class={css!(
                         position: relative;
                         margin-right: 0.5rem;
                         @media (max-width: 700px) { display: none; }
@@ -235,6 +250,13 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     </div>
                     { for nav_items.iter().map(|(label, href, _)| {
                         let color = if *label == active_nav_label { "var(--color-primary)" } else { "var(--color-text)" };
+                        let onclick = nav_ctx.as_ref().map(|ctx| {
+                            let navigate = ctx.navigate.clone();
+                            let h = AttrValue::from(*href);
+                            Callback::from(move |e: MouseEvent| {
+                                navigate.emit((e, h.clone()));
+                            })
+                        });
                         html! {
                             <a class={css!(
                                 color: ${color};
@@ -247,7 +269,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                                 gap: 0.25rem;
                                 &:hover { color: var(--color-primary); text-decoration: none; }
                                 @media (max-width: 700px) { display: none; }
-                            )} href={*href}>{label}</a>
+                            )} href={*href} {onclick}>{label}</a>
                         }
                     })}
                     <a class={css!(
@@ -402,6 +424,13 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     overflow-y: auto;
                 )}>
                     { for nav_items.iter().map(|(label, href, _)| {
+                        let onclick = nav_ctx.as_ref().map(|ctx| {
+                            let navigate = ctx.navigate.clone();
+                            let h = AttrValue::from(*href);
+                            Callback::from(move |e: MouseEvent| {
+                                navigate.emit((e, h.clone()));
+                            })
+                        });
                         html! {
                             <a class={css!(
                                 color: var(--color-text);
@@ -412,7 +441,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                                 display: inline-flex;
                                 align-items: center;
                                 &:hover { color: var(--color-primary); text-decoration: none; }
-                            )} href={*href}>{label}</a>
+                            )} href={*href} {onclick}>{label}</a>
                         }
                     })}
                     <a class={css!(

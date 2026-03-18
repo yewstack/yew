@@ -3,70 +3,68 @@ use yew::prelude::*;
 
 #[styled_component]
 pub fn Footer() -> Html {
-    let style = css!(
-        r#"
-        background: var(--color-bg-secondary);
-        color: var(--color-text);
-        border-top: 1px solid var(--color-border);
-        padding: 3rem 2rem 2rem;
-        margin-top: auto;
-
-        .inner {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .title {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--color-text);
-            margin-bottom: 0.75rem;
-            margin-top: 0;
-        }
-
-        .links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .links li {
-            margin-bottom: 0.5rem;
-        }
-
-        .links a {
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .links a:hover {
-            color: var(--color-primary);
-        }
-
-        .bottom {
-            text-align: center;
-            color: var(--color-text-secondary);
-            font-size: 0.8125rem;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--color-border);
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .ext-icon {
-            margin-left: 0.25rem;
-        }
-    "#
-    );
-
     html! {
-        <footer class={style}>
+        <footer class={css!(
+            r#"
+            background: var(--color-bg-secondary);
+            color: var(--color-text);
+            border-top: 1px solid var(--color-border);
+            padding: 3rem 2rem 2rem;
+            margin-top: auto;
+
+            .inner {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .title {
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--color-text);
+                margin-bottom: 0.75rem;
+                margin-top: 0;
+            }
+
+            .links {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .links li {
+                margin-bottom: 0.5rem;
+            }
+
+            .links a {
+                color: var(--color-text-secondary);
+                font-size: 0.875rem;
+            }
+
+            .links a:hover {
+                color: var(--color-primary);
+            }
+
+            .bottom {
+                text-align: center;
+                color: var(--color-text-secondary);
+                font-size: 0.8125rem;
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+                border-top: 1px solid var(--color-border);
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .ext-icon {
+                margin-left: 0.25rem;
+            }
+        "#
+        )}>
             <div class="inner">
                 <div class="col">
                     <h4 class="title">{"Support"}</h4>

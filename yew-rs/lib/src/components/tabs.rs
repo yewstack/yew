@@ -23,52 +23,50 @@ pub fn Tabs(props: &TabsProps) -> Html {
         }
     });
 
-    let style = css!(
-        r#"
-        margin-bottom: 1.5rem;
-
-        .tabs {
-            display: flex;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            border-bottom: 2px solid var(--color-border);
-            gap: 0;
-        }
-
-        .item {
-            padding: 0.75rem 1.25rem;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: var(--color-text-secondary);
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-            transition: color 0.2s, border-color 0.2s;
-            user-select: none;
-        }
-
-        .item:hover {
-            color: var(--color-primary);
-        }
-
-        .item--active {
-            color: var(--color-primary);
-            border-bottom-color: var(--color-primary);
-        }
-
-        .panel--hidden {
-            display: none;
-        }
-
-        .panel {
-            padding: 1rem 0;
-        }
-    "#
-    );
-
     html! {
-        <div class={style}>
+        <div class={css!(
+            r#"
+            margin-bottom: 1.5rem;
+
+            .tabs {
+                display: flex;
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                border-bottom: 2px solid var(--color-border);
+                gap: 0;
+            }
+
+            .item {
+                padding: 0.75rem 1.25rem;
+                cursor: pointer;
+                font-weight: 500;
+                font-size: 0.875rem;
+                color: var(--color-text-secondary);
+                border-bottom: 2px solid transparent;
+                margin-bottom: -2px;
+                transition: color 0.2s, border-color 0.2s;
+                user-select: none;
+            }
+
+            .item:hover {
+                color: var(--color-primary);
+            }
+
+            .item--active {
+                color: var(--color-primary);
+                border-bottom-color: var(--color-primary);
+            }
+
+            .panel--hidden {
+                display: none;
+            }
+
+            .panel {
+                padding: 1rem 0;
+            }
+        "#
+        )}>
             <ul class="tabs" role="tablist">
                 { for props.children.iter().map(|child| {
                     let value = child.props.value.clone();
