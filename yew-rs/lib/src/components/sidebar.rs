@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::rc::Rc;
 
 use stylist::yew::styled_component;
 use yew::prelude::*;
@@ -73,6 +74,12 @@ fn collect_active_categories(
     false
 }
 
+#[derive(Clone, PartialEq)]
+struct OpenCategories {
+    set: Rc<HashSet<&'static str>>,
+    toggle: Callback<&'static str>,
+}
+
 #[styled_component]
 pub fn Sidebar(props: &SidebarProps) -> Html {
     let active_path = props.active_path.clone();
@@ -99,9 +106,23 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
         }
     };
 
-    let open_categories = yew_hooks::use_set(initially_open);
-
-    let nav_ctx = use_context::<crate::NavigationContext>();
+    let open_state = use_state(|| Rc::new(initially_open));
+    let open_ctx = {
+        let state_for_toggle = open_state.clone();
+        let toggle = Callback::from(move |label: &'static str| {
+            let mut next = (*state_for_toggle).as_ref().clone();
+            if next.contains(label) {
+                next.remove(label);
+            } else {
+                next.insert(label);
+            }
+            state_for_toggle.set(Rc::new(next));
+        });
+        OpenCategories {
+            set: (*open_state).clone(),
+            toggle,
+        }
+    };
 
     let aria_label = if props.title.is_empty() {
         "Docs sidebar"
@@ -110,34 +131,51 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
     };
 
     html! {
-        <aside class={css!(r#"
-            width: var(--sidebar-width);
-            flex-shrink: 0;
-            border-right: 1px solid var(--color-border);
-            overflow-y: auto;
-            position: sticky;
-            top: var(--navbar-height);
-            height: calc(100vh - var(--navbar-height));
-            padding: 0.5rem 0;
-            @media (max-width: 700px) {
-                & {
-                    width: 100%;
-                    position: static;
-                    height: auto;
-                    border-right: none;
+        <ContextProvider<OpenCategories> context={open_ctx}>
+            <aside class={css!(r#"
+                width: var(--sidebar-width);
+                flex-shrink: 0;
+                border-right: 1px solid var(--color-border);
+                overflow-y: auto;
+                position: sticky;
+                top: var(--navbar-height);
+                height: calc(100vh - var(--navbar-height));
+                padding: 0.5rem 0;
+                @media (max-width: 700px) {
+                    & {
+                        width: 100%;
+                        position: static;
+                        height: auto;
+                        border-right: none;
+                    }
                 }
-            }
-        "#)}>
-            <nav class={css!(padding: 0 0.5rem;)} aria-label={aria_label}>
-                if !props.title.is_empty() {
-                    <div class={css!(font-size: 0.875rem; font-weight: 700; padding: 0.375rem 0.75rem; margin-bottom: 0.25rem; color: var(--color-text);)}>{&props.title}</div>
-                }
-                <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
-                    for entry in props.entries.iter() { {render_entry(entry, &active_path, &open_categories, props.lang.as_str(), props.doc_version.as_str(), &nav_ctx)} }
-                </ul>
-            </nav>
-        </aside>
+            "#)}>
+                <nav class={css!(padding: 0 0.5rem;)} aria-label={aria_label}>
+                    if !props.title.is_empty() {
+                        <div class={css!(font-size: 0.875rem; font-weight: 700; padding: 0.375rem 0.75rem; margin-bottom: 0.25rem; color: var(--color-text);)}>{&props.title}</div>
+                    }
+                    <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
+                        for entry in props.entries.iter() {
+                            <EntryView
+                                entry={entry.clone()}
+                                active_path={active_path.clone()}
+                                lang={props.lang.clone()}
+                                doc_version={props.doc_version.clone()}
+                            />
+                        }
+                    </ul>
+                </nav>
+            </aside>
+        </ContextProvider<OpenCategories>>
     }
+}
+
+#[derive(Clone, PartialEq, Properties)]
+struct EntryViewProps {
+    entry: SidebarEntry,
+    active_path: AttrValue,
+    lang: AttrValue,
+    doc_version: AttrValue,
 }
 
 fn make_nav_onclick(
@@ -152,23 +190,18 @@ fn make_nav_onclick(
     }))
 }
 
-fn render_entry(
-    entry: &SidebarEntry,
-    active_path: &str,
-    open_categories: &yew_hooks::UseSetHandle<&'static str>,
-    lang: &str,
-    doc_version: &str,
-    nav_ctx: &Option<crate::NavigationContext>,
-) -> Html {
-    use stylist::css;
-
+#[styled_component]
+fn EntryView(props: &EntryViewProps) -> Html {
     use super::layout::rewrite_doc_href;
 
-    match entry {
+    let nav_ctx = use_context::<crate::NavigationContext>();
+    let open_ctx = use_context::<OpenCategories>();
+
+    match &props.entry {
         SidebarEntry::Item(item) => {
-            let is_active = active_path == item.href;
-            let href = rewrite_doc_href(item.href, lang, doc_version);
-            let onclick = make_nav_onclick(nav_ctx, &href);
+            let is_active = props.active_path.as_str() == item.href;
+            let href = rewrite_doc_href(item.href, props.lang.as_str(), props.doc_version.as_str());
+            let onclick = make_nav_onclick(&nav_ctx, &href);
             let link_color = if is_active {
                 "var(--color-primary)"
             } else {
@@ -193,22 +226,25 @@ fn render_entry(
             }
         }
         SidebarEntry::Category(cat) => {
-            let is_open = open_categories.current().contains(cat.label);
+            let is_open = open_ctx
+                .as_ref()
+                .map(|ctx| ctx.set.contains(cat.label))
+                .unwrap_or(false);
             let toggle = {
-                let open_categories = open_categories.clone();
+                let open_ctx = open_ctx.clone();
                 let label = cat.label;
                 Callback::from(move |_: MouseEvent| {
-                    if open_categories.current().contains(label) {
-                        open_categories.remove(&label);
-                    } else {
-                        open_categories.insert(label);
+                    if let Some(ctx) = &open_ctx {
+                        ctx.toggle.emit(label);
                     }
                 })
             };
-            let cat_href = cat.link.map(|h| rewrite_doc_href(h, lang, doc_version));
+            let cat_href = cat
+                .link
+                .map(|h| rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str()));
             let cat_onclick = cat_href
                 .as_deref()
-                .and_then(|h| make_nav_onclick(nav_ctx, h));
+                .and_then(|h| make_nav_onclick(&nav_ctx, h));
             let caret_rot = if is_open { "none" } else { "rotate(-90deg)" };
             html! {
                 <li class={css!(margin: 1px 0;)}>
@@ -234,7 +270,14 @@ fn render_entry(
                     </div>
                     if is_open {
                         <ul class={css!(list-style: none; padding: 0; margin: 0; padding-left: 0.75rem;)}>
-                            for e in cat.items.iter() { {render_entry(e, active_path, open_categories, lang, doc_version, nav_ctx)} }
+                            for e in cat.items.iter() {
+                                <EntryView
+                                    entry={e.clone()}
+                                    active_path={props.active_path.clone()}
+                                    lang={props.lang.clone()}
+                                    doc_version={props.doc_version.clone()}
+                                />
+                            }
                         </ul>
                     }
                 </li>
