@@ -127,6 +127,28 @@ fn derive_doc_version(url_path: &str) -> Option<&'static str> {
     }
 }
 
+fn is_localizable(base_path: &str) -> bool {
+    if base_path.starts_with("/docs") || base_path.starts_with("/tutorial") {
+        return true;
+    }
+    let trimmed = base_path.trim_matches('/');
+    if trimmed.is_empty() {
+        return true;
+    }
+    let parts: Vec<&str> = trimmed.split('/').collect();
+    matches!(
+        parts.as_slice(),
+        ["next"]
+            | ["0.22"]
+            | ["0.21"]
+            | ["0.20"]
+            | ["next", "tutorial"]
+            | ["0.22", "tutorial"]
+            | ["0.21", "tutorial"]
+            | ["0.20", "tutorial"]
+    )
+}
+
 fn generate_hreflang_tags(url_path: &str) -> String {
     let base_path = strip_locale_prefix(url_path);
     let base_path = if base_path.starts_with('/') {
@@ -135,7 +157,7 @@ fn generate_hreflang_tags(url_path: &str) -> String {
         format!("/{base_path}")
     };
 
-    if !base_path.starts_with("/docs") {
+    if !is_localizable(&base_path) {
         return format!(
             "    <link rel=\"alternate\" href=\"{BASE_URL}{url_path}\" hreflang=\"en\" />\n\x20   \
              <link rel=\"alternate\" href=\"{BASE_URL}{url_path}\" hreflang=\"x-default\" />\n"
@@ -497,6 +519,28 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
         }
     }
 
+    let tutorial_versions: &[&str] = &["", "next", "0.22", "0.21", "0.20"];
+    for &(lang, spa_bin, spa_crate) in home_spa_langs {
+        for version_slug in tutorial_versions {
+            let lang_prefix = if lang.is_empty() {
+                String::new()
+            } else {
+                format!("/{lang}")
+            };
+            let url_path = if version_slug.is_empty() {
+                format!("{lang_prefix}/tutorial")
+            } else {
+                format!("{lang_prefix}/{version_slug}/tutorial")
+            };
+            pages.push(PageBinary {
+                bin_name: spa_bin.to_string(),
+                url_path,
+                title: "Tutorial".to_string(),
+                crate_name: spa_crate.to_string(),
+            });
+        }
+    }
+
     pages.push(PageBinary {
         bin_name: "search".to_string(),
         url_path: "/search".to_string(),
@@ -532,6 +576,9 @@ fn discover_pages(source_dir: &Path) -> Result<Vec<PageBinary>> {
                 .iter()
                 .map(|s| s.to_string_lossy().replace('_', "-"))
                 .collect();
+            if url_segments.first().is_some_and(|s| s == "tutorial") {
+                continue;
+            }
             if url_segments.last().is_some_and(|s| s == "introduction") {
                 url_segments.pop();
             }
@@ -813,7 +860,7 @@ fn emit_page_files(page: &PageBinary, output_dir: &Path, pb: &ProcessedBinary) -
     let locale = derive_locale(&page.url_path);
     let lang = locale;
     let canonical_url = format!("{BASE_URL}{}", page.url_path);
-    let display_title = if page.url_path == "/" {
+    let display_title = if page.title.is_empty() || page.title == "Yew" {
         "Yew".to_string()
     } else {
         format!("{} | Yew", page.title)

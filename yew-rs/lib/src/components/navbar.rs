@@ -92,7 +92,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
 
     let nav_items: &[(&str, &str, &str)] = &[
         ("Docs", "/docs/getting-started", "/docs/"),
-        ("Tutorial", "/docs/tutorial", "/docs/tutorial"),
+        ("Tutorial", "/tutorial", "/tutorial"),
         ("Community", "/community/awesome", "/community/"),
         ("Blog", "/blog", "/blog"),
     ];

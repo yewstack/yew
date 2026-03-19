@@ -18,6 +18,16 @@ pub enum Route {
     HomeV021,
     #[at("/0.20/")]
     HomeV020,
+    #[at("/tutorial")]
+    Tutorial,
+    #[at("/next/tutorial")]
+    TutorialNext,
+    #[at("/0.22/tutorial")]
+    TutorialV022,
+    #[at("/0.21/tutorial")]
+    TutorialV021,
+    #[at("/0.20/tutorial")]
+    TutorialV020,
     #[at("/docs/next/*path")]
     DocsNext { path: String },
     #[at("/docs/0.22/*path")]
@@ -367,12 +377,6 @@ page_map!(
             "/docs/more/roadmap",
             yew_site_docs::pages::more::roadmap::page_content()
         ),
-        (
-            "tutorial",
-            "Tutorial",
-            "/docs/tutorial",
-            yew_site_docs::pages::tutorial::page_content()
-        ),
     ]
 );
 
@@ -690,12 +694,6 @@ page_map!(
             "Roadmap",
             "/docs/more/roadmap",
             yew_site_docs::pages::more::roadmap::page_content()
-        ),
-        (
-            "tutorial",
-            "Tutorial",
-            "/docs/tutorial",
-            yew_site_docs::pages::tutorial::page_content_versioned(Some("0.23"))
         ),
     ]
 );
@@ -1015,12 +1013,6 @@ page_map!(
             "/docs/more/roadmap",
             yew_site_docs::pages::more::roadmap::page_content()
         ),
-        (
-            "tutorial",
-            "Tutorial",
-            "/docs/tutorial",
-            yew_site_docs::pages::tutorial::page_content_versioned(Some("0.22"))
-        ),
     ]
 );
 
@@ -1076,7 +1068,6 @@ page_map!(resolve_v021, "0.21", yew_site_docs_0_21::sidebar_data::docs_sidebar, 
     ("more/css", "CSS", "/docs/more/css", yew_site_docs_0_21::pages::more::css::page_content()),
     ("more/testing", "Testing apps", "/docs/more/testing", yew_site_docs::pages::more::testing::page_content()),
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs::pages::more::roadmap::page_content()),
-    ("tutorial", "Tutorial", "/docs/tutorial", yew_site_docs_0_21::pages::tutorial::page_content()),
 ]);
 
 page_map!(resolve_v020, "0.20", yew_site_docs_0_20::sidebar_data::docs_sidebar, [
@@ -1131,7 +1122,6 @@ page_map!(resolve_v020, "0.20", yew_site_docs_0_20::sidebar_data::docs_sidebar, 
     ("more/css", "CSS", "/docs/more/css", yew_site_docs_0_20::pages::more::css::page_content()),
     ("more/testing", "Testing apps", "/docs/more/testing", yew_site_docs_0_20::pages::more::testing::page_content()),
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs::pages::more::roadmap::page_content()),
-    ("tutorial", "Tutorial", "/docs/tutorial", yew_site_docs_0_20::pages::tutorial::page_content()),
 ]);
 
 page_map!(
@@ -1225,7 +1215,30 @@ pub fn resolve_page(route: &Route) -> Option<PageData> {
         | Route::HomeV022
         | Route::HomeV021
         | Route::HomeV020
+        | Route::Tutorial
+        | Route::TutorialNext
+        | Route::TutorialV022
+        | Route::TutorialV021
+        | Route::TutorialV020
         | Route::NotFound => None,
+    }
+}
+
+#[cfg(feature = "csr")]
+fn resolve_tutorial(route: &Route) -> Option<(yew_site_lib::Content, &'static str)> {
+    match route {
+        Route::Tutorial => Some((
+            yew_site_docs::pages::tutorial::page_content_versioned(Some("0.23")),
+            "0.23",
+        )),
+        Route::TutorialNext => Some((yew_site_docs::pages::tutorial::page_content(), "Next")),
+        Route::TutorialV022 => Some((
+            yew_site_docs::pages::tutorial::page_content_versioned(Some("0.22")),
+            "0.22",
+        )),
+        Route::TutorialV021 => Some((yew_site_docs_0_21::pages::tutorial::page_content(), "0.21")),
+        Route::TutorialV020 => Some((yew_site_docs_0_20::pages::tutorial::page_content(), "0.20")),
+        _ => None,
     }
 }
 
@@ -1284,6 +1297,23 @@ fn AppInner() -> Html {
                     active_sidebar_path={page.sidebar_path}
                     active_nav="Docs"
                     doc_version={page.doc_version}
+                    lang=""
+                    markdown={markdown}
+                    toc={toc}
+                >
+                    { content.to_html() }
+                </Layout>
+            </ContextProvider<NavigationContext>>
+        }
+    } else if let Some((content, doc_version)) = resolve_tutorial(&route) {
+        let toc = content.toc_entries();
+        let markdown = content.to_markdown();
+        html! {
+            <ContextProvider<NavigationContext> context={nav_ctx}>
+                <Layout
+                    title="Tutorial"
+                    active_nav="Tutorial"
+                    doc_version={doc_version}
                     lang=""
                     markdown={markdown}
                     toc={toc}
@@ -1577,7 +1607,17 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     ssr_page!("/docs/next/more/css", resolve_next, "more/css");
     ssr_page!("/docs/next/more/testing", resolve_next, "more/testing");
     ssr_page!("/docs/next/more/roadmap", resolve_next, "more/roadmap");
-    ssr_page!("/docs/next/tutorial", resolve_next, "tutorial");
+    {
+        pages.push(yew_site_lib::render_spa_page!(
+            "/next/tutorial",
+            "Tutorial",
+            yew_site_docs::sidebar_data::docs_sidebar(),
+            "/tutorial",
+            "Next",
+            "",
+            yew_site_docs::pages::tutorial::page_content()
+        ));
+    }
 
     // Stable (0.23)
     ssr_page!("/docs/getting-started", resolve_stable, "getting-started");
@@ -1799,7 +1839,17 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     ssr_page!("/docs/more/css", resolve_stable, "more/css");
     ssr_page!("/docs/more/testing", resolve_stable, "more/testing");
     ssr_page!("/docs/more/roadmap", resolve_stable, "more/roadmap");
-    ssr_page!("/docs/tutorial", resolve_stable, "tutorial");
+    {
+        pages.push(yew_site_lib::render_spa_page!(
+            "/tutorial",
+            "Tutorial",
+            yew_site_docs::sidebar_data::docs_sidebar(),
+            "/tutorial",
+            "0.23",
+            "",
+            yew_site_docs::pages::tutorial::page_content_versioned(Some("0.23"))
+        ));
+    }
 
     // 0.22
     ssr_page!(
@@ -2037,7 +2087,17 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     ssr_page!("/docs/0.22/more/css", resolve_v022, "more/css");
     ssr_page!("/docs/0.22/more/testing", resolve_v022, "more/testing");
     ssr_page!("/docs/0.22/more/roadmap", resolve_v022, "more/roadmap");
-    ssr_page!("/docs/0.22/tutorial", resolve_v022, "tutorial");
+    {
+        pages.push(yew_site_lib::render_spa_page!(
+            "/0.22/tutorial",
+            "Tutorial",
+            yew_site_docs::sidebar_data::docs_sidebar(),
+            "/tutorial",
+            "0.22",
+            "",
+            yew_site_docs::pages::tutorial::page_content_versioned(Some("0.22"))
+        ));
+    }
 
     // 0.21
     ssr_page!(
@@ -2275,7 +2335,17 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     ssr_page!("/docs/0.21/more/css", resolve_v021, "more/css");
     ssr_page!("/docs/0.21/more/testing", resolve_v021, "more/testing");
     ssr_page!("/docs/0.21/more/roadmap", resolve_v021, "more/roadmap");
-    ssr_page!("/docs/0.21/tutorial", resolve_v021, "tutorial");
+    {
+        pages.push(yew_site_lib::render_spa_page!(
+            "/0.21/tutorial",
+            "Tutorial",
+            yew_site_docs_0_21::sidebar_data::docs_sidebar(),
+            "/tutorial",
+            "0.21",
+            "",
+            yew_site_docs_0_21::pages::tutorial::page_content()
+        ));
+    }
 
     // 0.20
     ssr_page!(
@@ -2513,7 +2583,17 @@ pub async fn render_pages() -> Vec<(&'static str, String, String)> {
     ssr_page!("/docs/0.20/more/css", resolve_v020, "more/css");
     ssr_page!("/docs/0.20/more/testing", resolve_v020, "more/testing");
     ssr_page!("/docs/0.20/more/roadmap", resolve_v020, "more/roadmap");
-    ssr_page!("/docs/0.20/tutorial", resolve_v020, "tutorial");
+    {
+        pages.push(yew_site_lib::render_spa_page!(
+            "/0.20/tutorial",
+            "Tutorial",
+            yew_site_docs_0_20::sidebar_data::docs_sidebar(),
+            "/tutorial",
+            "0.20",
+            "",
+            yew_site_docs_0_20::pages::tutorial::page_content()
+        ));
+    }
 
     // Migration guides
     ssr_page!(

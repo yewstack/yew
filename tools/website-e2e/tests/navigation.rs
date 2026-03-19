@@ -659,16 +659,31 @@ async fn hreflang_tags() {
     let base = format!("http://{addr}");
     let client = make_client().await;
 
+    let full_hreflangs: &[&str] = &["en", "ja", "x-default", "zh-Hans", "zh-Hant"];
+    let en_only: &[&str] = &["en", "x-default"];
+
     client.goto(&format!("{base}/")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
-    assert_hreflang_set(&client, &["en", "x-default"]).await;
+    assert_hreflang_set(&client, full_hreflangs).await;
+
+    client.goto(&format!("{base}/ja/")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    assert_hreflang_set(&client, full_hreflangs).await;
+
+    client.goto(&format!("{base}/next/")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    assert_hreflang_set(&client, full_hreflangs).await;
+
+    client.goto(&format!("{base}/ja/0.22/")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    assert_hreflang_set(&client, full_hreflangs).await;
 
     client
         .goto(&format!("{base}/docs/concepts/router"))
         .await
         .unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
-    assert_hreflang_set(&client, &["en", "ja", "x-default", "zh-Hans", "zh-Hant"]).await;
+    assert_hreflang_set(&client, full_hreflangs).await;
 
     let xdefault = client
         .find(Locator::Css(r#"link[hreflang="x-default"]"#))
@@ -686,7 +701,7 @@ async fn hreflang_tags() {
 
     client.goto(&format!("{base}/blog")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
-    assert_hreflang_set(&client, &["en", "x-default"]).await;
+    assert_hreflang_set(&client, en_only).await;
 
     client.close().await.unwrap();
 }
@@ -791,6 +806,157 @@ async fn home_page_learn_more_links() {
             href.starts_with("/ja/docs/0.22/"),
             "ja/0.22 Learn more link should start with /ja/docs/0.22/, got: {href}"
         );
+    }
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn home_page_seo() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    let full_hreflangs: &[&str] = &["en", "ja", "x-default", "zh-Hans", "zh-Hant"];
+
+    struct HomeCase {
+        path: &'static str,
+        og_url: &'static str,
+        canonical: &'static str,
+        og_locale: &'static str,
+        html_lang: &'static str,
+    }
+
+    let cases = [
+        HomeCase {
+            path: "/",
+            og_url: "https://yew.rs/",
+            canonical: "https://yew.rs/",
+            og_locale: "en",
+            html_lang: "en",
+        },
+        HomeCase {
+            path: "/ja/",
+            og_url: "https://yew.rs/ja/",
+            canonical: "https://yew.rs/ja/",
+            og_locale: "ja",
+            html_lang: "ja",
+        },
+        HomeCase {
+            path: "/zh-Hans/",
+            og_url: "https://yew.rs/zh-Hans/",
+            canonical: "https://yew.rs/zh-Hans/",
+            og_locale: "zh_Hans",
+            html_lang: "zh-Hans",
+        },
+        HomeCase {
+            path: "/zh-Hant/",
+            og_url: "https://yew.rs/zh-Hant/",
+            canonical: "https://yew.rs/zh-Hant/",
+            og_locale: "zh_Hant",
+            html_lang: "zh-Hant",
+        },
+        HomeCase {
+            path: "/next/",
+            og_url: "https://yew.rs/next/",
+            canonical: "https://yew.rs/next/",
+            og_locale: "en",
+            html_lang: "en",
+        },
+        HomeCase {
+            path: "/ja/next/",
+            og_url: "https://yew.rs/ja/next/",
+            canonical: "https://yew.rs/ja/next/",
+            og_locale: "ja",
+            html_lang: "ja",
+        },
+        HomeCase {
+            path: "/0.22/",
+            og_url: "https://yew.rs/0.22/",
+            canonical: "https://yew.rs/0.22/",
+            og_locale: "en",
+            html_lang: "en",
+        },
+        HomeCase {
+            path: "/zh-Hans/0.22/",
+            og_url: "https://yew.rs/zh-Hans/0.22/",
+            canonical: "https://yew.rs/zh-Hans/0.22/",
+            og_locale: "zh_Hans",
+            html_lang: "zh-Hans",
+        },
+        HomeCase {
+            path: "/0.21/",
+            og_url: "https://yew.rs/0.21/",
+            canonical: "https://yew.rs/0.21/",
+            og_locale: "en",
+            html_lang: "en",
+        },
+        HomeCase {
+            path: "/ja/0.21/",
+            og_url: "https://yew.rs/ja/0.21/",
+            canonical: "https://yew.rs/ja/0.21/",
+            og_locale: "ja",
+            html_lang: "ja",
+        },
+        HomeCase {
+            path: "/0.20/",
+            og_url: "https://yew.rs/0.20/",
+            canonical: "https://yew.rs/0.20/",
+            og_locale: "en",
+            html_lang: "en",
+        },
+        HomeCase {
+            path: "/zh-Hant/0.20/",
+            og_url: "https://yew.rs/zh-Hant/0.20/",
+            canonical: "https://yew.rs/zh-Hant/0.20/",
+            og_locale: "zh_Hant",
+            html_lang: "zh-Hant",
+        },
+    ];
+
+    for case in &cases {
+        client.goto(&format!("{base}{}", case.path)).await.unwrap();
+        tokio::time::sleep(Duration::from_millis(500)).await;
+
+        assert_eq!(
+            client.title().await.unwrap(),
+            "Yew",
+            "{}: title should be 'Yew'",
+            case.path
+        );
+
+        assert_meta_attr(&client, "html", "lang", case.html_lang).await;
+        assert_meta_attr(&client, r#"meta[property="og:title"]"#, "content", "Yew").await;
+        assert_meta_attr(
+            &client,
+            r#"meta[property="og:url"]"#,
+            "content",
+            case.og_url,
+        )
+        .await;
+        assert_meta_attr(&client, r#"link[rel="canonical"]"#, "href", case.canonical).await;
+        assert_meta_attr(
+            &client,
+            r#"meta[property="og:locale"]"#,
+            "content",
+            case.og_locale,
+        )
+        .await;
+        assert_meta_attr(
+            &client,
+            r#"meta[name="twitter:card"]"#,
+            "content",
+            "summary_large_image",
+        )
+        .await;
+        assert_meta_attr(&client, r#"link[rel="icon"]"#, "href", "/img/logo.svg").await;
+        assert_meta_exists(&client, r#"meta[name="description"]"#).await;
+        assert_meta_exists(&client, r#"meta[property="og:description"]"#).await;
+        assert_hreflang_set(&client, full_hreflangs).await;
+
+        assert_no_element_css(&client, r#"meta[name="docsearch:language"]"#).await;
+        assert_no_element_css(&client, r#"meta[name="docsearch:version"]"#).await;
+        assert_no_element_css(&client, r#"script[type="application/ld+json"]"#).await;
     }
 
     client.close().await.unwrap();
