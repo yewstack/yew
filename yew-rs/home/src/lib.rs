@@ -178,6 +178,7 @@ struct HomeProps {
 #[styled_component]
 fn Hero(props: &HomeProps) -> Html {
     let strings = strings_for_locale(&props.locale);
+    let nav_ctx = use_context::<yew_site_lib::NavigationContext>();
 
     let get_started_href = docs_href(&props.locale, &props.version_slug, "/getting-started");
 
@@ -191,7 +192,13 @@ fn Hero(props: &HomeProps) -> Html {
                 {strings.subtitle}
             </p>
             <div class={css!(display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap; @media (max-width: 700px) { flex-direction: column; align-items: center; })}>
-                <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border-radius: 6px; font-weight: 600; font-size: 1.125rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); &:hover { background: var(--color-primary); color: #fff; text-decoration: none; })} href={get_started_href}>
+                <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border-radius: 6px; font-weight: 600; font-size: 1.125rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); &:hover { background: var(--color-primary); color: #fff; text-decoration: none; })} href={get_started_href.clone()} onclick={{
+                    nav_ctx.as_ref().map(|ctx| {
+                        let navigate = ctx.navigate.clone();
+                        let href = AttrValue::from(get_started_href);
+                        Callback::from(move |e: MouseEvent| { navigate.emit((e, href.clone())); })
+                    })
+                }}>
                     {strings.get_started}
                 </a>
                 <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border-radius: 6px; font-weight: 600; font-size: 1.125rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: var(--color-bg-secondary); color: var(--color-text); border: 2px solid var(--color-border); &:hover { background: var(--color-border); text-decoration: none; })} href="https://play.yew.rs" target="_blank" rel="noopener noreferrer">
@@ -208,6 +215,7 @@ fn Hero(props: &HomeProps) -> Html {
 #[styled_component]
 fn Features(props: &HomeProps) -> Html {
     let strings = strings_for_locale(&props.locale);
+    let nav_ctx = use_context::<yew_site_lib::NavigationContext>();
 
     html! {
         <article class={css!(r#"padding: 3rem 2rem; max-width: 1200px; margin: 0 auto; & h2 { font-size: calc(1.5rem * 1.5); margin-bottom: 1.5rem; }"#)}>
@@ -222,7 +230,13 @@ fn Features(props: &HomeProps) -> Html {
                             <p class={css!(margin: 0;)}>{f.body}</p>
                         </div>
                         <div class={css!(padding: 0 1.25rem 1.25rem;)}>
-                            <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: var(--color-bg-secondary); color: var(--color-text); border: 2px solid var(--color-border); &:hover { background: var(--color-border); text-decoration: none; })} href={docs_href(&props.locale, &props.version_slug, f.path)}>
+                            <a class={css!(display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; text-decoration: none; background: var(--color-bg-secondary); color: var(--color-text); border: 2px solid var(--color-border); &:hover { background: var(--color-border); text-decoration: none; })} href={docs_href(&props.locale, &props.version_slug, f.path)} onclick={{
+                                nav_ctx.as_ref().map(|ctx| {
+                                    let navigate = ctx.navigate.clone();
+                                    let href = AttrValue::from(docs_href(&props.locale, &props.version_slug, f.path));
+                                    Callback::from(move |e: MouseEvent| { navigate.emit((e, href.clone())); })
+                                })
+                            }}>
                                 {strings.learn_more}
                             </a>
                         </div>
