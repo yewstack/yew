@@ -594,6 +594,13 @@ fn compute_version_url(
         current_path.strip_prefix(&lp).unwrap_or(current_path)
     };
 
+    if without_lang == "/tutorial" || without_lang.starts_with("/tutorial/") {
+        if target_slug.is_empty() {
+            return format!("{prefix}/tutorial");
+        }
+        return format!("{prefix}/{target_slug}/tutorial");
+    }
+
     let is_docs_page = without_lang.starts_with("/docs/");
 
     if !is_docs_page {
@@ -700,6 +707,28 @@ fn compute_lang_url(
         let lp = lang_prefix(current_lang);
         current_path.strip_prefix(&lp).unwrap_or(current_path)
     };
+
+    if without_lang == "/tutorial" || without_lang.starts_with("/tutorial/") {
+        let version_slug = VERSION_SLUGS
+            .iter()
+            .find(|(label, _)| *label == current_version)
+            .map(|(_, slug)| *slug)
+            .unwrap_or("");
+        if version_slug.is_empty() {
+            return format!("{target_prefix}/tutorial");
+        }
+        return format!("{target_prefix}/{version_slug}/tutorial");
+    }
+
+    if without_lang.starts_with("/next/tutorial") {
+        return format!("{target_prefix}/next/tutorial");
+    }
+    for ver in ["0.22", "0.21", "0.20"] {
+        let vp = format!("/{ver}/tutorial");
+        if without_lang.starts_with(&vp) {
+            return format!("{target_prefix}/{ver}/tutorial");
+        }
+    }
 
     if !without_lang.starts_with("/docs/") {
         let version_slug = VERSION_SLUGS

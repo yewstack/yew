@@ -18,15 +18,15 @@ pub enum Route {
     HomeV021,
     #[at("/ja/0.20/")]
     HomeV020,
-    #[at("/ja/tutorial")]
+    #[at("/ja/tutorial/")]
     Tutorial,
-    #[at("/ja/next/tutorial")]
+    #[at("/ja/next/tutorial/")]
     TutorialNext,
-    #[at("/ja/0.22/tutorial")]
+    #[at("/ja/0.22/tutorial/")]
     TutorialV022,
-    #[at("/ja/0.21/tutorial")]
+    #[at("/ja/0.21/tutorial/")]
     TutorialV021,
-    #[at("/ja/0.20/tutorial")]
+    #[at("/ja/0.20/tutorial/")]
     TutorialV020,
     #[at("/ja/docs/next/*path")]
     DocsNext { path: String },
@@ -466,6 +466,7 @@ fn AppInner() -> Html {
                 <Layout
                     title="Tutorial"
                     active_nav="Tutorial"
+                    active_sidebar_path="/tutorial"
                     doc_version={doc_version}
                     lang="ja"
                     markdown={markdown}

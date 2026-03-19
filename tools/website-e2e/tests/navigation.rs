@@ -183,7 +183,7 @@ async fn click_version_option(client: &fantoccini::Client, label: &str) {
     }
     let btn = version_btn.expect("version selector button not found");
     btn.click().await.unwrap();
-    tokio::time::sleep(Duration::from_millis(200)).await;
+    tokio::time::sleep(Duration::from_millis(500)).await;
 
     let item = client
         .find(Locator::LinkText(label))
@@ -731,6 +731,35 @@ async fn home_page_versioned_urls_exist() {
 
     assert_status(&base, "/0.20/", 200).await;
     assert_status(&base, "/ja/0.20/", 200).await;
+}
+
+#[tokio::test]
+async fn tutorial_version_and_language_navigation() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    assert_status(&base, "/tutorial", 200).await;
+    assert_status(&base, "/next/tutorial", 200).await;
+    assert_status(&base, "/0.22/tutorial", 200).await;
+    assert_status(&base, "/0.21/tutorial", 200).await;
+    assert_status(&base, "/0.20/tutorial", 200).await;
+    assert_status(&base, "/ja/tutorial", 200).await;
+    assert_status(&base, "/ja/next/tutorial", 200).await;
+    assert_status(&base, "/zh-Hans/tutorial", 200).await;
+    assert_status(&base, "/zh-Hant/tutorial", 200).await;
+
+    client.goto(&format!("{base}/tutorial")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    assert_version_selector(&client, "0.23").await;
+    assert_lang_selector(&client, "English").await;
+
+    click_version_option(&client, "Next").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/next/tutorial");
+
+    client.close().await.unwrap();
 }
 
 #[tokio::test]
