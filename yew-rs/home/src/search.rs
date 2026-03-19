@@ -15,7 +15,6 @@ const VERSIONS: &[(&str, &str)] = &[
 pub fn Page() -> Html {
     yew_hooks::use_effect_once(|| {
         init_search();
-        || {}
     });
 
     html! {

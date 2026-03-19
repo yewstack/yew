@@ -58,13 +58,11 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         use_effect_with(path, move |_| {
             version_open.set(false);
             lang_open.set(false);
-            || {}
         });
     }
 
     yew_hooks::use_effect_once(|| {
         init_docsearch();
-        || {}
     });
 
     let toggle_mobile = {

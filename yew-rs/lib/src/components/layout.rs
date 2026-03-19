@@ -226,7 +226,6 @@ pub fn Layout(props: &LayoutProps) -> Html {
                 };
                 gloo::utils::document().set_title(&display);
             }
-            || {}
         });
     }
 
@@ -234,7 +233,6 @@ pub fn Layout(props: &LayoutProps) -> Html {
         let content_ref = content_ref.clone();
         yew_hooks::use_effect_once(move || {
             scroll_to_hash(&content_ref);
-            || {}
         });
     }
 
@@ -691,7 +689,6 @@ fn Toc(props: &TocProps) -> Html {
         let compute = compute.clone();
         yew_hooks::use_effect_once(move || {
             compute();
-            || {}
         });
     }
     {
