@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-fake = "4.0.0"
+fake = "5.1.0"
 getrandom = { workspace = true }
 instant = { workspace = true }
 log.workspace = true

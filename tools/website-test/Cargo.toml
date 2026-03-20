@@ -19,7 +19,7 @@ wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 weblog = "0.3.0"
 yew = { path = "../../packages/yew/", features = ["ssr", "csr", "serde"] }
-yew-autoprops = "0.4.1"
+yew-autoprops = "0.5.0"
 yew-router = { path = "../../packages/yew-router/" }
 tokio = { workspace = true, features = ["rt", "macros"] }
 
