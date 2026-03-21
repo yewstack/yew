@@ -204,9 +204,7 @@ where
 
     /// Render children components and return `Iterator`
     pub fn iter(&self) -> impl Iterator<Item = T> + '_ {
-        // clone each child lazily.
-        // This way `self.iter().next()` only has to clone a single node.
-        self.children.iter().flat_map(|x| x.iter()).cloned()
+        self.into_iter()
     }
 
     /// Convert the children elements to another object (if there are any).
@@ -252,12 +250,23 @@ impl<T: Clone> IntoIterator for ChildrenRenderer<T> {
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        if let Some(children) = self.children {
-            let children = RcExt::unwrap_or_clone(children);
-            children.into_iter()
-        } else {
-            Vec::new().into_iter()
+        match self.children {
+            Some(children) => RcExt::unwrap_or_clone(children).into_iter(),
+            None => std::vec::IntoIter::default(),
         }
+    }
+}
+
+impl<'a, T: Clone> IntoIterator for &'a ChildrenRenderer<T> {
+    type IntoIter = std::iter::Cloned<std::slice::Iter<'a, T>>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match &self.children {
+            Some(children) => children.iter(),
+            None => std::slice::Iter::default(),
+        }
+        .cloned()
     }
 }
 
