@@ -50,6 +50,54 @@ macro_rules! page_main {
     };
 }
 
+fn translate_label(label: &'static str, lang: &str) -> &'static str {
+    match (label, lang) {
+        ("Getting Started", "zh-Hans") => "\u{4ece}\u{96f6}\u{5f00}\u{59cb}",
+        ("Getting Started", "zh-Hant") => "\u{5f9e}\u{96f6}\u{958b}\u{59cb}",
+        ("Concepts", "zh-Hans") => "\u{6838}\u{5fc3}\u{6982}\u{5ff5}",
+        ("Concepts", "zh-Hant") => "\u{6838}\u{5fc3}\u{89c0}\u{5ff5}",
+        ("Basic Web Technologies", "zh-Hans") => {
+            "Yew \u{4e2d}\u{7684}\u{57fa}\u{672c} Web \u{6280}\u{672f}"
+        }
+        ("Basic Web Technologies", "ja") => "Intro With Basic Web Technologies",
+        ("Basic Web Technologies", "zh-Hant") => "Intro With Basic Web Technologies",
+        ("Components", "zh-Hans") => "\u{51fd}\u{6570}\u{5f0f}\u{7ec4}\u{4ef6}",
+        ("Components", "ja") => "Function Components",
+        ("Hooks", "zh-Hans") => "\u{94a9}\u{5b50}",
+        ("Advanced Topics", "zh-Hans") => "\u{9ad8}\u{7ea7}\u{4e3b}\u{9898}",
+        ("Advanced Topics", "zh-Hant") => "\u{9032}\u{968e}\u{4e3b}\u{984c}",
+        ("Struct Components", "zh-Hans") => "\u{7ed3}\u{6784}\u{5316}\u{7ec4}\u{4ef6}",
+        ("More", "zh-Hans") => "\u{66f4}\u{591a}",
+        ("More", "zh-Hant") => "\u{66f4}\u{591a}",
+        ("Migration Guides", "zh-Hans") => "\u{8fc1}\u{79fb}\u{6307}\u{5357}",
+        _ => label,
+    }
+}
+
+pub fn translate_sidebar(sidebar: Vec<SidebarEntry>, lang: &str) -> Vec<SidebarEntry> {
+    if lang.is_empty() || lang == "en" {
+        return sidebar;
+    }
+    fn translate_entry(entry: SidebarEntry, lang: &str) -> SidebarEntry {
+        match entry {
+            SidebarEntry::Item(item) => SidebarEntry::Item(item),
+            SidebarEntry::Category(cat) => SidebarEntry::Category(SidebarCategory {
+                label: translate_label(cat.label, lang),
+                link: cat.link,
+                items: cat
+                    .items
+                    .into_iter()
+                    .map(|e| translate_entry(e, lang))
+                    .collect(),
+            }),
+        }
+    }
+    sidebar
+        .into_iter()
+        .map(|e| translate_entry(e, lang))
+        .collect()
+}
+
 #[cfg(feature = "ssr")]
 #[macro_export]
 macro_rules! render_spa_page {

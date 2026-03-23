@@ -1126,7 +1126,7 @@ page_map!(resolve_v020, "0.20", yew_site_docs_0_20::sidebar_data::docs_sidebar, 
 
 page_map!(
     resolve_migration,
-    "Next",
+    "",
     yew_site_docs::sidebar_data::docs_sidebar,
     [
         (

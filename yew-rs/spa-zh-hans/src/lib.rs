@@ -64,7 +64,42 @@ macro_rules! page_map {
     };
 }
 
-page_map!(resolve_next, "Next", yew_site_docs_zh_hans::sidebar_data::docs_sidebar, [
+fn sidebar() -> Vec<yew_site_lib::SidebarEntry> {
+    yew_site_lib::translate_sidebar(
+        yew_site_docs_zh_hans::sidebar_data::docs_sidebar(),
+        "zh-Hans",
+    )
+}
+
+fn sidebar_0_23() -> Vec<yew_site_lib::SidebarEntry> {
+    yew_site_lib::translate_sidebar(
+        yew_site_docs_zh_hans_0_23::sidebar_data::docs_sidebar(),
+        "zh-Hans",
+    )
+}
+
+fn sidebar_0_22() -> Vec<yew_site_lib::SidebarEntry> {
+    yew_site_lib::translate_sidebar(
+        yew_site_docs_zh_hans_0_22::sidebar_data::docs_sidebar(),
+        "zh-Hans",
+    )
+}
+
+fn sidebar_0_21() -> Vec<yew_site_lib::SidebarEntry> {
+    yew_site_lib::translate_sidebar(
+        yew_site_docs_zh_hans_0_21::sidebar_data::docs_sidebar(),
+        "zh-Hans",
+    )
+}
+
+fn sidebar_0_20() -> Vec<yew_site_lib::SidebarEntry> {
+    yew_site_lib::translate_sidebar(
+        yew_site_docs_zh_hans_0_20::sidebar_data::docs_sidebar(),
+        "zh-Hans",
+    )
+}
+
+page_map!(resolve_next, "Next", sidebar, [
     ("getting-started", "Getting Started", "/docs/getting-started", yew_site_docs_zh_hans::pages::getting_started::introduction::page_content()),
     ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", yew_site_docs_zh_hans::pages::getting_started::build_a_sample_app::page_content()),
     ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", yew_site_docs_zh_hans::pages::getting_started::editor_setup::page_content()),
@@ -118,7 +153,7 @@ page_map!(resolve_next, "Next", yew_site_docs_zh_hans::sidebar_data::docs_sideba
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs_zh_hans::pages::more::roadmap::page_content()),
 ]);
 
-page_map!(resolve_stable, "0.23", yew_site_docs_zh_hans_0_23::sidebar_data::docs_sidebar, [
+page_map!(resolve_stable, "0.23", sidebar_0_23, [
     ("getting-started", "Getting Started", "/docs/getting-started", yew_site_docs_zh_hans::pages::getting_started::introduction::page_content()),
     ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", yew_site_docs_zh_hans::pages::getting_started::build_a_sample_app::page_content_versioned(Some("0.23"))),
     ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", yew_site_docs_zh_hans::pages::getting_started::editor_setup::page_content()),
@@ -172,7 +207,7 @@ page_map!(resolve_stable, "0.23", yew_site_docs_zh_hans_0_23::sidebar_data::docs
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs_zh_hans::pages::more::roadmap::page_content()),
 ]);
 
-page_map!(resolve_v022, "0.22", yew_site_docs_zh_hans_0_22::sidebar_data::docs_sidebar, [
+page_map!(resolve_v022, "0.22", sidebar_0_22, [
     ("getting-started", "Getting Started", "/docs/getting-started", yew_site_docs_zh_hans::pages::getting_started::introduction::page_content()),
     ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", yew_site_docs_zh_hans::pages::getting_started::build_a_sample_app::page_content_versioned(Some("0.22"))),
     ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", yew_site_docs_zh_hans::pages::getting_started::editor_setup::page_content()),
@@ -226,7 +261,7 @@ page_map!(resolve_v022, "0.22", yew_site_docs_zh_hans_0_22::sidebar_data::docs_s
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs_zh_hans::pages::more::roadmap::page_content()),
 ]);
 
-page_map!(resolve_v021, "0.21", yew_site_docs_zh_hans_0_21::sidebar_data::docs_sidebar, [
+page_map!(resolve_v021, "0.21", sidebar_0_21, [
     ("getting-started", "Getting Started", "/docs/getting-started", yew_site_docs_zh_hans_0_21::pages::getting_started::introduction::page_content()),
     ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", yew_site_docs_zh_hans_0_21::pages::getting_started::build_a_sample_app::page_content()),
     ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", yew_site_docs_zh_hans_0_21::pages::getting_started::editor_setup::page_content()),
@@ -280,7 +315,7 @@ page_map!(resolve_v021, "0.21", yew_site_docs_zh_hans_0_21::sidebar_data::docs_s
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs_zh_hans_0_21::pages::more::roadmap::page_content()),
 ]);
 
-page_map!(resolve_v020, "0.20", yew_site_docs_zh_hans_0_20::sidebar_data::docs_sidebar, [
+page_map!(resolve_v020, "0.20", sidebar_0_20, [
     ("getting-started", "Getting Started", "/docs/getting-started", yew_site_docs_zh_hans_0_20::pages::getting_started::introduction::page_content()),
     ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", yew_site_docs_zh_hans_0_20::pages::getting_started::build_a_sample_app::page_content()),
     ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", yew_site_docs_zh_hans_0_20::pages::getting_started::editor_setup::page_content()),
@@ -334,7 +369,7 @@ page_map!(resolve_v020, "0.20", yew_site_docs_zh_hans_0_20::sidebar_data::docs_s
     ("more/roadmap", "Roadmap", "/docs/more/roadmap", yew_site_docs_zh_hans_0_20::pages::more::roadmap::page_content()),
 ]);
 
-page_map!(resolve_migration, "Next", yew_site_docs_zh_hans::sidebar_data::docs_sidebar, [
+page_map!(resolve_migration, "", sidebar, [
     ("yew/from-0-19-0-to-0-20-0", "From 0.19.0 to 0.20.0", "/docs/migration-guides/yew/from-0-19-0-to-0-20-0", yew_site_docs::pages::migration_guides::yew::from_0_19_0_to_0_20_0::page_content()),
     ("yew/from-0-20-0-to-0-21-0", "From 0.20.0 to 0.21.0", "/docs/migration-guides/yew/from-0-20-0-to-0-21-0", yew_site_docs::pages::migration_guides::yew::from_0_20_0_to_0_21_0::page_content()),
     ("yew/from-0-21-0-to-0-22-0", "From 0.21.0 to 0.22.0", "/docs/migration-guides/yew/from-0-21-0-to-0-22-0", yew_site_docs::pages::migration_guides::yew::from_0_21_0_to_0_22_0::page_content()),

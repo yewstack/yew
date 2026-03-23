@@ -594,6 +594,10 @@ fn compute_version_url(
         current_path.strip_prefix(&lp).unwrap_or(current_path)
     };
 
+    if without_lang.starts_with("/docs/migration-guides/") {
+        return format!("{prefix}{without_lang}");
+    }
+
     if without_lang == "/tutorial" || without_lang.starts_with("/tutorial/") {
         if target_slug.is_empty() {
             return format!("{prefix}/tutorial");
@@ -707,6 +711,10 @@ fn compute_lang_url(
         let lp = lang_prefix(current_lang);
         current_path.strip_prefix(&lp).unwrap_or(current_path)
     };
+
+    if without_lang.starts_with("/docs/migration-guides/") {
+        return format!("{target_prefix}{without_lang}");
+    }
 
     if without_lang == "/tutorial" || without_lang.starts_with("/tutorial/") {
         let version_slug = VERSION_SLUGS

@@ -990,3 +990,53 @@ async fn home_page_seo() {
 
     client.close().await.unwrap();
 }
+
+#[tokio::test]
+async fn migration_guide_navigation() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    assert_status(
+        &base,
+        "/docs/migration-guides/yew/from-0-22-0-to-0-23-0",
+        200,
+    )
+    .await;
+    assert_status(
+        &base,
+        "/ja/docs/migration-guides/yew/from-0-22-0-to-0-23-0",
+        200,
+    )
+    .await;
+
+    client
+        .goto(&format!(
+            "{base}/docs/migration-guides/yew/from-0-22-0-to-0-23-0"
+        ))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    assert_meta_attr(&client, "html", "lang", "en").await;
+    assert_no_element_css(&client, "[role='alert']").await;
+    assert_no_element_xpath(&client, "//span[contains(., 'Version:')]").await;
+
+    click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/ja/docs/migration-guides/yew/from-0-22-0-to-0-23-0");
+
+    let body_text = client
+        .find(Locator::Css("main"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        page_looks_japanese(&body_text),
+        "Japanese migration guide page does not look Japanese"
+    );
+
+    client.close().await.unwrap();
+}
