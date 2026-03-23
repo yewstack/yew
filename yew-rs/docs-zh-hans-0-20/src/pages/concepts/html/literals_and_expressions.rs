@@ -2,43 +2,34 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/literals-and-expressions",
     Content::new(vec![
-        h1(vec![text(
-            "\u{5e38}\u{91cf}\u{548c}\u{8868}\u{8fbe}\u{5f0f}"
-        )]),
-        h2(vec![text("\u{5e38}\u{91cf}")]),
+        h1(vec![text("常量和表达式")]),
+        h2(vec![text("常量")]),
         p(vec![
             text(
-                "\u{5982}\u{679c}\u{4e00}\u{4e2a}\u{8868}\u{8fbe}\u{5f0f}\u{7684}\u{7c7b}\u{578b}\\
-                 \
-                 u{672c}\u{8eab}\u{5b9e}\u{73b0}\u{4e86} "
+                "如果一个表达式的类型\\
+                 u{672c}身实现了 "
             ),
             code("Display"),
             text(
-                " \u{ff08}\u{4e00}\u{4e2a}\u{6807}\u{51c6}\u{5e93}\u{4e2d}\u{7684} \
-                 Trait\u{ff09}\u{ff0c}\u{4ed6}\u{4eec}\u{5c06}\u{4f1a}\u{88ab}\u{8f6c}\u{5316}\\
-                 u{4e3a}\u{5b57}\u{7b26}\u{4e32}\u{5e76}\u{4e14}\u{4f5c}\u{4e3a}\u{4e00}\u{4e2a} "
+                " （一个标准库中的 Trait），他们将会被转化\\
+                 u{4e3a}字符串并且作为一个 "
             ),
             link(
                 "https://developer.mozilla.org/en-US/docs/Web/API/Text",
                 vec![text("Text")]
             ),
-            text(" \u{8282}\u{70b9}\u{63d2}\u{5165} DOM \u{4e2d}\u{3002}"),
+            text(" 节点插入 DOM 中。"),
         ]),
         p(vec![
             text(
-                "\u{6240}\u{6709}\u{7684}\u{9700}\u{8981}\u{663e}\u{793a}\u{7684}\u{6587}\u{672c}\\
-                 \
-                 u{5fc5}\u{987b}\u{88ab} "
+                "所有的需要显示的文本\\
+                 u{5fc5}须被 "
             ),
             code("{}"),
             text(
-                " \u{5757}\u{5305}\u{542b}\u{ff0c}\u{56e0}\u{4e3a}\u{8fd9}\u{4e9b}\u{6587}\\
-                 u{672c}\u{4f1a}\u{88ab}\u{5f53}\u{505a}\u{4e00}\u{4e2a} Rust \
-                 \u{8868}\u{8fbe}\u{5f0f}\u{6765}\u{5904}\u{7406}\u{3002}\u{8fd9}\u{4e00}\u{70b9}\\
-                 \
-                 u{4e0a}\u{ff0c}Yew \u{4e2d}\u{4f7f}\u{7528} HTML \
-                 \u{7684}\u{65b9}\u{5f0f}\u{548c}\u{6b63}\u{5e38} HTML \
-                 \u{8bed}\u{6cd5}\u{6709}\u{5de8}\u{5927}\u{7684}\u{533a}\u{522b}\u{3002}"
+                " 块包含，因为这些文\\
+                 u{672c}会被当做一个 Rust 表达式来处理。这一点\\
+                 u{4e0a}，Yew 中使用 HTML 的方式和正常 HTML 语法有巨大的区别。"
             ),
         ]),
         code_block(
@@ -54,15 +45,13 @@ html!{
     </>
 };"#
         ),
-        h2(vec![text("\u{8868}\u{8fbe}\u{5f0f}")]),
+        h2(vec![text("表达式")]),
         p(vec![
-            text("\u{4f60}\u{53ef}\u{4ee5}\u{5728} HTML \u{4e2d}\u{4f7f}\u{7528} "),
+            text("你可以在 HTML 中使用 "),
             code("{}"),
             text(
-                " \u{5757}\u{6765}\u{63d2}\u{5165} Rust \
-                 \u{8868}\u{8fbe}\u{5f0f}\u{ff0c}\u{53ea}\u{8981}\u{8fd9}\u{4e9b}\u{8868}\u{8fbe}\\
-                 \
-                 u{5f0f}\u{6700}\u{7ec8}\u{53ef}\u{4ee5}\u{88ab}\u{89e3}\u{6790}\u{6210} "
+                " 块来插入 Rust 表达式，只要这些表达\\
+                 u{5f0f}最终可以被解析成 "
             ),
             code("Html"),
         ]),
@@ -87,9 +76,9 @@ html! {
 };"#
         ),
         p(vec![text(
-            "\u{901a}\u{5e38}\u{6211}\u{4eec}\u{4f1a}\u{628a}\u{8fd9}\u{4e9b}\u{8868}\u{8fbe}\\
-             u{5f0f}\u{5199}\u{8fdb}\u{51fd}\u{6570}\u{6216}\u{8005}\u{95ed}\u{5305}\u{4e2d}\\
-             u{6765}\u{589e}\u{52a0}\u{53ef}\u{8bfb}\u{6027}\u{ff1a}"
+            "通常我们会把这些表达\\
+             u{5f0f}写进函数或者闭包中\\
+             u{6765}增加可读性："
         )]),
         code_block(
             "rust",

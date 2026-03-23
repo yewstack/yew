@@ -3,4 +3,3 @@ extend-exclude = ["examples/router/data/syllables.txt", "examples/function_route
 
 [default.extend-words]
 ba = "ba"
-EDE = "EDE"

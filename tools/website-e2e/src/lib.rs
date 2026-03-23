@@ -17,15 +17,12 @@ pub async fn start_file_server(build_dir: &Path) -> SocketAddr {
 pub fn page_looks_japanese(text: &str) -> bool {
     let kana_count = text
         .chars()
-        .filter(|c| ('\u{3040}'..='\u{309F}').contains(c) || ('\u{30A0}'..='\u{30FF}').contains(c))
+        .filter(|c| ('぀'..='ゟ').contains(c) || ('゠'..='ヿ').contains(c))
         .count();
     kana_count >= 50
 }
 
 pub fn page_looks_chinese(text: &str) -> bool {
-    let cjk_count = text
-        .chars()
-        .filter(|c| ('\u{4E00}'..='\u{9FFF}').contains(c))
-        .count();
+    let cjk_count = text.chars().filter(|c| ('一'..='鿿').contains(c)).count();
     cjk_count >= 50
 }

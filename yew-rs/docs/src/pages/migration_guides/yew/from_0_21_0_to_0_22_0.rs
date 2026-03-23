@@ -100,12 +100,12 @@ grep -rn "class=(" --include="*.rs" ."##,
         ul(vec![
             li(vec![
                 code("class=(a, b)"),
-                text(" \u{2192} "),
+                text(" → "),
                 code("class={classes!(a, b)}"),
             ]),
             li(vec![
                 code("class=(expr)"),
-                text(" \u{2192} "),
+                text(" → "),
                 code("class={classes!(expr)}"),
             ]),
         ]),

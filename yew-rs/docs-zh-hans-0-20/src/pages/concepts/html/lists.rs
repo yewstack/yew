@@ -2,15 +2,15 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/lists",
     Content::new(vec![
-        h1(vec![text("\u{5217}\u{8868}")]),
+        h1(vec![text("列表")]),
         h2(vec![text("Fragments")]),
         p(vec![
             code("html!"),
             text(
-                " \u{5b8f}\u{603b}\u{662f}\u{8981}\u{6c42}\u{4e00}\u{4e2a}\u{5355}\u{4e00}\\
-                 u{7684}\u{6839}\u{8282}\u{70b9}\u{3002}\u{4e3a}\u{4e86}\u{7ed5}\u{5f00}\u{8fd9}\\
-                 u{4e2a}\u{9650}\u{5236}\u{ff0c}\u{628a}\u{5185}\u{5bb9}\u{5305}\u{88f9}\u{5728}\\
-                 u{4e00}\u{4e2a}\u{7a7a}\u{6807}\u{7b7e}\u{5185}\u{662f}\u{6709}\u{6548}\u{7684}\\
+                " 宏总是要求一个单一\\
+                 u{7684}根节点。为了绕开这\\
+                 u{4e2a}限制，把内容包裹在\\
+                 u{4e00}个空标签内是有效的\\
                  u{ff1a}"
             ),
         ]),
@@ -38,11 +38,8 @@ html! {
     </ul>
 };"#
         ),
-        h2(vec![text("\u{8fed}\u{4ee3}\u{5668}")]),
-        p(vec![text(
-            "Yew \u{652f}\u{6301}\u{4e24}\u{79cd}\u{4ece}\u{8fed}\u{4ee3}\u{5668}\u{6784}\u{5efa} \
-             html \u{7684}\u{8bed}\u{6cd5}\u{ff1a}"
-        )]),
+        h2(vec![text("迭代器")]),
+        p(vec![text("Yew 支持两种从迭代器构建 html 的语法：")]),
         code_block(
             "rust",
             r#"use yew::prelude::*;

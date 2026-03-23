@@ -79,12 +79,7 @@ async fn assert_lang_selector(client: &fantoccini::Client, expected: &str) {
 }
 
 async fn find_lang_button(client: &fantoccini::Client) -> fantoccini::elements::Element {
-    let known_langs = [
-        "English",
-        "\u{65e5}\u{672c}\u{8a9e}",
-        "\u{7b80}\u{4f53}\u{4e2d}\u{6587}",
-        "\u{7e41}\u{9ad4}\u{4e2d}\u{6587}",
-    ];
+    let known_langs = ["English", "日本語", "简体中文", "繁體中文"];
     let btns = client.find_all(Locator::Css("nav button")).await.unwrap();
     for btn in btns {
         let text = btn.text().await.unwrap();
@@ -161,12 +156,7 @@ async fn click_version_option(client: &fantoccini::Client, label: &str) {
     // Find any nav button that looks like a version selector (contains a version-like text)
     // We look for all nav buttons and click the first one that's not a lang button
     let btns = client.find_all(Locator::Css("nav button")).await.unwrap();
-    let known_langs = [
-        "English",
-        "\u{65e5}\u{672c}\u{8a9e}",
-        "\u{7b80}\u{4f53}\u{4e2d}\u{6587}",
-        "\u{7e41}\u{9ad4}\u{4e2d}\u{6587}",
-    ];
+    let known_langs = ["English", "日本語", "简体中文", "繁體中文"];
     let mut version_btn = None;
     for btn in btns {
         let text = btn.text().await.unwrap();
@@ -276,11 +266,11 @@ async fn version_and_language_navigation() {
     assert_lang_selector(&client, "English").await;
 
     // Step 4: switch language to Japanese
-    click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    click_lang_option(&client, "日本語").await;
 
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja/docs/next/concepts/router");
-    assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    assert_lang_selector(&client, "日本語").await;
     assert_version_selector(&client, "Next").await;
 
     let body_text = client
@@ -295,13 +285,13 @@ async fn version_and_language_navigation() {
         "page at /ja/docs/next/concepts/router does not look Japanese"
     );
 
-    // Step 5: click "Getting Started" sidebar category
-    click_sidebar_category(&client, "Getting Started").await;
+    // Step 5: click "Getting Started" sidebar category (translated to Japanese)
+    click_sidebar_category(&client, "はじめる").await;
 
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja/docs/next/getting-started");
     assert_version_selector(&client, "Next").await;
-    assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    assert_lang_selector(&client, "日本語").await;
 
     client.close().await.unwrap();
 }
@@ -318,7 +308,7 @@ async fn chinese_pages_look_chinese() {
         .unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    assert_lang_selector(&client, "\u{7b80}\u{4f53}\u{4e2d}\u{6587}").await;
+    assert_lang_selector(&client, "简体中文").await;
 
     let body_text = client
         .find(Locator::Css("main"))
@@ -347,7 +337,7 @@ async fn traditional_chinese_pages_look_chinese() {
         .unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    assert_lang_selector(&client, "\u{7e41}\u{9ad4}\u{4e2d}\u{6587}").await;
+    assert_lang_selector(&client, "繁體中文").await;
 
     let body_text = client
         .find(Locator::Css("main"))
@@ -783,11 +773,11 @@ async fn home_page_version_selector() {
     assert_no_element_xpath(&client, "//span[contains(., 'Version:')]").await;
     assert_no_element_css(&client, "[role='alert']").await;
 
-    click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    click_lang_option(&client, "日本語").await;
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja/next");
     assert_version_selector(&client, "Next").await;
-    assert_lang_selector(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    assert_lang_selector(&client, "日本語").await;
 
     click_version_option(&client, "0.22").await;
     let url = client.current_url().await.unwrap();
@@ -1022,7 +1012,7 @@ async fn migration_guide_navigation() {
     assert_no_element_css(&client, "[role='alert']").await;
     assert_no_element_xpath(&client, "//span[contains(., 'Version:')]").await;
 
-    click_lang_option(&client, "\u{65e5}\u{672c}\u{8a9e}").await;
+    click_lang_option(&client, "日本語").await;
     let url = client.current_url().await.unwrap();
     assert_path(&url, "/ja/docs/migration-guides/yew/from-0-22-0-to-0-23-0");
 

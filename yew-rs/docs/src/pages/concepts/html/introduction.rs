@@ -226,7 +226,7 @@ html! {
     <h1>{ "My heading" }</h1>
     // here comes the content
     <main>
-      { "\u{2026}" }
+      { "…" }
     </main>
   </>
 };"#),

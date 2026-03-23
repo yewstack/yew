@@ -2,14 +2,14 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/components",
     Content::new(vec![
-        h1(vec![text("\u{7ec4}\u{4ef6}")]),
-        h2(vec![text("\u{57fa}\u{7840}")]),
+        h1(vec![text("组件")]),
+        h2(vec![text("基础")]),
         p(vec![
-            text("\u{4efb}\u{4f55}\u{5b9e}\u{73b0}\u{4e86} "),
+            text("任何实现了 "),
             code("Component"),
-            text(" trait \u{7684}\u{7c7b}\u{578b}\u{90fd}\u{53ef}\u{88ab}\u{7528}\u{5728} "),
+            text(" trait 的类型都可被用在 "),
             code("html!"),
-            text(" \u{5b8f}\u{4e2d}\u{ff1a}"),
+            text(" 宏中："),
         ]),
         code_block(
             "rust",
@@ -57,15 +57,15 @@ html!{
     </>
 };"#
         ),
-        h2(vec![text("\u{5d4c}\u{5957}")]),
+        h2(vec![text("嵌套")]),
         p(vec![
-            text("\u{5982}\u{679c}\u{7ec4}\u{4ef6}\u{7684} "),
+            text("如果组件的 "),
             code("Properties"),
-            text(" \u{4e2d}\u{6709} "),
+            text(" 中有 "),
             code("children"),
             text(
-                " \u{5b57}\u{6bb5}\u{ff0c}\u{5219}\u{53ef}\u{4ee5}\u{88ab}\u{4f20}\u{9012}\\
-                 u{5b50}\u{7ec4}\u{4ef6}\u{3002}"
+                " 字段，则可以被传递\\
+                 u{5b50}组件。"
             ),
         ]),
         code_block(
@@ -125,31 +125,27 @@ html! {
     </Container>
 };"#
         ),
-        h2(vec![text(
-            "\u{62e5}\u{6709} Props \u{7684}\u{5d4c}\u{5957}\u{5b50}\u{7ec4}\u{4ef6}"
-        )]),
+        h2(vec![text("拥有 Props 的嵌套子组件")]),
         p(vec![
             text(
-                "\u{5982}\u{679c}\u{5305}\u{542b}\u{7ec4}\u{4ef6}\u{6807}\u{6ce8}\u{4e86} \
-                 children \u{7684}\u{7c7b}\u{578b}\u{ff0c}\u{5219}\u{53ef}\u{4ee5}\u{8bbf}\\
-                 u{95ee}\u{548c}\u{66f4}\u{6539}\u{5d4c}\u{5957}\u{7ec4}\u{4ef6}\u{7684}\u{5c5e}\\
-                 u{6027}\u{3002}\u{5728}\u{4e0b}\u{9762}\u{7684}\u{793a}\u{4f8b}\u{4e2d}\u{ff0c}"
+                "如果包含组件标注了 children 的类型，则可以访\\
+                 u{95ee}和更改嵌套组件的属\\
+                 u{6027}。在下面的示例中，"
             ),
             code("List"),
-            text(" \u{7ec4}\u{4ef6}\u{53ef}\u{4ee5}\u{5305}\u{542b} "),
+            text(" 组件可以包含 "),
             code("ListItem"),
             text(
-                " \u{7ec4}\u{4ef6}\u{3002}\u{6709}\u{5173}\u{6b64}\u{6a21}\u{5f0f}\u{7684}\\
-                 u{771f}\u{5b9e}\u{793a}\u{4f8b}\u{ff0c}\u{8bf7}\u{67e5}\u{770b} "
+                " 组件。有关此模式的\\
+                 u{771f}实示例，请查看 "
             ),
             code("yew-router"),
             text(
-                " \u{7684}\u{6e90}\u{7801}\u{3002}\u{6709}\u{5173}\u{66f4}\u{9ad8}\u{7ea7}\\
-                 u{7684}\u{793a}\u{4f8b}\u{ff0c}\u{8bf7}\u{5728} yew \
-                 \u{4e3b}\u{4ed3}\u{5e93}\u{4e2d}\u{67e5}\u{770b} "
+                " 的源码。有关更高级\\
+                 u{7684}示例，请在 yew 主仓库中查看 "
             ),
             code("nested-list"),
-            text(" \u{793a}\u{4f8b}\u{4ee3}\u{7801}\u{3002}"),
+            text(" 示例代码。"),
         ]),
         code_block(
             "rust",

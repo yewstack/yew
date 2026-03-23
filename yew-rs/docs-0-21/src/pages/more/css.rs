@@ -45,7 +45,7 @@ crate::doc_page!(
             ]),
             li(vec![
                 link("https://github.com/yewstack/yewtify", vec![text("Yewtify")]),
-                text(" \u{2013} Implements the features provided by the Vuetify framework in Yew."),
+                text(" – Implements the features provided by the Vuetify framework in Yew."),
             ]),
         ]),
         h4(vec![text("Styling Solutions")]),

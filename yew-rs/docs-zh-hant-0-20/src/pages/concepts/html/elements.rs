@@ -24,8 +24,7 @@ crate::doc_page!(
                     "INVALID",
                     vec![code_block(
                         "rust",
-                        "html! {\n  <div id=\"my_div\"> // <- \
-                         \u{7F3A}\u{5C11}\u{95DC}\u{9589}\u{6A19}\u{7C64}\n}",
+                        "html! {\n  <div id=\"my_div\"> // <- 缺少關閉標籤\n}",
                     )],
                 ),
             ],
@@ -46,9 +45,7 @@ crate::doc_page!(
                     "INVALID",
                     vec![code_block(
                         "rust",
-                        "html! {\n  <input id=\"my_input\"> // <- \
-                         \u{7F3A}\u{5C11}\u{81EA}\u{5C01}\u{9589}\u{6A19}\u{7C64}\u{8A9E}\u{6CD5}\\
-                         \
+                        "html! {\n  <input id=\"my_input\"> // <- 缺少自封閉標籤語法\\
                          n}",
                     )],
                 ),
@@ -59,20 +56,17 @@ crate::doc_page!(
             None,
             vec![p(vec![
                 text(
-                    "\u{70BA}\u{4E86}\u{65B9}\u{4FBF}\u{8D77}\u{898B}\u{FF0C}\u{901A}\u{5E38}\\
-                     u{9700}\u{8981}\u{95DC}\u{9589}\u{6A19}\u{7C64}\u{7684}\u{5143}\u{4EF6}\\
-                     u{FF0C}\u{4E5F}\u{90FD}\u{53EF}\u{4EE5}\u{7528}\u{81EA}\u{5C01}\u{9589}\\
-                     u{6A19}\u{7C64}\u{8868}\u{793A}\u{3002}\u{4F8B}\u{5982}\u{FF0C}\u{5BEB} "
+                    "為了方便起見，通常\\
+                     u{9700}要關閉標籤的元件\\
+                     u{FF0C}也都可以用自封閉\\
+                     u{6A19}籤表示。例如，寫 "
                 ),
                 code("html! { <div class=\"placeholder\" /> }"),
-                text(" \u{662F}\u{5408}\u{6CD5}\u{7684}\u{3002}"),
+                text(" 是合法的。"),
             ])],
         ),
-        h2(vec![text("\u{5B50}\u{7D50}\u{9EDE}")]),
-        p(vec![text(
-            "\u{8F15}\u{9B06}\u{5BEB}\u{51FA}\u{8907}\u{96DC}\u{5DE2}\u{72C0}\u{7684} HTML \
-             \u{8207} SVG \u{67B6}\u{69CB}\u{FF1A}"
-        )]),
+        h2(vec![text("子結點")]),
+        p(vec![text("輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：")]),
         tabs(
             "HTML",
             vec![
@@ -127,8 +121,8 @@ crate::doc_page!(
         ),
         h2(vec![text("Classes")]),
         p(vec![text(
-            "\u{4F60}\u{5F88}\u{591A}\u{65B9}\u{4FBF}\u{7684}\u{9078}\u{9805}\u{53EF}\u{4EE5}\\
-             u{5BEB}\u{5143}\u{4EF6}\u{88E1}\u{7684} class\u{FF1A}"
+            "你很多方便的選項可以\\
+             u{5BEB}元件裡的 class："
         )]),
         tabs(
             "Literal",
@@ -183,20 +177,17 @@ crate::doc_page!(
                 ),
             ],
         ),
-        h2(vec![text("\u{76E3}\u{807D}")]),
+        h2(vec![text("監聽")]),
         p(vec![
             text(
-                "\u{76E3}\u{807D}\u{5668}\u{7684}\u{5C6C}\u{6027}\u{5FC5}\u{9808}\u{8981}\u{50B3}\\
-                 \
-                 u{5165}\u{4E00}\u{500B} "
+                "監聽器的屬性必須要傳\\
+                 u{5165}一個 "
             ),
             code("Callback"),
             text(
-                " \u{FF0C}\u{4ED6}\u{5C01}\u{88DD}\u{4E86}\u{9589}\u{5305}\u{3002}callback \
-                 \u{7684}\u{5167}\u{5BB9}\u{53D6}\u{6C7A}\u{65BC}\u{FF0C}\u{7576}\u{89F8}\u{767C}\\
-                 \
-                 u{76E3}\u{807D}\u{4E8B}\u{4EF6}\u{6642}\u{FF0C}\u{4F60}\u{5E0C}\u{671B}\u{61C9}\\
-                 u{7528}\u{7A0B}\u{5F0F}\u{6709}\u{4EC0}\u{9EBC}\u{53CD}\u{61C9}\u{FF1A}",
+                " ，他封裝了閉包。callback 的內容取決於，當觸發\\
+                 u{76E3}聽事件時，你希望應\\
+                 u{7528}程式有什麼反應：",
             ),
         ]),
         tabs(

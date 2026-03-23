@@ -67,7 +67,7 @@ pub fn page_content() -> yew_site_lib::Content {
             text("For code readability reasons, it often makes sense to migrate sections of "),
             code("html!"),
             text(" to their own functions. Not only does this make your code more readable because it reduces the amount of \
-              indentation present, it also encourages good design patterns \u{2013} particularly around building \
+              indentation present, it also encourages good design patterns – particularly around building \
               composable applications because these functions can be called in multiple places which reduces the \
               amount of code that has to be written."),
         ]),

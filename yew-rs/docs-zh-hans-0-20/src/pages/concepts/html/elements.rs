@@ -2,19 +2,17 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/elements",
     Content::new(vec![
-        h1(vec![text("\u{5143}\u{7d20}")]),
-        h2(vec![text("\u{6807}\u{7b7e}\u{7ed3}\u{6784}")]),
+        h1(vec![text("元素")]),
+        h2(vec![text("标签结构")]),
         p(vec![
             text(
-                "\u{5143}\u{7d20}\u{6807}\u{7b7e}\u{5fc5}\u{987b}\u{662f}\u{81ea}\u{95ed}\u{5408}\\
-                 \
+                "元素标签必须是自闭合\\
                  u{7684} "
             ),
             code("<... />"),
             text(
-                "\u{ff0c}\u{6216}\u{662f}\u{6bcf}\u{4e2a}\u{6807}\u{7b7e}\u{90fd}\u{6709}\u{4e00}\\
-                 \
-                 u{4e2a}\u{5bf9}\u{5e94}\u{7684}\u{95ed}\u{5408}\u{6807}\u{7b7e}\u{3002}"
+                "，或是每个标签都有一\\
+                 u{4e2a}对应的闭合标签。"
             ),
         ]),
         code_block(
@@ -71,22 +69,17 @@ html! {
             None,
             vec![p(vec![
                 text(
-                    "\u{4e3a}\u{65b9}\u{4fbf}\u{8d77}\u{89c1}\u{ff0c}\u{4e00}\u{4e9b} \
-                     _\u{901a}\u{5e38}_ \
-                     \u{9700}\u{8981}\u{95ed}\u{5408}\u{6807}\u{7b7e}\u{7684}\u{5143}\u{7d20}\\
-                     u{662f}\u{88ab}"
+                    "为方便起见，一些 _通常_ 需要闭合标签的元素\\
+                     u{662f}被"
                 ),
-                bold(vec![text("\u{5141}\u{8bb8}")]),
-                text("\u{81ea}\u{95ed}\u{5408}\u{7684}\u{3002}\u{4f8b}\u{5982}\u{ff0c}"),
+                bold(vec![text("允许")]),
+                text("自闭合的。例如，"),
                 code("html! { <div class=\"placeholder\" /> }"),
-                text(" \u{8fd9}\u{6837}\u{5199}\u{662f}\u{6709}\u{6548}\u{7684}\u{3002}"),
+                text(" 这样写是有效的。"),
             ]),]
         ),
         h2(vec![text("Children")]),
-        p(vec![text(
-            "\u{8f7b}\u{677e}\u{521b}\u{5efa}\u{590d}\u{6742}\u{7684}\u{5d4c}\u{5957} HTML \
-             \u{548c} SVG \u{5e03}\u{5c40}\u{ff1a}"
-        )]),
+        p(vec![text("轻松创建复杂的嵌套 HTML 和 SVG 布局：")]),
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -102,8 +95,8 @@ html! {
         code_block("rust", r##"<div>This div is NOT hidden.</div>"##),
         h2(vec![text("Classes")]),
         p(vec![text(
-            "\u{6709}\u{8bb8}\u{591a}\u{65b9}\u{4fbf}\u{7684}\u{9009}\u{9879}\u{53ef}\u{7528}\\
-             u{4e8e}\u{5143}\u{7d20}\u{6307}\u{5b9a} classes\u{ff1a}"
+            "有许多方便的选项可用\\
+             u{4e8e}元素指定 classes："
         )]),
         code_block(
             "rust",
@@ -159,19 +152,17 @@ html! {
   <div class={vec!["class-1", "class-2"]}></div>
 }"#
         ),
-        h2(vec![text("\u{76d1}\u{542c}\u{5668}")]),
+        h2(vec![text("监听器")]),
         p(vec![
             text(
-                "\u{76d1}\u{542c}\u{5668}\u{5c5e}\u{6027}\u{9700}\u{8981}\u{4f20}\u{9012}\u{4e00}\\
-                 \
-                 u{4e2a}\u{7531}\u{95ed}\u{5305}\u{5305}\u{88f9}\u{7684} "
+                "监听器属性需要传递一\\
+                 u{4e2a}由闭包包裹的 "
             ),
             code("Callback"),
             text(
-                "\u{3002}\u{521b}\u{5efa}\u{56de}\u{8c03}\u{7684}\u{65b9}\u{5f0f}\u{53d6}\u{51b3}\\
-                 \
-                 u{4e8e}\u{4f60}\u{5e0c}\u{671b}\u{4f60}\u{7684}\u{5e94}\u{7528}\u{7a0b}\u{5e8f}\\
-                 u{5982}\u{4f55}\u{54cd}\u{5e94}\u{76d1}\u{542c}\u{5668}\u{4e8b}\u{4ef6}\u{ff1a}"
+                "。创建回调的方式取决\\
+                 u{4e8e}你希望你的应用程序\\
+                 u{5982}何响应监听器事件："
             ),
         ]),
         code_block(

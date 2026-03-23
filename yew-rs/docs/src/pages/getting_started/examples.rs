@@ -10,8 +10,7 @@ pub fn page_content() -> yew_site_lib::Content {
             text(
                 " (in various states of maintenance). We recommend perusing them to get a feel \
                  for how to use different features of the framework. We also welcome Pull \
-                 Requests and issues for when they inevitably get neglected and need some \
-                 \u{2764}\u{FE0F}",
+                 Requests and issues for when they inevitably get neglected and need some ❤️",
             ),
         ]),
         p(vec![

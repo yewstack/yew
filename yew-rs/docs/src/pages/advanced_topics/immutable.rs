@@ -11,8 +11,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(
                 "Properties, like in React, are propagated from ancestors to children. This means \
                  that the properties must live when each component is updated. This is why \
-                 properties should \u{2014}ideally\u{2014} be cheap to clone. To achieve this we \
-                 usually wrap things in ",
+                 properties should —ideally— be cheap to clone. To achieve this we usually wrap \
+                 things in ",
             ),
             code("Rc"),
             text("."),

@@ -129,7 +129,7 @@ pub fn page_content() -> yew_site_lib::Content {
         )]),
         h2(vec![text("Yew scheduler and component-scoped event loop")]),
         p(vec![italic(vec![
-            text("Contribute to the docs \u{2013} explain how "),
+            text("Contribute to the docs – explain how "),
             code("yew::scheduler"),
             text(" and "),
             code("yew::html::scope"),

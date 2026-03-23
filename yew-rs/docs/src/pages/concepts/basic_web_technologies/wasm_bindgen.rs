@@ -235,7 +235,7 @@ log_many("Logging", "many values!");"#),
             ]),
         ]),
         p(vec![
-            text("Rust has a strong type system and JavaScript...doesn't \u{1F61E}. For Rust to maintain these \
+            text("Rust has a strong type system and JavaScript...doesn't 😞. For Rust to maintain these \
               strong types but still be convenient, the WebAssembly group came up with a pretty neat trait "),
             code("JsCast"),
             text(". Its job is to help you move from one JavaScript \"type\" to another, which sounds vague, but it means \

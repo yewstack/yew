@@ -13,7 +13,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li(vec![link("https://github.com/spielrs/yew_styles", vec![text("yew_styles")]), text(" - JavaScript 依存なしの Yew スタイルフレームワーク。")]),
             li(vec![link("https://github.com/Follpvosten/yew-mdc", vec![text("yew-mdc")]), text(" - マテリアルデザインコンポーネント。")]),
             li(vec![link("https://github.com/AlephAlpha/muicss-yew", vec![text("muicss-yew")]), text(" - MUI CSS コンポーネント。")]),
-            li(vec![link("https://github.com/yewstack/yewtify", vec![text("Yewtify")]), text(" \u{2013} Yew で Vuetify フレームワークの機能を実現。")]),
+            li(vec![link("https://github.com/yewstack/yewtify", vec![text("Yewtify")]), text(" – Yew で Vuetify フレームワークの機能を実現。")]),
         ]),
         h4(vec![text("スタイルソリューション")]),
         ul(vec![
