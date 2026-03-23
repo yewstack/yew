@@ -54,8 +54,8 @@ pub fn Navbar(props: &NavbarProps) -> Html {
     {
         let version_open = version_open.clone();
         let lang_open = lang_open.clone();
-        let path = props.current_path.clone();
-        use_effect_with(path, move |_| {
+        let deps = (props.current_path.clone(), props.doc_version.clone());
+        use_effect_with(deps, move |_| {
             version_open.set(false);
             lang_open.set(false);
         });

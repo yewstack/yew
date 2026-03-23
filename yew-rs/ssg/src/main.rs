@@ -252,35 +252,51 @@ fn generate_breadcrumb_jsonld(url_path: &str, title: &str) -> String {
 }
 
 fn extract_description(html_body: &str) -> String {
-    let mut search_from = 0;
-    while let Some(p_pos) = html_body[search_from..].find("<p") {
-        let abs_pos = search_from + p_pos;
-        let next_char = html_body.as_bytes().get(abs_pos + 2).copied();
-        if next_char != Some(b'>') && next_char != Some(b' ') {
-            search_from = abs_pos + 1;
-            continue;
-        }
-        let after = &html_body[abs_pos..];
-        if let Some(gt) = after.find('>') {
-            let content_start = abs_pos + gt + 1;
-            if let Some(p_end) = html_body[content_start..].find("</p>") {
-                let inner = &html_body[content_start..content_start + p_end];
-                let text = strip_html_tags(inner);
-                let text = text.trim().to_string();
-                if !text.is_empty() {
-                    if text.len() > 160 {
-                        let end = text
-                            .char_indices()
-                            .nth(157)
-                            .map(|(i, _)| i)
-                            .unwrap_or(text.len());
-                        return format!("{}...", &text[..end]);
+    fn find_first_tag_text(html: &str, tag_prefix: &str, tag_close: &str) -> Option<String> {
+        let mut search_from = 0;
+        while let Some(pos) = html[search_from..].find(tag_prefix) {
+            let abs = search_from + pos;
+            let after = &html[abs..];
+            if let Some(gt) = after.find('>') {
+                let start = abs + gt + 1;
+                if let Some(end) = html[start..].find(tag_close) {
+                    let inner = &html[start..start + end];
+                    let text = strip_html_tags(inner)
+                        .trim()
+                        .trim_end_matches('#')
+                        .trim()
+                        .to_string();
+                    if !text.is_empty() {
+                        return Some(text);
                     }
-                    return text;
                 }
             }
+            search_from = abs + 1;
         }
-        search_from = abs_pos + 1;
+        None
+    }
+
+    fn truncate(text: String) -> String {
+        if text.len() > 160 {
+            let end = text
+                .char_indices()
+                .nth(157)
+                .map(|(i, _)| i)
+                .unwrap_or(text.len());
+            format!("{}...", &text[..end])
+        } else {
+            text
+        }
+    }
+
+    if let Some(text) = find_first_tag_text(html_body, "<h2", "</h2>") {
+        return truncate(text);
+    }
+    if let Some(text) = find_first_tag_text(html_body, "<h3", "</h3>") {
+        return truncate(text);
+    }
+    if let Some(text) = find_first_tag_text(html_body, "<p", "</p>") {
+        return truncate(text);
     }
     "A framework for creating reliable and efficient web applications.".to_string()
 }

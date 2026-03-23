@@ -38,6 +38,19 @@ pub struct SidebarProps {
     pub doc_version: AttrValue,
 }
 
+fn strip_locale(href: &str) -> &str {
+    for prefix in ["/ja/", "/zh-Hans/", "/zh-Hant/"] {
+        if let Some(rest) = href.strip_prefix(prefix) {
+            return rest.strip_prefix('/').unwrap_or(rest);
+        }
+    }
+    href.strip_prefix('/').unwrap_or(href)
+}
+
+fn paths_match(a: &str, b: &str) -> bool {
+    strip_locale(a) == strip_locale(b)
+}
+
 fn collect_active_categories(
     entries: &[SidebarEntry],
     active_path: &str,
@@ -47,7 +60,7 @@ fn collect_active_categories(
     for entry in entries {
         match entry {
             SidebarEntry::Item(item) => {
-                if item.href == active_path {
+                if paths_match(item.href, active_path) {
                     for &label in path.iter() {
                         result.insert(label);
                     }
@@ -56,7 +69,7 @@ fn collect_active_categories(
             }
             SidebarEntry::Category(cat) => {
                 path.push(cat.label);
-                if cat.link == Some(active_path) {
+                if cat.link.is_some_and(|l| paths_match(l, active_path)) {
                     for &label in path.iter() {
                         result.insert(label);
                     }
@@ -199,7 +212,7 @@ fn EntryView(props: &EntryViewProps) -> Html {
 
     match &props.entry {
         SidebarEntry::Item(item) => {
-            let is_active = props.active_path.as_str() == item.href;
+            let is_active = paths_match(props.active_path.as_str(), item.href);
             let href = rewrite_doc_href(item.href, props.lang.as_str(), props.doc_version.as_str());
             let onclick = make_nav_onclick(&nav_ctx, &href);
             let link_color = if is_active {
