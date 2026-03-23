@@ -3050,6 +3050,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sharded-slab"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3077,16 +3086,16 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "futures 0.3.31",
- "log",
  "reqwest",
  "serde",
  "ssr-e2e-harness",
  "tokio",
+ "tracing-subscriber",
+ "tracing-web",
  "uuid",
  "warp",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
- "wasm-logger",
  "yew",
 ]
 
@@ -3153,14 +3162,14 @@ dependencies = [
  "hyper",
  "hyper-util",
  "jemallocator",
- "log",
  "ssr-e2e-harness",
  "tokio",
  "tower",
  "tower-http",
+ "tracing-subscriber",
+ "tracing-web",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
- "wasm-logger",
  "yew",
  "yew-router",
 ]
@@ -3374,6 +3383,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "thread_local"
+version = "1.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f60246a4944f24f6e018aa17cdeffb7818b76356965d03b07d6a9886e8962185"
+dependencies = [
+ "cfg-if",
 ]
 
 [[package]]
@@ -3672,6 +3690,45 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+ "valuable",
+]
+
+[[package]]
+name = "tracing-log"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee855f1f400bd0e5c02d150ae5de3840039a3f54b025156404e34c23c03f47c3"
+dependencies = [
+ "log",
+ "once_cell",
+ "tracing-core",
+]
+
+[[package]]
+name = "tracing-subscriber"
+version = "0.3.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f30143827ddab0d256fd843b7a66d164e9f271cfa0dde49142c5ca0ca291f1e"
+dependencies = [
+ "nu-ansi-term",
+ "sharded-slab",
+ "smallvec",
+ "thread_local",
+ "tracing-core",
+ "tracing-log",
+]
+
+[[package]]
+name = "tracing-web"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e6a141feebd51f8d91ebfd785af50fca223c570b86852166caa3b141defe7c"
+dependencies = [
+ "js-sys",
+ "tracing-core",
+ "tracing-subscriber",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -3784,6 +3841,12 @@ dependencies = [
  "serde_core",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "valuable"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
 name = "vcpkg"
