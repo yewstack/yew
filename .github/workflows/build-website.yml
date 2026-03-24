@@ -55,7 +55,7 @@ jobs:
           sudo install "binaryen-${VERSION}/bin/wasm-opt" /usr/local/bin/
 
       - name: Build site
-        run: cargo run --release -p yew-site-ssg
+        run: cargo run --release -p yew-site-ssg -- --all-locales
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
