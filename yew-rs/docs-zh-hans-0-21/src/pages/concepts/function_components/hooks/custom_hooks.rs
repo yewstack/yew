@@ -2,13 +2,13 @@ crate::doc_page!(
     "自定义钩子（Custom Hooks）",
     "/zh-Hans/docs/concepts/function-components/hooks/custom-hooks",
     Content::new(vec![
-        h2(vec![text("定义自定义钩子")]),
-        p(vec![text(
+        h2![text("定义自定义钩子")],
+        p![text(
             "组件中与状态有关的逻辑可以通过创建自定义 Hooks 提取到函数中。"
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "假设我们有一个组件，它订阅了一个代理（agent）并且会显示发送给它的消息。"
-        )]),
+        )],
         code_block(
             "rust",
             r#"#[function_component(ShowMessages)]
@@ -32,11 +32,11 @@ pub fn show_messages() -> Html {
     html! { <div>{ for output }</div> }
 }"#
         ),
-        p(vec![text(
+        p![text(
             "这段代码有一个问题：逻辑不能被另一个组件重用。如果我们构建另一个跟踪消息的组件，\
              我们可以将逻辑移动到自定义钩子中，而不是复制代码。"
-        )]),
-        p(vec![
+        )],
+        p![
             text("我们将首先创建一个名为"),
             code("use_subscribe"),
             text("的新函数。 "),
@@ -44,14 +44,14 @@ pub fn show_messages() -> Html {
             text("前缀通常表示此函数是一个钩子。这个函数将不接受任何参数并返回"),
             code("Rc<RefCell<Vec<String>>>"),
             text(" 。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
     // ...
 }"#
         ),
-        p(vec![
+        p![
             text("钩子的逻辑在"),
             code("use_hook"),
             text("的回调中。 "),
@@ -61,8 +61,8 @@ pub fn show_messages() -> Html {
             text("和"),
             code("initial_state_producer"),
             text(" 。")
-        ]),
-        p(vec![
+        ],
+        p![
             code("hook_runner"),
             text("中包含了所有钩子的逻辑，它的回调的返回值又会被"),
             code("use_hook"),
@@ -83,12 +83,12 @@ pub fn show_messages() -> Html {
             text("接受用于创建内部状态实例的回调。这里说的内部状态指的是一个实现了"),
             code("Hook"),
             text(" trait 的结构体。")
-        ]),
-        p(vec![
+        ],
+        p![
             text("现在让我们为"),
             code("use_subscribe"),
             text("钩子创建状态（state struct）。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"/// `use_subscribe` internal state
@@ -99,11 +99,11 @@ struct UseSubscribeState {
 
 impl Hook for UseSubscribeState {}"#
         ),
-        p(vec![
+        p![
             text("接下来我们为"),
             code("use_subscribe"),
             text("添加实际逻辑。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
@@ -133,7 +133,7 @@ impl Hook for UseSubscribeState {}"#
     )
 }"#
         ),
-        p(vec![text("现在我们可以使用自定义钩子了：")]),
+        p![text("现在我们可以使用自定义钩子了：")],
         code_block(
             "rust",
             r#"#[function_component(ShowMessages)]
@@ -144,13 +144,13 @@ pub fn show_messages() -> Html {
     html! { <div>{ for output }</div> }
 }"#
         ),
-        p(vec![
+        p![
             text("需要特别注意的是创建自定义钩子时"),
             code("use_hook"),
             text("不是必须的，它们只是用来包含其他钩子。通常应避免使用"),
             code("use_hook"),
             text("。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"fn use_subscribe() -> Rc<Vec<String>> {

@@ -2,7 +2,7 @@ crate::doc_page!(
     "属性（Properties）",
     "/zh-Hans/docs/advanced-topics/struct-components/properties",
     Content::new(vec![
-        p(vec![
+        p![
             text(
                 "Properties 用于父级到子组件的通信。 \
                  每个组件都有一个关联的属性类型，描述了从父级传递下来的内容。 \
@@ -12,9 +12,9 @@ crate::doc_page!(
             text(
                 " trait 的类型，但实际上， 没有理由不使用一个结构体，其中每个字段都代表一个属性。"
             )
-        ]),
-        h2(vec![text("派生宏")]),
-        p(vec![
+        ],
+        h2![text("派生宏")],
+        p![
             text("不要尝试自己去实现 "),
             code("Properties"),
             text("，而是通过使用 "),
@@ -24,9 +24,9 @@ crate::doc_page!(
             text(" 的类型还必须实现 "),
             code("PartialEq"),
             text("。")
-        ]),
-        h3(vec![text("Field attributes")]),
-        p(vec![
+        ],
+        h3![text("Field attributes")],
+        p![
             text("When deriving "),
             code("Properties"),
             text(
@@ -34,24 +34,24 @@ crate::doc_page!(
                  your props initial values which will be used unless they are set to another \
                  value."
             )
-        ]),
+        ],
         admonition(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![text(
+            vec![p![text(
                 "Attributes aren't visible in Rustdoc generated documentation.
 The doc strings of your properties should mention whether a prop is optional and if it has a \
                  special default value."
-            )])]
+            )]]
         ),
-        h4(vec![text("`#[prop_or_default]`")]),
-        p(vec![
+        h4![text("`#[prop_or_default]`")],
+        p![
             text("Initialize the prop value with the default value of the field's type using the "),
             code("Default"),
             text(" trait.")
-        ]),
-        h4(vec![text("`#[prop_or(value)]`")]),
-        p(vec![
+        ],
+        h4![text("`#[prop_or(value)]`")],
+        p![
             text("Use "),
             code("value"),
             text(" to initialize the prop value. "),
@@ -64,9 +64,9 @@ The doc strings of your properties should mention whether a prop is optional and
             text(", use the attribute "),
             code("#[prop_or(true)]"),
             text(".")
-        ]),
-        h4(vec![text("`#[prop_or_else(function)]`")]),
-        p(vec![
+        ],
+        h4![text("`#[prop_or_else(function)]`")],
+        p![
             text("Call "),
             code("function"),
             text(" to initialize the prop value. "),
@@ -76,35 +76,35 @@ The doc strings of your properties should mention whether a prop is optional and
             text(" where "),
             code("T"),
             text(" is the field type.")
-        ]),
-        h2(vec![text("`PartialEq`")]),
-        p(vec![
+        ],
+        h2![text("`PartialEq`")],
+        p![
             code("Properties"),
             text(" require "),
             code("PartialEq"),
             text(" to be implemented. This is so that they can be compared by Yew to call the "),
             code("changed"),
             text(" method only when they change.")
-        ]),
-        h2(vec![text("Memory/speed overhead of using Properties")]),
-        p(vec![text(
+        ],
+        h2![text("Memory/speed overhead of using Properties")],
+        p![text(
             "Internally properties are reference counted. This means that only a pointer is \
              passed down the component tree for props. It saves us from the cost of having to \
              clone the entire props, which might be expensive."
-        )]),
+        )],
         admonition(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            vec![p![
                 text("Make use of "),
                 code("AttrValue"),
                 text(
                     " which is our custom type for attribute values instead of defining them as \
                      String or another similar type."
                 )
-            ])]
+            ]]
         ),
-        h2(vec![text("Example")]),
+        h2![text("Example")],
         code_block(
             "rust",
             r#"use yew::Properties;
@@ -141,15 +141,15 @@ pub struct LinkProps {
     active: bool,
 }"#
         ),
-        h2(vec![text("Props macro")]),
-        p(vec![
+        h2![text("Props macro")],
+        p![
             text("The "),
             code("yew::props!"),
             text(" macro allows you to build properties the same way the "),
             code("html!"),
             text(" macro does it.")
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "The macro uses the same syntax as a struct expression except that you cannot use \
                  attributes or a base expression ("
@@ -160,7 +160,7 @@ pub struct LinkProps {
             text(") or the associated properties of a component ("),
             code("MyComp::Properties"),
             text(").")
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{props, Properties, virtual_dom::AttrValue};

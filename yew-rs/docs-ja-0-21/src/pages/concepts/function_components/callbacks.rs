@@ -2,7 +2,7 @@ crate::doc_page!(
     "Callbacks",
     "/ja/docs/concepts/function-components/callbacks",
     Content::new(vec![
-        p(vec![
+        p![
             text(
                 "Callbacks are used to asynchronously communicate upwards the components tree and \
                  with other things like agents or the DOM during event handling. Internally their \
@@ -12,12 +12,12 @@ crate::doc_page!(
             text(" wrapped in "),
             code("Rc"),
             text(" to allow them to be cheaply cloned."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("They have an "),
             code("emit"),
             text(" function if you want to call them manually."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html, Callback};
@@ -29,10 +29,10 @@ let cb: Callback<String, String> = Callback::from(move |name: String| {
 let result = cb.emit(String::from("Bob")); // call the callback
 // web_sys::console::log_1(&result.into()); // if uncommented will print "Bye Bob""#
         ),
-        h2(vec![text("Passing callbacks as props")]),
-        p(vec![text(
+        h2![text("Passing callbacks as props")],
+        p![text(
             "A common pattern in yew is to create a callback and pass it down as a prop."
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html, Properties, Callback};
@@ -62,14 +62,14 @@ fn App() -> Html {
 }
 "#
         ),
-        h2(vec![text("DOM Events and Callbacks")]),
-        p(vec![text(
+        h2![text("DOM Events and Callbacks")],
+        p![text(
             "Callbacks are also used to hook into DOM events."
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "For example, here we define a callback that will be called when the user clicks the \
              button:"
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html, Properties, Callback};

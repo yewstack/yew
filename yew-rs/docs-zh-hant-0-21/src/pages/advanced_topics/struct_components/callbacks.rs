@@ -2,15 +2,15 @@ crate::doc_page!(
     "回呼函數 (Callbacks)",
     "/zh-Hant/docs/advanced-topics/struct-components/callbacks",
     Content::new(vec![
-        h2(vec![text("回呼函數 (Callbacks)")]),
-        p(vec![
+        h2![text("回呼函數 (Callbacks)")],
+        p![
             text("回調函數是用於在 Yew 中與服務、代理和父元件進行通訊的。在內部，它們的類型只是 "),
             code("Fn"),
             text(" 包裝在 "),
             code("Rc"),
             text(" 中，以允許它們被克隆。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("它們有一個 "),
             code("emit"),
             text(" 函數，該函數以其 "),
@@ -25,8 +25,8 @@ crate::doc_page!(
             text(" 函數，以將訊息傳回其父元件。在 "),
             code("html!"),
             text(" 巨集中作為 props 提供的閉包或函數會自動轉換為回呼函數。"),
-        ]),
-        p(vec![text("一個簡單的回呼函數的使用可能如下所示：")]),
+        ],
+        p![text("一個簡單的回呼函數的使用可能如下所示：")],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -56,7 +56,7 @@ impl Component for Comp {
     }
 }"#,
         ),
-        p(vec![
+        p![
             text("這個函數傳遞給 "),
             code("callback"),
             text(" 必須永遠帶有一個參數。例如，"),
@@ -67,12 +67,12 @@ impl Component for Comp {
                 " 類型參數的函數。然後處理程序可以決定應該發送什麼類型的消息給組件。\
                  這個訊息無條件地被安排在下一個更新循環中。"
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("如果你需要一個回呼函數，它可能不需要引起更新，請使用 "),
             code("batch_callback"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{events::KeyboardEvent, html, Component, Context, Html};
@@ -109,16 +109,16 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2(vec![text("相關範例")]),
-        ul(vec![
-            li(vec![link(
+        h2![text("相關範例")],
+        ul![
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/counter",
-                vec![text("Counter")],
-            )]),
-            li(vec![link(
+                text("Counter"),
+            )],
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/timer",
-                vec![text("Timer")],
-            )]),
-        ]),
+                text("Timer"),
+            )],
+        ],
     ])
 );

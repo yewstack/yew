@@ -2,44 +2,44 @@ crate::doc_page!(
     "wasm-bindgen",
     "/zh-Hant/docs/concepts/basic-web-technologies/wasm-bindgen",
     Content::new(vec![
-        p(vec![
-            link(
+        p![
+            link!(
                 "https://github.com/rustwasm/wasm-bindgen",
-                vec![text("wasm-bindgen")],
+                text("wasm-bindgen"),
             ),
             text(
                 " 是一個在 JavaScript 和 Rust 函數之間建立呼叫橋樑的函式庫和工具。它是由 ",
             ),
-            link(
+            link!(
                 "https://rustwasm.github.io/",
-                vec![text("Rust 和 WebAssembly 工作小組")],
+                text("Rust 和 WebAssembly 工作小組"),
             ),
             text(" 使用 Rust 建構的。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Yew 使用 "),
             code("wasm-bindgen"),
             text(" 透過一些 crate 與瀏覽器進行互動："),
-        ]),
-        ul(vec![
-            li(vec![link(
+        ],
+        ul![
+            li![link!(
                 "https://crates.io/crates/js-sys",
-                vec![text("js-sys")],
-            )]),
-            li(vec![link(
+                text("js-sys"),
+            )],
+            li![link!(
                 "https://crates.io/crates/wasm-bindgen",
-                vec![text("wasm-bindgen")],
-            )]),
-            li(vec![link(
+                text("wasm-bindgen"),
+            )],
+            li![link!(
                 "https://crates.io/crates/wasm-bindgen-futures",
-                vec![text("wasm-bindgen-futures")],
-            )]),
-            li(vec![link(
+                text("wasm-bindgen-futures"),
+            )],
+            li![link!(
                 "https://crates.io/crates/web-sys",
-                vec![text("web-sys")],
-            )]),
-        ]),
-        p(vec![
+                text("web-sys"),
+            )],
+        ],
+        p![
             text(
                 "本節將從更抽象的層次探討這些 crate，以便更容易理解和使用 Yew 中的 ",
             ),
@@ -47,24 +47,24 @@ crate::doc_page!(
             text(" API。要了解有關 "),
             code("wasm-bindgen"),
             text(" 及其相關 crate 的更深入指南，請查看 "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/",
-                vec![text("wasm-bindgen 指引")],
+                text("wasm-bindgen 指引"),
             ),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("有關上述 crate 的文檔，請查看 "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html",
-                vec![text("wasm-bindgen docs.rs")],
+                text("wasm-bindgen docs.rs"),
             ),
             text("。"),
-        ]),
-        admonition(
+        ],
+        admonition!(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("使用 "),
                 code("wasm-bindgen"),
                 text(
@@ -72,20 +72,20 @@ crate::doc_page!(
                 ),
                 code("wasm-bindgen"),
                 text(" 匯入的瀏覽器 API 和 JavaScript 類型。"),
-            ])],
+            ]
         ),
-        h2(vec![text(
+        h2![text(
             "[`wasm-bindgen`](https://crates.io/crates/wasm-bindgen)",
-        )]),
-        p(vec![
+        )],
+        p![
             text("這個 crate 為上面的其他 crate 提供了許多構建塊。在本節中，我們只會涵蓋 "),
             code("wasm-bindgen"),
             text(
                 " crate 的兩個主要領域，即巨集和一些您會一遍又一遍看到的類型/特性。",
             ),
-        ]),
-        h3(vec![text("`#[wasm_bindgen]` macro")]),
-        p(vec![
+        ],
+        h3![text("`#[wasm_bindgen]` macro")],
+        p![
             code("#[wasm_bindgen]"),
             text(
                 " 巨集提供了 Rust 和 JavaScript \
@@ -98,17 +98,17 @@ crate::doc_page!(
             text(" crate 為內建 JavaScript 類型和瀏覽器 API 提供了 "),
             code("wasm-bindgen"),
             text(" 定義。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("讓我們透過一個簡單的範例來使用"),
             code("#[wasm-bindgen]"),
             text(" 巨集來匯入一些特定版本的"),
-            link(
+            link!(
                 "https://developer.mozilla.org/en-US/docs/Web/ API/Console/log",
-                vec![text("console.log")],
+                text("console.log"),
             ),
             text(" 函數。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use wasm_bindgen::prelude::*;
@@ -135,30 +135,30 @@ log("Hello from Rust!");
 log_u32(42);
 log_many("Logging", "many values!");"#,
         ),
-        p(vec![
+        p![
             text("_這個範例是基於 "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/examples/console-log.html",
-                vec![text("1.2 使用 console.log 的 wasm-bindgen 指引")],
+                text("1.2 使用 console.log 的 wasm-bindgen 指引"),
             ),
             text(" 改編的。 _"),
-        ]),
-        h3(vec![text("模擬繼承")]),
-        p(vec![
+        ],
+        h3![text("模擬繼承")],
+        p![
             text("在 JavaScript 類別之間的繼承是 JavaScript 語言的核心特性，DOM（文件物件模型）是圍繞它設計的。當使用 "),
             code("wasm-bindgen"),
             text(" 匯入類型時，您也可以新增描述它們繼承關係的屬性。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("在Rust 中，這種繼承關係使用"),
-            link(
+            link!(
                 "https://doc.rust-lang.org/std/ops/trait.Deref.html",
-                vec![text("Deref")],
+                text("Deref"),
             ),
             text("和"),
-            link(
+            link!(
                 "https://doc. rust-lang.org/std/convert/trait.AsRef.html",
-                vec![text("AsRef")],
+                text("AsRef"),
             ),
             text(" 特性來表示。這裡舉個例子可能會有所幫助；假設您有三種類型 "),
             code("A"),
@@ -175,8 +175,8 @@ log_many("Logging", "many values!");"#,
             text(" 又擴展了 "),
             code("A"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("在匯入這些類型時，"),
             code("#[wasm-bindgen]"),
             text(" 巨集將按照下列方式實作 "),
@@ -184,30 +184,30 @@ log_many("Logging", "many values!");"#,
             text(" 和 "),
             code("AsRef"),
             text(" 特性："),
-        ]),
-        ul(vec![
-            li(vec![
+        ],
+        ul![
+            li![
                 code("C"),
                 text(" 可以 "),
                 code("Deref"),
                 text(" 到 "),
                 code("B"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("B"),
                 text(" 可以 "),
                 code("Deref"),
                 text(" 到 "),
                 code("A"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("C"),
                 text(" 可以被 "),
                 code("AsRef"),
                 text(" 到 "),
                 code("B"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("C"),
                 text(" 和 "),
                 code("B"),
@@ -215,9 +215,9 @@ log_many("Logging", "many values!");"#,
                 code("AsRef"),
                 text(" 到 "),
                 code("A"),
-            ]),
-        ]),
-        p(vec![
+            ],
+        ],
+        p![
             text("這些實作允許您在 "),
             code("C"),
             text(" 的實例上呼叫 "),
@@ -229,8 +229,8 @@ log_many("Logging", "many values!");"#,
             text(" 或 "),
             code("&A"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("需要注意的是，使用"),
             code("#[wasm_bindgen]"),
             text(
@@ -238,21 +238,21 @@ log_many("Logging", "many values!");"#,
             ),
             code("A"),
             text("，這種類型是"),
-            link("#jsvalue", vec![text("JsValue")]),
+            link!("#jsvalue", text("JsValue")),
             text("，下面有它的部分。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html",
-                vec![text("wasm-bindgen 指引中的 extends 部分")],
+                text("wasm-bindgen 指引中的 extends 部分"),
             ),
             text("_"),
-        ]),
-        h3(vec![text(
+        ],
+        h3![text(
             "[`JsValue`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html)",
-        )]),
-        p(vec![
+        )],
+        p![
             text("這是 JavaScript 擁有的物件的表示，這是 "),
             code("wasm-bindgen"),
             text(" 的根捕獲類型。任何來自"),
@@ -270,8 +270,8 @@ log_many("Logging", "many values!");"#,
             text("。如果您正在使用接受 "),
             code("JsValue"),
             text(" 的導入函數或類型，那麼任何導入的值在技術上都是有效的。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("JsValue"),
             text(" 可以被函數接受，但該函數可能仍然只接受某些類型，這可能會導致panic - 因此在使用原始"),
             code("wasm-bindgen"),
@@ -279,19 +279,19 @@ log_many("Logging", "many values!");"#,
                 " API 時，請檢查導入的JavaScript \
                  的文檔，以確定是否會在該值不是某種類型時引發異常（panic）。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html",
-                vec![text("JsValue 文件")],
+                text("JsValue 文件"),
             ),
             text("。 _"),
-        ]),
-        h3(vec![text(
+        ],
+        h3![text(
             "[`JsCast`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html)",
-        )]),
-        p(vec![
+        )],
+        p![
             text("Rust 有一個強型別系統，而 JavaScript…沒有😞。為了讓 Rust 保持這些強型別但仍然方便，WebAssembly 工作小組提出了一個非常巧妙的特性 "),
             code("JsCast"),
             text("。它的工作是幫助您從一個JavaScript \"類型\" 轉換到另一個\"類型\"，這聽起來很模糊，但它意味著如果您有一個類型，您知道它是另一個類型，那麼您可以使用"),
@@ -305,34 +305,34 @@ log_many("Logging", "many values!");"#,
             text(" 時，了解這個很好的特性 - 您會注意到許多類型將從這些 crate 中實作 "),
             code("JsCast"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("JsCast"),
             text(" 提供了轉換的檢查和不檢查方法- 因此在運行時，如果您不確定某個物件是什麼類型，您可以嘗試將其轉換，這將返回可能的失敗類型，如"),
             text("["),
             code("Option"),
             text("] (https://doc.rust-lang.org/std/option/enum.Option.html) 和"),
-            link(
+            link!(
                 "https://doc.rust-lang.org/std/result/enum.Result. html",
-                vec![text("Result")],
+                text("Result"),
             ),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("一個常見的例子是在 "),
-            link("", vec![text("web-sys")]),
+            link!("", text("web-sys")),
             text(" 中，當您嘗試取得事件的目標時。您可能知道目標元素是什麼，但"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html",
-                vec![text("web_sys::Event")],
+                text("web_sys::Event"),
             ),
             text(" API 總是會回傳一個"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target",
-                vec![text(" Option<web_sys::EventTarget>")],
+                text(" Option<web_sys::EventTarget>"),
             ),
             text("。 您需要將其轉換為元素類型，以便呼叫其方法。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"// 需要先導入這個 Trait
@@ -354,19 +354,19 @@ fn handle_event(event: Event) {
     let input_element: HtmlInputElement = target.unchecked_into();
 }"#,
         ),
-        p(vec![
-            link(
+        p![
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref",
-                vec![text("dyn_ref")],
+                text("dyn_ref"),
             ),
             text(" 方法是一個檢查的轉換，回傳一個"),
             code("Option<&T>"),
             text("，這表示如果轉換失敗，則可以再次使用原始類型，因此傳回"),
             code("None"),
             text("。 "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into",
-                vec![text("dyn_into")],
+                text("dyn_into"),
             ),
             text(" 方法將消耗"),
             code("self"),
@@ -379,34 +379,34 @@ fn handle_event(event: Event) {
             text(" 值將在 "),
             code("Err"),
             text(" 中傳回。您可以再試一次或對原始類型進行其他操作。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html",
-                vec![text("JsCast documentation")],
+                text("JsCast documentation"),
             ),
             text("._"),
-        ]),
-        h3(vec![text(
+        ],
+        h3![text(
             "[`Closure`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html)",
-        )]),
-        p(vec![
+        )],
+        p![
             code("Closure"),
             text(" 類型提供了一種將 Rust 閉包傳遞到 JavaScript 的方法，出於健全性原因，傳遞給 JavaScript 的閉包必須具有 "),
             code("'static"),
             text(" 生命週期。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("這種類型是一個\"句柄\"，這意味著每當它被丟棄時，它將使其引用的 JS 閉包無效。在 "),
             code("Closure"),
             text(" 被丟棄後，對 JS 中閉包的任何使用都會引發異常。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("當您使用接受型別"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Function.html",
-                vec![text("&js_sys::Function")],
+                text("&js_sys::Function"),
             ),
             text(" 的"),
             code("js-sys"),
@@ -415,70 +415,70 @@ fn handle_event(event: Event) {
             text(" API 時，通常會使用"),
             code("Closure"),
             text("。在"),
-            link("", vec![text("Events")]),
+            link!("", text("Events")),
             text(" 頁面的"),
-            link("", vec![text("Using Closure 部分")]),
+            link!("", text("Using Closure 部分")),
             text(" 中可以找到Yew 中使用"),
             code("Closure"),
             text(" 的範例。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html",
-                vec![text("Closure 文件")],
+                text("Closure 文件"),
             ),
             text("._"),
-        ]),
-        h2(vec![text(
+        ],
+        h2![text(
             "[`js-sys`](https://crates.io/crates/js-sys)",
-        )]),
-        p(vec![
+        )],
+        p![
             code("js-sys"),
             text(
                 " crate 提供了 JavaScript 標準內建物件的綁定/導入，包括它們的方法和屬性。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("這不包括任何 Web API，因為這是 "),
-            link("", vec![text("web-sys")]),
+            link!("", text("web-sys")),
             text(" 的作用！"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/index.html",
-                vec![text("js-sys 文件")],
+                text("js-sys 文件"),
             ),
             text("._"),
-        ]),
-        h2(vec![text(
+        ],
+        h2![text(
             "[`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)",
-        )]),
-        p(vec![
+        )],
+        p![
             code("wasm-bindgen-futures"),
             text(" crate 提供了一個橋樑，用於將JavaScript Promise 類型作為Rust "),
-            link(
+            link!(
                 "https://doc.rust-lang.org/stable/std/future/trait.Future.html",
-                vec![text("Future")],
+                text("Future"),
             ),
             text(
                 " 進行處理，並包含將Rust Future 轉換為JavaScript Promise 的實用程式。當在 Rust（wasm）中處理非同步或其他阻塞工作時，這可能很有用，並提供了與 JavaScript 事件和 JavaScript I/O 原語互動的能力。",
             ),
-        ]),
-        p(vec![text("目前這個 crate 中有三個主要介面：")]),
-        ol(vec![li(vec![
-            link(
+        ],
+        p![text("目前這個 crate 中有三個主要介面：")],
+        ol![li![
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html",
-                vec![text("JsFuture")],
+                text("JsFuture"),
             ),
             text(" -"),
-        ])]),
-        p(vec![
+        ]],
+        p![
             text("一個使用"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Promise.html",
-                vec![text("Promise")],
+                text("Promise"),
             ),
             text(" 建構的類型，然後可以用作"),
             code("Future<Output=Result<JsValue, JsValue >>"),
@@ -495,15 +495,15 @@ fn handle_event(event: Event) {
             text("，分別包含 "),
             code("Promise"),
             text(" 的解析或拒絕值。"),
-        ]),
-        ol(vec![li(vec![
-            link(
+        ],
+        ol![li![
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html",
-                vec![text("future_to_promise")],
+                text("future_to_promise"),
             ),
             text(" -"),
-        ])]),
-        p(vec![
+        ]],
+        p![
             text("將 Rust "),
             code("Future<Output=Result<JsValue, JsValue>>"),
             text(" 轉換為 JavaScript "),
@@ -511,40 +511,40 @@ fn handle_event(event: Event) {
             text("。未來的結果將轉換為 JavaScript 中的已解析或已拒絕 "),
             code("Promise"),
             text("。"),
-        ]),
-        ol(vec![li(vec![
-            link(
+        ],
+        ol![li![
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html",
-                vec![text("spawn_local")],
+                text("spawn_local"),
             ),
             text(" -"),
-        ])]),
-        p(vec![
+        ]],
+        p![
             text("在目前執行緒上產生一個 "),
             code("Future<Output = ()>"),
             text(
                 "。這是在 Rust 中運行 Future 的最佳方法，而不是將其發送到 JavaScript。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html",
-                vec![text("wasm-bindgen-futures 文件")],
+                text("wasm-bindgen-futures 文件"),
             ),
             text("._"),
-        ]),
-        h3(vec![text(
+        ],
+        h3![text(
             "[`spawn_local`](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html)",
-        )]),
-        p(vec![
+        )],
+        p![
             code("spawn_local"),
             text(" 將是 Yew 中 "),
             code("wasm-bindgen-futures"),
             text(
                 " crate 中最常用的部分，因為這有助於使用具有非同步 API 的函式庫。",
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::console;
@@ -559,7 +559,7 @@ spawn_local(async {
     console::log_1(&string.into());
 });"#,
         ),
-        p(vec![
+        p![
             text("Yew 還在某些 API 中添加了對 futures 的支持，最值得注意的是您可以創建一個接受 "),
             code("async"),
             text(" 區塊的 "),
@@ -567,14 +567,14 @@ spawn_local(async {
             text(" - 這在內部使用了 "),
             code("spawn_local"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html",
-                vec![text("spawn_local 文件")],
+                text("spawn_local 文件"),
             ),
             text("._"),
-        ]),
+        ],
     ])
 );

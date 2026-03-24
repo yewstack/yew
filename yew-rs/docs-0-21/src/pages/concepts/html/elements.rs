@@ -2,13 +2,13 @@ crate::doc_page!(
     "Elements",
     "/docs/concepts/html/elements",
     Content::new(vec![
-        h2(vec![text("DOM nodes")]),
-        p(vec![text(
+        h2![text("DOM nodes")],
+        p![text(
             "There are many reasons why you might want to create or manage DOM nodes manually in \
              Yew, such as when integrating with JS libraries that can cause conflicts with \
              managed components."
-        ),]),
-        p(vec![
+        )],
+        p![
             text("Using "),
             code("web-sys"),
             text(", you can create DOM elements and convert them into a "),
@@ -18,7 +18,7 @@ crate::doc_page!(
             text(" value using "),
             code("VRef"),
             text(":"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Element, Node};
@@ -47,8 +47,8 @@ fn MyComponent() -> Html {
 }
 "#
         ),
-        h2_id("dynamic-tag-names", vec![text("Dynamic tag names")]),
-        p(vec![
+        h2_id!["dynamic-tag-names", text("Dynamic tag names")],
+        p![
             text(
                 "When building a higher-order component you might find yourself in a situation \
                  where the element's tag name is not static. For example, you might have a "
@@ -66,7 +66,7 @@ fn MyComponent() -> Html {
             text(" where "),
             code("name"),
             text(" can be any expression that returns a string."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -78,11 +78,11 @@ html! {
     <@{format!("h{}", level)} class="title">{ text }</@>
 };"#
         ),
-        h2(vec![text("Boolean Attributes")]),
-        p(vec![text(
+        h2![text("Boolean Attributes")],
+        p![text(
             "Some content attributes (e.g checked, hidden, required) are called boolean \
              attributes. In Yew, boolean attributes need to be set to a bool value:"
-        ),]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -93,16 +93,16 @@ html! {
     </div>
 };"#
         ),
-        p(vec![
+        p![
             text("This will result in "),
-            bold(vec![text("HTML")]),
+            bold![text("HTML")],
             text(" that is functionally equivalent to this:"),
-        ]),
+        ],
         code_block("html", r#"<div hidden>This div is hidden.</div>"#),
-        p(vec![text(
+        p![text(
             "Setting a boolean attribute to false is equivalent to not using the attribute at \
              all; values from boolean expressions can be used:"
-        ),]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -115,18 +115,18 @@ html! {
     </div>
 };"#
         ),
-        p(vec![
+        p![
             text("This will result in the following "),
-            bold(vec![text("HTML")]),
+            bold![text("HTML")],
             text(":"),
-        ]),
+        ],
         code_block("html", r#"<div>This div is NOT hidden.</div>"#),
-        h2(vec![text("String-like attributes")]),
-        p(vec![text(
+        h2![text("String-like attributes")],
+        p![text(
             "But apart from a select few boolean attributes, you will probably be dealing with a \
              lot of string-like HTML attributes and Yew has a few options to pass string-like \
              values to components."
-        ),]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, virtual_dom::AttrValue};
@@ -143,21 +143,21 @@ html! {
     </div>
 };"#
         ),
-        p(vec![
+        p![
             text("They are all valid "),
-            bold(vec![text("but")]),
+            bold![text("but")],
             text(" we encourage you to favor Yew's custom "),
             code("AttrValue"),
             text(
                 ", especially if you need to clone or pass them as properties to another \
                  component."
             ),
-        ]),
-        h2(vec![text("Optional attributes for HTML elements")]),
-        p(vec![text(
+        ],
+        h2![text("Optional attributes for HTML elements")],
+        p![text(
             "Most HTML attributes can use optional values (Some(x) or None). This allows us to \
              omit the attribute if the attribute is marked as optional."
-        ),]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -168,15 +168,15 @@ html! {
     <div id={maybe_id}></div>
 };"#
         ),
-        p(vec![
+        p![
             text("If the attribute is set to "),
             code("None"),
             text(", the attribute will not be set in the DOM."),
-        ]),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("Relevant examples")],
+        ul![li![link![
             "https://github.com/yewstack/yew/tree/master/examples/inner_html",
-            vec![text("Inner HTML")]
-        )]),]),
+            text("Inner HTML"),
+        ]]],
     ])
 );

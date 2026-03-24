@@ -2,7 +2,7 @@ crate::doc_page!(
     "Refs",
     "/ja/docs/advanced-topics/struct-components/refs",
     Content::new(vec![
-        p(vec![
+        p![
             text("The "),
             code("ref"),
             text(" keyword can be used inside of any HTML element or component to get the DOM "),
@@ -13,8 +13,8 @@ crate::doc_page!(
             ),
             code("view"),
             text(" lifecycle method."),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "This is useful for getting ahold of canvas elements, or scrolling to different \
                  sections of a page. For example, using a "
@@ -28,8 +28,8 @@ crate::doc_page!(
             ),
             code("view"),
             text("."),
-        ]),
-        p(vec![text("The syntax is:")]),
+        ],
+        p![text("The syntax is:")],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -67,10 +67,10 @@ impl Component for Comp {
     }
 }"#
         ),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![li(vec![link(
+        h2![text("Relevant examples")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            vec![text("Node Refs")]
-        ),]),]),
+            text("Node Refs")
+        ),],],
     ])
 );

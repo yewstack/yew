@@ -2,24 +2,24 @@ crate::doc_page!(
     "佔位標籤 (Suspense)",
     "/zh-Hant/docs/concepts/suspense",
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "佔位標籤 (Suspense) 是一種在等待任務完成前暫停元件渲染的方式，同時顯示一個回退（佔位符）UI。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "它可以用於從伺服器取得數據，等待代理完成任務，或執行其他後台非同步任務。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "在佔位標籤出現之前，資料擷取通常發生在元件渲染之後（渲染時取得）或之前（取得後渲染）。",
-        )]),
-        h3(vec![text("邊渲染，邊下載")]),
-        p(vec![text(
+        )],
+        h3![text("邊渲染，邊下載")],
+        p![text(
             "佔位標籤 (Suspense) \
              提供了一種新的方法，允許元件在渲染過程中啟動資料請求。當元件啟動資料請求時，渲染過程將被暫停，並顯示一個回退 \
              UI，直到請求完成。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "建議使用鉤子 (Hook) 來使用佔位標籤。",
-        )]),
+        )],
         code_block_ignore(
             "rust",
             r#"use yew::prelude::*;
@@ -42,7 +42,7 @@ fn app() -> Html {
     }
 }"#,
         ),
-        p(vec![
+        p![
             text("在上面的範例中，"),
             code("use_user"),
             text(" 鉤子將在載入使用者資訊時暫停元件渲染，並在載入 "),
@@ -50,8 +50,8 @@ fn app() -> Html {
             text(" 之前顯示 "),
             code("Loading..."),
             text(" 佔位符。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("要定義一個暫停元件渲染的鉤子，它需要傳回一個 "),
             code("SuspensionResult<T>"),
             text("。當元件需要暫停時，鉤子應該傳回一個 "),
@@ -61,7 +61,7 @@ fn app() -> Html {
             text(" 解包它，這樣它將被轉換為 "),
             code("Html"),
             text("。"),
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r#"use yew::prelude::*;
@@ -87,39 +87,39 @@ fn use_user() -> SuspensionResult<User> {
     }
 }"#,
         ),
-        h4(vec![text("關於實作暫停鉤子 (Hook) 的注意事項")]),
-        p(vec![
-            link(
+        h4![text("關於實作暫停鉤子 (Hook) 的注意事項")],
+        p![
+            link!(
                 "https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new",
-                vec![text("Suspension::new")],
+                text("Suspension::new"),
             ),
             text(
                 " 傳回 2 個值：暫停上下文本身和一個暫停句柄。後者負責在何時重新渲染暫停的元件，它提供了 2 種可互換的方法：",
             ),
-        ]),
-        ol(vec![
-            li(vec![
+        ],
+        ol![
+            li![
                 text("呼叫其 "),
-                link(
+                link!(
                     "https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume",
-                    vec![text("resume")],
+                    text("resume"),
                 ),
                 text(" 方法。"),
-            ]),
-            li(vec![text("丟棄句柄。")]),
-        ]),
-        admonition(
+            ],
+            li![text("丟棄句柄。")],
+        ],
+        admonition!(
             AdmonitionType::Danger,
             None,
-            vec![p(vec![
+            p![
                 text("暫停句柄必須儲存直到更新元件的時候，也就是使用新接收的資料；否則，暫停的元件將進入無限重新渲染循環，從而影響效能。\n在上面的範例中，暫停句柄會透過移至閉包中並傳遞給 "),
                 code("on_load_user_complete"),
                 text(" 來儲存。\n當虛擬使用者載入時，將呼叫閉包，從而呼叫 "),
                 code("handle.resume()"),
                 text(" 並重新渲染與暫停上下文相關的元件。"),
-            ])],
+            ],
         ),
-        h1(vec![text("完整範例")]),
+        h1![text("完整範例")],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -172,24 +172,24 @@ fn app() -> Html {
     }
 }"#,
         ),
-        h3(vec![text("在結構體組件中使用佔位標籤")]),
-        p(vec![
+        h3![text("在結構體組件中使用佔位標籤")],
+        p![
             text("直接暫停結構體組件是不可能的。然而，您可以使用函數元件作為"),
-            link("", vec![text("高階元件")]),
+            link!("", text("高階元件")),
             text("來實現基於佔位標籤的資料取得。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Yew 倉庫中的"),
-            link(
+            link!(
                 "https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs",
-                vec![text("佔位標籤範例")],
+                text("佔位標籤範例"),
             ),
             text("示範如何使用這個元件。"),
-        ]),
-        h2(vec![text("相關範例")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("相關範例")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/suspense",
-            vec![text("佔位標籤")],
-        )])]),
+            text("佔位標籤"),
+        )]],
     ])
 );

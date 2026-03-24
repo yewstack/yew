@@ -2,12 +2,12 @@ crate::doc_page!(
     "子元素 (Children)",
     "/zh-Hant/docs/concepts/function-components/children",
     Content::new(vec![
-        p(vec![
+        p![
             code("Children"),
             text(" 是一種特殊的屬性類型，可讓您接收嵌套的 "),
             code("Html"),
             text("，就像 html 子元素一樣提供。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties};

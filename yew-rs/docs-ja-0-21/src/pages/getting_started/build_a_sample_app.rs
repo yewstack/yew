@@ -2,27 +2,27 @@ crate::doc_page!(
     "Build a sample app",
     "/ja/docs/getting-started/build-a-sample-app",
     Content::new(vec![
-        p(vec![
+        p![
             text("はじめに、Rustの新規ライブラリを作りましょう（"),
-            bold(vec![text("重要:")]),
+            bold![text("重要:")],
             text(" "),
             code("--lib"),
             text("フラグを渡すことで"),
-            italic(vec![text("バイナリ")]),
+            italic![text("バイナリ")],
             text("ではなく"),
-            italic(vec![text("ライブラリ")]),
+            italic![text("ライブラリ")],
             text("を作ってください）"),
-        ]),
+        ],
         code_block("bash", "cargo new --lib yew-app && cd yew-app"),
-        p(vec![
+        p![
             text("依存ライブラリに"),
             code("yew"),
             text("と"),
             code("wasm-bindgen"),
             text("を追加してください（最新バージョンについては"),
-            link("https://docs.rs/yew", vec![text("こちら")]),
+            link!("https://docs.rs/yew", text("こちら")),
             text("を参照してください）"),
-        ]),
+        ],
         code_block_title(
             "toml",
             "Cargo.toml",
@@ -39,11 +39,11 @@ crate-type = ["cdylib", "rlib"]
 yew = "0.17"
 wasm-bindgen = "0.2""#
         ),
-        p(vec![
+        p![
             text("以下のテンプレートを "),
             code("src/lib.rs"),
             text("ファイルにコピーしてください:"),
-        ]),
+        ],
         code_block_title(
             "rust",
             "src/lib.rs",
@@ -98,14 +98,14 @@ pub fn run_app() {
     App::<Model>::new().mount_to_body();
 }"#
         ),
-        p(vec![
+        p![
             text("このテンプレートはルートに"),
             code("Component"),
             text("をセットアップし、"),
             code("Model"),
             text("と呼ばれるクリックしたら更新するボタンを作ります。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("main()"),
             text("の中にある"),
             code("App::<Model>::new().mount_to_body()"),
@@ -117,14 +117,14 @@ pub fn run_app() {
             ),
             code("App::<Model>::new().mount_to_body_with_props(..)"),
             text("を使うことで実現できます。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("最後に、アプリの中の"),
             code("static"),
             text("という名前のフォルダに"),
             code("index.html"),
             text("ファイルを追加してください。"),
-        ]),
+        ],
         code_block("bash", "mkdir static"),
         code_block_title(
             "html",
@@ -142,33 +142,33 @@ pub fn run_app() {
     <body></body>
 </html>"#
         ),
-        h2(vec![text("アプリを動かす!")]),
-        p(vec![
-            link(
+        h2![text("アプリを動かす!")],
+        p![
+            link!(
                 "https://drager.github.io/wasm-pack/book/",
-                vec![code("wasm-pack")]
+                code("wasm-pack")
             ),
             text("を使うのがアプリを動かすのに推奨される方法です。まだ"),
             code("wasm-pack"),
             text("をインストールしていない場合、"),
             code("cargo install wasm-pack"),
             text("でインストールして開発サーバーを動かしてみましょう:"),
-        ]),
+        ],
         code_block(
             "bash",
             "wasm-pack build --target web --out-name wasm --out-dir ./static"
         ),
-        p(vec![
+        p![
             code("wasm-pack"),
             text("はコンパイルされたWebAssemblyとJavaScriptラッパーをまとめたものを"),
             code("./static"),
             text("ディレクトリに作り、アプリのWebAssemblyバイナリを読み込んで動かします。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("そして、"),
             code("./static"),
             text("以下で好きなサーバーをファイルをサーブしてみましょう。例えば:"),
-        ]),
+        ],
         code_block(
             "bash",
             "cargo +nightly install miniserve\nminiserve ./static --index index.html"

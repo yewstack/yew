@@ -2,104 +2,104 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/more/roadmap",
     Content::new(vec![
-        h1(vec![text("路线图")]),
-        h2(vec![code("v1.0.0")]),
-        h3(vec![text("规划中的功能")]),
-        ul(vec![
-            li(vec![
+        h1![text("路线图")],
+        h2![code("v1.0.0")],
+        h3![text("规划中的功能")],
+        ul![
+            li![
                 text("标记 key 的列表项："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/479",
-                    vec![text("https://github.com/yewstack/yew/issues/479")]
+                    text("https://github.com/yewstack/yew/issues/479")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("路由："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew_router",
-                    vec![text("https://github.com/yewstack/yew_router")]
+                    text("https://github.com/yewstack/yew_router")
                 )
-            ])
-        ]),
-        h3(vec![text("生产环境准备")]),
-        ul(vec![
-            li(vec![text("浏览器兼容性")]),
-            li(vec![text("提高 Yew 框架的测试覆盖率")]),
-            li(vec![
+            ]
+        ],
+        h3![text("生产环境准备")],
+        ul![
+            li![text("浏览器兼容性")],
+            li![text("提高 Yew 框架的测试覆盖率")],
+            li![
                 text("增加性能基准测试："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/5",
-                    vec![text("https://github.com/yewstack/yew/issues/5")]
+                    text("https://github.com/yewstack/yew/issues/5")
                 )
-            ])
-        ]),
-        h3(vec![text("指南")]),
-        ul(vec![
-            li(vec![
+            ]
+        ],
+        h3![text("指南")],
+        ul![
+            li![
                 text("最佳实践："),
-                link(
+                link!(
                     "https://yew.rs/optimizations",
-                    vec![text("https://yew.rs/optimizations")]
+                    text("https://yew.rs/optimizations")
                 )
-            ]),
-            li(vec![text("端到端教程")]),
-            li(vec![text("Futures / 并发")]),
-            li(vec![text("CSS / 样式")]),
-            li(vec![text("测试")]),
-            li(vec![text("状态管理")])
-        ]),
-        h2(vec![text("未来")]),
-        h3(vec![text("潜在功能")]),
-        ul(vec![
-            li(vec![
+            ],
+            li![text("端到端教程")],
+            li![text("Futures / 并发")],
+            li![text("CSS / 样式")],
+            li![text("测试")],
+            li![text("状态管理")]
+        ],
+        h2![text("未来")],
+        h3![text("潜在功能")],
+        ul![
+            li![
                 text("服务端渲染："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/41",
-                    vec![text("https://github.com/yewstack/yew/issues/41")]
+                    text("https://github.com/yewstack/yew/issues/41")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("组件库："),
-                link(
+                link!(
                     "https://github.com/yewstrap/yewstrap",
-                    vec![text("https://github.com/yewstrap/yewstrap")]
+                    text("https://github.com/yewstrap/yewstrap")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("代码分割："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/599",
-                    vec![text("https://github.com/yewstack/yew/issues/599")]
+                    text("https://github.com/yewstack/yew/issues/599")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("允许不同的虚拟 DOM 后端："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/482",
-                    vec![text("https://github.com/yewstack/yew/issues/482")]
+                    text("https://github.com/yewstack/yew/issues/482")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("反思 Services："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/364",
-                    vec![text("https://github.com/yewstack/yew/issues/364")]
+                    text("https://github.com/yewstack/yew/issues/364")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("成熟的工具包："),
-                link(
+                link!(
                     "https://github.com/yewstack/yewtil",
-                    vec![text("https://github.com/yewstack/yewtil")]
+                    text("https://github.com/yewstack/yewtil")
                 )
-            ]),
-            li(vec![
+            ],
+            li![
                 text("HTML 模板备选方案："),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/438",
-                    vec![text("https://github.com/yewstack/yew/issues/438")]
+                    text("https://github.com/yewstack/yew/issues/438")
                 )
-            ])
-        ])
+            ]
+        ]
     ])
 );

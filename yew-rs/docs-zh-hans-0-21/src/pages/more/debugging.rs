@@ -2,13 +2,13 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/more/debugging",
     Content::new(vec![
-        h1(vec![text("Debugging")]),
-        h2(vec![text("Panics")]),
-        p(vec![
+        h1![text("Debugging")],
+        h2![text("Panics")],
+        p![
             text("Please use the "),
-            link(
+            link!(
                 "https://github.com/rustwasm/console_error_panic_hook",
-                vec![code("console_error_panic")]
+                code("console_error_panic")
             ),
             text(
                 " crate for nicer stacktraces with Rust symbols. Note, that it is not compatible \
@@ -16,22 +16,22 @@ crate::doc_page!(
             ),
             code("cargo-web"),
             text(".")
-        ]),
-        h2(vec![text("Console Logging")]),
-        p(vec![
+        ],
+        h2![text("Console Logging")],
+        p![
             text("In general, Wasm web apps are able to interact with Browser APIs, and the "),
             code("console.log"),
             text(" api is no exception. There are a few options available:")
-        ]),
-        h3(vec![link(
+        ],
+        h3![link!(
             "https://crates.io/crates/wasm-logger",
-            vec![code("wasm-logger")]
-        )]),
-        p(vec![
+            code("wasm-logger")
+        )],
+        p![
             text("This crate integrates with the familiar Rust "),
             code("log"),
             text(" crate:")
-        ]),
+        ],
         code_block(
             "rust",
             r#"// setup
@@ -42,70 +42,70 @@ fn main() {
 // usage
 log::info!("Update: {:?}", msg);"#
         ),
-        h3(vec![link(
+        h3![link!(
             "https://docs.rs/yew/0.13.2/yew/services/console/struct.ConsoleService.html",
-            vec![code("ConsoleService")]
-        )]),
-        p(vec![
+            code("ConsoleService")
+        )],
+        p![
             text("This service is included within yew and is available when the "),
             code("\"services\""),
             text(" feature is enabled:")
-        ]),
+        ],
         code_block(
             "rust",
             r#"// usage
 ConsoleService::info(format!("Update: {:?}", msg).as_ref());"#
         ),
-        h2(vec![text("Source Maps")]),
-        p(vec![text(
+        h2![text("Source Maps")],
+        p![text(
             "There is currently no first-class support for source maps for Rust / Wasm web apps. \
              This, of course, is subject to change. If this is no longer true or if progress is \
              made, please suggest a change!"
-        )]),
-        h3(vec![text("Latest Info")]),
-        p(vec![
+        )],
+        h3![text("Latest Info")],
+        p![
             text("[Dec 2019] "),
-            link(
+            link!(
                 "https://developers.google.com/web/updates/2019/12/webassembly#the_future",
-                vec![text("Chrome DevTools update")]
+                text("Chrome DevTools update")
             )
-        ]),
-        blockquote(vec![p(vec![text(
+        ],
+        blockquote![p![text(
             "There is still quite a bit of work to do though. For example, on the tooling side, \
              Emscripten (Binaryen) and wasm-pack (wasm-bindgen) don't support updating DWARF \
              information on transformations they perform yet."
-        )])]),
-        p(vec![
+        )]],
+        p![
             text("[2020] "),
-            link(
+            link!(
                 "https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger",
-                vec![text("Rust Wasm debugging guide")]
+                text("Rust Wasm debugging guide")
             )
-        ]),
-        blockquote(vec![p(vec![
+        ],
+        blockquote![p![
             text(
                 "Unfortunately, the debugging story for WebAssembly is still immature. On most \
                  Unix systems, "
             ),
-            link("http://dwarfstd.org/", vec![text("DWARF")]),
+            link!("http://dwarfstd.org/", text("DWARF")),
             text(
                 " is used to encode the information that a debugger needs to provide source-level \
                  inspection of a running program. There is an alternative format that encodes \
                  similar information on Windows. Currently, there is no equivalent for \
                  WebAssembly."
             )
-        ])]),
-        p(vec![
+        ]],
+        p![
             text("[2019] "),
-            link(
+            link!(
                 "https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging",
-                vec![text("Rust Wasm roadmap")]
+                text("Rust Wasm roadmap")
             )
-        ]),
-        blockquote(vec![p(vec![text(
+        ],
+        blockquote![p![text(
             "Debugging is tricky because much of the story is out of this working group's hands, \
              and depends on both the WebAssembly standardization bodies and the folks \
              implementing browser developer tools instead."
-        )])])
+        )]]
     ])
 );

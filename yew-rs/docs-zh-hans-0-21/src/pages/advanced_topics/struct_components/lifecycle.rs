@@ -2,26 +2,26 @@ crate::doc_page!(
     "生命周期",
     "/zh-Hans/docs/advanced-topics/struct-components/lifecycle",
     Content::new(vec![
-        p(vec![
+        p![
             code("Component"),
             text(" trait 有许多需要实现的方法；Yew 会在组件生命周期的不同阶段调用这些方法。")
-        ]),
-        h2(vec![text("生命周期")]),
+        ],
+        h2![text("生命周期")],
         admonition(
             AdmonitionType::Important,
             Some("contribute"),
-            vec![p(vec![
+            vec![p![
                 code("Contribute to our docs:"),
                 text(" "),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/1915",
-                    vec![text("Add a diagram of the component lifecycle")]
+                    text("Add a diagram of the component lifecycle")
                 )
-            ])]
+            ]]
         ),
-        h2(vec![text("生命周期方法")]),
-        h3(vec![text("Create")]),
-        p(vec![
+        h2![text("生命周期方法")],
+        h3![text("Create")],
+        p![
             text("当一个组件被创建时，它会从其父组件接收属性（properties）并存储在传递给 "),
             code("create"),
             text(" 方法的 "),
@@ -30,7 +30,7 @@ crate::doc_page!(
                 " 中。 属性（properties）可用于初始化组件的状态，\"link\"\
                  可用于注册回调或向组件发送消息。"
             )
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -57,8 +57,8 @@ impl Component for MyComponent {
     }
 }"#
         ),
-        h3(vec![text("View")]),
-        p(vec![
+        h3![text("View")],
+        p![
             code("view"),
             text(
                 " 方法允许你描述组件应该如何渲染到 DOM。使用 Rust 函数编写类似 HTML \
@@ -75,7 +75,7 @@ impl Component for MyComponent {
             text("，而不是写 "),
             code("onclick={{onclick}}"),
             text("。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -109,13 +109,13 @@ impl Component for MyComponent {
     // highlight-end
 }"#
         ),
-        p(vec![
+        p![
             text("有关用法的详细信息，请查看 "),
-            link("concepts/html/introduction.mdx", vec![text("html! 宏指南")]),
+            link!("concepts/html/introduction.mdx", text("html! 宏指南")),
             text("。")
-        ]),
-        h3(vec![text("Rendered")]),
-        p(vec![
+        ],
+        h3![text("Rendered")],
+        p![
             code("rendered"),
             text(" 组件生命周期方法在 "),
             code("view"),
@@ -126,7 +126,7 @@ impl Component for MyComponent {
             ),
             code("first_render"),
             text(" 的参数，可用于确定此函数是在第一次渲染时被调用，还是在后续渲染时被调用。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::HtmlInputElement;
@@ -168,20 +168,20 @@ impl Component for MyComponent {
         admonition(
             AdmonitionType::Tip,
             Some("note"),
-            vec![p(vec![text(
+            vec![p![text(
                 "注意，此生命周期方法不需要实现，默认情况下不会执行任何操作。"
-            )])]
+            )]]
         ),
-        h3(vec![text("Update")]),
-        p(vec![
+        h3![text("Update")],
+        p![
             text("与组件的通信主要通过消息进行，这些消息由 "),
             code("update"),
             text(
                 " 生命周期方法处理。 这允许组件根据消息的内容更新自身，并决定是否需要重新渲染。 \
                  消息可以由事件监听器、子组件、Agents、Services 或 Futures 发送。"
             )
-        ]),
-        p(vec![text("以下是 "), code("update"), text(" 实现的示例：")]),
+        ],
+        p![text("以下是 "), code("update"), text(" 实现的示例：")],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html};
@@ -230,28 +230,28 @@ impl Component for MyComponent {
 
 }"#
         ),
-        h3(vec![text("Changed")]),
-        p(vec![text(
+        h3![text("Changed")],
+        p![text(
             "组件可能会被其父组件重新渲染。当这种情况发生时，\
              它们可能会收到新的属性并需要重新渲染。 \
              这种设计通过简单地改变属性值来促进父组件到子组件的通信。 \
              有一个默认实现会在属性发生变化时重新渲染组件。"
-        )]),
-        h3(vec![text("Destroy")]),
-        p(vec![
+        )],
+        h3![text("Destroy")],
+        p![
             text("组件从 DOM 卸载后，Yew 会调用 "),
             code("destroy"),
             text(
                 " 生命周期方法； 如果你需要在组件销毁之前清理组件先前操作的内容，这是必要的。 \
                  此方法是可选的，默认情况下不执行任何操作。"
             )
-        ]),
-        h3(vec![text("无限循环")]),
-        p(vec![text(
+        ],
+        h3![text("无限循环")],
+        p![text(
             "使用 Yew 的生命周期方法可能会出现无限循环，但只有在尝试在每次渲染后更新同一组件， \
              并且该更新也请求组件重新渲染时才会发生。"
-        )]),
-        p(vec![text("一个简单的示例如下：")]),
+        )],
+        p![text("一个简单的示例如下：")],
         code_block(
             "rust",
             r#"use yew::{Context, Component, Html};
@@ -282,48 +282,48 @@ impl Component for Comp {
     }
 }"#
         ),
-        p(vec![text("让我们来看看这里发生了什么：")]),
-        ol(vec![
-            li(vec![text("使用 "), code("create"), text(" 函数创建组件。")]),
-            li(vec![
+        p![text("让我们来看看这里发生了什么：")],
+        ol![
+            li![text("使用 "), code("create"), text(" 函数创建组件。")],
+            li![
                 text("调用 "),
                 code("view"),
                 text(" 方法，以便 Yew 知道要渲染什么到浏览器 DOM。")
-            ]),
-            li(vec![
+            ],
+            li![
                 text("调用 "),
                 code("rendered"),
                 text(" 方法，它使用 "),
                 code("Context"),
                 text(" 链接安排了一个更新消息。")
-            ]),
-            li(vec![text("Yew 完成后渲染阶段。")]),
-            li(vec![text(
+            ],
+            li![text("Yew 完成后渲染阶段。")],
+            li![text(
                 "Yew 检查预定的事件，发现更新消息队列不为空，因此处理这些消息。"
-            )]),
-            li(vec![
+            )],
+            li![
                 text("调用 "),
                 code("update"),
                 text(" 方法，它返回 "),
                 code("true"),
                 text(" 表示有内容已更改，组件需要重新渲染。")
-            ]),
-            li(vec![text("跳回步骤 2。")])
-        ]),
-        p(vec![
+            ],
+            li![text("跳回步骤 2。")]
+        ],
+        p![
             text("你仍然可以在 "),
             code("rendered"),
             text(" 方法中安排更新，这通常很有用， 但在这样做时要考虑你的组件将如何终止这个循环。")
-        ]),
-        h2(vec![text("关联类型")]),
-        p(vec![
+        ],
+        h2![text("关联类型")],
+        p![
             code("Component"),
             text(" trait 有两个关联类型："),
             code("Message"),
             text(" 和 "),
             code("Properties"),
             text("。")
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r#"impl Component for MyComponent {
@@ -333,7 +333,7 @@ impl Component for Comp {
     // ...
 }"#
         ),
-        p(vec![
+        p![
             code("Message"),
             text(
                 " 类型用于在事件发生后向组件发送消息； \
@@ -342,8 +342,8 @@ impl Component for Comp {
             ),
             code("Message"),
             text(" 类型通常是一个枚举， 其中每个变体都是要处理的事件。")
-        ]),
-        p(vec![
+        ],
+        p![
             text("在组织代码库时，明智的做法是将 "),
             code("Message"),
             text(
@@ -357,7 +357,7 @@ impl Component for Comp {
             text("，那么你可能会将类型命名为 "),
             code("HomepageMsg"),
             text("。")
-        ]),
+        ],
         code_block(
             "rust",
             r#"enum Msg {
@@ -365,7 +365,7 @@ impl Component for Comp {
     FormInput(String)
 }"#
         ),
-        p(vec![
+        p![
             code("Properties"),
             text(" 表示从父组件传递给组件的信息。此类型必须实现 "),
             code("Properties"),
@@ -386,16 +386,16 @@ impl Component for Comp {
             text("。如果你希望为根组件指定属性，请使用 "),
             code("App::mount_with_props"),
             text(" 方法。")
-        ]),
+        ],
         admonition(
             AdmonitionType::Info,
             None,
-            vec![p(vec![link("", vec![text("了解更多关于属性的信息")])])]
+            vec![p![link!("", text("了解更多关于属性的信息"))]]
         ),
-        h2(vec![text("生命周期上下文")]),
-        p(vec![text(
+        h2![text("生命周期上下文")],
+        p![text(
             "所有组件生命周期方法都接受一个上下文对象。此对象提供了对组件作用域的引用， \
              允许向组件发送消息以及访问传递给组件的 props。"
-        )])
+        )]
     ])
 );

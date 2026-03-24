@@ -2,12 +2,12 @@ crate::doc_page!(
     "Components",
     "/docs/concepts/html/components",
     Content::new(vec![
-        h2(vec![text("Basic")]),
-        p(vec![
+        h2![text("Basic")],
+        p![
             text("Components can be used in the "),
             code("html!"),
             text(" macro:"),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 #[function_component]
@@ -51,13 +51,13 @@ html!{
         <MyComponentWithProps user_last_name="Elm" ..props />
     </>
 };"#),
-        h2(vec![text("Nested")]),
-        p(vec![
+        h2![text("Nested")],
+        p![
             text("Components can accept child components/elements if they have a "),
             code("children"),
             text(" field in their "),
             code("Properties"),
-        ]),
+        ],
         code_block_title("rust", "parent.rs", r#"use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
@@ -81,24 +81,24 @@ html! {
         <div>{ "Hello" }</div>
     </Container>
 };"#),
-        p(vec![
+        p![
             text("The "),
             code("html!"),
             text(" macro allows you to pass a base expression with the "),
             code("..props"),
             text(" syntax instead of specifying each property individually, \
                   similar to Rust's "),
-            link(
+            link![
                 "https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax",
-                vec![text("Functional Update Syntax")]
-            ),
+                text("Functional Update Syntax"),
+            ],
             text(". This base expression must occur after any individual props are passed. \
                   When passing a base props expression with a "),
             code("children"),
             text(" field, the children passed in the "),
             code("html!"),
             text(" macro overwrite the ones already present in the props."),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 #[derive(PartialEq, Properties)]
@@ -127,10 +127,10 @@ html! {
         <span>{ "I am a child, as you can see" }</span>
     </Container>
 };"#),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![
-            li(vec![link("https://github.com/yewstack/yew/tree/master/examples/function_todomvc", vec![text("Function Todo MVC")])]),
-            li(vec![link("https://github.com/yewstack/yew/tree/master/examples/function_router", vec![text("Function Router")])]),
-        ]),
+        h2![text("Relevant examples")],
+        ul![
+            li![link!["https://github.com/yewstack/yew/tree/master/examples/function_todomvc", text("Function Todo MVC")]],
+            li![link!["https://github.com/yewstack/yew/tree/master/examples/function_router", text("Function Router")]],
+        ],
     ])
 );

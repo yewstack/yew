@@ -2,10 +2,10 @@ crate::doc_page!(
     "泛型元件",
     "/zh-Hant/docs/concepts/function-components/generics",
     Content::new(vec![
-        p(vec![
+        p![
             code("#[component]"),
             text(" 屬性也適用於用於建立泛型元件的泛型函數。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use std::fmt::Display;

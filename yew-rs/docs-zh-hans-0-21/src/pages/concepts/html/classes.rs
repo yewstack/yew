@@ -2,21 +2,21 @@ crate::doc_page!(
     "Classes",
     "/zh-Hans/docs/concepts/html/classes",
     Content::new(vec![
-        h2(vec![text("Classes")]),
-        p(vec![
+        h2![text("Classes")],
+        p![
             text("The struct "),
             code("Classes"),
             text(" can be used to deal with HTML classes.")
-        ]),
-        p(vec![
+        ],
+        p![
             text("When pushing a string to the set, "),
             code("Classes"),
             text(
                 " ensures that there is one element for every class even if a single string might \
                  contain multiple classes."
             )
-        ]),
-        p(vec![
+        ],
+        p![
             code("Classes"),
             text(" can also be merged by using "),
             code("Extend"),
@@ -31,8 +31,8 @@ crate::doc_page!(
             text(" can be pushed onto an existing "),
             code("Classes"),
             text(".")
-        ]),
-        p(vec![
+        ],
+        p![
             text("The macro "),
             code("classes!"),
             text(" is a convenient macro that creates one single "),
@@ -43,87 +43,85 @@ crate::doc_page!(
             ),
             code("Into<Classes>"),
             text(".")
-        ]),
-        tabs(
+        ],
+        tabs!(
             "Literal",
-            vec![
-                tab(
-                    "Literal",
-                    "Literal",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            tab!(
+                "Literal",
+                "Literal",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
     <div class={classes!("container")}></div>
 };"#
-                    )]
-                ),
-                tab(
-                    "Multiple",
-                    "Multiple",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+                )
+            ),
+            tab!(
+                "Multiple",
+                "Multiple",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!("class-1", "class-2")}></div>
 };"#
-                    )]
-                ),
-                tab(
-                    "String",
-                    "String",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+                )
+            ),
+            tab!(
+                "String",
+                "String",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 let my_classes = String::from("class-1 class-2");
 
 html! {
   <div class={classes!(my_classes)}></div>
 };"#
-                    )]
-                ),
-                tab(
-                    "Optional",
-                    "Optional",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+                )
+            ),
+            tab!(
+                "Optional",
+                "Optional",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!(Some("class"))} />
 };"#
-                    )]
-                ),
-                tab(
-                    "Vector",
-                    "Vector",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+                )
+            ),
+            tab!(
+                "Vector",
+                "Vector",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!(vec!["class-1", "class-2"])}></div>
 };"#
-                    )]
-                ),
-                tab(
-                    "Array",
-                    "Array",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+                )
+            ),
+            tab!(
+                "Array",
+                "Array",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!(["class-1", "class-2"])}></div>
 };"#
-                    )]
-                ),
-            ]
+                )
+            )
         ),
-        h2(vec![text("Components that accept classes")]),
+        h2![text("Components that accept classes")],
         code_block(
             "rust",
             r#"use yew::prelude::*;

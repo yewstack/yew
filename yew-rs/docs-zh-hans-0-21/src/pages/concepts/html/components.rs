@@ -2,15 +2,15 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/components",
     Content::new(vec![
-        h1(vec![text("组件")]),
-        h2(vec![text("基础")]),
-        p(vec![
+        h1![text("组件")],
+        h2![text("基础")],
+        p![
             text("任何实现了 "),
             code("Component"),
             text(" trait 的类型都可被用在 "),
             code("html!"),
             text(" 宏中：")
-        ]),
+        ],
         code_block(
             "rust",
             r#"html!{
@@ -26,14 +26,14 @@ crate::doc_page!(
     </>
 }"#
         ),
-        h2(vec![text("嵌套")]),
-        p(vec![
+        h2![text("嵌套")],
+        p![
             text("如果组件的 "),
             code("Properties"),
             text(" 中有 "),
             code("children"),
             text(" 字段，则可以被传递子组件。")
-        ]),
+        ],
         code_block_title(
             "rust",
             "parent.rs",
@@ -68,8 +68,8 @@ impl Component for Container {
     }
 }"#
         ),
-        h2(vec![text("拥有 Props 的嵌套子组件")]),
-        p(vec![
+        h2![text("拥有 Props 的嵌套子组件")],
+        p![
             text(
                 "如果包含组件标注了 children \
                  的类型，则可以访问和更改嵌套组件的属性。在下面的示例中，"
@@ -82,7 +82,7 @@ impl Component for Container {
             text(" 的源码。有关更高级的示例，请在 yew 主仓库中查看 "),
             code("nested-list"),
             text(" 示例代码。")
-        ]),
+        ],
         code_block_title(
             "rust",
             "parent.rs",

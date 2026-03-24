@@ -2,15 +2,15 @@ crate::doc_page!(
     "回调（Callbacks）",
     "/zh-Hans/docs/advanced-topics/struct-components/callbacks",
     Content::new(vec![
-        h2(vec![text("Callbacks")]),
-        p(vec![
+        h2![text("Callbacks")],
+        p![
             text("Callbacks 用于与 Yew 中的 services，agents 和父组件进行通信。它们仅仅是个 "),
             code("Fn"),
             text("，并由 "),
             code("Rc"),
             text(" 包裹以允许被克隆。")
-        ]),
-        p(vec![
+        ],
+        p![
             text("它们有一个 "),
             code("emit"),
             text(" 函数，该函数将它的 "),
@@ -25,10 +25,10 @@ crate::doc_page!(
             text("，以将消息发送回父组件。在 "),
             code("html!"),
             text(" 宏内被提供作为 props 的闭包或函数会自动转换为 Callbacks。")
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "A simple use of a callback might look something like this:"
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -58,7 +58,7 @@ impl Component for Comp {
     }
 }"#
         ),
-        p(vec![
+        p![
             text("The function passed to "),
             code("callback"),
             text(" must always take a parameter. For example, the "),
@@ -69,12 +69,12 @@ impl Component for Comp {
                 ". The handler can then decide what kind of message should be sent to the \
                  component. This message is scheduled for the next update loop unconditionally."
             )
-        ]),
-        p(vec![
+        ],
+        p![
             text("If you need a callback that might not need to cause an update, use "),
             code("batch_callback"),
             text(".")
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{events::KeyboardEvent, html, Component, Context, Html};
@@ -111,16 +111,16 @@ impl Component for Comp {
     }
 }"#
         ),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![
-            li(vec![link(
+        h2![text("Relevant examples")],
+        ul![
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/counter",
-                vec![text("Counter")]
-            )]),
-            li(vec![link(
+                text("Counter")
+            )],
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/timer",
-                vec![text("Timer")]
-            )])
-        ])
+                text("Timer")
+            )]
+        ]
     ])
 );

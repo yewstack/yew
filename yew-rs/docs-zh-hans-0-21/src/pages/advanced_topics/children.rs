@@ -2,48 +2,46 @@ crate::doc_page!(
     "Children",
     "/zh-Hans/docs/advanced-topics/children",
     Content::new(vec![
-        admonition(
+        admonition![
             AdmonitionType::Warning,
             None,
-            vec![
-                p(vec![
-                    text("Inspecting and manipulating "),
-                    code("Children"),
-                    text(
-                        " can often result in surprising and hard-to-explain behaviours in your \
-                         application.
+            p![
+                text("Inspecting and manipulating "),
+                code("Children"),
+                text(
+                    " can often result in surprising and hard-to-explain behaviours in your \
+                     application.
 This can lead to edge cases and often does not yield expected result.
 You should consider other approaches if you are trying to manipulate "
-                    ),
-                    code("Children"),
-                    text(".")
-                ]),
-                p(vec![
-                    text("Yew supports using "),
-                    code("Html"),
-                    text(
-                        " as the type of the children prop.
+                ),
+                code("Children"),
+                text(".")
+            ],
+            p![
+                text("Yew supports using "),
+                code("Html"),
+                text(
+                    " as the type of the children prop.
 You should use "
-                    ),
-                    code("Html"),
-                    text(" as children if you do not need "),
-                    code("Children"),
-                    text(" or "),
-                    code("ChildrenRenderer"),
-                    text(
-                        ".
+                ),
+                code("Html"),
+                text(" as children if you do not need "),
+                code("Children"),
+                text(" or "),
+                code("ChildrenRenderer"),
+                text(
+                    ".
 It doesn't have the drawbacks of "
-                    ),
-                    code("Children"),
-                    text(" and has a lower performance overhead.")
-                ])
+                ),
+                code("Children"),
+                text(" and has a lower performance overhead.")
             ]
-        ),
-        h2(vec![text("General usage")]),
-        p(vec![text(
+        ],
+        h2![text("General usage")],
+        p![text(
             "_Most of the time,_ when allowing a component to have children, you don't care what \
              type of children the component has. In such cases, the below example will suffice."
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html, Properties};
@@ -73,16 +71,16 @@ impl Component for List {
     }
 }"#
         ),
-        h2(vec![text("Advanced usage")]),
-        h3(vec![text("Typed children")]),
-        p(vec![
+        h2![text("Advanced usage")],
+        h3![text("Typed children")],
+        p![
             text(
                 "In cases where you want one type of component to be passed as children to your \
                  component, you can use "
             ),
             code("yew::html::ChildrenWithProps<T>"),
             text(".")
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
@@ -129,11 +127,11 @@ impl Component for List {
     }
 }"#
         ),
-        h2(vec![text("Nested Children with Props")]),
-        p(vec![text(
+        h2![text("Nested Children with Props")],
+        p![text(
             "Nested component properties can be accessed and mutated if the containing component \
              types its children."
-        )]),
+        )],
         code_block(
             "rust",
             r#"use std::rc::Rc;
@@ -177,16 +175,16 @@ html! {
     </List>
 };"#
         ),
-        h3(vec![text("Enum typed children")]),
-        p(vec![text(
+        h3![text("Enum typed children")],
+        p![text(
             "Of course, sometimes you might need to restrict the children to a few different \
              components. In these cases, you have to get a little more hands-on with Yew."
-        )]),
-        p(vec![
+        )],
+        p![
             text("The "),
-            link(
+            link!(
                 "https://github.com/JelteF/derive_more",
-                vec![text("derive_more")]
+                text("derive_more")
             ),
             text(
                 " crate is used here for better ergonomics. If you don't want to use it, you can \
@@ -194,7 +192,7 @@ html! {
             ),
             code("From"),
             text(" for each variant.")
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{
@@ -278,10 +276,10 @@ impl Component for List {
     }
 }"#
         ),
-        h3(vec![text("Optional typed child")]),
-        p(vec![text(
+        h3![text("Optional typed child")],
+        p![text(
             "You can also have a single optional child component of a specific type too:"
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{
@@ -350,17 +348,17 @@ pub fn render_page(with_sidebar: bool) -> Html {
     }
 }"#
         ),
-        h2(vec![text("Further Reading")]),
-        ul(vec![li(vec![
+        h2![text("Further Reading")],
+        ul![li![
             text(
                 "For a real-world example of this pattern, check out the yew-router source code. \
                  For a more advanced example, check out the "
             ),
-            link(
+            link!(
                 "https://github.com/yewstack/yew/tree/master/examples/nested_list",
-                vec![text("nested-list example")]
+                text("nested-list example")
             ),
             text(" in the main yew repository.")
-        ])])
+        ]]
     ])
 );

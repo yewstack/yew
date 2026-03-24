@@ -2,16 +2,16 @@ crate::doc_page!(
     "Lists",
     "/ja/docs/concepts/html/lists",
     Content::new(vec![
-        h2(vec![text("フラグメント")]),
-        p(vec![
+        h2![text("フラグメント")],
+        p![
             code("html!"),
             text(
                 "マクロは常にルートノードが 1 \
                  つであることを要求します。この制限のために、\
                  空のタグを使って内容をラップすると良いでしょう。"
             ),
-        ]),
-        p(vec![text("Valid:")]),
+        ],
+        p![text("Valid:")],
         code_block(
             "rust",
             r#"html! {
@@ -21,7 +21,7 @@ crate::doc_page!(
     </>
 }"#
         ),
-        p(vec![text("Invalid:")]),
+        p![text("Invalid:")],
         code_block(
             "rust",
             r#"/* error: only one root html element allowed */
@@ -31,11 +31,11 @@ html! {
     <p></p>
 }"#
         ),
-        h2(vec![text("イテレータ")]),
-        p(vec![text(
+        h2![text("イテレータ")],
+        p![text(
             "Yew はイテレータから HTML をビルドするのに 2 つの方法をサポートしています。"
-        )]),
-        p(vec![text("Syntax Type 1:")]),
+        )],
+        p![text("Syntax Type 1:")],
         code_block(
             "rust",
             r#"html! {
@@ -44,7 +44,7 @@ html! {
     </ul>
 }"#
         ),
-        p(vec![text("Syntax Type 2:")]),
+        p![text("Syntax Type 2:")],
         code_block(
             "rust",
             r#"html! {

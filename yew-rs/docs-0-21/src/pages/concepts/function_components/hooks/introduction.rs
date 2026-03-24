@@ -2,102 +2,102 @@ crate::doc_page!(
     "Hooks",
     "/docs/concepts/function-components/hooks",
     Content::new(vec![
-        h2(vec![text("Hooks")]),
-        p(vec![text(
+        h2![text("Hooks")],
+        p![text(
             "Hooks are functions that let you store state and perform side effects."
-        )]),
-        p(vec![
+        )],
+        p![
             text(
                 "Yew comes with a few pre-defined hooks. You can also create your own or discover \
                  many "
             ),
-            link(
+            link!(
                 "/community/awesome#hooks",
-                vec![text("community-made hooks")]
+                text("community-made hooks")
             ),
             text("."),
-        ]),
-        h2(vec![text("Rules of hooks")]),
-        ol(vec![
-            li(vec![
+        ],
+        h2![text("Rules of hooks")],
+        ol![
+            li![
                 text("A hook function name always has to start with "),
                 code("use_"),
-            ]),
-            li_blocks(vec![
-                p(vec![text(
+            ],
+            li_blocks![
+                p![text(
                     "Hooks can only be used in the following locations:"
-                )]),
-                ul(vec![
-                    li(vec![text("Top-level of a function/hook.")]),
-                    li(vec![text(
+                )],
+                ul![
+                    li![text("Top-level of a function/hook.")],
+                    li![text(
                         "Blocks inside a function/hook, given it is not already branched."
-                    )]),
-                    li(vec![
+                    )],
+                    li![
                         text("In the condition of a top-level "),
                         code("if"),
                         text(" expression inside a function/hook."),
-                    ]),
-                    li(vec![
+                    ],
+                    li![
                         text("In the scrutinee of a top-level "),
                         code("match"),
                         text(" expression inside a function/hook."),
-                    ]),
-                ]),
-            ]),
-            li(vec![
+                    ],
+                ],
+            ],
+            li![
                 text(
                     "Hooks must be called in the same order for every render. Returning early is \
                      only allowed when using "
                 ),
-                link("/docs/concepts/suspense", vec![text("Suspense")]),
-            ]),
-        ]),
-        p(vec![text(
+                link!("/docs/concepts/suspense", text("Suspense")),
+            ],
+        ],
+        p![text(
             "These rules are enforced by either compile-time or run-time errors."
-        )]),
-        h3(vec![text("Pre-defined Hooks")]),
-        p(vec![text("Yew comes with the following predefined Hooks:")]),
-        ul(vec![
-            li(vec![code("use_state")]),
-            li(vec![code("use_state_eq")]),
-            li(vec![code("use_memo")]),
-            li(vec![code("use_callback")]),
-            li(vec![code("use_mut_ref")]),
-            li(vec![code("use_node_ref")]),
-            li(vec![code("use_reducer")]),
-            li(vec![code("use_reducer_eq")]),
-            li(vec![code("use_effect")]),
-            li(vec![code("use_effect_with")]),
-            li(vec![code("use_context")]),
-            li(vec![code("use_force_update")]),
-        ]),
-        p(vec![
+        )],
+        h3![text("Pre-defined Hooks")],
+        p![text("Yew comes with the following predefined Hooks:")],
+        ul![
+            li![code("use_state")],
+            li![code("use_state_eq")],
+            li![code("use_memo")],
+            li![code("use_callback")],
+            li![code("use_mut_ref")],
+            li![code("use_node_ref")],
+            li![code("use_reducer")],
+            li![code("use_reducer_eq")],
+            li![code("use_effect")],
+            li![code("use_effect_with")],
+            li![code("use_context")],
+            li![code("use_force_update")],
+        ],
+        p![
             text("The documentation for these hooks can be found in the "),
-            link(
+            link!(
                 "https://yew-rs-api.web.app/next/yew/functional/",
-                vec![text("Yew API docs")]
+                text("Yew API docs")
             ),
-        ]),
-        h3(vec![text("Custom Hooks")]),
-        p(vec![
+        ],
+        h3![text("Custom Hooks")],
+        p![
             text(
                 "There are cases where you want to define your own Hooks to encapsulate \
                  potentially stateful logic from a component into reusable functions. See the "
             ),
-            link(
+            link!(
                 "/docs/concepts/function-components/hooks/custom-hooks#defining-custom-hooks",
-                vec![text("Defining custom hooks")]
+                text("Defining custom hooks")
             ),
             text(" section for more information."),
-        ]),
-        h2(vec![text("Further reading")]),
-        ul(vec![li(vec![
+        ],
+        h2![text("Further reading")],
+        ul![li![
             text("The React documentation has a section on "),
-            link(
+            link!(
                 "https://reactjs.org/docs/hooks-intro.html",
-                vec![text("React hooks")]
+                text("React hooks")
             ),
             text(". These are not the same as Yew's hooks, but the underlying concept is similar."),
-        ]),]),
+        ]],
     ])
 );

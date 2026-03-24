@@ -1,12 +1,12 @@
 crate::doc_page!("Components", "/ja/docs/concepts/html/components",
     Content::new(vec![
-        h2(vec![text("基本")]),
-        p(vec![
+        h2![text("基本")],
+        p![
             code("Component"),
             text("を実装しているあらゆる型は"),
             code("html!"),
             text("マクロの中で使えます:"),
-        ]),
+        ],
         code_block("rust", r#"html!{
     <>
         // No properties
@@ -22,13 +22,13 @@ crate::doc_page!("Components", "/ja/docs/concepts/html/components",
         <MyComponent prop2="lorem" ..props />
     </>
 }"#),
-        h2(vec![text("ネスト")]),
-        p(vec![
+        h2![text("ネスト")],
+        p![
             code("children"),
             text("フィールドが"),
             code("Properties"),
             text("の中にある場合はコンポーネントは子に渡されます。"),
-        ]),
+        ],
         code_block_title("rust", "parent.rs", r#"html! {
     <Container>
         <h4>{ "Hi" }</h4>
@@ -55,10 +55,10 @@ impl Component for Container {
        }
     }
 }"#),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 code("Properties"),
                 text("を継承した型は"),
                 code("Clone"),
@@ -67,10 +67,10 @@ impl Component for Container {
                 text("を使うか手で"),
                 code("Clone"),
                 text("を実装すれば良いです。"),
-            ])]
-        ),
-        h2(vec![text("Props とネストした子コンポーネント")]),
-        p(vec![text(
+            ],
+        ],
+        h2![text("Props とネストした子コンポーネント")],
+        p![text(
             "ネストしたコンポーネントのプロパティは格納しているコンポーネントの型が子である場合は\
              アクセス可能、または変更可能です。以下の例では"
         ),
@@ -86,7 +86,7 @@ impl Component for Container {
         ),
         code("nested-list"),
         text("を確認してみてください。"),
-        ]),
+        ],
         code_block_title("rust", "parent.rs", r#"html! {
     <List>
         <ListItem value="a" />

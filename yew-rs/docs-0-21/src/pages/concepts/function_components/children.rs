@@ -2,12 +2,12 @@ crate::doc_page!(
     "Children",
     "/docs/concepts/function-components/children",
     Content::new(vec![
-        p(vec![
+        p![
             code("Children"),
             text(" is a special prop type that allows you to receive nested "),
             code("Html"),
             text(" that is provided like html child elements."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html, Properties};

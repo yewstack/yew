@@ -2,26 +2,26 @@ crate::doc_page!(
     "生命週期",
     "/zh-Hant/docs/advanced-topics/struct-components/lifecycle",
     Content::new(vec![
-        p(vec![
+        p![
             code("Component"),
             text(" trait 有許多方法需要實作；Yew 會在元件的生命週期的不同階段呼叫這些方法。"),
-        ]),
-        h2(vec![text("生命週期")]),
-        admonition(
+        ],
+        h2![text("生命週期")],
+        admonition![
             AdmonitionType::Important,
             Some("改進文檔"),
-            vec![p(vec![
+            p![
                 code("為文件做貢獻："),
                 text(" "),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/issues/1915",
-                    vec![text("新增自訂生命週期的組件範例")],
+                    text("新增自訂生命週期的組件範例"),
                 ),
-            ])],
-        ),
-        h2(vec![text("生命週期方法")]),
-        h3(vec![text("Create")]),
-        p(vec![
+            ],
+        ],
+        h2![text("生命週期方法")],
+        h3![text("Create")],
+        p![
             text("當元件被建立時，它會從其父元件接收屬性，並儲存在傳遞給 "),
             code("create"),
             text(" 方法的 "),
@@ -30,7 +30,7 @@ crate::doc_page!(
                 " 中。這些屬性可以用來初始化元件的狀態，而 \"link\" \
                  可以用來註冊回呼或傳送訊息給元件。"
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -57,8 +57,8 @@ impl Component for MyComponent {
     }
 }"#,
         ),
-        h3(vec![text("View")]),
-        p(vec![
+        h3![text("View")],
+        p![
             code("view"),
             text(
                 " 方法可讓您描述元件應該如何呈現到 DOM 中。使用Rust 函數編寫類似HTML \
@@ -75,7 +75,7 @@ impl Component for MyComponent {
             text("，而不用寫 "),
             code("onclick={{onclick}}"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -109,13 +109,13 @@ impl Component for MyComponent {
     // highlight-end
 }"#,
         ),
-        p(vec![
+        p![
             text("就使用上的說明，請查看 "),
-            link("concepts/html/introduction.mdx", vec![text("html! 指南")]),
+            link!("concepts/html/introduction.mdx", text("html! 指南")),
             text("。"),
-        ]),
-        h3(vec![text("Rendered")]),
-        p(vec![
+        ],
+        h3![text("Rendered")],
+        p![
             code("rendered"),
             text(" 元件生命週期方法在 "),
             code("view"),
@@ -126,7 +126,7 @@ impl Component for MyComponent {
             ),
             code("first_render"),
             text(" 的參數，可以用來確定此函數是在第一次渲染時調用，還是在後續渲染時調用。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::HtmlInputElement;
@@ -165,23 +165,23 @@ impl Component for MyComponent {
     // highlight-end
 }"#,
         ),
-        admonition(
+        admonition![
             AdmonitionType::Tip,
             Some("note"),
-            vec![p(vec![text(
+            p![text(
                 "請注意，此生命週期方法不需要實現，並且預設不會執行任何操作。"
-            ),])],
-        ),
-        h3(vec![text("Update")]),
-        p(vec![
+            ),],
+        ],
+        h3![text("Update")],
+        p![
             text("與組件的通訊主要透過訊息進行，這些訊息由 "),
             code("update"),
             text(
                 " 生命週期方法處理。這允許元件根據訊息更新自身，並確定是否需要重新渲染自身。\
                  訊息可以由事件監聽器、子元件、Agents、Services 或 Futures 傳送。"
             ),
-        ]),
-        p(vec![text("下面是 "), code("update"), text(" 的實作範例："),]),
+        ],
+        p![text("下面是 "), code("update"), text(" 的實作範例："),],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html};
@@ -230,28 +230,28 @@ impl Component for MyComponent {
 
 }"#,
         ),
-        h3(vec![text("Changed")]),
-        p(vec![text(
+        h3![text("Changed")],
+        p![text(
             "元件可能會被其父元件重新渲染。當這種情況發生時，\
              它們可能會接收新的屬性並需要重新渲染。\
              這種設計透過僅更改屬性的值來促進父子組件之間的通訊。當屬性更改時，\
              有一個預設實作會重新渲染元件。"
-        ),]),
-        h3(vec![text("Destroy")]),
-        p(vec![
+        ),],
+        h3![text("Destroy")],
+        p![
             text("元件從 DOM 卸載後，Yew 會呼叫 "),
             code("destroy"),
             text(
                 " 生命週期方法；如果您需要在元件被銷毀之前執行清理操作，這是必要的。\
                  此方法是可選的，預設不執行任何操作。"
             ),
-        ]),
-        h3(vec![text("無限循環")]),
-        p(vec![text(
+        ],
+        h3![text("無限循環")],
+        p![text(
             "無限循環在 Yew 的生命週期方法中是可能的，但只有在嘗試在每次渲染後更新相同的元件時，\
              當更新也要求重新渲染元件時才會發生。"
-        ),]),
-        p(vec![text("下面是一個簡單的範例：")]),
+        ),],
+        p![text("下面是一個簡單的範例：")],
         code_block(
             "rust",
             r#"use yew::{Context, Component, Html};
@@ -282,50 +282,50 @@ impl Component for Comp {
     }
 }"#,
         ),
-        p(vec![text("讓我們看看這裡發生了什麼：")]),
-        ol(vec![
-            li(vec![text("使用 "), code("create"), text(" 函數建立元件。"),]),
-            li(vec![
+        p![text("讓我們看看這裡發生了什麼：")],
+        ol![
+            li![text("使用 "), code("create"), text(" 函數建立元件。"),],
+            li![
                 text("呼叫 "),
                 code("view"),
                 text(" 方法，以便 Yew 知道要渲染到瀏覽器 DOM 中的內容。"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("呼叫 "),
                 code("rendered"),
                 text(" 方法，使用 "),
                 code("Context"),
                 text(" 連結安排更新訊息。"),
-            ]),
-            li(vec![text("Yew 完成後渲染階段。")]),
-            li(vec![text(
+            ],
+            li![text("Yew 完成後渲染階段。")],
+            li![text(
                 "Yew 檢查已排程的事件，並看到更新訊息佇列不為空，因此處理訊息。"
-            ),]),
-            li(vec![
+            ),],
+            li![
                 text("呼叫 "),
                 code("update"),
                 text(" 方法，回傳 "),
                 code("true"),
                 text(" 表示發生了變化，元件需要重新渲染。"),
-            ]),
-            li(vec![text("跳回第 2 步。")]),
-        ]),
-        p(vec![
+            ],
+            li![text("跳回第 2 步。")],
+        ],
+        p![
             text("您仍然可以在 "),
             code("rendered"),
             text(
                 " 方法中安排更新，這通常是有用的，但是在這樣做時，請考慮您的元件將如何終止此循環。"
             ),
-        ]),
-        h2(vec![text("關聯類型")]),
-        p(vec![
+        ],
+        h2![text("關聯類型")],
+        p![
             code("Component"),
             text(" trait 有兩個關聯類型："),
             code("Message"),
             text(" 和 "),
             code("Properties"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"impl Component for MyComponent {
@@ -335,7 +335,7 @@ impl Component for Comp {
     // ...
 }"#,
         ),
-        p(vec![
+        p![
             code("Message"),
             text(
                 " 類型用於在事件發生後向元件發送訊息；例如，\
@@ -344,8 +344,8 @@ impl Component for Comp {
             ),
             code("Message"),
             text(" 類型通常是一個枚舉，其中每個變體都是要處理的事件。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("在組織程式碼庫時，將 "),
             code("Message"),
             text(
@@ -359,7 +359,7 @@ impl Component for Comp {
             text("，則可以將類型命名為 "),
             code("HomepageMsg"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"enum Msg {
@@ -367,7 +367,7 @@ impl Component for Comp {
     FormInput(String)
 }"#,
         ),
-        p(vec![
+        p![
             code("Properties"),
             text(" 表示從其父元件傳遞給元件的訊息。此類型必須實作 "),
             code("Properties"),
@@ -388,16 +388,16 @@ impl Component for Comp {
             text("。如果要為根元件指定屬性，請使用 "),
             code("App::mount_with_props"),
             text(" 方法。"),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![p(vec![link("", vec![text("了解更多關於屬性的資訊")],)])],
-        ),
-        h2(vec![text("生命週期上下文")]),
-        p(vec![text(
+            p![link!("", text("了解更多關於屬性的資訊")),],
+        ],
+        h2![text("生命週期上下文")],
+        p![text(
             "所有組件生命週期方法都接受一個上下文物件。此物件提供了對元件作用域的引用，\
              允許向元件發送訊息並傳遞給元件的 props。"
-        ),]),
+        ),],
     ])
 );

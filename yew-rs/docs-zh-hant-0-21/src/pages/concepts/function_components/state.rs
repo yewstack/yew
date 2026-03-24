@@ -2,11 +2,11 @@ crate::doc_page!(
     "狀態",
     "/zh-Hant/docs/concepts/function-components/state",
     Content::new(vec![
-        h2(vec![text("如何儲存狀態的一般視圖")]),
-        p(vec![text(
+        h2![text("如何儲存狀態的一般視圖")],
+        p![text(
             "這個表格可以作為一個指南，幫助您決定哪種狀態儲存類型最適合您的用例：",
-        )]),
-        p(vec![
+        )],
+        p![
             text("| Hook             | 類型                       | 何時渲染?                        | 作用域                   | | ---------------- | -------------------------- | -------------------------------- | ------------------------ | | "),
             text("[use_state]      | "),
             code("T"),
@@ -32,8 +32,8 @@ crate::doc_page!(
             text("全域靜態常數     | "),
             code("T"),
             text("                        | -                                | 全域，任何位置都可以使用 |"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("[use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html "),
             text("[use_state_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html "),
             text("[use_reducer]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html "),
@@ -41,6 +41,6 @@ crate::doc_page!(
             text("[use_memo]: https://yew-rs-api.web.app/next/yew/functional/fn.use_memo.html "),
             text("[use_callback]: https://yew-rs-api.web.app/next/yew/functional/fn.use_callback.html "),
             text("[use_mut_ref]: https://yew-rs-api.web.app/next/yew/functional/fn.use_mut_ref.html"),
-        ]),
+        ],
     ])
 );

@@ -2,97 +2,97 @@ crate::doc_page!(
     "HTML",
     "/docs/concepts/html",
     Content::new(vec![
-        p(vec![
+        p![
             text("The "),
             code("html!"),
             text(" macro allows you to write HTML and SVG code declaratively. It is similar to JSX \
                   (an extension to JavaScript that allows you to write HTML-like code inside of JavaScript)."),
-        ]),
-        p(vec![bold(vec![text("Important notes")])]),
-        ol(vec![
-            li(vec![
+        ],
+        p![bold![text("Important notes")]],
+        ol![
+            li![
                 text("The "),
                 code("html!"),
                 text(" macro only accepts one root html node (you can counteract this by using "),
-                link("/docs/concepts/html/fragments", vec![text("fragments")]),
+                link!["/docs/concepts/html/fragments", text("fragments")],
                 text(" or "),
-                link("/docs/concepts/html/lists", vec![text("iterators")]),
+                link!["/docs/concepts/html/lists", text("iterators")],
                 text(")"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("An empty "),
                 code("html! {}"),
                 text(" invocation is valid and will not render anything"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("Literals must always be quoted and wrapped in braces: "),
                 code("html! { <p>{ \"Hello, World\" }</p> }"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("The "),
                 code("html!"),
                 text(" macro will make all tag names lowercase. To use upper case characters (which are required for some SVG elements) use "),
-                link("/docs/concepts/html/elements#dynamic-tag-names", vec![text("dynamic tag names")]),
+                link!["/docs/concepts/html/elements#dynamic-tag-names", text("dynamic tag names")],
                 text(": "),
                 code("html! { <@{\"myTag\"}></@> }"),
-            ]),
-        ]),
-        admonition(
+            ],
+        ],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("The "),
                 code("html!"),
                 text(" macro can reach the default recursion limit of the compiler. \
                       If you encounter compilation errors, add an attribute like "),
                 code("#![recursion_limit=\"1024\"]"),
                 text(" in the crate root to overcome the problem."),
-            ])]
-        ),
-        h2(vec![text("Tag Structure")]),
-        p(vec![text("Tags are based on HTML tags. Components, Elements, and Lists are all based on this tag syntax.")]),
-        p(vec![
+            ],
+        ],
+        h2![text("Tag Structure")],
+        p![text("Tags are based on HTML tags. Components, Elements, and Lists are all based on this tag syntax.")],
+        p![
             text("Tags must either self-close "),
             code("<... />"),
             text(" or have a corresponding end tag for each start tag."),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <div id="my_div"></div>
 };"#),
-        p(vec![text("Invalid (missing close tag):")]),
+        p![text("Invalid (missing close tag):")],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <div id="my_div"> // <- MISSING CLOSE TAG
 };"#),
-        p(vec![text("Self-closing:")]),
+        p![text("Self-closing:")],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <input id="my_input" />
 };"#),
-        p(vec![text("Invalid (missing self-close):")]),
+        p![text("Invalid (missing self-close):")],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <input id="my_input"> // <- MISSING SELF-CLOSE
 };"#),
-        admonition(
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("For convenience, elements which usually require a closing tag are "),
-                bold(vec![text("allowed")]),
+                bold![text("allowed")],
                 text(" to self-close. For example, writing "),
                 code("html! { <div class=\"placeholder\" /> }"),
                 text(" is valid."),
-            ])]
-        ),
-        h2(vec![text("Children")]),
-        p(vec![text("Create complex nested HTML and SVG layouts with ease:")]),
-        p(vec![text("HTML example:")]),
+            ],
+        ],
+        h2![text("Children")],
+        p![text("Create complex nested HTML and SVG layouts with ease:")],
+        p![text("HTML example:")],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
@@ -111,7 +111,7 @@ html! {
         </div>
     </div>
 };"#),
-        p(vec![text("SVG example:")]),
+        p![text("SVG example:")],
         code_block("rust", r##"use yew::prelude::*;
 
 html! {
@@ -131,103 +131,103 @@ html! {
         </defs>
     </svg>
 };"##),
-        h2(vec![text("Lints")]),
-        p(vec![
+        h2![text("Lints")],
+        p![
             text("If you compile Yew using a nightly version of the Rust compiler, the macro will warn you about some \
                   common pitfalls that you might run into. Of course, you may need to use the stable compiler (e.g. \
                   your organization might have a policy mandating it) for release builds, but even if you're using a \
                   stable toolchain, running "),
             code("cargo +nightly check"),
             text(" might flag some ways that you could improve your HTML code."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("At the moment the lints are mostly accessibility-related. If you have ideas for lints, please feel \
                   free to "),
-            link("https://github.com/yewstack/yew/issues/1334", vec![text("chime in on this issue")]),
+            link!["https://github.com/yewstack/yew/issues/1334", text("chime in on this issue")],
             text("."),
-        ]),
-        h2(vec![text("Specifying attributes and properties")]),
-        p(vec![text("Attributes are set on elements in the same way as in normal HTML:")]),
+        ],
+        h2![text("Specifying attributes and properties")],
+        p![text("Attributes are set on elements in the same way as in normal HTML:")],
         code_block("rust", r#"use yew::prelude::*;
 
 let value = "something";
 html! { <div attribute={value} /> };"#),
-        p(vec![
+        p![
             text("Properties are specified with "),
             code("~"),
             text(" before the element name:"),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 html! { <my-element ~property="abc" /> };"#),
-        admonition(
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![text("The braces around the value can be omitted if the value is a literal.")])]
-        ),
-        admonition(
+            p![text("The braces around the value can be omitted if the value is a literal.")],
+        ],
+        admonition![
             AdmonitionType::Note,
             Some("What classifies as a literal"),
-            vec![p(vec![
+            p![
                 text("Literals are all valid "),
-                link(
+                link![
                     "https://doc.rust-lang.org/reference/expressions/literal-expr.html",
-                    vec![text("literal expressions")]
-                ),
+                    text("literal expressions"),
+                ],
                 text(" in Rust. Note that "),
-                link(
+                link![
                     "https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333",
-                    vec![text("negative numbers are "), bold(vec![text("not")]), text(" literals")]
-                ),
+                    text("negative numbers are "), bold![text("not")], text(" literals"),
+                ],
                 text(" and thus must be enclosed in curly-braces "),
                 code("{-6}"),
-            ])]
-        ),
-        admonition(
+            ],
+        ],
+        admonition![
             AdmonitionType::Note,
             Some("Component properties"),
-            vec![p(vec![
+            p![
                 text("Component properties are passed as Rust objects and are different from the element attributes/properties described here. \
                       Read more about them at "),
-                link("/docs/concepts/function-components/properties", vec![text("Component Properties")]),
-            ])]
-        ),
-        h3(vec![text("Special properties")]),
-        p(vec![
+                link!["/docs/concepts/function-components/properties", text("Component Properties")],
+            ],
+        ],
+        h3![text("Special properties")],
+        p![
             text("There are special properties which don't directly influence the DOM but instead act as instructions to Yew's virtual DOM. \
                   Currently, there are two such special props: "),
             code("ref"),
             text(" and "),
             code("key"),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("ref"),
             text(" allows you to access and manipulate the underlying DOM node directly. See "),
-            link("/docs/concepts/function-components/node-refs", vec![text("Refs")]),
+            link!["/docs/concepts/function-components/node-refs", text("Refs")],
             text(" for more details."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("key"),
             text(" on the other hand gives an element a unique identifier which Yew can use for optimization purposes."),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![p(vec![
+            p![
                 text("Read more at "),
-                link("/docs/concepts/html/lists", vec![text("Lists")]),
-            ])]
-        ),
-        h2(vec![text("Conditional Rendering")]),
-        p(vec![
+                link!["/docs/concepts/html/lists", text("Lists")],
+            ],
+        ],
+        h2![text("Conditional Rendering")],
+        p![
             text("Markup can be rendered conditionally by using Rust's conditional structures. \
                   Currently only "),
             code("if"),
             text(" and "),
             code("if let"),
             text(" are supported."),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
@@ -235,13 +235,13 @@ html! {
       <p>{ "True case" }</p>
   }
 };"#),
-        admonition(
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![p(vec![
+            p![
                 text("Read more at "),
-                link("/docs/concepts/html/conditional-rendering", vec![text("Conditional Rendering")]),
-            ])]
-        ),
+                link!["/docs/concepts/html/conditional-rendering", text("Conditional Rendering")],
+            ],
+        ],
     ])
 );
