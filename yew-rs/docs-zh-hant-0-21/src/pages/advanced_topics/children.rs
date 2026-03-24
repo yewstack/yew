@@ -170,10 +170,7 @@ html! {
         )],
         p![
             text("這裡使用 "),
-            link!(
-                "https://github.com/JelteF/derive_more",
-                text("derive_more"),
-            ),
+            link!("https://github.com/JelteF/derive_more", text("derive_more"),),
             text(" 來提供更好的人體工學。如果您不想使用它，您可以為每個變體手動實現 "),
             code("From"),
             text("。"),

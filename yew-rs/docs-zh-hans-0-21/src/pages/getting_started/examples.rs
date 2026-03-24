@@ -24,15 +24,11 @@ crate::doc_page!(
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/std_web/multi_thread",
-                text(
-                    "**Multi-threading \\(Agents\\)（多线程 Agents）\\(stdweb\\)**"
-                )
+                text("**Multi-threading \\(Agents\\)（多线程 Agents）\\(stdweb\\)**")
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/web_sys/multi_thread",
-                text(
-                    "**Multi-threading \\(Agents\\)（多线程 Agents）\\(web_sys\\)**"
-                )
+                text("**Multi-threading \\(Agents\\)（多线程 Agents）\\(web_sys\\)**")
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/timer",

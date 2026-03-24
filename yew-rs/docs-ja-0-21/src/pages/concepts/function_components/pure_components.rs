@@ -4,10 +4,7 @@ crate::doc_page!(
     Content::new(vec![
         p![
             text("A function component is considered "),
-            link!(
-                "https://en.wikipedia.org/wiki/Pure_function",
-                text("pure")
-            ),
+            link!("https://en.wikipedia.org/wiki/Pure_function", text("pure")),
             text(" when the returned "),
             code("Html"),
             text(
@@ -65,10 +62,7 @@ fn HelloWorld(props: &Props) -> Html {
                  since it is just a function that is called every render. This is where the next \
                  topic comes in - "
             ),
-            link!(
-                "/ja/docs/concepts/function-components/hooks",
-                text("hooks")
-            ),
+            link!("/ja/docs/concepts/function-components/hooks", text("hooks")),
         ],
     ])
 );

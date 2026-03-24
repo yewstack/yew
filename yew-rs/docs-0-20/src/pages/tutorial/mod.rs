@@ -2,90 +2,90 @@ crate::doc_page!(
     "Tutorial",
     "/docs/tutorial",
     Content::new(vec![
-        h2(vec![text("Introduction")]),
-        p(vec![
+        h2![text("Introduction")],
+        p![
             text(
                 "In this hands-on tutorial, we will take a look at how we can use Yew to build \
                  web applications. "
             ),
-            bold(vec![text("Yew")]),
+            bold![text("Yew")],
             text(" is a modern "),
-            link("https://www.rust-lang.org/", vec![text("Rust")]),
+            link!("https://www.rust-lang.org/", text("Rust")),
             text(" framework for building front-end web apps using "),
-            link("https://webassembly.org/", vec![text("WebAssembly")]),
+            link!("https://webassembly.org/", text("WebAssembly")),
             text(
                 ". Yew encourages a reusable, maintainable, and well-structured architecture by \
                  leveraging Rust's powerful type system. A large ecosystem of community-created \
                  libraries, known in Rust as "
             ),
-            link(
+            link!(
                 "https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html",
-                vec![text("crates")]
+                text("crates")
             ),
             text(", provide components for commonly-used patterns such as state management. "),
-            link("https://doc.rust-lang.org/cargo/", vec![text("Cargo")]),
+            link!("https://doc.rust-lang.org/cargo/", text("Cargo")),
             text(
                 ", the package manager for Rust, allows us to take advantage of the numerous \
                  crates available on "
             ),
-            link("https://crates.io", vec![text("crates.io")]),
+            link!("https://crates.io", text("crates.io")),
             text(", such as Yew."),
-        ]),
-        h3(vec![text("What we are going to build")]),
-        p(vec![text(
+        ],
+        h3![text("What we are going to build")],
+        p![text(
             "Rustconf is an intergalactic gathering of the Rust community that happens annually. \
              Rustconf 2020 had a plethora of talks that provided a good amount of information. In \
              this hands-on tutorial, we will be building a web application to help fellow \
              Rustaceans get an overview of the talks and watch them all from one page."
-        ),]),
-        h2(vec![text("Setting up")]),
-        h3(vec![text("Prerequisites")]),
-        p(vec![
+        )],
+        h2![text("Setting up")],
+        h3![text("Prerequisites")],
+        p![
             text(
                 "This tutorial assumes you're already familiar with Rust. If you're new to Rust, \
                  the free "
             ),
-            link(
+            link!(
                 "https://doc.rust-lang.org/book/ch00-00-introduction.html",
-                vec![text("Rust Book")]
+                text("Rust Book")
             ),
             text(
                 " offers a great starting point for beginners and continues to be an excellent \
                  resource even for experienced Rust developers."
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Ensure the latest version of Rust is installed by running "),
             code("rustup update"),
             text(" or by "),
-            link(
+            link!(
                 "https://www.rust-lang.org/tools/install",
-                vec![text("installing rust")]
+                text("installing rust")
             ),
             text(" if you haven't already done so."),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "After installing Rust, you can use Cargo to install trunk by running:"
-        )]),
+        )],
         code_block("bash", "cargo install trunk"),
-        p(vec![text(
+        p![text(
             "We will also need to add the WASM build target by running:"
-        )]),
+        )],
         code_block("bash", "rustup target add wasm32-unknown-unknown"),
-        h3(vec![text("Setting up the project")]),
-        p(vec![text("First, create a new cargo project:")]),
+        h3![text("Setting up the project")],
+        p![text("First, create a new cargo project:")],
         code_block("bash", "cargo new yew-app\ncd yew-app"),
-        p(vec![text(
+        p![text(
             "To verify the Rust environment is set up properly, run the initial project using the \
              cargo build tool. After output about the build process, you should see the expected \
              \"Hello, world!\" message."
-        ),]),
+        )],
         code_block("bash", "cargo run"),
-        h2(vec![text("Our first static page")]),
-        p(vec![text(
+        h2![text("Our first static page")],
+        p![text(
             "To convert this simple command line application to a basic Yew web application, a \
              few changes are needed. Update the files as follows:"
-        ),]),
+        )],
         code_block_title(
             "toml",
             "Cargo.toml",
@@ -98,31 +98,29 @@ edition = "2021"
 // highlight-next-line
 yew = { version = "0.20", features = ["csr"] }"##
         ),
-        admonition(
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![
-                p(vec![
-                    text("You only need feature "),
-                    code("csr"),
-                    text(" if you are building an application. It will enable the "),
-                    code("Renderer"),
-                    text(" and all client-side rendering related code."),
-                ]),
-                p(vec![text(
-                    "If you are making a library, do not enable this feature as it will pull in \
-                     client-side rendering logic into the server-side rendering bundle."
-                ),]),
-                p(vec![
-                    text(
-                        "If you need the Renderer for testing or examples, you should enable it \
-                         in the "
-                    ),
-                    code("dev-dependencies"),
-                    text(" instead."),
-                ]),
-            ]
-        ),
+            p![
+                text("You only need feature "),
+                code("csr"),
+                text(" if you are building an application. It will enable the "),
+                code("Renderer"),
+                text(" and all client-side rendering related code."),
+            ],
+            p![text(
+                "If you are making a library, do not enable this feature as it will pull in \
+                 client-side rendering logic into the server-side rendering bundle."
+            )],
+            p![
+                text(
+                    "If you need the Renderer for testing or examples, you should enable it in \
+                     the "
+                ),
+                code("dev-dependencies"),
+                text(" instead."),
+            ],
+        ],
         code_block_title(
             "rust",
             "src/main.rs",
@@ -139,11 +137,11 @@ fn main() {
     yew::Renderer::<App>::new().render();
 }"##
         ),
-        p(vec![
+        p![
             text("Now, let's create an "),
             code("index.html"),
             text(" at the root of the project."),
-        ]),
+        ],
         code_block_title(
             "html",
             "index.html",
@@ -153,12 +151,12 @@ fn main() {
     <body></body>
 </html>"#
         ),
-        h3(vec![text("Start the development server")]),
-        p(vec![text(
+        h3![text("Start the development server")],
+        p![text(
             "Run the following command to build and serve the application locally."
-        )]),
+        )],
         code_block("bash", "trunk serve --open"),
-        p(vec![
+        p![
             text(
                 "Trunk will open your application in your default browser, watch the project \
                  directory and helpfully rebuild your application if you modify any source files. \
@@ -166,9 +164,9 @@ fn main() {
                  socket is being used by another application. By default server will be listening \
                  at address '127.0.0.1' and port '8080' "
             ),
-            link("http://127.0.0.1:8080", vec![text("http://localhost:8080")]),
+            link!("http://127.0.0.1:8080", text("http://localhost:8080")),
             text(". To change it, create the following file and edit as needed:"),
-        ]),
+        ],
         code_block_title(
             "toml",
             "Trunk.toml",
@@ -180,26 +178,26 @@ address = "127.0.0.1"
 # The port to serve on.
 port = 8080"##
         ),
-        p(vec![
+        p![
             text("If you are curious, you can run "),
             code("trunk help"),
             text(" and "),
             code("trunk help <subcommand>"),
             text(" for more details on what's happening."),
-        ]),
-        h3(vec![text("Congratulations")]),
-        p(vec![text(
+        ],
+        h3![text("Congratulations")],
+        p![text(
             "You have now successfully set up your Yew development environment and built your \
              first Yew web application."
-        )]),
-        h2(vec![text("Building HTML")]),
-        p(vec![text(
+        )],
+        h2![text("Building HTML")],
+        p![text(
             "Yew makes use of Rust's procedural macros and provides us with a syntax similar to \
              JSX (an extension to JavaScript which allows you to write HTML-like code inside of \
              JavaScript) to create the markup."
-        ),]),
-        h3(vec![text("Converting classic HTML")]),
-        p(vec![
+        )],
+        h3![text("Converting classic HTML")],
+        p![
             text(
                 "Since we already have a pretty good idea of what our website will look like, we \
                  can simply translate our mental draft into a representation compatible with "
@@ -211,26 +209,26 @@ port = 8080"##
             ),
             code("html!"),
             text(". It is important to note that the macro does differ from HTML in a few ways:"),
-        ]),
-        ol(vec![
-            li(vec![
+        ],
+        ol![
+            li![
                 text("Expressions must be wrapped in curly braces ("),
                 code("{{ }}"),
                 text(")"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text(
                     "There must only be one root node. If you want to have multiple elements \
                      without wrapping them in a container, an empty tag/fragment ("
                 ),
                 code("<> ... </>"),
                 text(") is used"),
-            ]),
-            li(vec![text("Elements must be closed properly.")]),
-        ]),
-        p(vec![text(
+            ],
+            li![text("Elements must be closed properly.")],
+        ],
+        p![text(
             "We want to build a layout that looks something like this in raw HTML:"
-        )]),
+        )],
         code_block(
             "html",
             r##"<h1>RustConf Explorer</h1>
@@ -249,7 +247,7 @@ port = 8080"##
     />
 </div>"##
         ),
-        p(vec![
+        p![
             text("Now, let's convert this HTML into "),
             code("html!"),
             text(". Type (or copy/paste) the following snippet into the body of "),
@@ -257,7 +255,7 @@ port = 8080"##
             text(" function such that the value of "),
             code("html!"),
             text(" is returned by the function"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"html! {
@@ -277,15 +275,15 @@ port = 8080"##
     </>
 }"##
         ),
-        p(vec![text(
+        p![text(
             "Refresh the browser page, and you should see the following output displayed:"
-        ),]),
+        )],
         img(
             "/img/tutorial_application_screenshot.png",
             "Running WASM application screenshot"
         ),
-        h3(vec![text("Using Rust language constructs in the markup")]),
-        p(vec![
+        h3![text("Using Rust language constructs in the markup")],
+        p![
             text(
                 "A big advantage of writing markup in Rust is that we get all the coolness of \
                  Rust in our markup. Now, instead of hardcoding the list of videos in the html, \
@@ -297,7 +295,7 @@ port = 8080"##
             text(" (in "),
             code("main.rs"),
             text(" or any file of our choice) which will hold our data."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"struct Video {
@@ -307,11 +305,11 @@ port = 8080"##
     url: String,
 }"#
         ),
-        p(vec![
+        p![
             text("Next, we will create instances of this struct in our "),
             code("app"),
             text(" function and use those instead of hardcoding the data:"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"let videos = vec![
@@ -341,7 +339,7 @@ port = 8080"##
     },
 ];"##
         ),
-        p(vec![
+        p![
             text("In order to display them, we need to convert these "),
             code("Vec"),
             text("s into "),
@@ -351,33 +349,33 @@ port = 8080"##
             text(" and collecting it as "),
             code("Html"),
             text(":"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"let videos = videos.iter().map(|video| html! {
     <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
 }).collect::<Html>();"##
         ),
-        admonition(
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text(
                     "Keys on list items helps Yew keep track of which items have changed in the \
                      list, resulting in faster re-renders. "
                 ),
-                link(
+                link!(
                     "/docs/concepts/html/lists",
-                    vec![text("It is always recommended to use keys in lists")]
+                    text("It is always recommended to use keys in lists")
                 ),
                 text("."),
-            ]),]
-        ),
-        p(vec![
+            ],
+        ],
+        p![
             text("And finally we need to replace the hardcoded list of videos with the "),
             code("Html"),
             text(" we created from data:"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"html! {
@@ -392,14 +390,14 @@ port = 8080"##
     </>
 }"##
         ),
-        h2(vec![text("Components")]),
-        p(vec![text(
+        h2![text("Components")],
+        p![text(
             "Components are the building blocks of Yew applications. By combining components, \
              which can be made of other components, we build our application. By structuring our \
              components for re-usability and keeping them generic, we will be able to use them in \
              multiple parts of our application without having to duplicate code or logic."
-        ),]),
-        p(vec![
+        )],
+        p![
             text("In fact, the "),
             code("app"),
             text(" function we have been using so far is a component, called "),
@@ -408,22 +406,22 @@ port = 8080"##
                 ". It is a \"function component\". There are two different types of components in \
                  Yew."
             ),
-        ]),
-        ol(vec![
-            li(vec![text("Struct Components")]),
-            li(vec![text("Function Components")]),
-        ]),
-        p(vec![text(
+        ],
+        ol![
+            li![text("Struct Components")],
+            li![text("Function Components")],
+        ],
+        p![text(
             "In this tutorial, we will be using function components."
-        )]),
-        p(vec![
+        )],
+        p![
             text("Now, let's split up our "),
             code("App"),
             text(
                 " component into smaller components. We'll begin by extracting the videos list \
                  into its own component."
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -447,7 +445,7 @@ fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
     }).collect()
 }"##
         ),
-        p(vec![
+        p![
             text("Notice the parameters of our "),
             code("VideosList"),
             text(
@@ -457,21 +455,21 @@ fn videos_list(VideosListProps { videos }: &VideosListProps) -> Html {
             ),
             code("VideosListProps"),
             text(" is a struct which defines the props."),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Warning,
             Some("Important"),
-            vec![p(vec![
+            p![
                 text("The struct used for props must implement "),
                 code("Properties"),
                 text(" by deriving it."),
-            ]),]
-        ),
-        p(vec![
+            ],
+        ],
+        p![
             text("In order for the above code to compile, we need to modify the "),
             code("Video"),
             text(" struct like:"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"// highlight-next-line
@@ -483,13 +481,13 @@ struct Video {
     url: String,
 }"#
         ),
-        p(vec![
+        p![
             text("Now, we can update our "),
             code("App"),
             text(" component to make use of "),
             code("VideosList"),
             text(" component."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"#[function_component(App)]
@@ -508,7 +506,7 @@ fn app() -> Html {
     }
 }"##
         ),
-        p(vec![
+        p![
             text(
                 "By looking at the browser window, we can verify that the lists are rendered as \
                  they should be. We have moved the rendering logic of lists to its own component. \
@@ -516,9 +514,9 @@ fn app() -> Html {
             ),
             code("App"),
             text(" component's source code, making it easier for us to read and understand."),
-        ]),
-        h3(vec![text("Making it interactive")]),
-        p(vec![
+        ],
+        h3![text("Making it interactive")],
+        p![
             text("The final goal here is to display the selected video. In order to do that, "),
             code("VideosList"),
             text(
@@ -529,7 +527,7 @@ fn app() -> Html {
             text(". This concept is called \"passing handlers\". We modify its props to take an "),
             code("on_click"),
             text(" callback:"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"#[derive(Properties, PartialEq)]
@@ -539,11 +537,11 @@ struct VideosListProps {
     on_click: Callback<Video>,
 }"##
         ),
-        p(vec![
+        p![
             text("Then we modify the "),
             code("VideosList"),
             text(" component to pass the \"emit\" the selected video to the callback."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"#[function_component(VideosList)]
@@ -569,7 +567,7 @@ fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
     }).collect()
 }"##
         ),
-        p(vec![
+        p![
             text("Next, we need to modify the usage of "),
             code("VideosList"),
             text(
@@ -577,7 +575,7 @@ fn videos_list(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
             ),
             code("VideoDetails"),
             text(", component that is displayed when a video is clicked."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"#[derive(Properties, PartialEq)]
@@ -595,13 +593,13 @@ fn video_details(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
     }
 }"##
         ),
-        p(vec![
+        p![
             text("Now, modify the "),
             code("App"),
             text(" component to display "),
             code("VideoDetails"),
             text(" component whenever a video is selected."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"#[function_component(App)]
@@ -640,7 +638,7 @@ fn app() -> Html {
 // highlight-end
 }"#
         ),
-        p(vec![
+        p![
             text("Don't worry about the "),
             code("use_state"),
             text(" right now, we will come back to that later. Note the trick we pulled with "),
@@ -654,14 +652,14 @@ fn app() -> Html {
             text(" with a special "),
             code("{{ for ... }}"),
             text(" syntax "),
-            link(
+            link!(
                 "/docs/concepts/html/lists",
-                vec![text("supported by the html! macro")]
+                text("supported by the html! macro")
             ),
             text("."),
-        ]),
-        h3(vec![text("Handling state")]),
-        p(vec![
+        ],
+        h3![text("Handling state")],
+        p![
             text("Remember the "),
             code("use_state"),
             text(
@@ -669,52 +667,49 @@ fn app() -> Html {
                  \"hook\" into the lifecycle of a function component and perform actions. You can \
                  learn more about this hook, and others "
             ),
-            link(
-                "/docs/concepts/function-components/hooks",
-                vec![text("here")]
-            ),
+            link!("/docs/concepts/function-components/hooks", text("here")),
             text("."),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("Struct components act differently. See "),
-                link(
+                link!(
                     "/docs/advanced-topics/struct-components",
-                    vec![text("the documentation")]
+                    text("the documentation")
                 ),
                 text(" to learn about those."),
-            ]),]
-        ),
-        h2(vec![text("Fetching data (using external REST API)")]),
-        p(vec![text(
+            ],
+        ],
+        h2![text("Fetching data (using external REST API)")],
+        p![text(
             "In a real world application, data will usually come from an API instead of being \
              hardcoded. Let's fetch our videos list from external source. For this we will need \
              to add the following crates:"
-        ),]),
-        ul(vec![
-            li(vec![
-                link("https://crates.io/crates/gloo-net", vec![code("gloo-net")]),
+        )],
+        ul![
+            li![
+                link!("https://crates.io/crates/gloo-net", code("gloo-net")),
                 text(" - For making the fetch call."),
-            ]),
-            li(vec![
-                link("https://serde.rs", vec![code("serde")]),
+            ],
+            li![
+                link!("https://serde.rs", code("serde")),
                 text(" with derive features - For de-serializing the JSON response"),
-            ]),
-            li(vec![
-                link(
+            ],
+            li![
+                link!(
                     "https://crates.io/crates/wasm-bindgen-futures",
-                    vec![code("wasm-bindgen-futures")]
+                    code("wasm-bindgen-futures")
                 ),
                 text(" - For executing Rust Future as a Promise"),
-            ]),
-        ]),
-        p(vec![
+            ],
+        ],
+        p![
             text("Let's update the dependencies in "),
             code("Cargo.toml"),
             text(" file:"),
-        ]),
+        ],
         code_block_title(
             "toml",
             "Cargo.toml",
@@ -723,13 +718,13 @@ gloo-net = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen-futures = "0.4""##
         ),
-        p(vec![
+        p![
             text("Update the "),
             code("Video"),
             text(" struct to derive the "),
             code("Deserialize"),
             text(" trait:"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"// highlight-next-line
@@ -744,11 +739,11 @@ struct Video {
     url: String,
 }"##
         ),
-        p(vec![
+        p![
             text("Now as the last step, we need to update our "),
             code("App"),
             text(" component to make the fetch request instead of using hardcoded data"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"// highlight-next-line
@@ -792,85 +787,80 @@ fn app() -> Html {
     }
 }"##
         ),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("We're using "),
                 code("unwrap"),
                 text(
                     "s here because this is a demo application. In a real world app, you would \
                      likely want to have "
                 ),
-                link(
+                link!(
                     "https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html",
-                    vec![text("proper error handling"),]
+                    text("proper error handling")
                 ),
                 text("."),
-            ]),]
-        ),
-        p(vec![text(
+            ],
+        ],
+        p![text(
             "Now look at the browser to see everything working as expected... which would've been \
              the case if it weren't for CORS. In order to fix that, we need a proxy server. \
              Luckily trunk provides that."
-        ),]),
-        p(vec![text("Update the following line:")]),
+        )],
+        p![text("Update the following line:")],
         code_block(
             "rust",
             r##"// highlight-next-line
 let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         ),
-        p(vec![text(
-            "Now, rerun the server with the following command:"
-        )]),
+        p![text("Now, rerun the server with the following command:")],
         code_block(
             "bash",
             "trunk serve --proxy-backend=https://yew.rs/tutorial"
         ),
-        p(vec![text(
+        p![text(
             "Refresh the tab and everything should work as expected."
-        )]),
-        h2(vec![text("Wrapping up")]),
-        p(vec![text(
+        )],
+        h2![text("Wrapping up")],
+        p![text(
             "Congratulations! You've created a web application that fetches data from an external \
              API and displays a list of videos."
-        )]),
-        h2(vec![text("What's next")]),
-        p(vec![text(
+        )],
+        h2![text("What's next")],
+        p![text(
             "Obviously, this application is very far from perfect or useful. After going through \
              this tutorial, you can use it as a jumping-off point to explore more advanced topics."
-        ),]),
-        h3(vec![text("Styles")]),
-        p(vec![
+        )],
+        h3![text("Styles")],
+        p![
             text(
                 "Our apps look very ugly. There's no CSS, or any kind of styles. Unfortunately, \
                  Yew doesn't offer a built-in way to style components. See "
             ),
-            link("https://trunkrs.dev/assets/", vec![text("Trunk's assets")]),
+            link!("https://trunkrs.dev/assets/", text("Trunk's assets")),
             text(" to learn how to add style sheets."),
-        ]),
-        h3(vec![text("More libraries")]),
-        p(vec![
+        ],
+        h3![text("More libraries")],
+        p![
             text(
                 "Our app made use of only a few external dependencies. There are lots of crates \
                  out there that can be used. See "
             ),
-            link("/community/external-libs", vec![text("external libraries")]),
+            link!("/community/external-libs", text("external libraries")),
             text(" for more details."),
-        ]),
-        h3(vec![text("Learning more about Yew")]),
-        p(vec![
+        ],
+        h3![text("Learning more about Yew")],
+        p![
             text("Read our "),
-            link(
-                "/docs/getting-started",
-                vec![text("official documentation")]
-            ),
+            link!("/docs/getting-started", text("official documentation")),
             text(
                 ". It explains a lot of concepts in much more details. To learn more about our \
                  the Yew API, see our "
             ),
-            link("https://docs.rs/yew", vec![text("API docs")]),
+            link!("https://docs.rs/yew", text("API docs")),
             text("."),
-        ]),
+        ],
     ])
 );

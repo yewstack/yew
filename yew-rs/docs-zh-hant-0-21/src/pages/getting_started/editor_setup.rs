@@ -15,9 +15,7 @@ crate::doc_page!(
             li![text(
                 "從導覽列依序點擊 File | Settings | Editor | Live Templates."
             )],
-            li![text(
-                "選擇 Rust 並點選 + 圖示新增新的 Live Template。"
-            )],
+            li![text("選擇 Rust 並點選 + 圖示新增新的 Live Template。")],
             li![text("根據需要給它一個的名稱和描述。")],
             li![text("將以下程式碼片段貼到範本文字部分。")],
             li![text("在右下角更改適用性，選擇 Rust > Item > Module")],
@@ -66,9 +64,7 @@ impl Component for $NAME$ {
         ),
         h3![text("VS Code")],
         ol![
-            li![text(
-                "從導覽列依序點選 File > Preferences > User Snippets."
-            )],
+            li![text("從導覽列依序點選 File > Preferences > User Snippets.")],
             li![text("選擇 Rust 作為設定語言。")],
             li![text("在 JSON 檔案中加入以下程式碼片段：")],
         ],
@@ -131,9 +127,7 @@ impl Component for $NAME$ {
             text("的項目！ "),
             link!(
                 "https://github.com/TechTheAwesome/code-yew-server",
-                text(
-                    "請查看詳細信息，並將相關的 bug 報告/問題/疑問直接發送到擴展的存儲庫"
-                ),
+                text("請查看詳細信息，並將相關的 bug 報告/問題/疑問直接發送到擴展的存儲庫"),
             ),
         ]],
         p![

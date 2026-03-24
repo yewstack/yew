@@ -16,9 +16,7 @@ crate::doc_page!(
             code("<input>"),
             text(" 的值以及透過 javascript API 直接與 DOM 互動。"),
         ],
-        p![text(
-            "這對於獲取 canvas 元素或滾動到頁面的不同部分很有用。",
-        )],
+        p![text("這對於獲取 canvas 元素或滾動到頁面的不同部分很有用。",)],
         admonition!(
             AdmonitionType::Caution,
             None,

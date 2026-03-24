@@ -19,9 +19,7 @@ crate::doc_page!(
             li![text(
                 "Select Rust and click on the + icon to add a new Live Template."
             )],
-            li![text(
-                "Give it a name and description of your preference."
-            )],
+            li![text("Give it a name and description of your preference.")],
             li![text(
                 "Paste the following snippet(s) into the Template Text section."
             )],
@@ -29,9 +27,7 @@ crate::doc_page!(
                 "Change the applicability on the lower right, select Rust > Item > Module"
             )],
         ],
-        p![text(
-            "For function components, use the following template."
-        ),],
+        p![text("For function components, use the following template."),],
         ul![li![
             text("(Optional) Click on Edit Variable and give "),
             code("tag"),
@@ -77,13 +73,9 @@ impl Component for $NAME$ {
         ),
         h3![text("VS Code")],
         ol![
-            li![text(
-                "Navigate to File > Preferences > User Snippets."
-            )],
+            li![text("Navigate to File > Preferences > User Snippets.")],
             li![text("Select Rust as the language.")],
-            li![text(
-                "Add the following snippet in the snippet JSON file:"
-            )],
+            li![text("Add the following snippet in the snippet JSON file:")],
         ],
         code_block(
             "json",

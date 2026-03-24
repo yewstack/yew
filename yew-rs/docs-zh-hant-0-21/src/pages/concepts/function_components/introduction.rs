@@ -15,14 +15,9 @@ crate::doc_page!(
         p![text("Components are the building blocks of Yew.")],
         p![text("They:")],
         ul![
-            li![
-                text("Take arguments in form of "),
-                link!("", text("Props")),
-            ],
+            li![text("Take arguments in form of "), link!("", text("Props")),],
             li![text("Can have their own state")],
-            li![text(
-                "Compute pieces of HTML visible to the user (DOM)",
-            )],
+            li![text("Compute pieces of HTML visible to the user (DOM)",)],
         ],
         h2![text("Two flavors of Yew Components")],
         p![text(

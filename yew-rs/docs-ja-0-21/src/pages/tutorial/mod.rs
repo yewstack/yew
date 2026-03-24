@@ -113,8 +113,8 @@ yew = { version = "0.21", features = ["csr"] }"##
             ),],
             p![
                 text(
-                    "If you need the Renderer for testing or examples, you should enable it \
-                     in the "
+                    "If you need the Renderer for testing or examples, you should enable it in \
+                     the "
                 ),
                 code("dev-dependencies"),
                 text(" instead."),
@@ -825,9 +825,7 @@ fn app() -> Html {
             r##"// highlight-next-line
 let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         ),
-        p![text(
-            "Now, rerun the server with the following command:"
-        )],
+        p![text("Now, rerun the server with the following command:")],
         code_block(
             "bash",
             "trunk serve --proxy-backend=https://yew.rs/tutorial"
@@ -866,10 +864,7 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         h3![text("Learning more about Yew")],
         p![
             text("Read our "),
-            link!(
-                "/ja/docs/getting-started",
-                text("official documentation")
-            ),
+            link!("/ja/docs/getting-started", text("official documentation")),
             text(
                 ". It explains a lot of concepts in much more detail. To learn more about the Yew \
                  API, see our "

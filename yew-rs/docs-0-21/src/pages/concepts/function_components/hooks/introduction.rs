@@ -11,10 +11,7 @@ crate::doc_page!(
                 "Yew comes with a few pre-defined hooks. You can also create your own or discover \
                  many "
             ),
-            link!(
-                "/community/awesome#hooks",
-                text("community-made hooks")
-            ),
+            link!("/community/awesome#hooks", text("community-made hooks")),
             text("."),
         ],
         h2![text("Rules of hooks")],
@@ -24,9 +21,7 @@ crate::doc_page!(
                 code("use_"),
             ],
             li_blocks![
-                p![text(
-                    "Hooks can only be used in the following locations:"
-                )],
+                p![text("Hooks can only be used in the following locations:")],
                 ul![
                     li![text("Top-level of a function/hook.")],
                     li![text(

@@ -2,11 +2,11 @@ crate::doc_page!(
     "State",
     "/docs/concepts/function-components/state",
     Content::new(vec![
-        h2(vec![text("General view of how to store state")]),
-        p(vec![text(
+        h2![text("General view of how to store state")],
+        p![text(
             "This table can be used as a guide when deciding what state storing type fits best \
              for your use case:"
-        )]),
+        )],
         table(
             vec![
                 vec![text("Hook")],

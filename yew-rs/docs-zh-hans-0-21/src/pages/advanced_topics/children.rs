@@ -182,10 +182,7 @@ html! {
         )],
         p![
             text("The "),
-            link!(
-                "https://github.com/JelteF/derive_more",
-                text("derive_more")
-            ),
+            link!("https://github.com/JelteF/derive_more", text("derive_more")),
             text(
                 " crate is used here for better ergonomics. If you don't want to use it, you can \
                  manually implement "

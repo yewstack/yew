@@ -47,10 +47,7 @@ crate::doc_page!(
             text(" 一起提供的，所以如果您還沒有安裝它，您需要使用 "),
             code("cargo install cargo-expand"),
             text(" 來安裝它。 "),
-            link!(
-                "https://rust-analyzer.github.io/",
-                text("Rust-Analyzer"),
-            ),
+            link!("https://rust-analyzer.github.io/", text("Rust-Analyzer"),),
             text(" 也提供了一個"),
             link!(
                 "https://rust-analyzer.github.io/manual.html#expand-macro-recursively",

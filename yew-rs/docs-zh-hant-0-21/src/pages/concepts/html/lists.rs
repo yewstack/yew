@@ -40,9 +40,7 @@ html! {
             ],
         ],
         h2![text("Iterators")],
-        p![text(
-            "Yew 支援兩種不同的方式，從 iterator 建構 html：",
-        )],
+        p![text("Yew 支援兩種不同的方式，從 iterator 建構 html：",)],
         tabs![
             "syntax-type-1",
             tab![

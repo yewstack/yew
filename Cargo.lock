@@ -100,7 +100,20 @@ dependencies = [
  "chrono",
  "futures 0.3.31",
  "gloo-net 0.6.0",
- "yew",
+ "yew 0.23.0",
+]
+
+[[package]]
+name = "atom_syndication"
+version = "0.12.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2f68d23e2cb4fd958c705b91a6b4c80ceeaf27a9e11651272a8389d5ce1a4a3"
+dependencies = [
+ "chrono",
+ "derive_builder",
+ "diligent-date-parser",
+ "never",
+ "quick-xml",
 ]
 
 [[package]]
@@ -226,7 +239,7 @@ name = "benchmark-core"
 version = "0.1.0"
 dependencies = [
  "divan",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -242,7 +255,7 @@ dependencies = [
  "serde_json",
  "tabled",
  "tokio",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -279,7 +292,16 @@ version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
 dependencies = [
- "bit-vec",
+ "bit-vec 0.6.3",
+]
+
+[[package]]
+name = "bit-set"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
+dependencies = [
+ "bit-vec 0.8.0",
 ]
 
 [[package]]
@@ -287,6 +309,12 @@ name = "bit-vec"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+
+[[package]]
+name = "bit-vec"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
 
 [[package]]
 name = "bitflags"
@@ -319,7 +347,7 @@ dependencies = [
  "rand 0.9.2",
  "serde",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -519,28 +547,28 @@ dependencies = [
 name = "communication_child_to_parent"
 version = "0.0.1"
 dependencies = [
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
 name = "communication_grandchild_with_grandparent"
 version = "0.0.1"
 dependencies = [
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
 name = "communication_grandparent_to_grandchild"
 version = "0.0.1"
 dependencies = [
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
 name = "communication_parent_to_child"
 version = "0.0.1"
 dependencies = [
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -576,8 +604,29 @@ dependencies = [
 name = "contexts"
 version = "0.1.0"
 dependencies = [
- "yew",
+ "yew 0.23.0",
  "yew-agent",
+]
+
+[[package]]
+name = "cookie"
+version = "0.16.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e859cd57d0710d9e06c381b550c06e76992472a8c6d527aecd2fc673dcc231fb"
+dependencies = [
+ "time",
+ "version_check",
+]
+
+[[package]]
+name = "cookie"
+version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ddef33a339a91ea89fb53151bd0a4689cfce27055c291dfa69945475d22c747"
+dependencies = [
+ "percent-encoding",
+ "time",
+ "version_check",
 ]
 
 [[package]]
@@ -607,20 +656,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "core_maths"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77745e017f5edba1a9c1d854f6f3a52dac8a12dd5af5d2f54aecf61e43d80d30"
+dependencies = [
+ "libm",
+]
+
+[[package]]
 name = "counter"
 version = "0.1.1"
 dependencies = [
  "gloo",
  "js-sys",
  "wasm-bindgen",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
 name = "counter_functional"
 version = "0.1.0"
 dependencies = [
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -770,6 +828,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "diligent-date-parser"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8ede7d79366f419921e2e2f67889c12125726692a313bffb474bd5f37a581e9"
+dependencies = [
+ "chrono",
+]
+
+[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -806,6 +873,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "doc-test-util"
+version = "0.1.0"
+
+[[package]]
 name = "dunce"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -820,7 +891,7 @@ dependencies = [
  "slab",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -909,10 +980,50 @@ version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "531e46835a22af56d1e3b66f04844bed63158bc094a628bec1d321d9b4c44bf2"
 dependencies = [
- "bit-set",
+ "bit-set 0.5.3",
  "regex-automata",
  "regex-syntax",
 ]
+
+[[package]]
+name = "fancy-regex"
+version = "0.16.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "998b056554fbe42e03ae0e152895cd1a7e1002aec800fdc6635d20270260c46f"
+dependencies = [
+ "bit-set 0.8.0",
+ "regex-automata",
+ "regex-syntax",
+]
+
+[[package]]
+name = "fantoccini"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7737298823a6f9ca743e372e8cb03658d55354fbab843424f575706ba9563046"
+dependencies = [
+ "base64",
+ "cookie 0.18.1",
+ "http 1.3.1",
+ "http-body-util",
+ "hyper",
+ "hyper-tls",
+ "hyper-util",
+ "mime",
+ "openssl",
+ "serde",
+ "serde_json",
+ "time",
+ "tokio",
+ "url",
+ "webdriver",
+]
+
+[[package]]
+name = "fastrand"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "fdeflate"
@@ -931,7 +1042,7 @@ dependencies = [
  "gloo",
  "js-sys",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -963,6 +1074,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
+name = "foreign-types"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1"
+dependencies = [
+ "foreign-types-shared",
+]
+
+[[package]]
+name = "foreign-types-shared"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
+
+[[package]]
 name = "form_urlencoded"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -983,7 +1109,7 @@ version = "0.1.0"
 dependencies = [
  "gloo-timers",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -998,7 +1124,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1014,8 +1140,8 @@ dependencies = [
  "rand 0.9.2",
  "serde",
  "wasm-logger",
- "yew",
- "yew-router",
+ "yew 0.23.0",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -1027,7 +1153,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1039,7 +1165,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1128,7 +1254,7 @@ dependencies = [
  "log",
  "rand 0.9.2",
  "wasm-logger",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1590,6 +1716,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "hyper-tls"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70206fc6890eaca9fde8a0bf71caa2ddfc9fe045ac9e5c70df101a7dbde866e0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "native-tls",
+ "tokio",
+ "tokio-native-tls",
+ "tower-service",
+]
+
+[[package]]
 name = "hyper-util"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1640,15 +1782,27 @@ dependencies = [
 
 [[package]]
 name = "icu_collections"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db2fa452206ebee18c4b5c2274dbf1de17008e874b4dc4f0aea9d01ca79e4526"
+dependencies = [
+ "displaydoc",
+ "yoke 0.7.5",
+ "zerofrom",
+ "zerovec 0.10.4",
+]
+
+[[package]]
+name = "icu_collections"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "200072f5d0e3614556f94a9930d5dc3e0662a652823904c3a75dc3b0af7fee47"
 dependencies = [
  "displaydoc",
  "potential_utf",
- "yoke",
+ "yoke 0.8.0",
  "zerofrom",
- "zerovec",
+ "zerovec 0.11.4",
 ]
 
 [[package]]
@@ -1658,10 +1812,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0cde2700ccaed3872079a65fb1a78f6c0a36c91570f28755dda67bc8f7d9f00a"
 dependencies = [
  "displaydoc",
- "litemap",
- "tinystr",
- "writeable",
- "zerovec",
+ "litemap 0.8.0",
+ "tinystr 0.8.1",
+ "writeable 0.6.1",
+ "zerovec 0.11.4",
+]
+
+[[package]]
+name = "icu_locid"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13acbb8371917fc971be86fc8057c41a64b521c184808a698c02acc242dbf637"
+dependencies = [
+ "displaydoc",
+ "litemap 0.7.5",
+ "tinystr 0.7.6",
+ "writeable 0.5.5",
 ]
 
 [[package]]
@@ -1671,12 +1837,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "436880e8e18df4d7bbc06d58432329d6458cc84531f7ac5f024e93deadb37979"
 dependencies = [
  "displaydoc",
- "icu_collections",
+ "icu_collections 2.0.0",
  "icu_normalizer_data",
  "icu_properties",
- "icu_provider",
+ "icu_provider 2.0.0",
  "smallvec",
- "zerovec",
+ "zerovec 0.11.4",
 ]
 
 [[package]]
@@ -1692,13 +1858,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "016c619c1eeb94efb86809b015c58f479963de65bdb6253345c1a1276f22e32b"
 dependencies = [
  "displaydoc",
- "icu_collections",
+ "icu_collections 2.0.0",
  "icu_locale_core",
  "icu_properties_data",
- "icu_provider",
+ "icu_provider 2.0.0",
  "potential_utf",
  "zerotrie",
- "zerovec",
+ "zerovec 0.11.4",
 ]
 
 [[package]]
@@ -1709,6 +1875,23 @@ checksum = "298459143998310acd25ffe6810ed544932242d3f07083eee1084d83a71bd632"
 
 [[package]]
 name = "icu_provider"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ed421c8a8ef78d3e2dbc98a973be2f3770cb42b606e3ab18d6237c4dfde68d9"
+dependencies = [
+ "displaydoc",
+ "icu_locid",
+ "icu_provider_macros",
+ "stable_deref_trait",
+ "tinystr 0.7.6",
+ "writeable 0.5.5",
+ "yoke 0.7.5",
+ "zerofrom",
+ "zerovec 0.10.4",
+]
+
+[[package]]
+name = "icu_provider"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03c80da27b5f4187909049ee2d72f276f0d9f99a42c306bd0131ecfe04d8e5af"
@@ -1716,13 +1899,46 @@ dependencies = [
  "displaydoc",
  "icu_locale_core",
  "stable_deref_trait",
- "tinystr",
- "writeable",
- "yoke",
+ "tinystr 0.8.1",
+ "writeable 0.6.1",
+ "yoke 0.8.0",
  "zerofrom",
  "zerotrie",
- "zerovec",
+ "zerovec 0.11.4",
 ]
+
+[[package]]
+name = "icu_provider_macros"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ec89e9337638ecdc08744df490b221a7399bf8d164eb52a665454e60e075ad6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "icu_segmenter"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a717725612346ffc2d7b42c94b820db6908048f39434504cb130e8b46256b0de"
+dependencies = [
+ "core_maths",
+ "displaydoc",
+ "icu_collections 1.5.0",
+ "icu_locid",
+ "icu_provider 1.5.0",
+ "icu_segmenter_data",
+ "utf8_iter",
+ "zerovec 0.10.4",
+]
+
+[[package]]
+name = "icu_segmenter_data"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1e52775179941363cc594e49ce99284d13d6948928d8e72c755f55e98caa1eb"
 
 [[package]]
 name = "ident_case"
@@ -1770,7 +1986,7 @@ dependencies = [
  "implicit-clone",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1825,7 +2041,7 @@ version = "0.1.0"
 dependencies = [
  "gloo",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1861,6 +2077,15 @@ name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
+
+[[package]]
+name = "itertools"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+dependencies = [
+ "either",
+]
 
 [[package]]
 name = "itertools"
@@ -1961,7 +2186,7 @@ dependencies = [
  "rand 0.9.2",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1972,7 +2197,7 @@ dependencies = [
  "rand 0.9.2",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -1992,7 +2217,7 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -2006,7 +2231,7 @@ dependencies = [
  "rand 0.9.2",
  "wasm-logger",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -2069,9 +2294,9 @@ dependencies = [
 
 [[package]]
 name = "linux-raw-sys"
-version = "0.9.4"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd945864f07fe9f5371a27ad7b52a172b4b499999f1d97574c9fa68373937e12"
+checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "lipsum"
@@ -2084,17 +2309,31 @@ dependencies = [
 
 [[package]]
 name = "litemap"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
+
+[[package]]
+name = "litemap"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
 
 [[package]]
-name = "lock_api"
-version = "0.4.13"
+name = "litrs"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96936507f153605bddfcda068dd804796c84324ed2510809e5b2a624c81da765"
+checksum = "f5e54036fe321fd421e10d732f155734c4e4afd610dd556d9a82833ab3ee0bed"
 dependencies = [
- "autocfg",
+ "proc-macro2",
+]
+
+[[package]]
+name = "lock_api"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
+dependencies = [
  "scopeguard",
 ]
 
@@ -2149,6 +2388,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "minimal-lexical"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
 name = "miniz_oxide"
 version = "0.8.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2176,7 +2421,7 @@ dependencies = [
  "gloo",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -2189,21 +2434,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "native-tls"
+version = "0.2.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "465500e14ea162429d264d44189adc38b199b62b1c21eea9f69e4b73cb03bbf2"
+dependencies = [
+ "libc",
+ "log",
+ "openssl",
+ "openssl-probe 0.2.1",
+ "openssl-sys",
+ "schannel",
+ "security-framework",
+ "security-framework-sys",
+ "tempfile",
+]
+
+[[package]]
 name = "nested_list"
 version = "0.1.0"
 dependencies = [
  "implicit-clone",
  "log",
  "wasm-logger",
- "yew",
+ "yew 0.23.0",
 ]
+
+[[package]]
+name = "never"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c96aba5aa877601bb3f6dd6a63a969e1f82e60646e81e71b14496995e9853c91"
 
 [[package]]
 name = "node_refs"
 version = "0.1.0"
 dependencies = [
  "web-sys",
- "yew",
+ "yew 0.23.0",
+]
+
+[[package]]
+name = "nom"
+version = "7.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
+dependencies = [
+ "memchr",
+ "minimal-lexical",
 ]
 
 [[package]]
@@ -2260,6 +2538,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
 
 [[package]]
+name = "openssl"
+version = "0.10.76"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "951c002c75e16ea2c65b8c7e4d3d51d5530d8dfa7d060b4776828c88cfb18ecf"
+dependencies = [
+ "bitflags 2.9.2",
+ "cfg-if",
+ "foreign-types",
+ "libc",
+ "once_cell",
+ "openssl-macros",
+ "openssl-sys",
+]
+
+[[package]]
+name = "openssl-macros"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "openssl-probe"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2273,9 +2577,9 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.109"
+version = "0.9.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90096e2e47630d78b7d1c20952dc621f957103f8bc2c8359ec81290d75238571"
+checksum = "57d55af3b3e226502be1526dfdba67ab0e9c96fc293004e79576b2b9edb0dbdb"
 dependencies = [
  "cc",
  "libc",
@@ -2295,6 +2599,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "parking_lot"
+version = "0.12.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a"
+dependencies = [
+ "lock_api",
+ "parking_lot_core",
+]
+
+[[package]]
+name = "parking_lot_core"
+version = "0.9.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "redox_syscall",
+ "smallvec",
+ "windows-link 0.2.0",
+]
+
+[[package]]
 name = "password_strength"
 version = "0.1.0"
 dependencies = [
@@ -2302,7 +2629,7 @@ dependencies = [
  "js-sys",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
  "zxcvbn",
 ]
 
@@ -2396,7 +2723,7 @@ dependencies = [
  "gloo",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -2416,7 +2743,7 @@ version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5a7c30837279ca13e7c867e9e40053bc68740f988cb07f7ca6df43cc734b585"
 dependencies = [
- "zerovec",
+ "zerovec 0.11.4",
 ]
 
 [[package]]
@@ -2533,6 +2860,16 @@ dependencies = [
  "bitflags 2.9.2",
  "memchr",
  "unicase",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.37.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "331e97a1af0bf59823e6eadffe373d7b27f485be8748f71471c662c1f269b7fb"
+dependencies = [
+ "encoding_rs",
+ "memchr",
 ]
 
 [[package]]
@@ -2666,6 +3003,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "redox_syscall"
+version = "0.5.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
+dependencies = [
+ "bitflags 2.9.2",
+]
+
+[[package]]
 name = "regex"
 version = "1.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2775,8 +3121,20 @@ dependencies = [
  "rand 0.9.2",
  "serde",
  "wasm-logger",
- "yew",
- "yew-router",
+ "yew 0.23.0",
+ "yew-router 0.20.0",
+]
+
+[[package]]
+name = "rss"
+version = "2.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2107738f003660f0a91f56fd3e3bd3ab5d918b2ddaf1e1ec2136fb1c46f71bf"
+dependencies = [
+ "atom_syndication",
+ "derive_builder",
+ "never",
+ "quick-xml",
 ]
 
 [[package]]
@@ -2796,15 +3154,15 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "1.0.8"
+version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11181fbabf243db407ef8df94a6ce0b2f9a733bd8be4ad02b4eda9602296cac8"
+checksum = "b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190"
 dependencies = [
  "bitflags 2.9.2",
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
@@ -2905,11 +3263,11 @@ dependencies = [
 
 [[package]]
 name = "schannel"
-version = "0.1.27"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f29ebaa345f945cec9fbbc532eb307f0fdad8161f281b6369539c8d84876b3d"
+checksum = "91c1b7e4904c873ef0710c1f407dde2e6287de2bebc1bbbf7d430bb7cbffd939"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.0",
 ]
 
 [[package]]
@@ -3096,7 +3454,7 @@ dependencies = [
  "warp",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -3170,8 +3528,8 @@ dependencies = [
  "tracing-web",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
- "yew",
- "yew-router",
+ "yew 0.23.0",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -3208,6 +3566,55 @@ dependencies = [
 ]
 
 [[package]]
+name = "stylist"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "373cdadb5137ccf258b1b5945c2fae9948ff7229e2f80ac1271759f92059078a"
+dependencies = [
+ "fastrand",
+ "gloo-events",
+ "html-escape",
+ "instant",
+ "once_cell",
+ "serde",
+ "stylist-core",
+ "stylist-macros",
+ "wasm-bindgen",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "stylist-core"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86a6932668a85e87430e99d50a6bf3270e511a8b3d926982e5de198b4b300100"
+dependencies = [
+ "nom",
+ "once_cell",
+ "serde",
+ "thiserror 1.0.69",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "stylist-macros"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e06b3cf10ea95e143d79969b96e9cc073b23b207bc4e711101300ae2f1a1f3a6"
+dependencies = [
+ "itertools 0.12.1",
+ "litrs",
+ "log",
+ "nom",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "stylist-core",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3221,7 +3628,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -3264,6 +3671,23 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "syntect"
+version = "5.3.0"
+source = "git+https://github.com/Madoshakalaka/syntect.git?branch=line-highlighting#88e43b13079c67584b0bdad8cf11737bef11f4af"
+dependencies = [
+ "bincode 1.3.3",
+ "fancy-regex 0.16.2",
+ "flate2",
+ "fnv",
+ "once_cell",
+ "regex-syntax",
+ "serde",
+ "serde_derive",
+ "thiserror 2.0.18",
+ "walkdir",
 ]
 
 [[package]]
@@ -3316,6 +3740,19 @@ name = "target-triple"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "591ef38edfb78ca4771ee32cf494cb8771944bee237a9b91fc9c1424ac4b777b"
+
+[[package]]
+name = "tempfile"
+version = "3.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
+dependencies = [
+ "fastrand",
+ "getrandom 0.3.4",
+ "once_cell",
+ "rustix",
+ "windows-sys 0.61.0",
+]
 
 [[package]]
 name = "termcolor"
@@ -3401,10 +3838,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9e442fc33d7fdb45aa9bfeb312c095964abdf596f7567261062b2a7107aaabd"
 dependencies = [
  "deranged",
+ "itoa",
  "num-conv",
  "powerfmt",
  "serde_core",
  "time-core",
+ "time-macros",
 ]
 
 [[package]]
@@ -3414,13 +3853,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b36ee98fd31ec7426d599183e8fe26932a8dc1fb76ddb6214d05493377d34ca"
 
 [[package]]
+name = "time-macros"
+version = "0.2.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71e552d1249bf61ac2a52db88179fd0673def1e1ad8243a00d9ec9ed71fee3dd"
+dependencies = [
+ "num-conv",
+ "time-core",
+]
+
+[[package]]
 name = "timer"
 version = "0.1.0"
 dependencies = [
  "gloo",
  "js-sys",
  "wasm-bindgen",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -3429,7 +3878,16 @@ version = "0.1.0"
 dependencies = [
  "gloo",
  "js-sys",
- "yew",
+ "yew 0.23.0",
+]
+
+[[package]]
+name = "tinystr"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9117f5d4db391c1cf6927e7bea3db74b9a1c1add8f7eda9ffd5364f40f57b82f"
+dependencies = [
+ "displaydoc",
 ]
 
 [[package]]
@@ -3439,7 +3897,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d4f6d1145dcb577acf783d4e601bc1d76a13337bb54e6233add580b07344c8b"
 dependencies = [
  "displaydoc",
- "zerovec",
+ "zerovec 0.11.4",
 ]
 
 [[package]]
@@ -3467,7 +3925,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -3479,6 +3937,7 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
+ "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",
@@ -3495,6 +3954,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "tokio-native-tls"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbae76ab933c85776efabc971569dd6119c580d8f5d448769dec1764bf796ef2"
+dependencies = [
+ "native-tls",
+ "tokio",
 ]
 
 [[package]]
@@ -3757,7 +4226,7 @@ name = "two_apps"
 version = "0.1.0"
 dependencies = [
  "gloo",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -3929,8 +4398,8 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "yew",
- "yew-router",
+ "yew 0.23.0",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -4072,13 +4541,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "webdriver"
+version = "0.53.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91d53921e1bef27512fa358179c9a22428d55778d2c2ae3c5c37a52b82ce6e92"
+dependencies = [
+ "base64",
+ "bytes",
+ "cookie 0.16.2",
+ "http 0.2.12",
+ "icu_segmenter",
+ "log",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "thiserror 1.0.69",
+ "time",
+ "url",
+]
+
+[[package]]
 name = "webgl"
 version = "0.1.0"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
 ]
 
 [[package]]
@@ -4113,10 +4602,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "website-e2e"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "fantoccini",
+ "reqwest",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "url",
+]
+
+[[package]]
 name = "website-test"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "doc-test-util",
  "glob",
  "gloo",
  "gloo-net 0.6.0",
@@ -4127,10 +4630,32 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "weblog",
- "yew",
+ "yew 0.23.0",
  "yew-agent",
  "yew-autoprops",
- "yew-router",
+ "yew-router 0.20.0",
+]
+
+[[package]]
+name = "website-test-yew-rs"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "doc-test-util",
+ "glob",
+ "gloo",
+ "gloo-net 0.6.0",
+ "js-sys",
+ "serde",
+ "tokio",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "weblog",
+ "yew 0.23.0",
+ "yew-agent",
+ "yew-autoprops",
+ "yew-router 0.20.0",
 ]
 
 [[package]]
@@ -4472,6 +4997,12 @@ checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 
 [[package]]
 name = "writeable"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
+
+[[package]]
+name = "writeable"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
@@ -4501,7 +5032,35 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
  "web-sys",
- "yew-macro",
+ "yew-macro 0.23.0",
+]
+
+[[package]]
+name = "yew"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c154fadfa97eabdd3f3b79345ceeb9c05ee8f13f76d3d881d17fba618bf558d"
+dependencies = [
+ "base64ct",
+ "bincode 2.0.0-rc.3",
+ "console_error_panic_hook",
+ "futures 0.3.31",
+ "gloo",
+ "html-escape",
+ "implicit-clone",
+ "indexmap",
+ "js-sys",
+ "rustversion",
+ "serde",
+ "slab",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokise",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew-macro 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -4517,7 +5076,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "yew",
+ "yew 0.23.0",
  "yew-agent-macro",
 ]
 
@@ -4545,6 +5104,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "yew-hooks"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c75caf5cfd6ff48a93f7a27c6c84a398f51f96fe4dbd6830545444f926201cb"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "log",
+ "serde",
+ "serde_json",
+ "urlencoding",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "yew-macro"
 version = "0.23.0"
 dependencies = [
@@ -4556,7 +5133,21 @@ dependencies = [
  "rustversion",
  "syn 2.0.117",
  "trybuild",
- "yew",
+ "yew 0.23.0",
+]
+
+[[package]]
+name = "yew-macro"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c08b883d84a035f57519d057f65a2a07ae25f1884ad485e1a9a523c9d880c1ad"
+dependencies = [
+ "prettyplease",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -4573,8 +5164,27 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-test",
  "web-sys",
- "yew",
- "yew-router-macro",
+ "yew 0.23.0",
+ "yew-router-macro 0.20.0",
+]
+
+[[package]]
+name = "yew-router"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "870bd2a1aa6d608c0c789c122654e25f4927bb6bfe344cc0da3b630ac3c73260"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "route-recognizer",
+ "serde",
+ "serde_urlencoded",
+ "tracing",
+ "urlencoding",
+ "wasm-bindgen",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router-macro 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -4586,7 +5196,325 @@ dependencies = [
  "rustversion",
  "syn 2.0.117",
  "trybuild",
- "yew-router",
+ "yew-router 0.20.0",
+]
+
+[[package]]
+name = "yew-router-macro"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8399f1d134ab8e69abc7cded19f114621d520bd9c79c5a0f34091bf664d7325b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "yew-site-blog"
+version = "0.1.0"
+dependencies = [
+ "stylist",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-community"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-0-20"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-0-21",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-0-21"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-0-22"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-0-23"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-ja"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-ja-0-20"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-0-21",
+ "yew-site-docs-ja-0-21",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-ja-0-21"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-ja-0-22"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs-ja",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-ja-0-23"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs-ja",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hans"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hans-0-20"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hans-0-21"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hans-0-22"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs-zh-hans",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hans-0-23"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs-zh-hans",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hant"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hant-0-20"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-zh-hant-0-21",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hant-0-21"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hant-0-22"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs-zh-hant",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-docs-zh-hant-0-23"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs-zh-hant",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-home"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "stylist",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-hooks",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-lib"
+version = "0.1.0"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "stylist",
+ "syntect",
+ "wasm-bindgen",
+ "web-sys",
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-hooks",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "yew-site-spa-en"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-0-20",
+ "yew-site-docs-0-21",
+ "yew-site-docs-0-22",
+ "yew-site-docs-0-23",
+ "yew-site-home",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-spa-ja"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-ja",
+ "yew-site-docs-ja-0-20",
+ "yew-site-docs-ja-0-21",
+ "yew-site-docs-ja-0-22",
+ "yew-site-docs-ja-0-23",
+ "yew-site-home",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-spa-zh-hans"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-zh-hans",
+ "yew-site-docs-zh-hans-0-20",
+ "yew-site-docs-zh-hans-0-21",
+ "yew-site-docs-zh-hans-0-22",
+ "yew-site-docs-zh-hans-0-23",
+ "yew-site-home",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-spa-zh-hant"
+version = "0.1.0"
+dependencies = [
+ "yew 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-router 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew-site-docs",
+ "yew-site-docs-zh-hant",
+ "yew-site-docs-zh-hant-0-20",
+ "yew-site-docs-zh-hant-0-21",
+ "yew-site-docs-zh-hant-0-22",
+ "yew-site-docs-zh-hant-0-23",
+ "yew-site-home",
+ "yew-site-lib",
+]
+
+[[package]]
+name = "yew-site-ssg"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "atom_syndication",
+ "clap",
+ "rss",
+ "syntect",
+ "tokio",
+ "yew-site-blog",
+ "yew-site-community",
+ "yew-site-home",
+ "yew-site-spa-en",
+ "yew-site-spa-ja",
+ "yew-site-spa-zh-hans",
+ "yew-site-spa-zh-hant",
 ]
 
 [[package]]
@@ -4598,7 +5526,7 @@ dependencies = [
  "serde",
  "wasm-bindgen",
  "web-sys",
- "yew",
+ "yew 0.23.0",
  "yew-agent",
 ]
 
@@ -4609,8 +5537,20 @@ dependencies = [
  "futures 0.3.31",
  "primes",
  "serde",
- "yew",
+ "yew 0.23.0",
  "yew-agent",
+]
+
+[[package]]
+name = "yoke"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "120e6aef9aa629e3d4f52dc8cc43a015c7724194c97dfaf45180d2daf2b77f40"
+dependencies = [
+ "serde",
+ "stable_deref_trait",
+ "yoke-derive 0.7.5",
+ "zerofrom",
 ]
 
 [[package]]
@@ -4621,8 +5561,20 @@ checksum = "5f41bb01b8226ef4bfd589436a297c53d118f65921786300e427be8d487695cc"
 dependencies = [
  "serde",
  "stable_deref_trait",
- "yoke-derive",
+ "yoke-derive 0.8.0",
  "zerofrom",
+]
+
+[[package]]
+name = "yoke-derive"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2380878cad4ac9aac1e2435f3eb4020e8374b5f13c296cb75b4620ff8e229154"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+ "synstructure",
 ]
 
 [[package]]
@@ -4691,8 +5643,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36f0bbd478583f79edad978b407914f61b2972f5af6fa089686016be8f9af595"
 dependencies = [
  "displaydoc",
- "yoke",
+ "yoke 0.8.0",
  "zerofrom",
+]
+
+[[package]]
+name = "zerovec"
+version = "0.10.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa2b893d79df23bfb12d5461018d408ea19dfafe76c2c7ef6d4eba614f8ff079"
+dependencies = [
+ "yoke 0.7.5",
+ "zerofrom",
+ "zerovec-derive 0.10.3",
 ]
 
 [[package]]
@@ -4701,9 +5664,20 @@ version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7aa2bd55086f1ab526693ecbe444205da57e25f4489879da80635a46d90e73b"
 dependencies = [
- "yoke",
+ "yoke 0.8.0",
  "zerofrom",
- "zerovec-derive",
+ "zerovec-derive 0.11.1",
+]
+
+[[package]]
+name = "zerovec-derive"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6eafa6dfb17584ea3e2bd6e76e0cc15ad7af12b09abdd1ca55961bed9b1063c6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
@@ -4731,8 +5705,8 @@ checksum = "ad76e35b00ad53688d6b90c431cabe3cbf51f7a4a154739e04b63004ab1c736c"
 dependencies = [
  "chrono",
  "derive_builder",
- "fancy-regex",
- "itertools",
+ "fancy-regex 0.13.0",
+ "itertools 0.13.0",
  "lazy_static",
  "regex",
  "time",

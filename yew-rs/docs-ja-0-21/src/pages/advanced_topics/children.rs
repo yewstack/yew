@@ -10,8 +10,8 @@ crate::doc_page!(
                 code("Children"),
                 text(
                     " can often result in surprising and hard-to-explain behaviours in your \
-                     application. This can lead to edge cases and often does not yield \
-                     expected result."
+                     application. This can lead to edge cases and often does not yield expected \
+                     result."
                 ),
             ],
             p![

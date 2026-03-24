@@ -3,10 +3,7 @@ crate::doc_page!(
     "/zh-Hant/docs/concepts/html/classes",
     Content::new(vec![
         h2![text("類別")],
-        p![
-            code("Classes"),
-            text(" 結構體可以用來處理 HTML 類別。"),
-        ],
+        p![code("Classes"), text(" 結構體可以用來處理 HTML 類別。"),],
         p![
             text("將字串推送到集合時，"),
             code("Classes"),

@@ -23,17 +23,11 @@ crate::doc_page!(
         h4![text("Component Libraries")],
         ul![
             li![
-                link!(
-                    "https://github.com/spielrs/yew_styles",
-                    text("yew_styles"),
-                ),
+                link!("https://github.com/spielrs/yew_styles", text("yew_styles"),),
                 text(" - A styling framework for Yew without any JavaScript dependencies."),
             ],
             li![
-                link!(
-                    "https://github.com/Follpvosten/yew-mdc",
-                    text("yew-mdc"),
-                ),
+                link!("https://github.com/Follpvosten/yew-mdc", text("yew-mdc"),),
                 text(" - Material Design Components."),
             ],
             li![
@@ -51,10 +45,7 @@ crate::doc_page!(
         h4![text("Styling Solutions")],
         ul![
             li![
-                link!(
-                    "https://github.com/futursolo/stylist-rs",
-                    text("stylist"),
-                ),
+                link!("https://github.com/futursolo/stylist-rs", text("stylist"),),
                 text(" - A CSS-in-Rust styling solution for WebAssembly Applications."),
             ],
             li![

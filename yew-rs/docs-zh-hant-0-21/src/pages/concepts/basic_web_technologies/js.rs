@@ -20,20 +20,14 @@ crate::doc_page!(
         ],
         p![
             text("我們強烈建議您查看他們的"),
-            link!(
-                "https://wasm-bindgen.github.io/wasm-bindgen/",
-                text("文件"),
-            ),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/", text("文件"),),
             text("和我們的"),
             link!("", text("快速指南")),
             text("。"),
         ],
         h2![text("web-sys")],
         p![
-            link!(
-                "https://crates.io/crates/web-sys",
-                text("web-sys crate"),
-            ),
+            link!("https://crates.io/crates/web-sys", text("web-sys crate"),),
             text(
                 " 為 Web API 提供了綁定，並允許我們以一種經過 Rust 處理和安全的方式編寫 \
                  JavaScript 程式碼。",
@@ -42,10 +36,7 @@ crate::doc_page!(
         p![text("範例：")],
         p![
             text("再次強調，我們強烈建議您查看他們的"),
-            link!(
-                "https://wasm-bindgen.github.io/wasm-bindgen/",
-                text("文件"),
-            ),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/", text("文件"),),
             text("和我們的"),
             link!("", text("快速指南")),
             text("。"),

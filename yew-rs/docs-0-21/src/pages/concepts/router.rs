@@ -25,11 +25,7 @@ crate::doc_page!(
             text(","),
         ],
         h2![text("Usage")],
-        p![
-            text("You start by defining a "),
-            code("Route"),
-            text("."),
-        ],
+        p![text("You start by defining a "), code("Route"), text("."),],
         p![
             text("Routes are defined as an "),
             code("enum"),
@@ -563,9 +559,7 @@ fn some_page() -> Html {
             code("HashMap"),
             text(" containing string pairs."),
         ],
-        h4![text(
-            "Obtaining query parameters for the current route"
-        )],
+        h4![text("Obtaining query parameters for the current route")],
         p![
             code("location.query"),
             text(" is used to obtain the query parameters. It uses "),

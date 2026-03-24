@@ -4,10 +4,7 @@ crate::doc_page!(
     Content::new(vec![
         p![
             text("A function component is considered "),
-            link!(
-                "https://en.wikipedia.org/wiki/Pure_function",
-                text("pure")
-            ),
+            link!("https://en.wikipedia.org/wiki/Pure_function", text("pure")),
             text(" when the returned "),
             code("Html"),
             text(

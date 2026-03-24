@@ -23,9 +23,7 @@ crate::doc_page!(
                 )
             ],
             li![text("Can have their own state")],
-            li![text(
-                "Compute pieces of HTML visible to the user (DOM)"
-            )],
+            li![text("Compute pieces of HTML visible to the user (DOM)")],
         ],
         h2![text("Two flavors of Yew Components")],
         p![text(

@@ -16,17 +16,11 @@ crate::doc_page!(
         )],
         ul![
             li![
-                link!(
-                    "https://github.com/spielrs/yew_styles",
-                    text("yew_styles")
-                ),
+                link!("https://github.com/spielrs/yew_styles", text("yew_styles")),
                 text(" - JavaScriptに依存しないYewのスタイルフレームワーク"),
             ],
             li![
-                link!(
-                    "https://github.com/Follpvosten/yew-mdc",
-                    text("yew-mdc")
-                ),
+                link!("https://github.com/Follpvosten/yew-mdc", text("yew-mdc")),
                 text(" - マテリアルデザインのコンポーネント"),
             ],
             li![

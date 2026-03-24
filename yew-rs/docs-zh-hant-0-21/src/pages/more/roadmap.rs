@@ -58,10 +58,7 @@ crate::doc_page!(
             )],
         ],
         h4![text("文件")],
-        ul![
-            li![text("建立教學文件")],
-            li![text("簡化專案設定")],
-        ],
+        ul![li![text("建立教學文件")], li![text("簡化專案設定")],],
         h4![text("痛點")],
         ul![
             li![link!(

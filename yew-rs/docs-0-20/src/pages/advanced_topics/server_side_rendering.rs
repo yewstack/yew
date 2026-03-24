@@ -1,33 +1,33 @@
 crate::doc_page!("Server-side Rendering", "/docs/advanced-topics/server-side-rendering",
     Content::new(vec![
         h1(vec![text("Server-side Rendering")]),
-        p(vec![
+        p![
             text("By default, Yew components render on the client side. When a viewer \
               visits a website, the server sends a skeleton HTML file without any actual \
               content and a WebAssembly bundle to the browser. \
               Everything is rendered on the client side by the WebAssembly \
               bundle. This is known as client-side rendering."),
-        ]),
-        p(vec![text("This approach works fine for most websites, with some caveats:")]),
-        ol(vec![
-            li(vec![
+        ],
+        p![text("This approach works fine for most websites, with some caveats:")],
+        ol![
+            li![
                 text("Users will not be able to see anything until the entire WebAssembly \
                   bundle is downloaded and the initial render has been completed. \
                   This can result in a poor experience for users on a slow network."),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("Some search engines do not support dynamically rendered web content and \
                   those who do usually rank dynamic websites lower in the search results."),
-            ]),
-        ]),
-        p(vec![text("To solve these problems, we can render our website on the server side.")]),
-        h2(vec![text("How it Works")]),
-        p(vec![
+            ],
+        ],
+        p![text("To solve these problems, we can render our website on the server side.")],
+        h2![text("How it Works")],
+        p![
             text("Yew provides a "),
             code("ServerRenderer"),
             text(" to render pages on the server side."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("To render Yew components on the server side, you can create a renderer \
               with "),
             code("ServerRenderer::<App>::new()"),
@@ -38,7 +38,7 @@ crate::doc_page!("Server-side Rendering", "/docs/advanced-topics/server-side-ren
             text(" into a "),
             code("String"),
             text("."),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 use yew::ServerRenderer;
 
@@ -60,11 +60,11 @@ async fn no_main() {
     // Prints: <div>Hello, World!</div>
     println!("{}", rendered);
 }"#),
-        h2(vec![text("Component Lifecycle")]),
-        p(vec![
+        h2![text("Component Lifecycle")],
+        p![
             text("The recommended way of working with server-side rendering is function components."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("All hooks other than "),
             code("use_effect"),
             text(" (and "),
@@ -72,9 +72,9 @@ async fn no_main() {
             text(") will function normally until a component successfully renders into "),
             code("Html"),
             text(" for the first time."),
-        ]),
-        admonition(AdmonitionType::Warning, Some("Web APIs are not available!"), vec![
-            p(vec![
+        ],
+        admonition![AdmonitionType::Warning, Some("Web APIs are not available!"),
+            p![
                 text("Web APIs such as "),
                 code("web_sys"),
                 text(" are not available when your component is rendering on the server side. \
@@ -84,78 +84,78 @@ async fn no_main() {
                 text(" or "),
                 code("use_effect_with"),
                 text(" as effects are not executed during server-side rendering."),
-            ]),
-        ]),
-        admonition(AdmonitionType::Danger, Some("Struct Components"), vec![
-            p(vec![
+            ],
+        ],
+        admonition![AdmonitionType::Danger, Some("Struct Components"),
+            p![
                 text("While it is possible to use Struct Components with server-side rendering, \
                   there are no clear boundaries between client-side safe logic like the "),
                 code("use_effect"),
                 text(" hook for function components and lifecycle events are invoked \
                   in a different order than the client side."),
-            ]),
-            p(vec![
+            ],
+            p![
                 text("In addition, Struct Components will continue to accept messages until all of its \
                   children are rendered and "),
                 code("destroy"),
                 text(" method is called. Developers need to \
                   make sure no messages possibly passed to components would link to logic \
                   that makes use of Web APIs."),
-            ]),
-            p(vec![
+            ],
+            p![
                 text("When designing an application with server-side rendering support, \
                   prefer function components unless you have a good reason not to."),
-            ]),
-        ]),
-        h2(vec![text("Data Fetching during Server-side Rendering")]),
-        p(vec![
+            ],
+        ],
+        h2![text("Data Fetching during Server-side Rendering")],
+        p![
             text("Data fetching is one of the difficult points with server-side rendering and hydration."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Traditionally, when a component renders, it is instantly available \
               (outputs a virtual DOM to be rendered). This works fine when the \
               component does not want to fetch any data. But what happens if the component \
               wants to fetch some data during rendering?"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("In the past, there was no mechanism for Yew to detect whether a component is still \
               fetching data. The data-fetching client is responsible to implement \
               a solution to detect what is being requested during the initial render and triggers \
               a second render after requests are fulfilled. The server repeats this process until \
               no more pending requests are added during a render before returning a response."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("This not only wastes CPU resources by repeatedly rendering components, \
               but the data client also needs to provide a way to make the data fetched on the \
               server side available during the hydration process to make sure that the \
               virtual DOM returned by the initial render is consistent with the \
               server-side rendered DOM tree which can be hard to implement."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Yew takes a different approach by trying to solve this issue with "),
             code("<Suspense />"),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Suspense is a special component that when used on the client side, provides a \
               way to show a fallback UI while the component is fetching \
               data (suspended) and resumes to normal UI when the data fetching completes."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("When the application is rendered on the server side, Yew waits until a \
               component is no longer suspended before serializing it into the string buffer."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("During the hydration process, elements within a "),
             code("<Suspense />"),
             text(" component remains dehydrated until all of its child components are no longer suspended."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("With this approach, developers can build a client-agnostic, SSR-ready \
               application with data fetching with very little effort."),
-        ]),
-        h2(vec![text("Rendering <head> Tags")]),
-        p(vec![
+        ],
+        h2![text("Rendering <head> Tags")],
+        p![
             text("A common need with SSR is rendering dynamic "),
             code("<head>"),
             text(" content (e.g. "),
@@ -163,19 +163,19 @@ async fn no_main() {
             text(", "),
             code("<meta>"),
             text(") so that crawlers and social previews see the right metadata on first load."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("ServerRenderer"),
             text(" only renders your component tree (typically at the body of the document), \
               it has no access to "),
             code("<head>"),
             text(". Head tags must therefore be generated "),
-            bold(vec![text("on the server, outside of Yew")]),
+            bold![text("on the server, outside of Yew")],
             text(", and spliced into the HTML template before it is sent to the client."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("The "),
-            link("https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs", vec![text("ssr_router example")]),
+            link!["https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs", text("ssr_router example")],
             text(" demonstrates this pattern: the server recognizes the \
               route from the request URL, generates the appropriate "),
             code("<title>"),
@@ -186,16 +186,16 @@ async fn no_main() {
             text(" before "),
             code("</head>"),
             text("."),
-        ]),
-        admonition(AdmonitionType::Info, None, vec![
-            p(vec![
+        ],
+        admonition![AdmonitionType::Info, None,
+            p![
                 text("For a fully SSR-compatible third-party solution, use "),
-                link("https://docs.rs/bounce/latest/bounce/helmet/index.html", vec![text("the <Helmet/> component from Bounce")]),
+                link!["https://docs.rs/bounce/latest/bounce/helmet/index.html", text("the <Helmet/> component from Bounce")],
                 text("."),
-            ]),
-        ]),
-        h2(vec![text("SSR Hydration")]),
-        p(vec![
+            ],
+        ],
+        h2![text("SSR Hydration")],
+        p![
             text("Hydration is the process that connects a Yew application to the \
               server-side generated HTML file. By default, "),
             code("ServerRenderer"),
@@ -205,9 +205,9 @@ async fn no_main() {
             text(" method is called, instead of starting rendering from \
               scratch, Yew will reconcile the Virtual DOM generated by the application \
               with the HTML string generated by the server renderer."),
-        ]),
-        admonition(AdmonitionType::Warning, None, vec![
-            p(vec![
+        ],
+        admonition![AdmonitionType::Warning, None,
+            p![
                 text("To successfully hydrate an HTML representation created by the "),
                 code("ServerRenderer"),
                 text(", the client must produce a Virtual DOM layout that \
@@ -216,23 +216,23 @@ async fn no_main() {
                   one implementation, you may want to use a "),
                 code("PhantomComponent"),
                 text(" to fill the position of the extra component."),
-            ]),
-        ]),
-        admonition(AdmonitionType::Warning, None, vec![
-            p(vec![
+            ],
+        ],
+        admonition![AdmonitionType::Warning, None,
+            p![
                 text("The hydration can only succeed if the real DOM matches the expected DOM \
                   after initial render of the SSR output (static HTML) by browser. If your HTML is \
                   not spec-compliant, the hydration "),
-                italic(vec![text("may")]),
+                italic![text("may")],
                 text(" fail. Browsers may change the DOM structure \
                   of the incorrect HTML, causing the actual DOM to be different from the expected DOM. \
                   For example, "),
-                link("https://github.com/yewstack/yew/issues/2684", vec![text("if you have a <table> without a <tbody>, the browser may add a <tbody> to the DOM")]),
+                link!["https://github.com/yewstack/yew/issues/2684", text("if you have a <table> without a <tbody>, the browser may add a <tbody> to the DOM")],
                 text("."),
-            ]),
-        ]),
-        h2(vec![text("Component Lifecycle during hydration")]),
-        p(vec![
+            ],
+        ],
+        h2![text("Component Lifecycle during hydration")],
+        p![
             text("During Hydration, components schedule 2 consecutive renders after it is \
               created. Any effects are called after the second render completes. \
               It is important to make sure that the render function of your \
@@ -241,8 +241,8 @@ async fn no_main() {
               additional renders, move them into a "),
             code("use_effect"),
             text(" hook."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("It is possible to use Struct Components with server-side rendering in \
               hydration, the view function will be called \
               multiple times before the rendered function will be called. \
@@ -251,8 +251,8 @@ async fn no_main() {
               until "),
             code("rendered()"),
             text(" method is called."),
-        ]),
-        h2(vec![text("Example")]),
+        ],
+        h2![text("Example")],
         code_block("rust", r#"use yew::prelude::*;
 use yew::Renderer;
 
@@ -268,22 +268,22 @@ fn main() {
     // elements (if any).
     renderer.hydrate();
 }"#),
-        ul(vec![
-            li(vec![
+        ul![
+            li![
                 text("Example: "),
-                link("https://github.com/yewstack/yew/tree/master/examples/simple_ssr", vec![text("simple_ssr")]),
-            ]),
-            li(vec![
+                link!["https://github.com/yewstack/yew/tree/master/examples/simple_ssr", text("simple_ssr")],
+            ],
+            li![
                 text("Example: "),
-                link("https://github.com/yewstack/yew/tree/master/examples/ssr_router", vec![text("ssr_router")]),
-            ]),
-        ]),
-        h2(vec![text("Single thread mode")]),
-        p(vec![
+                link!["https://github.com/yewstack/yew/tree/master/examples/ssr_router", text("ssr_router")],
+            ],
+        ],
+        h2![text("Single thread mode")],
+        p![
             text("Yew supports single thread mode for server-side rendering by "),
             code("yew::LocalServerRenderer"),
             text(". This mode would work in a single thread environment like WASI."),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 use yew::LocalServerRenderer;
 
@@ -316,28 +316,28 @@ pub async fn render() -> String {
 async fn main() {
     println!("{}", render().await);
 }"#),
-        ul(vec![
-            li(vec![
+        ul![
+            li![
                 text("Example: "),
-                link("https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module", vec![text("wasi_ssr_module")]),
-            ]),
-        ]),
-        admonition(AdmonitionType::Note, None, vec![
-            p(vec![
+                link!["https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module", text("wasi_ssr_module")],
+            ],
+        ],
+        admonition![AdmonitionType::Note, None,
+            p![
                 text("If you are using the "),
                 code("wasm32-unknown-unknown"),
                 text(" target to build a SSR application, you can use the "),
                 code("not_browser_env"),
                 text(" feature flag to disable access of browser-specific APIs inside of Yew. This would be useful on serverless platforms like Cloudflare Worker."),
-            ]),
-        ]),
-        admonition(AdmonitionType::Warning, None, vec![
-            p(vec![
+            ],
+        ],
+        admonition![AdmonitionType::Warning, None,
+            p![
                 text("Server-side rendering is currently experimental. If you find a bug, please file \
                   an issue on "),
-                link("https://github.com/yewstack/yew/issues/new?assignees=&labels=bug&template=bug_report.md&title=", vec![text("GitHub")]),
+                link!["https://github.com/yewstack/yew/issues/new?assignees=&labels=bug&template=bug_report.md&title=", text("GitHub")],
                 text("."),
-            ]),
-        ]),
+            ],
+        ],
     ])
 );

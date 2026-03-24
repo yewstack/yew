@@ -23,7 +23,10 @@ crate::doc_page!(
                 "Typical uses of portals can include modal dialogs and hovercards, as well as \
                  more technical applications such as controlling the contents of an element's "
             ),
-            link!("https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot", text("shadowRoot")),
+            link!(
+                "https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot",
+                text("shadowRoot")
+            ),
             text(", appending stylesheets to the surrounding document's "),
             code("<head>"),
             text(" and collecting referenced elements inside a central "),

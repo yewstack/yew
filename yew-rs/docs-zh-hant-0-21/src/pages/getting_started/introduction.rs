@@ -12,10 +12,7 @@ crate::doc_page!(
         h2![text("安裝 Rust")],
         p![
             text("要安裝 Rust，請按照"),
-            link!(
-                "https://www.rust-lang.org/tools/install",
-                text("官方說明"),
-            ),
+            link!("https://www.rust-lang.org/tools/install", text("官方說明"),),
             text("。"),
         ],
         admonition!(

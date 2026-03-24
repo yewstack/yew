@@ -40,7 +40,8 @@ crate::doc_page!(
             text("The "),
             link![
                 "https://crates.io/crates/web-sys",
-                code("web-sys"), text(" crate")
+                code("web-sys"),
+                text(" crate")
             ],
             text(
                 " provides bindings for Web APIs and allows us to write JavaScript code in a \

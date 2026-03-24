@@ -95,10 +95,7 @@ fn main() {
         h2![text("运行你的应用程序!")],
         p![
             text("启动并运行你的应用的最快方式就是使用 "),
-            link!(
-                "https://github.com/koute/cargo-web",
-                text("cargo-web")
-            ),
+            link!("https://github.com/koute/cargo-web", text("cargo-web")),
             text("。如果你还没有的话，请用 "),
             code("cargo install cargo-web"),
             text(" 命令来安装这个工具然后通过运行下述命令来构建和启动一个开发服务器：")

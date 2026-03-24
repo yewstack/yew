@@ -767,9 +767,7 @@ fn app() -> Html {
             r##"// highlight-next-line
 let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         ),
-        p![text(
-            "Now, rerun the server with the following command:"
-        )],
+        p![text("Now, rerun the server with the following command:")],
         code_block(
             "bash",
             "trunk serve --proxy-backend=https://yew.rs/tutorial"
@@ -800,10 +798,7 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         h3![text("Learning more about Yew")],
         p![
             text("Read our "),
-            link!(
-                "/docs/0.21/getting-started",
-                text("official documentation")
-            ),
+            link!("/docs/0.21/getting-started", text("official documentation")),
             link!("https://docs.rs/yew", text("API docs")),
             text(".")
         ]

@@ -2,8 +2,8 @@ crate::doc_page!(
     "Scope",
     "/docs/advanced-topics/struct-components/scope",
     Content::new(vec![
-        h2(vec![text("Component's Scope<_> API")]),
-        p(vec![
+        h2![text("Component's Scope<_> API")],
+        p![
             text(
                 "The component \"Scope\" is the mechanism through which components can create \
                  callbacks and update themselves using messages. We obtain a reference to this by \
@@ -11,15 +11,15 @@ crate::doc_page!(
             ),
             code("link()"),
             text(" on the context object passed to the component."),
-        ]),
-        h3(vec![text("send_message")]),
-        p(vec![
+        ],
+        h3![text("send_message")],
+        p![
             text("Sends a message to the component. Messages are handled by the "),
             code("update"),
             text(" method which determines whether the component should re-render."),
-        ]),
-        h3(vec![text("send_message_batch")]),
-        p(vec![
+        ],
+        h3![text("send_message_batch")],
+        p![
             text("Sends multiple messages to the component at the same time. This is similar to "),
             code("send_message"),
             text(" but if any of the messages cause the "),
@@ -30,19 +30,19 @@ crate::doc_page!(
                 ", the component will re-render after all messages in the batch have been \
                  processed."
             ),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "If the given vector is empty, this function does nothing."
-        )]),
-        h3(vec![text("callback")]),
-        p(vec![
+        )],
+        h3![text("callback")],
+        p![
             text(
                 "Create a callback that will send a message to the component when it is executed. \
                  Under the hood, it will call "
             ),
             code("send_message"),
             text(" with the message returned by the provided closure."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -83,8 +83,8 @@ impl Component for Comp {
     }
 }"#
         ),
-        h3(vec![text("batch_callback")]),
-        p(vec![
+        h3![text("batch_callback")],
+        p![
             text(
                 "Create a callback that will send a batch of messages to the component when it is \
                  executed. The difference to "
@@ -100,14 +100,14 @@ impl Component for Comp {
             text(" where "),
             code("Msg"),
             text(" is the component's message type."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("Vec<Msg>"),
             text(" is treated as a batch of messages and uses "),
             code("send_message_batch"),
             text(" under the hood."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("Option<Msg>"),
             text(" calls "),
             code("send_message"),
@@ -119,8 +119,8 @@ impl Component for Comp {
                 ", nothing happens. This can be used in cases where, depending on the situation, \
                  an update isn't required."
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("This is achieved using the "),
             code("SendAsMessage"),
             text(" trait which is only implemented for these types. You can implement "),
@@ -128,6 +128,6 @@ impl Component for Comp {
             text(" for your own types which allows you to use them in "),
             code("batch_callback"),
             text("."),
-        ]),
+        ],
     ])
 );

@@ -5,9 +5,7 @@ crate::doc_page!(
         admonition![
             AdmonitionType::Note,
             None,
-            p![text(
-                "Properties are often shortened as \"Props\"."
-            )],
+            p![text("Properties are often shortened as \"Props\".")],
         ],
         p![text(
             "Properties are essentially component arguments that Yew can keep watch on."

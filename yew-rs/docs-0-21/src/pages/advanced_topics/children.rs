@@ -10,8 +10,8 @@ crate::doc_page!(
                 code("Children"),
                 text(
                     " can often result in surprising and hard-to-explain behaviours in your \
-                     application. This can lead to edge cases and often does not yield \
-                     expected result."
+                     application. This can lead to edge cases and often does not yield expected \
+                     result."
                 ),
             ],
             p![
@@ -350,7 +350,10 @@ pub fn render_page(with_sidebar: bool) -> Html {
                 "For a real-world example of this pattern, check out the yew-router source code. \
                  For a more advanced example, check out the "
             ),
-            link!("https://github.com/yewstack/yew/tree/master/examples/nested_list", text("nested-list example")),
+            link!(
+                "https://github.com/yewstack/yew/tree/master/examples/nested_list",
+                text("nested-list example")
+            ),
             text(" in the main yew repository."),
         ],],
     ])

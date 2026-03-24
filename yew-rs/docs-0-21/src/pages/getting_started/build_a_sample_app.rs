@@ -54,9 +54,7 @@ crate::doc_page!(
             text(". You should see a \"Hello World!\" message."),
         ],
         code_block("bash", "cargo run\n# output: Hello World!"),
-        h3![text(
-            "Setting up the project as a Yew web application"
-        )],
+        h3![text("Setting up the project as a Yew web application")],
         p![text(
             "To convert this simple command line application to a basic Yew web application, a \
              few changes are needed."
@@ -94,8 +92,8 @@ yew = { version = "0.21", features = ["csr"] }"#
             )],
             p![
                 text(
-                    "If you need the Renderer for testing or examples, you should enable it \
-                     in the "
+                    "If you need the Renderer for testing or examples, you should enable it in \
+                     the "
                 ),
                 code("dev-dependencies"),
                 text(" instead."),

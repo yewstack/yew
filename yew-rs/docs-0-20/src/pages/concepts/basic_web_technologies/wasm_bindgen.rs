@@ -1,57 +1,57 @@
 crate::doc_page!("wasm-bindgen", "/docs/concepts/basic-web-technologies/wasm-bindgen",
     Content::new(vec![
-        p(vec![
-            link("https://github.com/rustwasm/wasm-bindgen", vec![code("wasm-bindgen")]),
+        p![
+            link!("https://github.com/rustwasm/wasm-bindgen", code("wasm-bindgen")),
             text(" is a library and tool to facilitate high-level interactions between Wasm modules \
               and JavaScript; it is built with Rust by "),
-            link("https://rustwasm.github.io/", vec![text("The Rust and WebAssembly Working Group")]),
+            link!("https://rustwasm.github.io/", text("The Rust and WebAssembly Working Group")),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Yew uses "),
             code("wasm-bindgen"),
             text(" to interact with the browser through a number of crates:"),
-        ]),
-        ul(vec![
-            li(vec![link("https://crates.io/crates/js-sys", vec![code("js-sys")])]),
-            li(vec![link("https://crates.io/crates/wasm-bindgen", vec![code("wasm-bindgen")])]),
-            li(vec![link("https://crates.io/crates/wasm-bindgen-futures", vec![code("wasm-bindgen-futures")])]),
-            li(vec![link("https://crates.io/crates/web-sys", vec![code("web-sys")])]),
-        ]),
-        p(vec![
+        ],
+        ul![
+            li![link!("https://crates.io/crates/js-sys", code("js-sys"))],
+            li![link!("https://crates.io/crates/wasm-bindgen", code("wasm-bindgen"))],
+            li![link!("https://crates.io/crates/wasm-bindgen-futures", code("wasm-bindgen-futures"))],
+            li![link!("https://crates.io/crates/web-sys", code("web-sys"))],
+        ],
+        p![
             text("This section will explore some of these crates in a high level in order to make it easier to understand \
               and use "),
             code("wasm-bindgen"),
             text(" APIs with Yew. For a more in-depth guide to "),
             code("wasm-bindgen"),
             text(" and its associated crates then check out "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/", vec![text("The wasm-bindgen Guide")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/", text("The wasm-bindgen Guide")),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("For documentation on the above crates check out "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html", vec![text("wasm-bindgen docs.rs")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html", text("wasm-bindgen docs.rs")),
             text("."),
-        ]),
-        admonition(AdmonitionType::Tip, None, vec![
-            p(vec![
+        ],
+        admonition![AdmonitionType::Tip, None,
+            p![
                 text("Use the "),
                 code("wasm-bindgen"),
                 text(" doc.rs search to find browser APIs and JavaScript types that have been imported \
                   over using "),
                 code("wasm-bindgen"),
                 text("."),
-            ]),
-        ]),
-        h2(vec![link("https://crates.io/crates/wasm-bindgen", vec![text("wasm-bindgen")])]),
-        p(vec![
+            ],
+        ],
+        h2![link!("https://crates.io/crates/wasm-bindgen", text("wasm-bindgen"))],
+        p![
             text("This crate provides many of the building blocks for the rest of the crates above. In this section we \
               are only going to cover two main areas of the "),
             code("wasm-bindgen"),
             text(" crate and that is the macro and some types / traits you will see pop up again and again."),
-        ]),
-        h3(vec![text("#[wasm_bindgen] macro")]),
-        p(vec![
+        ],
+        h3![text("#[wasm_bindgen] macro")],
+        p![
             text("The "),
             code("#[wasm_bindgen]"),
             text(" macro provides an interface between Rust and JavaScript, providing a system \
@@ -63,14 +63,14 @@ crate::doc_page!("wasm-bindgen", "/docs/concepts/basic-web-technologies/wasm-bin
             text(" crates expose "),
             code("wasm-bindgen"),
             text(" definitions for built-in Javascript types and browser APIs."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Let's go over a simple example of using the "),
             code("#[wasm-bindgen]"),
             text(" macro to import some specific flavours of the "),
-            link("https://developer.mozilla.org/en-US/docs/Web/API/Console/log", vec![code("console.log")]),
+            link!("https://developer.mozilla.org/en-US/docs/Web/API/Console/log", code("console.log")),
             text(" function."),
-        ]),
+        ],
         code_block("rust", r#"use wasm_bindgen::prelude::*;
 
 // First up let's take a look of binding `console.log` manually, without the
@@ -100,25 +100,25 @@ fn log_many(a: &str, b: &str);
 log("Hello from Rust!");
 log_u32(42);
 log_many("Logging", "many values!");"#),
-        p(vec![
-            italic(vec![
+        p![
+            italic![
                 text("This example was adapted from "),
-                link("https://wasm-bindgen.github.io/wasm-bindgen/examples/console-log.html", vec![text("1.2 Using console.log of The wasm-bindgen Guide")]),
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/examples/console-log.html", text("1.2 Using console.log of The wasm-bindgen Guide")),
                 text("."),
-            ]),
-        ]),
-        h3(vec![text("Simulating inheritance")]),
-        p(vec![
+            ],
+        ],
+        h3![text("Simulating inheritance")],
+        p![
             text("Inheritance between JavaScript classes is a core feature of the Javascript language, and the DOM \
               (Document Object Model) is designed around it. When types are imported using "),
             code("wasm-bindgen"),
             text(" you can also add attributes that describe their inheritance."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("In Rust this inheritance is represented using the "),
-            link("https://doc.rust-lang.org/std/ops/trait.Deref.html", vec![code("Deref")]),
+            link!("https://doc.rust-lang.org/std/ops/trait.Deref.html", code("Deref")),
             text(" and "),
-            link("https://doc.rust-lang.org/std/convert/trait.AsRef.html", vec![code("AsRef")]),
+            link!("https://doc.rust-lang.org/std/convert/trait.AsRef.html", code("AsRef")),
             text(" traits. An example of this might help; so say you have three types "),
             code("A"),
             text(", "),
@@ -132,8 +132,8 @@ log_many("Logging", "many values!");"#),
             text(" which in turn extends "),
             code("A"),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("When importing these types the "),
             code("#[wasm-bindgen]"),
             text(" macro will implement the "),
@@ -141,14 +141,14 @@ log_many("Logging", "many values!");"#),
             text(" and "),
             code("AsRef"),
             text(" traits in the following way:"),
-        ]),
-        ul(vec![
-            li(vec![code("C"), text(" can "), code("Deref"), text(" to "), code("B")]),
-            li(vec![code("B"), text(" can "), code("Deref"), text(" to "), code("A")]),
-            li(vec![code("C"), text(" can be "), code("AsRef"), text(" to "), code("B")]),
-            li(vec![text("Both "), code("C"), text(" & "), code("B"), text(" can be "), code("AsRef"), text(" to "), code("A")]),
-        ]),
-        p(vec![
+        ],
+        ul![
+            li![code("C"), text(" can "), code("Deref"), text(" to "), code("B")],
+            li![code("B"), text(" can "), code("Deref"), text(" to "), code("A")],
+            li![code("C"), text(" can be "), code("AsRef"), text(" to "), code("B")],
+            li![text("Both "), code("C"), text(" & "), code("B"), text(" can be "), code("AsRef"), text(" to "), code("A")],
+        ],
+        p![
             text("These implementations allow you to call a method from "),
             code("A"),
             text(" on an instance of "),
@@ -160,25 +160,25 @@ log_many("Logging", "many values!");"#),
             text(" or "),
             code("&A"),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Its important to note that every single type imported using "),
             code("#[wasm-bindgen]"),
             text(" has the same root type, you can think of it as the "),
             code("A"),
             text(" in the example above, this type is "),
-            link("#jsvalue", vec![code("JsValue")]),
+            link!("#jsvalue", code("JsValue")),
             text(" which has its own section below."),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html", vec![text("extends section in The wasm-bindgen Guide")]),
-            ]),
-        ]),
-        h3_id("jsvalue", vec![
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html", vec![text("JsValue")]),
-        ]),
-        p(vec![
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/reference/attributes/on-js-imports/extends.html", text("extends section in The wasm-bindgen Guide")),
+            ],
+        ],
+        h3_id!("jsvalue",
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html", text("JsValue")),
+        ),
+        p![
             text("This is a representation of an object owned by JavaScript, this is a root catch-all type for "),
             code("wasm-bindgen"),
             text(". Any type that comes from "),
@@ -194,27 +194,27 @@ log_many("Logging", "many values!");"#),
             text(". If you are working with imported functions or types that accept a "),
             code("JsValue"),
             text(", then any imported value is "),
-            italic(vec![text("technically")]),
+            italic![text("technically")],
             text(" valid."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("JsValue"),
             text(" can be accepted by a function but that function may still only accept certain types and this \
               can lead to panics - so when using raw "),
             code("wasm-bindgen"),
             text(" APIs check the documentation of the JavaScript \
               being imported as to whether an exception (panic) will be raised if that value is not a certain type."),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html", vec![text("JsValue documentation")]),
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/struct.JsValue.html", text("JsValue documentation")),
                 text("."),
-            ]),
-        ]),
-        h3_id("JsCast", vec![
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html", vec![text("JsCast")]),
-        ]),
-        p(vec![
+            ],
+        ],
+        h3_id!("JsCast",
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html", text("JsCast")),
+        ),
+        p![
             text("Rust has a strong type system and JavaScript...doesn't. In order for Rust to maintain these \
               strong types but still be convenient the WebAssembly group came up with a pretty neat trait "),
             code("JsCast"),
@@ -230,25 +230,25 @@ log_many("Logging", "many values!");"#),
             text(" - you'll notice lots of types will implement "),
             code("JsCast"),
             text(" from those crates."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("JsCast"),
             text(" provides both checked and unchecked methods of casting - so that at runtime if you are \
               unsure what type a certain object is you can try to cast it which returns possible failure types like "),
-            link("https://doc.rust-lang.org/std/option/enum.Option.html", vec![code("Option")]),
+            link!("https://doc.rust-lang.org/std/option/enum.Option.html", code("Option")),
             text(" and "),
-            link("https://doc.rust-lang.org/std/result/enum.Result.html", vec![code("Result")]),
+            link!("https://doc.rust-lang.org/std/result/enum.Result.html", code("Result")),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("A common example of this in "),
-            link("/docs/concepts/basic-web-technologies/web-sys", vec![code("web-sys")]),
+            link!("/docs/concepts/basic-web-technologies/web-sys", code("web-sys")),
             text(" is when you are trying to get the target of an event, you might know what the target element is but the "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html", vec![code("web_sys::Event")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html", code("web_sys::Event")),
             text(" API will always return an "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target", vec![code("Option<web_sys::EventTarget>")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.target", code("Option<web_sys::EventTarget>")),
             text(" so you will need to cast it to the element type. so you can call its methods."),
-        ]),
+        ],
         code_block("rust",
 "// need to import the trait.
 use wasm_bindgen::JsCast;
@@ -268,15 +268,15 @@ return;
 // if it wasn't a select element then I KNOW it's a input element!
 let input_element: HtmlInputElement = target.unchecked_into();
 }"),
-        p(vec![
+        p![
             text("The "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref", vec![code("dyn_ref")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_ref", code("dyn_ref")),
             text(" method is a checked cast that returns an "),
             code("Option<&T>"),
             text(" which means the original type can be used again if the cast failed and thus returned "),
             code("None"),
             text(". The "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into", vec![code("dyn_into")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into", code("dyn_into")),
             text(" method will consume "),
             code("self"),
             text(", as per convention for into methods in Rust, and the type returned is "),
@@ -286,122 +286,122 @@ let input_element: HtmlInputElement = target.unchecked_into();
             text(" value is returned in "),
             code("Err"),
             text(". You can try again or do something else with the original type."),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html", vec![text("JsCast documentation")]),
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html", text("JsCast documentation")),
                 text("."),
-            ]),
-        ]),
-        h3(vec![
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html", vec![text("Closure")]),
-        ]),
-        p(vec![
+            ],
+        ],
+        h3![
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html", text("Closure")),
+        ],
+        p![
             text("The "),
             code("Closure"),
             text(" type provides a way to transfer Rust closures to JavaScript, the closures passed to \
               JavaScript must have a "),
             code("'static"),
             text(" lifetime for soundness reasons."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("This type is a \"handle\" in the sense that whenever it is dropped it will invalidate the JS \
               closure that it refers to. Any usage of the closure in JS after the "),
             code("Closure"),
             text(" has been dropped will raise an exception."),
-        ]),
-        p(vec![
+        ],
+        p![
             code("Closure"),
             text(" is often used when you are working with a "),
             code("js-sys"),
             text(" or "),
             code("web-sys"),
             text(" API that accepts a type "),
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Function.html", vec![code("&js_sys::Function")]),
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Function.html", code("&js_sys::Function")),
             text(". An example of using a "),
             code("Closure"),
             text(" in Yew can be found in the "),
-            link("/docs/concepts/html/events#using-closure-verbose", vec![text("Using Closure section")]),
+            link!("/docs/concepts/html/events#using-closure-verbose", text("Using Closure section")),
             text(" on the "),
-            link("/docs/concepts/html/events", vec![text("Events")]),
+            link!("/docs/concepts/html/events", text("Events")),
             text(" page."),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html", vec![text("Closure documentation")]),
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/closure/struct.Closure.html", text("Closure documentation")),
                 text("."),
-            ]),
-        ]),
-        h2(vec![link("https://crates.io/crates/js-sys", vec![text("js-sys")])]),
-        p(vec![
+            ],
+        ],
+        h2![link!("https://crates.io/crates/js-sys", text("js-sys"))],
+        p![
             text("The "),
             code("js-sys"),
             text(" crate provides bindings / imports of JavaScript's standard, built-in objects, including \
               their methods and properties."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("This does not include any web APIs as this is what "),
-            link("/docs/concepts/basic-web-technologies/web-sys", vec![code("web-sys")]),
+            link!("/docs/concepts/basic-web-technologies/web-sys", code("web-sys")),
             text(" is for!"),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/index.html", vec![text("js-sys documentation")]),
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/index.html", text("js-sys documentation")),
                 text("."),
-            ]),
-        ]),
-        h2(vec![link("https://crates.io/crates/wasm-bindgen-futures", vec![text("wasm-bindgen-futures")])]),
-        p(vec![
+            ],
+        ],
+        h2![link!("https://crates.io/crates/wasm-bindgen-futures", text("wasm-bindgen-futures"))],
+        p![
             text("The "),
             code("wasm-bindgen-futures"),
             text(" crate provides a bridge for working with JavaScript Promise types as a Rust "),
-            link("https://doc.rust-lang.org/stable/std/future/trait.Future.html", vec![code("Future")]),
+            link!("https://doc.rust-lang.org/stable/std/future/trait.Future.html", code("Future")),
             text(", and contains utilities to turn a Rust Future into a JavaScript Promise. This can be useful \
               when working with asynchronous or otherwise blocking work in Rust (wasm), and provides the ability \
               to interoperate with JavaScript events and JavaScript I/O primitives."),
-        ]),
-        p(vec![text("There are three main interfaces in this crate currently:")]),
-        ol(vec![
-            li(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html", vec![code("JsFuture")]),
+        ],
+        p![text("There are three main interfaces in this crate currently:")],
+        ol![
+            li![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/struct.JsFuture.html", code("JsFuture")),
                 text(" - A type that is constructed with a "),
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Promise.html", vec![code("Promise")]),
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/js_sys/struct.Promise.html", code("Promise")),
                 text(" and can then be used as a "),
                 code("Future<Output=Result<JsValue, JsValue>>"),
                 text(". This Rust future will resolve or reject with the value coming out of the "),
                 code("Promise"),
                 text("."),
-            ]),
-            li(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html", vec![code("future_to_promise")]),
+            ],
+            li![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.future_to_promise.html", code("future_to_promise")),
                 text(" - Converts a Rust "),
                 code("Future<Output=Result<JsValue, JsValue>>"),
                 text(" into a JavaScript "),
                 code("Promise"),
                 text(". The future's result will translate to either a resolved or rejected Promise in JavaScript."),
-            ]),
-            li(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html", vec![code("spawn_local")]),
+            ],
+            li![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html", code("spawn_local")),
                 text(" - Spawns a "),
                 code("Future<Output = ()>"),
                 text(" on the current thread. This is the best way to run a Future in Rust without sending it to JavaScript."),
-            ]),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html", vec![text("wasm-bindgen-futures documentation")]),
+            ],
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/index.html", text("wasm-bindgen-futures documentation")),
                 text("."),
-            ]),
-        ]),
-        h3(vec![
-            link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html", vec![text("spawn_local")]),
-        ]),
-        p(vec![
+            ],
+        ],
+        h3![
+            link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html", text("spawn_local")),
+        ],
+        p![
             code("spawn_local"),
             text(" is going to be the most commonly used part of the "),
             code("wasm-bindgen-futures"),
             text(" crate in Yew as this helps when using libraries that have async APIs."),
-        ]),
+        ],
         code_block("rust",
 "use web_sys::console;
 use wasm_bindgen_futures::spawn_local;
@@ -414,7 +414,7 @@ string.push_str(\", world!\");
 // console log \"Hello, world!\"
 console::log_1(&string.into());
 });"),
-        p(vec![
+        p![
             text("Yew has also added support for futures in certain APIs, most notably you can create a "),
             code("callback_future"),
             text(" which accepts an "),
@@ -422,12 +422,12 @@ console::log_1(&string.into());
             text(" block - this uses "),
             code("spawn_local"),
             text(" internally."),
-        ]),
-        p(vec![
-            italic(vec![
-                link("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html", vec![text("spawn_local documentation")]),
+        ],
+        p![
+            italic![
+                link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen_futures/fn.spawn_local.html", text("spawn_local documentation")),
                 text("."),
-            ]),
-        ]),
+            ],
+        ],
     ])
 );

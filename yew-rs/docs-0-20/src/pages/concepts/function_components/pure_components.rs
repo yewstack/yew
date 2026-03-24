@@ -2,26 +2,23 @@ crate::doc_page!(
     "Pure Components",
     "/docs/concepts/function-components/pure-components",
     Content::new(vec![
-        p(vec![
+        p![
             text("A function component is considered "),
-            link(
-                "https://en.wikipedia.org/wiki/Pure_function",
-                vec![text("pure")]
-            ),
+            link!("https://en.wikipedia.org/wiki/Pure_function", text("pure")),
             text(" when the returned "),
             code("Html"),
             text(
                 " is deterministically derived from its props, and its view function mutates no \
                  state or has other side-effects."
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("For example below is a pure component. For a given prop "),
             code("is_loading"),
             text(" it will always result in the same "),
             code("Html"),
             text(" without any side effects."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Properties, function_component, Html, html};
@@ -40,10 +37,10 @@ fn HelloWorld(props: &Props) -> Html {
     }
 }"#
         ),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text(
                     "If you have an internal pure component that makes no use of hooks and other \
                      component machinery, you can often write it instead as a normal function \
@@ -56,19 +53,16 @@ fn HelloWorld(props: &Props) -> Html {
                 ),
                 code("html!"),
                 text("."),
-            ]),]
-        ),
-        h2(vec![text("Impure components")]),
-        p(vec![
+            ]
+        ],
+        h2![text("Impure components")],
+        p![
             text(
                 "You might wonder if a component can be impure if it does not use any globals, \
                  since its just a function that is called every render. This is where the next \
                  topic comes in - "
             ),
-            link(
-                "/docs/concepts/function-components/hooks",
-                vec![text("hooks")]
-            ),
-        ]),
+            link!("/docs/concepts/function-components/hooks", text("hooks")),
+        ],
     ])
 );

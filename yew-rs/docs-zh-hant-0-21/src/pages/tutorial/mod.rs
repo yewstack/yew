@@ -48,10 +48,7 @@ crate::doc_page!(
             text("確保安裝了最新版本的 Rust，方法是執行 "),
             code("rustup update"),
             text(" 或"),
-            link!(
-                "https://www.rust-lang.org/tools/install",
-                text("安裝 Rust"),
-            ),
+            link!("https://www.rust-lang.org/tools/install", text("安裝 Rust"),),
             text("。"),
         ],
         p![
@@ -391,10 +388,7 @@ let videos = vec![
             code("App"),
             text("。它是一個「函數式元件」。"),
         ],
-        ol![
-            li![text("結構體組件")],
-            li![text("函數式組件")],
-        ],
+        ol![li![text("結構體組件")], li![text("函數式組件")],],
         p![text("在本教程中，我們將使用函數式元件。")],
         p![
             text("現在，讓我們將 "),

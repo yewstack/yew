@@ -69,9 +69,7 @@ crate::doc_page!(
             code("/show/42"),
             text(" and displays the appropriate contents."),
         ],
-        h3![text(
-            "Configuring correct MIME-type for Web Assembly asset"
-        )],
+        h3![text("Configuring correct MIME-type for Web Assembly asset")],
         p![
             text("The WASM files must be served with the "),
             link!(
@@ -106,9 +104,7 @@ crate::doc_page!(
             code("<base />"),
             text(" and handles it appropriately."),
         ],
-        h2![text(
-            "Customizing behavior using environment variables"
-        )],
+        h2![text("Customizing behavior using environment variables")],
         p![
             text(
                 "It is common to customize the build environment by using environment variables. \

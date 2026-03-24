@@ -63,9 +63,7 @@ fn App() -> Html {
 "#
         ),
         h2![text("DOM Events and Callbacks")],
-        p![text(
-            "Callbacks are also used to hook into DOM events."
-        )],
+        p![text("Callbacks are also used to hook into DOM events.")],
         p![text(
             "For example, here we define a callback that will be called when the user clicks the \
              button:"

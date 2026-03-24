@@ -50,10 +50,7 @@ crate::doc_page!(
             text(" by default so you will need to install it with "),
             code("cargo install cargo-expand"),
             text(" if you have not already. "),
-            link!(
-                "https://rust-analyzer.github.io/",
-                text("Rust-Analyzer")
-            ),
+            link!("https://rust-analyzer.github.io/", text("Rust-Analyzer")),
             text(" also provides a mechanism for "),
             link!(
                 "https://rust-analyzer.github.io/manual.html#expand-macro-recursively",

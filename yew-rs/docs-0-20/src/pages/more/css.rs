@@ -2,67 +2,58 @@ crate::doc_page!(
     "CSS",
     "/docs/more/css",
     Content::new(vec![
-        p(vec![
+        p![
             text("A proposal for integrated CSS support can be found here: "),
-            link(
+            link!(
                 "https://github.com/yewstack/yew/issues/533",
-                vec![text("https://github.com/yewstack/yew/issues/533"),]
+                text("https://github.com/yewstack/yew/issues/533"),
             ),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "This contains a lot of discussion about how to best integrate CSS support into Yew."
-        ),]),
-        p(vec![text(
+        ),],
+        p![text(
             "Currently, the approach we've adopted is to encourage developers to build a number \
              of systems, before adopting the most popular one."
-        ),]),
-        p(vec![text(
+        ),],
+        p![text(
             "The community are currently developing a number of projects to make it easy to add \
              styles to projects. A few are given below:"
-        ),]),
-        h4(vec![text("Component Libraries")]),
-        ul(vec![
-            li(vec![
-                link(
-                    "https://github.com/spielrs/yew_styles",
-                    vec![text("yew_styles")]
-                ),
+        ),],
+        h4![text("Component Libraries")],
+        ul![
+            li![
+                link!("https://github.com/spielrs/yew_styles", text("yew_styles"),),
                 text(" - A styling framework for Yew without any JavaScript dependencies."),
-            ]),
-            li(vec![
-                link(
-                    "https://github.com/Follpvosten/yew-mdc",
-                    vec![text("yew-mdc")]
-                ),
+            ],
+            li![
+                link!("https://github.com/Follpvosten/yew-mdc", text("yew-mdc"),),
                 text(" - Material Design Components."),
-            ]),
-            li(vec![
-                link(
+            ],
+            li![
+                link!(
                     "https://github.com/AlephAlpha/muicss-yew",
-                    vec![text("muicss-yew")]
+                    text("muicss-yew"),
                 ),
                 text(" - MUI CSS Components."),
-            ]),
-            li(vec![
-                link("https://github.com/yewstack/yewtify", vec![text("Yewtify")]),
+            ],
+            li![
+                link!("https://github.com/yewstack/yewtify", text("Yewtify")),
                 text(" - Implements the features provided by the Vuetify framework in Yew."),
-            ]),
-        ]),
-        h4(vec![text("Styling Solutions")]),
-        ul(vec![li(vec![
-            link(
-                "https://github.com/futursolo/stylist-rs",
-                vec![text("stylist")]
-            ),
+            ],
+        ],
+        h4![text("Styling Solutions")],
+        ul![li![
+            link!("https://github.com/futursolo/stylist-rs", text("stylist"),),
             text(" - A CSS-in-Rust styling solution for WebAssembly Applications."),
-        ]),]),
-        admonition(
+        ],],
+        admonition![
             AdmonitionType::Warning,
             Some("Contribute"),
-            vec![p(vec![text(
+            p![text(
                 "If you're developing a project adding styles to Yew please submit a PR adding \
                  yourself to this list!"
-            ),]),]
-        ),
+            ),],
+        ],
     ])
 );

@@ -7,9 +7,7 @@ crate::doc_page!(
             None,
             p![text("屬性 (Properties) 通常被簡稱為 \"Props\"。")],
         ),
-        p![text(
-            "屬性 (Properties) 本質上是 Yew 可以監視的元件參數。",
-        )],
+        p![text("屬性 (Properties) 本質上是 Yew 可以監視的元件參數。",)],
         p![
             text("一個型別必須先實作 "),
             code("Properties"),
@@ -67,8 +65,8 @@ pub struct Props {
                 "With Props",
                 "with-props",
                 code_block(
-                        "rust",
-                        r#"use yew::{function_component, html, Html, Properties};
+                    "rust",
+                    r#"use yew::{function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -85,14 +83,14 @@ fn HelloWorld(props: &Props) -> Html {
 fn App() -> Html {
     html! {<HelloWorld is_loading={true} />}
 }"#,
-                    ),
                 ),
-                tab!(
-                    "No Props",
-                    "no-props",
-                    code_block(
-                        "rust",
-                        r#"use yew::{function_component, html, Html};
+            ),
+            tab!(
+                "No Props",
+                "no-props",
+                code_block(
+                    "rust",
+                    r#"use yew::{function_component, html, Html};
 
 #[function_component]
 fn HelloWorld() -> Html {
@@ -104,9 +102,9 @@ fn HelloWorld() -> Html {
 fn App() -> Html {
     html! {<HelloWorld />}
 }"#,
-                    ),
                 ),
             ),
+        ),
         h2![text("派生巨集欄位屬性")],
         p![
             text("派生 "),

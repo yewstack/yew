@@ -2,28 +2,26 @@ crate::doc_page!(
     "Suspense",
     "/docs/concepts/suspense",
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "Suspense is a way to suspend component rendering whilst waiting a task to complete \
              and a fallback (placeholder) UI is shown in the meanwhile."
-        ),]),
-        p(vec![text(
+        )],
+        p![text(
             "It can be used to fetch data from server, wait for tasks to be completed by an \
              agent, or perform other background asynchronous task."
-        ),]),
-        p(vec![text(
+        )],
+        p![text(
             "Before suspense, data fetching usually happens after (Fetch-on-render) or before \
              component rendering (Fetch-then-render)."
-        ),]),
-        h3(vec![text("Render-as-You-Fetch")]),
-        p(vec![text(
+        )],
+        h3![text("Render-as-You-Fetch")],
+        p![text(
             "Suspense enables a new approach that allows components to initiate data request \
              during the rendering process. When a component initiates a data request, the \
              rendering process will become suspended and a fallback UI will be shown until the \
              request is completed."
-        ),]),
-        p(vec![text(
-            "The recommended way to use suspense is with hooks."
-        )]),
+        )],
+        p![text("The recommended way to use suspense is with hooks.")],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -46,7 +44,7 @@ fn app() -> Html {
     }
 }"##
         ),
-        p(vec![
+        p![
             text("In the above example, the "),
             code("use_user"),
             text(
@@ -57,8 +55,8 @@ fn app() -> Html {
             text(" placeholder will be shown until "),
             code("user"),
             text(" is loaded."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("To define a hook that suspends a component rendering, it needs to return a "),
             code("SuspensionResult<T>"),
             text(". When the component needs to be suspended, the hook should return a "),
@@ -68,7 +66,7 @@ fn app() -> Html {
             text(" in which it will be converted into "),
             code("Html"),
             text("."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -149,18 +147,15 @@ fn app() -> Html {
     }
 }"##
         ),
-        h3(vec![text("Use Suspense in Struct Components")]),
-        p(vec![
+        h3![text("Use Suspense in Struct Components")],
+        p![
             text(
                 "It's not possible to suspend a struct component directly. However, you can use a \
                  function component as a "
             ),
-            link(
-                "/docs/advanced-topics/struct-components/hoc",
-                vec![text("HOC")]
-            ),
+            link!("/docs/advanced-topics/struct-components/hoc", text("HOC")),
             text(" to achieve suspense-based data fetching."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -198,10 +193,10 @@ impl Component for BaseUserContent {
 
 pub type UserContent = WithUser<BaseUserContent>;"##
         ),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![li(vec![link(
+        h2![text("Relevant examples")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/suspense",
-            vec![text("Suspense")]
-        ),]),]),
+            text("Suspense")
+        )]],
     ])
 );
