@@ -452,6 +452,9 @@ const SYNTECT_DARK_THEME: &str = r#"
 color: #c0c5ce;
 background-color: #2b303b;
 }
+[data-theme="dark"] .sy-variable.sy-parameter {
+color: #c0c5ce;
+}
 [data-theme="dark"] .sy-variable.sy-parameter.sy-function {
 color: #c0c5ce;
 }

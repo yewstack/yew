@@ -27,6 +27,35 @@ pub fn ContentLink(props: &ContentLinkProps) -> Html {
 }
 
 #[derive(Clone, PartialEq, Properties)]
+struct ContentTableProps {
+    children: Html,
+}
+
+#[styled_component]
+fn ContentTable(props: &ContentTableProps) -> Html {
+    html! {
+        <div class={css!(overflow-x: auto; margin-bottom: 1rem;)}>
+            <table class={css!(
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 400px;
+                & th, & td {
+                    border: 1px solid var(--color-border);
+                    padding: 0.5rem 0.75rem;
+                    text-align: left;
+                }
+                & th {
+                    background: var(--color-bg-secondary);
+                    font-weight: 600;
+                }
+            )}>
+                {props.children.clone()}
+            </table>
+        </div>
+    }
+}
+
+#[derive(Clone, PartialEq, Properties)]
 struct AnchorHeadingProps {
     level: u8,
     id: AttrValue,
@@ -558,26 +587,30 @@ impl Block {
                     }} }
                 </ol>
             },
-            Block::Table { headers, rows } => html! {
-                <table>
-                    <thead>
-                        <tr>
-                            for h in headers {
-                                <th>for inline in h { {inline.to_html()} }</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        for row in rows {
+            Block::Table { headers, rows } => {
+                let header_cells: Vec<Html> = headers
+                    .iter()
+                    .map(|h| html! { <th>{ for h.iter().map(Inline::to_html) }</th> })
+                    .collect();
+                let body_rows: Vec<Html> = rows
+                    .iter()
+                    .map(|row| {
+                        html! {
                             <tr>
-                                for cell in row {
-                                    <td>for inline in cell { {inline.to_html()} }</td>
-                                }
+                                { for row.iter().map(|cell| html! {
+                                    <td>{ for cell.iter().map(Inline::to_html) }</td>
+                                })}
                             </tr>
                         }
-                    </tbody>
-                </table>
-            },
+                    })
+                    .collect();
+                html! {
+                    <ContentTable>
+                        <thead><tr>{ for header_cells.into_iter() }</tr></thead>
+                        <tbody>{ for body_rows.into_iter() }</tbody>
+                    </ContentTable>
+                }
+            }
             Block::Blockquote(children) => html! {
                 <blockquote>for child in children { {child.to_html()} }</blockquote>
             },

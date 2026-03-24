@@ -179,6 +179,8 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             color: var(--color-text);
                             cursor: pointer;
                             font-family: inherit;
+                            min-width: 4.5rem;
+                            justify-content: space-between;
                             &:hover { border-color: var(--color-primary); }
                         )} onclick={toggle_version.clone()}>
                             {if has_doc_version { props.doc_version.to_string() } else { "Next".to_string() }}
