@@ -7,7 +7,6 @@ use std::sync::Arc;
 
 use anyhow::{bail, Context, Result};
 use clap::Parser;
-use inquire::{InquireError, MultiSelect};
 use syntect::highlighting::ThemeSet;
 use syntect::html::{css_for_theme_with_class_style, ClassStyle};
 use tokio::io::AsyncWriteExt;
@@ -318,11 +317,11 @@ fn strip_html_tags(s: &str) -> String {
 
 #[derive(Parser)]
 struct Args {
-    #[arg(long, default_value = "website/build")]
-    output_dir: PathBuf,
+    #[arg(long)]
+    output_dir: Option<PathBuf>,
 
-    #[arg(long, default_value = "yew-rs")]
-    source_dir: PathBuf,
+    #[arg(long)]
+    source_dir: Option<PathBuf>,
 
     #[arg(long, default_value = "4")]
     jobs: usize,
@@ -339,16 +338,14 @@ struct Args {
     #[arg(long)]
     gen_highlight_css: bool,
 
-    /// Build only pages whose URL path contains this substring.
-    /// Example: --page /docs/getting-started
-    /// Can be specified multiple times: --page /docs/tutorial --page /blog
-    #[arg(long)]
-    page: Vec<String>,
-
     /// After building, serve the output directory on this port.
     /// Example: --serve 8080
     #[arg(long)]
     serve: Option<u16>,
+
+    /// Build all locales (ja, zh-Hans, zh-Hant). Default is English only.
+    #[arg(long)]
+    all_locales: bool,
 }
 
 struct PageBinary {
@@ -1040,15 +1037,10 @@ fn build_pages_parallel(
     Ok(())
 }
 
-async fn render_and_inject(output_dir: &Path, page_filter: Option<&Vec<String>>) -> Result<()> {
-    let all_rendered = render_all_pages().await;
+async fn render_and_inject(output_dir: &Path, all_locales: bool) -> Result<()> {
+    let all_rendered = render_all_pages(all_locales).await;
 
     for (url_path, body_html, styles_html) in &all_rendered {
-        if let Some(filters) = page_filter {
-            if !filters.iter().any(|f| url_path.contains(f.as_str())) {
-                continue;
-            }
-        }
         let rel = url_path.trim_start_matches('/');
         let html_path = if rel.is_empty() {
             output_dir.join("index.html")
@@ -1083,12 +1075,14 @@ async fn render_and_inject(output_dir: &Path, page_filter: Option<&Vec<String>>)
     Ok(())
 }
 
-async fn render_all_pages() -> Vec<(&'static str, String, String)> {
+async fn render_all_pages(all_locales: bool) -> Vec<(&'static str, String, String)> {
     let mut all = Vec::new();
     all.extend(yew_site_spa_en::render_pages().await);
-    all.extend(yew_site_spa_ja::render_pages().await);
-    all.extend(yew_site_spa_zh_hans::render_pages().await);
-    all.extend(yew_site_spa_zh_hant::render_pages().await);
+    if all_locales {
+        all.extend(yew_site_spa_ja::render_pages().await);
+        all.extend(yew_site_spa_zh_hans::render_pages().await);
+        all.extend(yew_site_spa_zh_hant::render_pages().await);
+    }
     all.extend(yew_site_home::render_search_and_404().await);
     all.extend(yew_site_blog::render_pages().await);
     all.extend(yew_site_community::render_pages().await);
@@ -1396,43 +1390,6 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&result).into_owned()
 }
 
-fn interactive_page_select(pages: &[PageBinary]) -> Option<Vec<usize>> {
-    let options: Vec<String> = pages.iter().map(|p| p.url_path.clone()).collect();
-
-    let result = MultiSelect::new(
-        "Select pages to build (type to filter, space to toggle, enter to confirm):",
-        options,
-    )
-    .with_page_size(20)
-    .with_help_message("Press a to toggle all, esc to build all pages")
-    .prompt();
-
-    match result {
-        Ok(selected) if selected.is_empty() => None,
-        Ok(selected) => {
-            let indices: Vec<usize> = pages
-                .iter()
-                .enumerate()
-                .filter(|(_, p)| selected.contains(&p.url_path))
-                .map(|(i, _)| i)
-                .collect();
-            Some(indices)
-        }
-        Err(InquireError::NotTTY) => {
-            println!("Non-interactive mode, building all pages");
-            None
-        }
-        Err(InquireError::OperationCanceled | InquireError::OperationInterrupted) => {
-            println!("Building all pages");
-            None
-        }
-        Err(e) => {
-            eprintln!("Prompt error: {e}, building all pages");
-            None
-        }
-    }
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -1442,63 +1399,65 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let output_dir = &args.output_dir;
-    std::fs::create_dir_all(output_dir)?;
+    let cwd = std::env::current_dir()?;
+    let source_dir = match &args.source_dir {
+        Some(d) => d.clone(),
+        None => {
+            if cwd.join("ssg").is_dir() && cwd.join("lib").is_dir() {
+                cwd.clone()
+            } else if cwd.join("yew-rs").is_dir() {
+                cwd.join("yew-rs")
+            } else {
+                bail!(
+                    "Cannot find yew-rs directory. Run from the workspace root, from yew-rs/, or \
+                     pass --source-dir explicitly."
+                );
+            }
+        }
+    };
+
+    let output_dir = match &args.output_dir {
+        Some(d) => d.clone(),
+        None => source_dir.join("../website/build"),
+    };
+    std::fs::create_dir_all(&output_dir)?;
 
     let output_dir = if output_dir.is_absolute() {
-        output_dir.clone()
+        output_dir
     } else {
-        std::env::current_dir()?.join(output_dir)
+        cwd.join(&output_dir)
     };
 
     let total_start = std::time::Instant::now();
 
     println!("Discovering pages...");
-    let all_pages = discover_pages(&args.source_dir)?;
+    let all_pages = discover_pages(&source_dir)?;
+
+    let all_pages = if args.all_locales {
+        all_pages
+    } else {
+        all_pages
+            .into_iter()
+            .filter(|p| {
+                !p.url_path.starts_with("/ja/")
+                    && !p.url_path.starts_with("/zh-Hans/")
+                    && !p.url_path.starts_with("/zh-Hant/")
+            })
+            .collect()
+    };
+
     println!("Found {} pages", all_pages.len());
 
-    let pages: Vec<PageBinary> = if !args.page.is_empty() {
-        let filtered: Vec<PageBinary> = all_pages
-            .into_iter()
-            .filter(|p| args.page.iter().any(|f| p.url_path.contains(f.as_str())))
-            .collect();
-        if filtered.is_empty() {
-            bail!(
-                "No pages matched filters: {:?}\nTry a broader substring, e.g. --page \
-                 /docs/getting-started",
-                args.page
-            );
-        }
-        println!(
-            "Filtered to {} pages (from --page {:?})",
-            filtered.len(),
-            args.page
-        );
-        filtered
-    } else {
-        match interactive_page_select(&all_pages) {
-            Some(indices) => {
-                let selected: Vec<PageBinary> = all_pages
-                    .into_iter()
-                    .enumerate()
-                    .filter(|(i, _)| indices.contains(i))
-                    .map(|(_, p)| p)
-                    .collect();
-                println!("Selected {} pages", selected.len());
-                selected
-            }
-            None => all_pages,
-        }
-    };
+    let pages = all_pages;
     println!("Building {} pages", pages.len());
 
     if !args.skip_build {
         let t = std::time::Instant::now();
         println!("\n=== Compile phase ===");
-        cargo_build_all(&args.source_dir, &pages, args.jobs)?;
+        cargo_build_all(&source_dir, &pages, args.jobs)?;
         println!("Compile phase: {:.1}s", t.elapsed().as_secs_f64());
 
-        let target_dir = args.source_dir.join("..").join("target");
+        let target_dir = source_dir.join("..").join("target");
 
         let t = std::time::Instant::now();
         println!(
@@ -1520,30 +1479,23 @@ async fn main() -> Result<()> {
         println!("Bundle phase: {:.1}s", t.elapsed().as_secs_f64());
 
         println!("\nCopying static assets...");
-        copy_static_assets(&args.source_dir, &output_dir)?;
+        copy_static_assets(&source_dir, &output_dir)?;
 
-        if args.page.is_empty() {
-            println!("Generating sitemap.xml...");
-            generate_sitemap(&pages, &output_dir, "https://yew.rs")?;
+        println!("Generating sitemap.xml...");
+        generate_sitemap(&pages, &output_dir, "https://yew.rs")?;
 
-            println!("Generating blog feeds...");
-            generate_blog_feeds(&output_dir)?;
+        println!("Generating blog feeds...");
+        generate_blog_feeds(&output_dir)?;
 
-            println!("Generating redirects...");
-            generate_redirects(&output_dir)?;
-        }
+        println!("Generating redirects...");
+        generate_redirects(&output_dir)?;
     }
 
     if !args.skip_capture {
         let t = std::time::Instant::now();
         println!("\n=== SSR Capture phase ===");
         println!("Rendering pages via ServerRenderer...");
-        let page_filter = if args.page.is_empty() {
-            None
-        } else {
-            Some(&args.page)
-        };
-        render_and_inject(&output_dir, page_filter).await?;
+        render_and_inject(&output_dir, args.all_locales).await?;
         println!("SSR phase: {:.1}s", t.elapsed().as_secs_f64());
     }
 

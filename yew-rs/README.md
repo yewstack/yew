@@ -1,27 +1,24 @@
 # yew-rs: Yew Documentation Website
 
-## Build and preview a subset of pages
+## Quick build (English only)
 
 ```sh
-cargo r -p yew-site-ssg -- \
-  --page /docs/getting-started \
-  --skip-wasm-opt \
-  --skip-capture \
-  --jobs 16 \
-  --serve 8080
+cargo r -p yew-site-ssg -- --skip-wasm-opt --jobs 16
 ```
 
-This builds only pages matching `/docs/getting-started`, skips wasm-opt (faster), and serves on `http://localhost:8080`.
+Builds English pages only. Run from the workspace root or from `yew-rs/`.
 
-## Interactive page picker
+## Full build (all locales)
 
 ```sh
-cargo r -p yew-site-ssg -- --skip-wasm-opt --skip-capture --jobs 16 --serve 8080
+cargo r -p yew-site-ssg -- --skip-wasm-opt --jobs 16 --all-locales
 ```
 
-Without `--page`, the SSG shows an interactive fuzzy-searchable picker. Type to filter, space to toggle pages, enter to confirm. Press esc to build all pages.
+## Build and serve
 
-In non-interactive environments (CI, piped stdin), it builds all pages automatically.
+```sh
+cargo r -p yew-site-ssg -- --skip-wasm-opt --jobs 16 --serve 8080
+```
 
 ## Tests
 

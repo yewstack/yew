@@ -11,8 +11,6 @@ clap = { workspace = true }
 atom_syndication = { version = "0.12", default-features = false, features = ["builders"] }
 rss = { version = "2", default-features = false, features = ["builders"] }
 syntect = { git = "https://github.com/Madoshakalaka/syntect.git", branch = "line-highlighting", default-features = false, features = ["parsing", "html", "default-syntaxes", "default-themes", "dump-load", "regex-fancy"] }
-inquire = "0.9"
-
 yew-site-home = { path = "../home", default-features = false, features = ["ssr"] }
 yew-site-spa-en = { path = "../spa-en", default-features = false, features = ["ssr"] }
 yew-site-spa-ja = { path = "../spa-ja", default-features = false, features = ["ssr"] }
