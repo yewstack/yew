@@ -1,8 +1,8 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("什么是 Portal？")]),
-        p(vec![
+        h2![text("什么是 Portal？")],
+        p![
             text(
                 "传送门 (Portal) 提供了一种将子元素渲染到父组件的 DOM 层次结构之外的 DOM \
                  节点的方法。",
@@ -15,14 +15,14 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 渲染为 "),
             code("host"),
             text(" 元素的子元素，而不是在其父组件的层次结构下。"),
-        ]),
-        h2(vec![text("用法")]),
-        p(vec![
+        ],
+        h2![text("用法")],
+        p![
             text("传送门的典型用途包括模态对话框和悬停卡片，以及更多技术应用，例如控制元素的 "),
-            link(
+            link![
                 "https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot",
-                vec![code("shadowRoot")],
-            ),
+                code("shadowRoot"),
+            ],
             text(" 的内容，将样式表附加到周围文档的 "),
             code("<head>"),
             text(" 中，以及在 "),
@@ -30,8 +30,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 的中央 "),
             code("<defs>"),
             text(" 元素中收集引用的元素。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("请注意，"),
             code("yew::create_portal"),
             text(
@@ -44,7 +44,7 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 之外的一个元素中，该元素由 "),
             code("id=\"modal_host\""),
             text(" 标识。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -67,32 +67,32 @@ fn Modal(props: &ModalProps) -> Html {
     )
 }"#,
         ),
-        h2(vec![text("事件处理")]),
-        p(vec![text(
+        h2![text("事件处理")],
+        p![text(
             "传送门内部元素上发出的事件遵循虚拟 DOM \
              冒泡。也就是说，如果传送门被渲染为元素的子元素，\
              那么该元素上的事件监听器将捕获从传送门内部分发出的事件，即使传送门将其内容渲染在实际 \
              DOM 中的不相关位置。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "这使开发人员无需关心他们使用的组件是使用传送门实现的还是没有使用传送门实现的。\
              无论如何，其子元素上触发的事件都会冒泡。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("已知问题是，从传送门到 "),
-            bold(vec![text("关闭")]),
+            bold![text("关闭")],
             text(
                 " 的 shadow root 的事件将被分发两次，一次针对 shadow root \
                  内部的元素，一次针对宿主元素本身。请记住，",
             ),
-            bold(vec![text("打开")]),
+            bold![text("打开")],
             text(" 的 shadow root 可以正常工作。如果这影响到您，请随时提交一个错误报告。"),
-        ]),
-        h2(vec![text("进一步阅读")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("进一步阅读")],
+        ul![li![link![
             "https://github.com/yewstack/yew/tree/master/examples/portals",
-            vec![text("传送门示例")],
-        )])]),
+            text("传送门示例"),
+        ]]],
     ])
 }
 

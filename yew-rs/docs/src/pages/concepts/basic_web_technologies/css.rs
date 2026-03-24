@@ -1,22 +1,22 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text(
                 "Yew does not natively provide a CSS-in-Rust solution but helps with styling by \
                  providing programmatic ways to interact with the HTML ",
             ),
             code("class"),
             text(" attribute."),
-        ]),
-        h2(vec![code("classes!"), text(" macro")]),
-        p(vec![
+        ],
+        h2![code("classes!"), text(" macro")],
+        p![
             text("The "),
             code("classes!"),
             text(" macro and associated "),
             code("Classes"),
             text(" struct simplify the use of HTML classes:"),
-        ]),
+        ],
         tabs(
             "Literal",
             vec![
@@ -94,20 +94,20 @@ html! {
                 ),
             ],
         ),
-        p(vec![
+        p![
             text("We will expand upon this concept in "),
-            link("/docs/more/css", vec![text("more CSS")]),
+            link!("/docs/more/css", text("more CSS")),
             text("."),
-        ]),
-        h2(vec![text("Inline Styles")]),
-        p(vec![
+        ],
+        h2![text("Inline Styles")],
+        p![
             text(
                 "Currently Yew does not provide any special help with inline styles specified via \
                  the ",
             ),
             code("style"),
             text(" attribute, but you can use it like any other HTML attribute:"),
-        ]),
+        ],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -116,11 +116,11 @@ html! {
   <div style=\"color: red;\"></div>
 };",
         ),
-        p(vec![
+        p![
             text("We will expand upon this concept in "),
-            link("/docs/more/css", vec![text("more CSS")]),
+            link!("/docs/more/css", text("more CSS")),
             text("."),
-        ]),
+        ],
     ])
 }
 

@@ -1,12 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("DOM 节点")]),
-        p(vec![text(
+        h2![text("DOM 节点")],
+        p![text(
             "在 Yew 中手动创建或管理 DOM 节点的原因有很多，比如与可能与受管理组件冲突的 JS \
              库集成。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("使用 "),
             code("web-sys"),
             text("，您可以创建 DOM 元素并将其转换为 "),
@@ -16,7 +16,7 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 将其用作 "),
             code("Html"),
             text(" 值："),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Element, Node};
@@ -44,8 +44,8 @@ fn MyComponent() -> Html {
     (*node).clone()
 }"#,
         ),
-        h2(vec![text("动态标签名")]),
-        p(vec![
+        h2![text("动态标签名")],
+        p![
             text(
                 "在构建高阶组件时，您可能会发现自己处于一个标签名不是静态的情况。例如，\
                  您可能有一个 ",
@@ -60,7 +60,7 @@ fn MyComponent() -> Html {
             text("，其中 "),
             code("name"),
             text(" 可以是返回字符串的任何表达式。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -72,11 +72,11 @@ html! {
     <@{format!("h{}", level)} class="title">{ text }</@>
 };"#,
         ),
-        h2(vec![text("逻辑值属性")]),
-        p(vec![text(
+        h2![text("逻辑值属性")],
+        p![text(
             "一些内容属性（例如 checked、hidden、required）被称为逻辑值属性。在 Yew \
              中，逻辑值属性需要设置为布尔值：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -87,15 +87,15 @@ html! {
     </div>
 };"#,
         ),
-        p(vec![
+        p![
             text("这与以下的 "),
-            bold(vec![text("HTML")]),
+            bold![text("HTML")],
             text(" 功能上是等价的："),
-        ]),
+        ],
         code_block("html", r#"<div hidden>This div is hidden.</div>"#),
-        p(vec![text(
+        p![text(
             "将逻辑值属性设置为 false 等效于不使用该属性；可以使用逻辑表达式的值：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -108,17 +108,13 @@ html! {
     </div>
 };"#,
         ),
-        p(vec![
-            text("这与以下 "),
-            bold(vec![text("HTML")]),
-            text(" 结果等价："),
-        ]),
+        p![text("这与以下 "), bold![text("HTML")], text(" 结果等价："),],
         code_block("html", r#"<div>This div is NOT hidden.</div>"#),
-        h2(vec![text("类似字符串的属性")]),
-        p(vec![text(
+        h2![text("类似字符串的属性")],
+        p![text(
             "除了一些逻辑值属性，您可能会处理很多类似字符串的 HTML 属性，Yew \
              有几种选项可以将类似字符串的值传递给组件。",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, virtual_dom::AttrValue};
@@ -135,18 +131,18 @@ html! {
     </div>
 };"#,
         ),
-        p(vec![
+        p![
             text("它们都是有效的，"),
-            bold(vec![text("但")]),
+            bold![text("但")],
             text("我们鼓励您更倾向于使用 Yew 的自定义 "),
             code("AttrValue"),
             text("，特别是如果您需要克隆或将它们作为属性传递给另一个组件。"),
-        ]),
-        h2(vec![text("HTML 元素的可选属性")]),
-        p(vec![text(
+        ],
+        h2![text("HTML 元素的可选属性")],
+        p![text(
             "大多数 HTML 属性可以使用可选值（Some(x) 或 \
              None）。这使我们可以在属性被标记为可选时省略该属性。",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -157,16 +153,16 @@ html! {
     <div id={maybe_id}></div>
 };"#,
         ),
-        p(vec![
+        p![
             text("如果属性设置为 "),
             code("None"),
             text("，则该属性将不会在 DOM 中设置。"),
-        ]),
-        h2(vec![text("相关示例")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("相关示例")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/inner_html",
-            vec![text("内嵌 HTML")],
-        )])]),
+            text("内嵌 HTML"),
+        )]],
     ])
 }
 

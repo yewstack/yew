@@ -1,18 +1,18 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text("Yew はネイティブの CSS-in-Rust ソリューションを提供していませんが、HTML の "),
             code("class"),
             text(" 属性とプログラム的に対話する方法を提供することでスタイルを支援します。"),
-        ]),
-        h2(vec![code("classes!"), text(" マクロ")]),
-        p(vec![
+        ],
+        h2![code("classes!"), text(" マクロ")],
+        p![
             code("classes!"),
             text(" マクロと関連する "),
             code("Classes"),
             text(" 構造体は、HTML クラスの使用を簡素化します："),
-        ]),
+        ],
         tabs(
             "Literal",
             vec![
@@ -90,17 +90,17 @@ html! {
                 ),
             ],
         ),
-        p(vec![
+        p![
             text("詳細な CSS に関する内容は"),
-            link("/ja/docs/more/css", vec![text("こちらのドキュメント")]),
+            link!("/ja/docs/more/css", text("こちらのドキュメント")),
             text("をご覧ください。"),
-        ]),
-        h2(vec![text("インラインスタイル")]),
-        p(vec![
+        ],
+        h2![text("インラインスタイル")],
+        p![
             text("現在、Yew は "),
             code("style"),
             text(" 属性を使用して指定されたインラインスタイルを処理するための特別な支援ツールを提供していませんが、他の HTML 属性と同様に処理することができます："),
-        ]),
+        ],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -109,11 +109,11 @@ html! {
   <div style=\"color: red;\"></div>
 };"
         ),
-        p(vec![
+        p![
             text("詳細な CSS に関する内容は"),
-            link("/ja/docs/more/css", vec![text("こちらのドキュメント")]),
+            link!("/ja/docs/more/css", text("こちらのドキュメント")),
             text("をご覧ください。"),
-        ]),
+        ],
     ])
 }
 

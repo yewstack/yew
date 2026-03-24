@@ -1,15 +1,15 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("回调函数 (Callbacks)")]),
-        p(vec![
+        h2![text("回调函数 (Callbacks)")],
+        p![
             text("回调函数是用于在 Yew 中与服务、代理和父组件进行通信的。在内部，它们的类型只是 "),
             code("Fn"),
             text(" 包装在 "),
             code("Rc"),
             text(" 中，以允许它们被克隆。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("它们有一个 "),
             code("emit"),
             text(" 函数，该函数以其 "),
@@ -24,8 +24,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 函数，以将消息发送回其父组件。在 "),
             code("html!"),
             text(" 宏中作为 props 提供的闭包或函数会自动转换为回调函数。"),
-        ]),
-        p(vec![text("一个简单的回调函数的使用可能如下所示：")]),
+        ],
+        p![text("一个简单的回调函数的使用可能如下所示：")],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -55,7 +55,7 @@ impl Component for Comp {
     }
 }"#,
         ),
-        p(vec![
+        p![
             text("这个函数传递给 "),
             code("callback"),
             text(" 必须始终带有一个参数。例如，"),
@@ -66,12 +66,12 @@ impl Component for Comp {
                 " 类型参数的函数。然后处理程序可以决定应该发送什么类型的消息给组件。\
                  这个消息无条件地被安排在下一个更新循环中。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("如果你需要一个回调函数，它可能不需要引起更新，请使用 "),
             code("batch_callback"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{events::KeyboardEvent, html, Component, Context, Html};
@@ -108,17 +108,17 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2(vec![text("相关示例")]),
-        ul(vec![
-            li(vec![link(
+        h2![text("相关示例")],
+        ul![
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/counter",
-                vec![text("Counter")],
-            )]),
-            li(vec![link(
+                text("Counter"),
+            )],
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/timer",
-                vec![text("Timer")],
-            )]),
-        ]),
+                text("Timer"),
+            )],
+        ],
     ])
 }
 

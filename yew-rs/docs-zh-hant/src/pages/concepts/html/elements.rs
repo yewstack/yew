@@ -1,12 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("DOM 節點")]),
-        p(vec![text(
+        h2![text("DOM 節點")],
+        p![text(
             "在 Yew 中手動建立或管理 DOM 節點的原因有很多，例如與可能與受管理元件衝突的 JS \
              庫整合。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("使用 "),
             code("web-sys"),
             text("，您可以建立 DOM 元素並將其轉換為 "),
@@ -16,7 +16,7 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 將其用作 "),
             code("Html"),
             text(" 值："),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Element, Node};
@@ -45,8 +45,8 @@ fn MyComponent() -> Html {
 }
 "#,
         ),
-        h2(vec![text("動態標籤名")]),
-        p(vec![
+        h2![text("動態標籤名")],
+        p![
             text(
                 "在建立高階元件時，您可能會發現自己處於一個標籤名不是靜態的情況。例如，\
                  您可能有一個 ",
@@ -61,7 +61,7 @@ fn MyComponent() -> Html {
             text("，其中 "),
             code("name"),
             text(" 可以是傳回字串的任何表達式。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -73,11 +73,11 @@ html! {
     <@{format!("h{}", level)} class="title">{ text }</@>
 };"#,
         ),
-        h2(vec![text("邏輯值屬性")]),
-        p(vec![text(
+        h2![text("邏輯值屬性")],
+        p![text(
             "一些內容屬性（例如 checked、hidden、required）被稱為邏輯值屬性。在 Yew \
              中，邏輯值屬性需要設定為布林值：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -88,15 +88,15 @@ html! {
     </div>
 };"#,
         ),
-        p(vec![
+        p![
             text("這與以下的 "),
-            bold(vec![text("HTML")]),
+            bold![text("HTML")],
             text(" 功能上是等價的："),
-        ]),
+        ],
         code_block("html", r#"<div hidden>This div is hidden.</div>"#),
-        p(vec![text(
+        p![text(
             "將邏輯值屬性設為 false 等效於不使用該屬性；可以使用邏輯表達式的值：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -109,17 +109,13 @@ html! {
     </div>
 };"#,
         ),
-        p(vec![
-            text("這與以下 "),
-            bold(vec![text("HTML")]),
-            text(" 結果等價："),
-        ]),
+        p![text("這與以下 "), bold![text("HTML")], text(" 結果等價："),],
         code_block("html", r#"<div>This div is NOT hidden.</div>"#),
-        h2(vec![text("類似字串的屬性")]),
-        p(vec![text(
+        h2![text("類似字串的屬性")],
+        p![text(
             "除了一些邏輯值屬性，您可能會處理許多類似字串的 HTML 屬性，Yew \
              有幾種選項可以將類似字串的值傳遞給元件。",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, virtual_dom::AttrValue};
@@ -136,18 +132,18 @@ html! {
     </div>
 };"#,
         ),
-        p(vec![
+        p![
             text("它們都是有效的，"),
-            bold(vec![text("但")]),
+            bold![text("但")],
             text("我們鼓勵您更傾向於使用 Yew 的自訂 "),
             code("AttrValue"),
             text("，特別是如果您需要複製或將它們作為屬性傳遞給另一個元件。"),
-        ]),
-        h2(vec![text("HTML 元素的可選屬性")]),
-        p(vec![text(
+        ],
+        h2![text("HTML 元素的可選屬性")],
+        p![text(
             "大多數 HTML 屬性可以使用可選值（Some(x) 或 \
              None）。這使我們可以在屬性被標記為可選時省略該屬性。",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -158,16 +154,16 @@ html! {
     <div id={maybe_id}></div>
 };"#,
         ),
-        p(vec![
+        p![
             text("如果屬性設為 "),
             code("None"),
             text("，則該屬性將不會在 DOM 中設定。"),
-        ]),
-        h2(vec![text("相關範例")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("相關範例")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/inner_html",
-            vec![text("內嵌 HTML")],
-        )])]),
+            text("內嵌 HTML"),
+        )]],
     ])
 }
 

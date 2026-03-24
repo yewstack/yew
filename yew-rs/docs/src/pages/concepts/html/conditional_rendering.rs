@@ -1,35 +1,34 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("If blocks")]),
-        p(vec![
+        h2![text("If blocks")],
+        p![
             text("To conditionally render some markup, we wrap it in an "),
             code("if"),
             text(" block:"),
-        ]),
-        tabs(
+        ],
+        tabs!(
             "if",
-            vec![
-                tab(
-                    "if",
-                    "if",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::prelude::*;
+            tab!(
+                "if",
+                "if",
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 
 html! {
     if true {
         <p>{ "True case" }</p>
     }
 };"#,
-                    )],
                 ),
-                tab(
-                    "if - else",
-                    "if - else",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::prelude::*;
+            ),
+            tab!(
+                "if - else",
+                "if - else",
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 let some_condition = true;
 
 html! {
@@ -39,14 +38,14 @@ html! {
         <p>{ "False case" }</p>
     }
 };"#,
-                    )],
                 ),
-                tab(
-                    "if let",
-                    "if let",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::prelude::*;
+            ),
+            tab!(
+                "if let",
+                "if let",
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 let some_text = Some("text");
 
 html! {
@@ -54,14 +53,14 @@ html! {
         <p>{ text }</p>
     }
 };"#,
-                    )],
                 ),
-                tab(
-                    "if let else",
-                    "if let else",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::prelude::*;
+            ),
+            tab!(
+                "if let else",
+                "if let else",
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 let some_text = Some("text");
 
 html! {
@@ -71,9 +70,8 @@ html! {
         <p>{ "False case" }</p>
     }
 };"#,
-                    )],
                 ),
-            ],
+            ),
         ),
     ])
 }

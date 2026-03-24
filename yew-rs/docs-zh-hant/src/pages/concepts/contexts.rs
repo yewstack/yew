@@ -1,15 +1,15 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "通常，資料是透過 props 從父元件傳遞到子元件。 \
              但是，如果必須透過中間的許多元件傳遞它們，或者如果應用程式中的許多元件需要相同的訊息，傳遞 props 可能會變得冗長和煩人。 \
              上下文解決了這個問題，允許父元件使資料可用於其下方樹中的任何元件，無論多深，而無需透過 props 傳遞它們。",
-        )]),
-        h2(vec![text("使用 props 的問題：\"Prop Drilling\"")]),
-        p(vec![
+        )],
+        h2![text("使用 props 的問題：\"Prop Drilling\"")],
+        p![
             text("傳遞 "),
-            link("/zh-Hant/docs/concepts/function-components/properties", vec![text("props")]),
+            link!("/zh-Hant/docs/concepts/function-components/properties", text("props")),
             text(
                 " 是從父元件直接傳遞資料到子元件的好方法。 \
                  但是，當需要透過深層嵌套的組件樹傳遞資料或多個組件共享相同的資料時，傳遞 props 變得繁瑣。 \
@@ -17,8 +17,8 @@ pub fn page_content() -> yew_site_lib::Content {
                  然而，這可能導致 props 必須通過多個元件才能到達需要它的元件。 \
                  這種情況稱為 \"Prop Drilling\"。",
             ),
-        ]),
-        p(vec![text("考慮以下範例，它透過 props 傳遞主題：")]),
+        ],
+        p![text("考慮以下範例，它透過 props 傳遞主題：")],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html, Properties, component};
@@ -81,7 +81,7 @@ fn App() -> Html {
     }
 }"#,
         ),
-        p(vec![
+        p![
             text("我們透過 "),
             code("Navbar"),
             text(" 傳遞主題設定，以便它可以到達 "),
@@ -93,10 +93,10 @@ fn App() -> Html {
             text(" 和 "),
             code("NavButton"),
             text(" 這些需要存取主題的元件可以直接存取主題而不必透過 prop 傳遞，那就更好了。 上下文解決了這個問題，允許父元件將資料（在這種情況下是主題）傳遞給其子元件。"),
-        ]),
-        h2(vec![text("使用上下文")]),
-        h3(vec![text("步驟 1：提供上下文")]),
-        p(vec![
+        ],
+        h2![text("使用上下文")],
+        h3![text("步驟 1：提供上下文")],
+        p![
             text("需要一個上下文提供者來消費上下文。 "),
             code("ContextProvider<T>"),
             text("，其中 "),
@@ -112,7 +112,7 @@ fn App() -> Html {
             text(" 是其子元件將擁有上下文的元件。 當上下文變更時，子元件會重新渲染。一個結構體用來定義要傳遞的資料。 "),
             code("ContextProvider"),
             text(" 可以這樣使用："),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -166,54 +166,54 @@ pub fn ThemedButton() -> Html {
     }
 }"##,
         ),
-        h3(vec![text("步驟 2：使用上下文")]),
-        h4(vec![text("函數元件")]),
-        p(vec![
+        h3![text("步驟 2：使用上下文")],
+        h4![text("函數元件")],
+        p![
             code("use_context"),
             text(" 鉤子用於在函數元件中使用上下文。 請參閱 "),
-            link(
+            link!(
                 "https://yew-rs-api.web.app/next/yew/functional/fn.use_context.html",
-                vec![text("use_context 文件")],
+                text("use_context 文件"),
             ),
             text(" 以了解更多資訊。"),
-        ]),
-        h4(vec![text("結構體組件")]),
-        p(vec![text(
+        ],
+        h4![text("結構體組件")],
+        p![text(
             "我們有兩種選擇在結構體組件中使用上下文：",
-        )]),
-        ul(vec![
-            li(vec![
-                link("/zh-Hant/docs/advanced-topics/struct-components/hoc", vec![text("高階元件")]),
+        )],
+        ul![
+            li![
+                link!("/zh-Hant/docs/advanced-topics/struct-components/hoc", text("高階元件")),
                 text("：高階函數元件將使用上下文並將資料傳遞給需要它的結構體元件。"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("直接在結構體組件中使用上下文。請參閱 "),
-                link(
+                link!(
                     "https://github.com/yewstack/yew/tree/master/examples/contexts/src/struct_component_subscriber.rs",
-                    vec![text("結構體組件作\u{200B}\u{200B}為消費者的範例")],
+                    text("結構體組件作\u{200B}\u{200B}為消費者的範例"),
                 ),
-            ]),
-        ]),
-        h2(vec![text("使用場景")]),
-        p(vec![text(
+            ],
+        ],
+        h2![text("使用場景")],
+        p![text(
             "通常，如果某些資料需要在樹的不同部分的遠端元件中使用，上下文可能會對你有所幫助。 以下是一些這樣的例子：",
-        )]),
-        ul(vec![
-            li(vec![
-                bold(vec![text("主題")]),
+        )],
+        ul![
+            li![
+                bold![text("主題")],
                 text("：你可以在應用程式的頂部放置一個上下文來保存你的應用程式主題，並使用它來調整視覺外觀，如上例所示。"),
-            ]),
-            li(vec![
-                bold(vec![text("目前使用者帳戶")]),
+            ],
+            li![
+                bold![text("目前使用者帳戶")],
                 text("：在許多情況下，元件需要知道目前登入的使用者。你可以使用上下文將目前使用者物件提供給元件。"),
-            ]),
-        ]),
-        h3(vec![text("使用上下文前的考慮")]),
-        p(vec![text(
+            ],
+        ],
+        h3![text("使用上下文前的考慮")],
+        p![text(
             "上下文非常容易使用，這也使得它們非常容易被誤用/過度使用。 \
              僅僅因為你可以使用上下文將 props 共享給多個層級深的元件，並不意味著你應該這樣做。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("例如，你可以提取一個元件並將該元件作為子元件傳遞給另一個元件。例如， 你可能有一個 "),
             code("Layout"),
             text(" 元件，它將 "),
@@ -225,30 +225,30 @@ pub fn ThemedButton() -> Html {
             text(" 元件，使其接受子元件作為 props 並顯示 "),
             code("<Layout> <ArticleList {articles} /> </Layout>"),
             text("。"),
-        ]),
-        h2(vec![text("修改子元件的上下文值")]),
-        p(vec![
+        ],
+        h2![text("修改子元件的上下文值")],
+        p![
             text("由於 Rust 的所有權規則，上下文不能有一個可以被子元件呼叫的 "),
             code("&mut self"),
             text(" 方法。 要修改上下文的值，我們必須將其與 reducer 結合使用。這可以透過使用 "),
-            link(
+            link!(
                 "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html",
-                vec![code("use_reducer")],
+                code("use_reducer"),
             ),
             text(" 鉤子完成。"),
-        ]),
-        p(vec![
-            link(
+        ],
+        p![
+            link!(
                 "https://github.com/yewstack/yew/tree/master/examples/contexts",
-                vec![text("上下文範例")],
+                text("上下文範例"),
             ),
             text(" 示範了使用上下文的可變上下文"),
-        ]),
-        h2(vec![text("進一步閱讀")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("進一步閱讀")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/contexts",
-            vec![text("上下文範例")],
-        )])]),
+            text("上下文範例"),
+        )]],
     ])
 }
 

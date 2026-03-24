@@ -1,7 +1,7 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("ref"),
             text(" 属性可以用于将 "),
             code("NodeRef"),
@@ -14,30 +14,29 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 生命周期方法之外对 DOM 进行更改，检索 "),
             code("<input>"),
             text(" 的值以及通过 javascript API 直接与 DOM 交互。"),
-        ]),
-        p(vec![text(
-            "这对于获取 canvas 元素或滚动到页面的不同部分很有用。",
-        )]),
-        admonition(
+        ],
+        p![text("这对于获取 canvas 元素或滚动到页面的不同部分很有用。",)],
+        admonition![
             AdmonitionType::Caution,
             None,
-            vec![p(vec![
+            p![
                 text("不要手动修改 Yew 渲染的 DOM 树。如果不确定，请将 "),
                 code("NodeRef"),
                 text(" 视为只读访问。"),
-            ])],
-        ),
-        h2(vec![text("进一步阅读")]),
-        ul(vec![
-            li(vec![link(
+            ],
+        ],
+        h2![text("进一步阅读")],
+        ul![
+            li![link!(
                 "https://yew-rs-api.web.app/next/yew/functional/fn.use_node_ref.html",
-                vec![text("use_node_ref hook")],
-            )]),
-            li(vec![link(
+                text("use_node_ref hook"),
+            )],
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-                vec![code("node_refs"), text(" 示例")],
-            )]),
-        ]),
+                code("node_refs"),
+                text(" 示例"),
+            )],
+        ],
     ])
 }
 

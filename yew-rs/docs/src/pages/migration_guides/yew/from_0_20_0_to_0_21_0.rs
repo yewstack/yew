@@ -1,37 +1,37 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![
+        h2![
             text("Dependencies as first hook argument and "),
             code("use_effect_with"),
-        ]),
-        ul(vec![
-            li(vec![
+        ],
+        ul![
+            li![
                 text("Replace "),
                 code("use_effect_with_deps"),
                 text(" with new "),
                 code("use_effect_with"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("use_effect_with"),
                 text(", "),
                 code("use_callback"),
                 text(", "),
                 code("use_memo"),
                 text(" now take dependencies as their first argument"),
-            ]),
-        ]),
-        h3(vec![text("Automated refactor")]),
-        p(vec![
+            ],
+        ],
+        h3![text("Automated refactor")],
+        p![
             text("With the help of "),
-            link(
+            link![
                 "https://ast-grep.github.io/guide/quick-start.html",
-                vec![text("https://ast-grep.github.io")],
-            ),
-        ]),
-        p(vec![text(
+                text("https://ast-grep.github.io"),
+            ],
+        ],
+        p![text(
             "Here are commands that can do the refactoring for you.",
-        )]),
+        )],
         code_block(
             "bash",
             r#"sg --pattern 'use_effect_with_deps($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_effect_with($$$DEPENDENCIES, $CALLBACK)' -l rs -i
@@ -52,10 +52,10 @@ sg --pattern 'use_transitive_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_
 sg --pattern 'use_prepared_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_prepared_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i
 sg --pattern 'use_prepared_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_prepared_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i"#,
         ),
-        h3(vec![text("Reasoning")]),
-        p(vec![text(
+        h3![text("Reasoning")],
+        p![text(
             "This will enable more ergonomic use of hooks, consider:",
-        )]),
+        )],
         tabs(
             "before",
             vec![

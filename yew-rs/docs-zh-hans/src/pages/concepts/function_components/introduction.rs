@@ -1,49 +1,49 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text("让我们重新回顾一下之前的标语：")]),
-        p(vec![text(
+        p![text("让我们重新回顾一下之前的标语：")],
+        p![text(
             "> Yew 的核心思想是将可重用的 UI 部分所需的所有内容集中在一个地方 - Rust 文件中。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "我们将通过引入将定义应用程序的逻辑和呈现行为的概念来完善这个陈述：\"组件\"。",
-        )]),
-        h2(vec![text("什么是组件？")]),
-        p(vec![text("组件是 Yew 的构建块。")]),
-        p(vec![text("它们应当：")]),
-        ul(vec![
-            li(vec![
+        )],
+        h2![text("什么是组件？")],
+        p![text("组件是 Yew 的构建块。")],
+        p![text("它们应当：")],
+        ul![
+            li![
                 text("以 "),
-                link(
+                link!(
                     "/zh-Hans/docs/concepts/function-components/properties",
-                    vec![text("Props")],
+                    text("Props"),
                 ),
                 text(" 的形式接受参数"),
-            ]),
-            li(vec![text("可以拥有自己的状态")]),
-            li(vec![text("计算用户可见的 HTML 片段（DOM）")]),
-        ]),
-        h2(vec![text("Yew 组件的两种风味")]),
-        p(vec![text(
+            ],
+            li![text("可以拥有自己的状态")],
+            li![text("计算用户可见的 HTML 片段（DOM）")],
+        ],
+        h2![text("Yew 组件的两种风味")],
+        p![text(
             "您当前正在阅读有关函数组件的内容 - 这是在开始使用 Yew \
              时以及在编写简单的呈现逻辑时编写组件的推荐方式。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("还有一种更高级但不太容易访问的编写组件的方式 - "),
-            link(
+            link!(
                 "/zh-Hans/docs/advanced-topics/struct-components",
-                vec![text("结构组件")],
+                text("结构组件"),
             ),
             text("。它们允许非常详细的控制，尽管大多数情况下您不需要那么详细的控制。"),
-        ]),
-        h2(vec![text("创建函数组件")]),
-        p(vec![
+        ],
+        h2![text("创建函数组件")],
+        p![
             text("要创建一个函数组件，请将 "),
             code("#[component]"),
             text(" 属性添加到一个函数中。按照惯例，函数的名称采用 PascalCase，与 "),
             code("html!"),
             text(" 宏中的普通 html 元素形成对比。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{component, html, Html};
@@ -59,15 +59,15 @@ fn App() -> Html {
     html! { <HelloWorld /> }
 }"#,
         ),
-        h2(vec![text("组件内部发生了什么")]),
-        p(vec![
+        h2![text("组件内部发生了什么")],
+        p![
             text(
                 "在渲染时，Yew 将构建这些组件的虚拟树。它将调用每个（函数）组件的 view 函数来计算 \
                  DOM 的虚拟版本（VDOM），您作为库用户将其视为 ",
             ),
             code("Html"),
             text(" 类型。对于上面的示例，这将如下所示："),
-        ]),
+        ],
         code_block(
             "xhtml",
             r#"<App>
@@ -76,25 +76,25 @@ fn App() -> Html {
     </HelloWorld>
 </App>"#,
         ),
-        p(vec![
+        p![
             text(
                 "当需要更新时，Yew 将再次调用 view 函数，并将新的虚拟 DOM \
                  与其之前的版本进行协调，并仅将新的/更改的/必要的部分传 播到实际的 \
                  DOM。这就是我们所说的 ",
             ),
-            bold(vec![text("渲染")]),
+            bold![text("渲染")],
             text("。"),
-        ]),
-        admonition(
+        ],
+        admonition!(
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("实际上，"),
                 code("Html"),
                 text(" 只是 "),
                 code("VNode"),
                 text(" 的别名 - 一个虚拟节点。"),
-            ])],
+            ],
         ),
     ])
 }

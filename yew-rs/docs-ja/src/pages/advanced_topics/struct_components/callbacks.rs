@@ -1,8 +1,8 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("コールバック関数 (Callbacks)")]),
-        p(vec![
+        h2![text("コールバック関数 (Callbacks)")],
+        p![
             text(
                 "コールバック関数は、Yew \
                  でサービス、エージェント、および親コンポーネントと通信するために使用されます。\
@@ -12,8 +12,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" に包まれた "),
             code("Fn"),
             text(" に過ぎず、クローンを許可します。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("それらには "),
             code("emit"),
             text(" 関数があり、その "),
@@ -32,10 +32,10 @@ pub fn page_content() -> yew_site_lib::Content {
                 " マクロで props \
                  として提供されるクロージャまたは関数は、自動的にコールバック関数に変換されます。",
             ),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "シンプルなコールバック関数の使用例は次のようになります：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -65,7 +65,7 @@ impl Component for Comp {
     }
 }"#,
         ),
-        p(vec![
+        p![
             text("この関数を "),
             code("callback"),
             text(" に渡す場合、常に1つの引数を持つ必要があります。例えば、"),
@@ -77,12 +77,12 @@ impl Component for Comp {
                  ハンドラはコンポーネントにどのタイプのメッセージを送信するかを決定できます。\
                  このメッセージは無条件に次の更新サイクルにスケジュールされます。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("更新を引き起こす必要がないコールバック関数が必要な場合は、"),
             code("batch_callback"),
             text(" を使用してください。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{events::KeyboardEvent, html, Component, Context, Html};
@@ -119,17 +119,17 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2(vec![text("関連例")]),
-        ul(vec![
-            li(vec![link(
+        h2![text("関連例")],
+        ul![
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/counter",
-                vec![text("Counter")],
-            )]),
-            li(vec![link(
+                text("Counter"),
+            )],
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/timer",
-                vec![text("Timer")],
-            )]),
-        ]),
+                text("Timer"),
+            )],
+        ],
     ])
 }
 

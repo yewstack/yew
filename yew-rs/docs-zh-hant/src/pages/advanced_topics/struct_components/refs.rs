@@ -1,15 +1,15 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("ref"),
             text(" 關鍵字可以在任何 HTML 元素或元件中使用，以取得附加到該元素的 DOM "),
             code("Element"),
             text("。這可以用於在 "),
             code("view"),
             text(" 生命週期方法之外對 DOM 進行更改。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("這對於獲取 canvas 元素或滾動到頁面的不同部分很有用。例如，在元件的 "),
             code("rendered"),
             text(" 方法中使用 "),
@@ -17,8 +17,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 允許您在從 "),
             code("view"),
             text(" 渲染後對 canvas 元素進行繪製呼叫。"),
-        ]),
-        p(vec![text("文法如下：")]),
+        ],
+        p![text("文法如下：")],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -56,11 +56,11 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2(vec![text("相關範例")]),
-        ul(vec![li(vec![link(
+        h2![text("相關範例")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            vec![text("節點引用")],
-        )])]),
+            text("節點引用"),
+        )]],
     ])
 }
 

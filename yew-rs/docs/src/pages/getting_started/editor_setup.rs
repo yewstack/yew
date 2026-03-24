@@ -1,41 +1,37 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        admonition(
+        admonition!(
             AdmonitionType::Important,
             Some("contribute"),
-            vec![p(vec![text(
+            p![text(
                 "Using a different editor? Feel free to add instructions for your editor of \
                  choice.",
-            )])],
+            )],
         ),
-        h2(vec![text("Add a template for creating components")]),
-        h3(vec![text("JetBrains IDEs")]),
-        ol(vec![
-            li(vec![text(
+        h2![text("Add a template for creating components")],
+        h3![text("JetBrains IDEs")],
+        ol![
+            li![text(
                 "Navigate to File | Settings | Editor | Live Templates.",
-            )]),
-            li(vec![text(
+            )],
+            li![text(
                 "Select Rust and click on the + icon to add a new Live Template.",
-            )]),
-            li(vec![text(
-                "Give it a name and description of your preference.",
-            )]),
-            li(vec![text(
+            )],
+            li![text("Give it a name and description of your preference.",)],
+            li![text(
                 "Paste the following snippet(s) into the Template Text section.",
-            )]),
-            li(vec![text(
+            )],
+            li![text(
                 "Change the applicability on the lower right, select Rust > Item > Module",
-            )]),
-        ]),
-        p(vec![text(
-            "For function components, use the following template.",
-        )]),
-        ul(vec![li(vec![
+            )],
+        ],
+        p![text("For function components, use the following template.",)],
+        ul![li![
             text("(Optional) Click on Edit Variable and give "),
             code("tag"),
             text(" a reasonable default value like \"div\", with double quotes."),
-        ])]),
+        ]],
         code_block_ignore(
             "rust",
             r#"#[derive(PartialEq, Properties)]
@@ -49,9 +45,9 @@ pub fn $Name$(props: &$Name$Props) -> Html {
     }
 }"#,
         ),
-        p(vec![text(
+        p![text(
             "For struct components, you can use the following more complicated template.",
-        )]),
+        )],
         code_block_ignore(
             "rust",
             r#"struct $NAME$;
@@ -74,16 +70,12 @@ impl Component for $NAME$ {
     }
 }"#,
         ),
-        h3(vec![text("VS Code")]),
-        ol(vec![
-            li(vec![text(
-                "Navigate to File > Preferences > User Snippets.",
-            )]),
-            li(vec![text("Select Rust as the language.")]),
-            li(vec![text(
-                "Add the following snippet in the snippet JSON file:",
-            )]),
-        ]),
+        h3![text("VS Code")],
+        ol![
+            li![text("Navigate to File > Preferences > User Snippets.",)],
+            li![text("Select Rust as the language.")],
+            li![text("Add the following snippet in the snippet JSON file:",)],
+        ],
         code_block(
             "json",
             r##"{
@@ -130,62 +122,58 @@ impl Component for $NAME$ {
     }
 }"##,
         ),
-        h2(vec![
-            text("Support for the "),
-            code("html!"),
-            text(" macro"),
-        ]),
-        h3(vec![text("JetBrains IDEs")]),
-        p(vec![text("Contribution Welcome!")]),
-        h3(vec![text("VS Code")]),
-        h4(vec![text("The Rust-Yew extension")]),
-        blockquote(vec![p(vec![
+        h2![text("Support for the "), code("html!"), text(" macro"),],
+        h3![text("JetBrains IDEs")],
+        p![text("Contribution Welcome!")],
+        h3![text("VS Code")],
+        h4![text("The Rust-Yew extension")],
+        blockquote![p![
             text("This is a "),
-            bold(vec![text("work in progress")]),
+            bold![text("work in progress")],
             text(", and "),
-            bold(vec![text("community maintained")]),
+            bold![text("community maintained")],
             text(" project! "),
-            link(
+            link!(
                 "https://github.com/TechTheAwesome/code-yew-server",
-                vec![text(
+                text(
                     "Please see details and direct related bug reports / issues / questions over \
                      to the extension's repository",
-                )],
+                ),
             ),
-        ])]),
-        p(vec![
+        ]],
+        p![
             text("The Rust-Yew extension is "),
-            link(
+            link!(
                 "https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew",
-                vec![text("available on VSC Marketplace")],
+                text("available on VSC Marketplace"),
             ),
             text(", providing syntax highlighting, renames, hover, and more."),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "Emmet support should work out of the box; if not, please fall back to editing \
                  the ",
             ),
             code("settings.json"),
             text(" file:"),
-        ]),
+        ],
         code_block(
             "json",
             r#""emmet.includeLanguages": {
     "rust": "html",
 }"#,
         ),
-        h3(vec![text("Neovim")]),
-        h4(vec![text("Lazyvim")]),
-        blockquote(vec![p(vec![
+        h3![text("Neovim")],
+        h4![text("Lazyvim")],
+        blockquote![p![
             text("The below configuration works with "),
-            link("https://www.lazyvim.org", vec![text("LazyVim")]),
+            link!("https://www.lazyvim.org", text("LazyVim")),
             text(" and the lazy.vim plugin. Create a file in "),
             code("lua/plugins/nvim-lspconfig.lua"),
             text(" (or update your "),
             code("lspconfig"),
             text(") with:"),
-        ])]),
+        ]],
         code_block(
             "json",
             r#"return {

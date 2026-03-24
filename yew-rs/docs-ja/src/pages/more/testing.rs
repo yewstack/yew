@@ -1,42 +1,39 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        admonition(
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![
-                p(vec![text(
-                    "コンポーネントのテストをより簡単にするために努力していますが、\
-                     現在進行中です。",
-                )]),
-                p(vec![
-                    link(
-                        "https://github.com/yewstack/yew/issues/1413",
-                        vec![text("浅いレンダリング")],
-                    ),
-                    text(" のサポートは GitHub リポジトリで見つけることができます。"),
-                ]),
+            p![text(
+                "コンポーネントのテストをより簡単にするために努力していますが、現在進行中です。",
+            )],
+            p![
+                link!(
+                    "https://github.com/yewstack/yew/issues/1413",
+                    text("浅いレンダリング"),
+                ),
+                text(" のサポートは GitHub リポジトリで見つけることができます。"),
             ],
-        ),
-        h2(vec![text("スナップショットテスト")]),
-        p(vec![
+        ],
+        h2![text("スナップショットテスト")],
+        p![
             text("Yew はコンポーネントのスナップショットテストを容易にするために "),
             code("yew::tests::layout_tests"),
             text(" モジュールを提供しています。"),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Important,
             Some("ドキュメントの改善"),
-            vec![p(vec![text(
+            p![text(
                 "スナップショットテストのドキュメントを改善するための助けが必要です。",
-            )])],
-        ),
-        h2(vec![text("wasm_bindgen_test")]),
-        p(vec![
+            )],
+        ],
+        h2![text("wasm_bindgen_test")],
+        p![
             text("Rust/WASM ワーキンググループは "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/wasm-bindgen-test/index.html",
-                vec![code("wasm_bindgen_test")],
+                code("wasm_bindgen_test"),
             ),
             text(" というクレートを維持しています。 これにより、組み込みの "),
             code("#[test]"),
@@ -44,12 +41,12 @@ pub fn page_content() -> yew_site_lib::Content {
                 " プロシージャマクロに似た方法でブラウザ内でテストを実行できます。 \
                  このモジュールの詳細については、",
             ),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/wasm-bindgen-test/index.html",
-                vec![text("Rust Wasm ワーキンググループのドキュメント")],
+                text("Rust Wasm ワーキンググループのドキュメント"),
             ),
             text(" を参照してください。"),
-        ]),
+        ],
     ])
 }
 

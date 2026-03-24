@@ -1,10 +1,10 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("如何儲存狀態的一般視圖")]),
-        p(vec![text(
+        h2![text("如何儲存狀態的一般視圖")],
+        p![text(
             "這個表格可以作為一個指南，幫助您決定哪種狀態儲存類型最適合您的用例：",
-        )]),
+        )],
         table(
             vec![
                 vec![text("Hook")],
@@ -14,63 +14,63 @@ pub fn page_content() -> yew_site_lib::Content {
             ],
             vec![
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html",
-                        vec![text("use_state")],
+                        text("use_state"),
                     )],
                     vec![code("T")],
                     vec![text("被設定一個值")],
                     vec![text("組件內部實例")],
                 ],
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html",
-                        vec![text("use_state_eq")],
+                        text("use_state_eq"),
                     )],
                     vec![code("T: PartialEq")],
                     vec![text("被設定一個不同的值")],
                     vec![text("組件內部實例")],
                 ],
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html",
-                        vec![text("use_reducer")],
+                        text("use_reducer"),
                     )],
                     vec![code("T: Reducible")],
                     vec![text("被呼叫歸納")],
                     vec![text("組件內部實例")],
                 ],
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer_eq.html",
-                        vec![text("use_reducer_eq")],
+                        text("use_reducer_eq"),
                     )],
                     vec![code("T: Reducible + PartialEq")],
                     vec![text("被呼叫歸納，歸納後的值與之前不同")],
                     vec![text("組件內部實例")],
                 ],
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_memo.html",
-                        vec![text("use_memo")],
+                        text("use_memo"),
                     )],
                     vec![code("Deps -> T")],
                     vec![text("依賴項發生變化")],
                     vec![text("組件內部實例")],
                 ],
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_callback.html",
-                        vec![text("use_callback")],
+                        text("use_callback"),
                     )],
                     vec![code("Deps -> Callback<E>")],
                     vec![text("依賴項發生變化")],
                     vec![text("組件內部實例")],
                 ],
                 vec![
-                    vec![link(
+                    vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_mut_ref.html",
-                        vec![text("use_mut_ref")],
+                        text("use_mut_ref"),
                     )],
                     vec![code("T")],
                     vec![text("-")],

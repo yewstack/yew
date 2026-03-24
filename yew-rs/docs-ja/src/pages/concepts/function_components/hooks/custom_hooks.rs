@@ -1,16 +1,16 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("カスタムフックの定義")]),
-        p(vec![text(
+        h2![text("カスタムフックの定義")],
+        p![text(
             "コンポーネントのステートフルなロジックは、\
              カスタムフックを作成することで再利用可能な関数として抽出できます。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("例えば、"),
             code("window"),
             text(" オブジェクト上のイベントをリッスンするイベントリスナーを作成したいとします。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -35,12 +35,12 @@ pub fn show_storage_changed() -> Html {
     html! { <div>{"Storage Event Fired: "}{*state_storage_changed}</div> }
 }"#,
         ),
-        p(vec![text(
+        p![text(
             "このコードには問題があります。ロジックは他のコンポーネントで再利用できません。\
              異なるイベントをリッスンする別のコンポーネントを作成する場合、\
              コードをコピーするのではなく、ロジックをカスタムフックに移すことができます。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("まず、"),
             code("use_event"),
             text(" という新しい関数を作成します。"),
@@ -51,7 +51,7 @@ pub fn show_storage_changed() -> Html {
             ),
             code("#[hook]"),
             text(" とマークする必要があります。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Event, EventTarget};
@@ -68,7 +68,7 @@ where
     todo!()
 }"#,
         ),
-        p(vec![
+        p![
             text(
                 "このシンプルなフックは、組み込みのフックを組み合わせることで作成できます。\
                  この例では、",
@@ -78,7 +78,7 @@ where
                 " フックを使用します。これにより、\
                  フックのパラメータが変更されたときにイベントリスナーを再作成できます。",
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -126,16 +126,16 @@ where
     );
 }"#,
         ),
-        p(vec![text(
+        p![text(
             "この方法はほとんどすべてのケースで有効ですが、\
              私たちがすでに使用しているような基本的なフックを作成するためには使用できません。",
-        )]),
-        p(vec![
-            link("https://docs.rs/yew", vec![text("docs.rs")]),
+        )],
+        p![
+            link!["https://docs.rs/yew", text("docs.rs")],
             text(" 上のドキュメントや "),
             code("hooks"),
             text(" ディレクトリを参照して、事前定義されたフックの実装を確認してください。"),
-        ]),
+        ],
     ])
 }
 

@@ -1,22 +1,21 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("html!"),
             text(
                 " マクロは常にルートノードを必要とします。この制限を回避するために、\
                  「空のタグ」（または fragments）を使用できます。",
             ),
-        ]),
-        tabs(
+        ],
+        tabs![
             "Valid",
-            vec![
-                tab(
-                    "Valid",
-                    "Valid",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::prelude::*;
+            tab![
+                "Valid",
+                "Valid",
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 
 html! {
     <>
@@ -24,14 +23,14 @@ html! {
         <p></p>
     </>
 };"#,
-                    )],
                 ),
-                tab(
-                    "Invalid",
-                    "Invalid",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::prelude::*;
+            ],
+            tab![
+                "Invalid",
+                "Invalid",
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 
 // エラー: ルート HTML 要素は1つだけ許可されます
 
@@ -39,10 +38,9 @@ html! {
     <div></div>
     <p></p>
 };"#,
-                    )],
                 ),
             ],
-        ),
+        ],
     ])
 }
 

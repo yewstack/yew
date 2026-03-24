@@ -1,7 +1,7 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("ref"),
             text(
                 " キーワードは、任意の HTML 要素やコンポーネントに使用して、その要素に付随する \
@@ -11,8 +11,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" を取得できます。これにより、"),
             code("view"),
             text(" ライフサイクルメソッドの外で DOM を変更することができます。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "これは、canvas \
                  要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。例えば、\
@@ -24,8 +24,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" を使用すると、"),
             code("view"),
             text(" からレンダリングされた後に canvas 要素に描画呼び出しを行うことができます。"),
-        ]),
-        p(vec![text("構文は次のとおりです：")]),
+        ],
+        p![text("構文は次のとおりです：")],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -63,11 +63,11 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2(vec![text("関連例")]),
-        ul(vec![li(vec![link(
+        h2![text("関連例")],
+        ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            vec![text("ノード参照")],
-        )])]),
+            text("ノード参照"),
+        )]],
     ])
 }
 

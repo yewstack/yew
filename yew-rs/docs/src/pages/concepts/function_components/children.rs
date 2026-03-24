@@ -1,12 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("Children"),
             text(" is a special prop type that allows you to receive nested "),
             code("Html"),
             text(" that is provided like html child elements."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties};

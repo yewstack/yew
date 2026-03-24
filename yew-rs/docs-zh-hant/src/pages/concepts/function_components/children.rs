@@ -1,12 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("Children"),
             text(" 是一種特殊的屬性類型，可讓您接收嵌套的 "),
             code("Html"),
             text("，就像 html 子元素一樣提供。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties};

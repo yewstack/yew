@@ -1,49 +1,50 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        blockquote(vec![p(vec![text(
+        blockquote![p![text(
             "Yew は、再利用可能な UI \
              部分に必要なすべてのコンテンツを1か所に集める一方で、\
              必要に応じて基盤技術へのアクセスも維持します。",
-        )])]),
-        p(vec![text(
+        )]],
+        p![text(
             "今日現在、WebAssembly は DOM との相互作用を完全にはサポートしていません。これは、Yew \
              でも時々 JavaScript \
              の呼び出しに依存することを意味します。次に、関係するライブラリの概要を示します。",
-        )]),
-        h2(vec![text("wasm-bindgen")]),
-        p(vec![
-            link(
+        )],
+        h2![text("wasm-bindgen")],
+        p![
+            link!(
                 "https://github.com/rustwasm/wasm-bindgen",
-                vec![code("wasm-bindgen")],
+                code("wasm-bindgen"),
             ),
             text(" は、JavaScript と Rust 関数の間に呼び出しの橋を架けるライブラリとツールです。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("彼らの"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/",
-                vec![text("ドキュメント")],
+                text("ドキュメント"),
             ),
             text("と私たちの"),
-            link(
+            link!(
                 "/ja/docs/concepts/basic-web-technologies/wasm-bindgen",
-                vec![text("クイックガイド")],
+                text("クイックガイド"),
             ),
             text("を強くお勧めします。"),
-        ]),
-        h2(vec![text("web-sys")]),
-        p(vec![
-            link(
+        ],
+        h2![text("web-sys")],
+        p![
+            link!(
                 "https://crates.io/crates/web-sys",
-                vec![code("web-sys"), text(" crate")],
+                code("web-sys"),
+                text(" crate"),
             ),
             text(
                 " は Web API のバインディングを提供し、Rust で処理され安全な方法で JavaScript \
                  コードを書くことを可能にします。",
             ),
-        ]),
-        p(vec![text("例：")]),
+        ],
+        p![text("例：")],
         tabs(
             "JS",
             vec![
@@ -68,19 +69,19 @@ let document = window()
                 ),
             ],
         ),
-        p(vec![
+        p![
             text("繰り返しになりますが、彼らの"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/",
-                vec![text("ドキュメント")],
+                text("ドキュメント"),
             ),
             text("と私たちの"),
-            link(
+            link!(
                 "/ja/docs/concepts/basic-web-technologies/web-sys",
-                vec![text("クイックガイド")],
+                text("クイックガイド"),
             ),
             text("を強くお勧めします。"),
-        ]),
+        ],
     ])
 }
 

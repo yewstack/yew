@@ -1,21 +1,21 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("リテラル")]),
-        p(vec![
+        h2![text("リテラル")],
+        p![
             text("式が "),
             code("Display"),
             text(" を実装する型に解決される場合、それらは文字列に変換され、"),
-            link(
+            link![
                 "https://developer.mozilla.org/en-US/docs/Web/API/Text",
-                vec![text("Text")],
-            ),
+                text("Text"),
+            ],
             text(" ノードとしてDOMに挿入されます。"),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("文字列リテラルは "),
                 code("Text"),
                 text(" ノードを作成し、ブラウザはそれを文字列として扱います。そのため、式に "),
@@ -26,13 +26,13 @@ pub fn page_content() -> yew_site_lib::Content {
                     " ブロックでラップしない限り、XSS \
                      などのセキュリティ問題に遭遇することはありません。",
                 ),
-            ])],
-        ),
-        p(vec![
+            ],
+        ],
+        p![
             text("すべての表示テキストは式と見なされるため、"),
             code("{}"),
             text(" ブロックで囲む必要があります。これは、Yew と通常の HTML 構文の最大の違いです。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -46,13 +46,13 @@ html!{
     </>
 };"#,
         ),
-        h2(vec![text("式")]),
-        p(vec![
+        h2![text("式")],
+        p![
             code("{}"),
             text(" ブロックを使用して、HTML 内に式を挿入できます。それらが "),
             code("Html"),
             text(" に解決される限り。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -73,10 +73,10 @@ html! {
   </div>
 };"#,
         ),
-        p(vec![text(
+        p![text(
             "通常、これらの式を関数やクロージャに抽出して、\
              可読性を最適化することが意味があります：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;

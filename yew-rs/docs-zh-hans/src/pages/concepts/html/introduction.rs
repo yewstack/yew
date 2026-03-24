@@ -1,110 +1,110 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("html!"),
             text(
                 " 宏允许您声明性地编写 HTML 和 SVG \
                  代码。它类似于 JSX（一种允许您在 JavaScript 中编写类似 HTML 的代码的扩展）。",
             ),
-        ]),
-        p(vec![bold(vec![text("重要提示")])]),
-        ol(vec![
-            li(vec![
+        ],
+        p![bold![text("重要提示")]],
+        ol![
+            li![
                 code("html! {}"),
                 text(" 宏只能接受一个根 HTML 节点（您可以通过使用 "),
-                link("/zh-Hans/docs/concepts/html/fragments", vec![text("fragments")]),
+                link!("/zh-Hans/docs/concepts/html/fragments", text("fragments")),
                 text(" 或 "),
-                link("/zh-Hans/docs/concepts/html/lists", vec![text("iterators")]),
+                link!("/zh-Hans/docs/concepts/html/lists", text("iterators")),
                 text(" 来规避这一点）"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("空的 "),
                 code("html! {}"),
                 text(" 调用是有效的，不会渲染任何内容"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("字面量必须始终用引号引起来并用大括号括起来："),
                 code("html! { <p>{ \"Hello, World\" }</p> }"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("html!"),
                 text(" 宏会将所有标签名称转换为小写。要使用大写字符（某些 SVG 元素所需的字符）请使用"),
-                link(
+                link!(
                     "/zh-Hans/docs/concepts/html/elements#dynamic-tag-names",
-                    vec![text("动态标签名称")],
+                    text("动态标签名称"),
                 ),
                 text("："),
                 code("html! { <@{\"myTag\"}></@> }"),
-            ]),
-        ]),
-        admonition(
+            ],
+        ],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 code("html!"),
                 text(" 宏可能会达到编译器的默认递归限制。如果遇到编译错误，请在 crate 根目录添加类似 "),
                 code("#![recursion_limit=\"1024\"]"),
                 text(" 的属性以解决问题。"),
-            ])],
-        ),
-        h2(vec![text("标签 (Tags) 结构")]),
-        p(vec![text(
+            ],
+        ],
+        h2![text("标签 (Tags) 结构")],
+        p![text(
             "标签 (Tags) 基于 HTML 标签。组件、元素和列表都基于此标签语法。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("标签必须要么自闭合 "),
             code("<... />"),
             text("，要么对于每个开始标签都有一个相应的结束标签。"),
-        ]),
-        tabs("Open - Close", vec![
-            tab("Open - Close", "Open - Close", vec![
+        ],
+        tabs!["Open - Close",
+            tab!["Open - Close", "Open - Close",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <div id="my_div"></div>
 };"#),
-            ]),
-            tab("Invalid", "Invalid", vec![
+            ],
+            tab!["Invalid", "Invalid",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <div id="my_div"> // <- 缺少闭合标签
 };"#),
-            ]),
-        ]),
-        tabs("Self-closing", vec![
-            tab("Self-closing", "Self-closing", vec![
+            ],
+        ],
+        tabs!["Self-closing",
+            tab!["Self-closing", "Self-closing",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <input id="my_input" />
 };"#),
-            ]),
-            tab("Invalid", "Invalid", vec![
+            ],
+            tab!["Invalid", "Invalid",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <input id="my_input"> // <- 缺少闭合标签
 };"#),
-            ]),
-        ]),
-        admonition(
+            ],
+        ],
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("方便起见，通常需要闭合标签的元素"),
-                bold(vec![text("允许")]),
+                bold![text("允许")],
                 text("自闭合。例如，编写 "),
                 code("html! { <div class=\"placeholder\" /> }"),
                 text(" 是有效的。"),
-            ])],
-        ),
-        p(vec![text(
+            ],
+        ],
+        p![text(
             "创建复杂的嵌套 HTML 和 SVG 布局还是很容易的：",
-        )]),
-        tabs("HTML", vec![
-            tab("HTML", "HTML", vec![
+        )],
+        tabs!["HTML",
+            tab!["HTML", "HTML",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
@@ -123,8 +123,8 @@ html! {
         </div>
     </div>
 };"#),
-            ]),
-            tab("SVG", "SVG", vec![
+            ],
+            tab!["SVG", "SVG",
                 code_block("rust", r##"use yew::prelude::*;
 
 html! {
@@ -144,26 +144,26 @@ html! {
         </defs>
     </svg>
 };"##),
-            ]),
-        ]),
-        h2(vec![text("Lints")]),
-        p(vec![
+            ],
+        ],
+        h2![text("Lints")],
+        p![
             text("如果您使用 Rust 编译器的开发者版本编译 Yew，宏将警告您可能遇到的一些常见陷阱。当然，您可能需要使用稳定版编译器（例如，您的组织可能有政策要求这样做）进行发布构建，但即使您使用的是稳定工具链，运行 "),
             code("cargo +nightly check"),
             text(" 也可能会标记一些可以改进 HTML 代码的方法。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("目前，这些 lint 主要与可访问性相关。如果您有 lint 的想法，请随时"),
-            link(
+            link!(
                 "https://github.com/yewstack/yew/issues/1334",
-                vec![text("在此问题中发表意见")],
+                text("在此问题中发表意见"),
             ),
             text("。"),
-        ]),
-        h2(vec![text("指定属性和属性")]),
-        p(vec![text(
+        ],
+        h2![text("指定属性和属性")],
+        p![text(
             "属性与普通 HTML 中的元素设置方式相同：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -171,87 +171,87 @@ html! {
 let value = "something";
 html! { <div attribute={value} /> };"#,
         ),
-        p(vec![
+        p![
             text("属性在元素名称之前用 "),
             code("~"),
             text(" 指定："),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
 
 html! { <my-element ~property="abc" /> };"#,
         ),
-        admonition(
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![text(
+            p![text(
                 "如果值是一个字面量的话，围绕值的大括号可以省略。",
-            )])],
-        ),
-        admonition(
+            )],
+        ],
+        admonition![
             AdmonitionType::Note,
             Some("什么是字面量"),
-            vec![p(vec![
+            p![
                 text("字面量是 Rust 中所有有效的"),
-                link(
+                link!(
                     "https://doc.rust-lang.org/reference/expressions/literal-expr.html",
-                    vec![text("字面量表达式")],
+                    text("字面量表达式"),
                 ),
                 text("。请注意，"),
-                link(
+                link!(
                     "https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333",
-                    vec![text("负数"), bold(vec![text("不是")]), text("字面量")],
+                    text("负数"), bold![text("不是")], text("字面量"),
                 ),
                 text("，因此必须用大括号括起来 "),
                 code("{-6}"),
                 text("。"),
-            ])],
-        ),
-        admonition(
+            ],
+        ],
+        admonition![
             AdmonitionType::Note,
             Some("组件属性"),
-            vec![p(vec![
+            p![
                 text("组件属性作为 Rust 对象传递，与此处描述的元素参数 (Attributes) / 属性 (Properties) 不同。\n在"),
-                link("/zh-Hans/docs/concepts/function-components/properties", vec![text("组件属性")]),
+                link!("/zh-Hans/docs/concepts/function-components/properties", text("组件属性")),
                 text("中了解更多信息。"),
-            ])],
-        ),
-        h3(vec![text("特殊属性")]),
-        p(vec![
+            ],
+        ],
+        h3![text("特殊属性")],
+        p![
             text("有一些特殊属性不直接影响 DOM，而是作为 Yew 虚拟 DOM 的指令。目前有两个这样的特殊属性："),
             code("ref"),
             text(" 和 "),
             code("key"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("ref"),
             text(" 允许您直接访问和操作底层 DOM 节点。有关更多详细信息，请参阅"),
-            link("/zh-Hans/docs/concepts/function-components/node-refs", vec![text("Refs")]),
+            link!("/zh-Hans/docs/concepts/function-components/node-refs", text("Refs")),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("另一方面，"),
             code("key"),
             text(" 为元素提供了一个唯一标识符，Yew 可以用于优化目的。"),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![p(vec![link(
+            p![link!(
                 "/zh-Hans/docs/concepts/html/lists",
-                vec![text("了解更多相关内容")],
-            )])],
-        ),
-        h2(vec![text("条件渲染")]),
-        p(vec![
+                text("了解更多相关内容"),
+            )],
+        ],
+        h2![text("条件渲染")],
+        p![
             text("可以通过使用 Rust 的条件结构来条件性地渲染标记。目前只支持 "),
             code("if"),
             text(" 和 "),
             code("if let"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -262,15 +262,15 @@ html! {
   }
 };"#,
         ),
-        admonition(
+        admonition![
             AdmonitionType::Info,
             None,
-            vec![p(vec![
+            p![
                 text("阅读"),
-                link("/zh-Hans/docs/concepts/html/conditional-rendering", vec![text("条件渲染")]),
+                link!("/zh-Hans/docs/concepts/html/conditional-rendering", text("条件渲染")),
                 text("一节了解更多"),
-            ])],
-        ),
+            ],
+        ],
     ])
 }
 

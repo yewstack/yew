@@ -1,7 +1,7 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text("The "),
             code("ref"),
             text(" keyword can be used inside of any HTML element or component to get the DOM "),
@@ -12,8 +12,8 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("view"),
             text(" lifecycle method."),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "This is useful for getting ahold of canvas elements, or scrolling to different \
                  sections of a page. For example, using a ",
@@ -27,8 +27,8 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("view"),
             text("."),
-        ]),
-        p(vec![text("The syntax is:")]),
+        ],
+        p![text("The syntax is:")],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -66,11 +66,11 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![li(vec![link(
+        h2![text("Relevant examples")],
+        ul![li![link![
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            vec![text("Node Refs")],
-        )])]),
+            text("Node Refs"),
+        ]]],
     ])
 }
 

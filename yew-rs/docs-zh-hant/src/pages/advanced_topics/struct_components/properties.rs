@@ -1,7 +1,7 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text(
                 "屬性 (Properties) \
                  使子組件和父組件之間能夠進行通訊。每個元件都有一個關聯的屬性類型，\
@@ -9,9 +9,9 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("Properties"),
             text(" 特性的類型，但實際上，它應該是一個結構體，其中每個字段代表一個屬性。"),
-        ]),
-        h2(vec![text("派生宏")]),
-        p(vec![
+        ],
+        h2![text("派生宏")],
+        p![
             text("無需自己實作 "),
             code("Properties"),
             text(" 特性，我們可以用 "),
@@ -21,33 +21,33 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 的型別也必須實作 "),
             code("PartialEq"),
             text("。"),
-        ]),
-        h3(vec![text("欄位屬性")]),
-        p(vec![
+        ],
+        h3![text("欄位屬性")],
+        p![
             text("在派生 "),
             code("Properties"),
             text(
                 " 時，預設情況下所有欄位都是必要的。以下屬性可讓您為屬性提供初始值，\
                  除非它們被設定為另一個值。",
             ),
-        ]),
-        admonition(
+        ],
+        admonition!(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![text(
+            p![text(
                 "屬性不會在 Rustdoc \
                  產生的文件中顯示。您的屬性的文檔字串應該說明一個屬性是否是可選的，\
                  以及它是否有一個特殊的預設值。",
-            )])],
+            )],
         ),
-        h4(vec![code("#[prop_or_default]")]),
-        p(vec![
+        h4![code("#[prop_or_default]")],
+        p![
             text("使用欄位類型的預設值使用 "),
             code("Default"),
             text(" 特性來初始化屬性值。"),
-        ]),
-        h4(vec![code("#[prop_or(value)]")]),
-        p(vec![
+        ],
+        h4![code("#[prop_or(value)]")],
+        p![
             text("使用 "),
             code("value"),
             text(" 來初始化屬性值。 "),
@@ -57,9 +57,9 @@ pub fn page_content() -> yew_site_lib::Content {
             text("，請使用屬性 "),
             code("#[prop_or(true)]"),
             text("。"),
-        ]),
-        h4(vec![code("#[prop_or_else(function)]")]),
-        p(vec![
+        ],
+        h4![code("#[prop_or_else(function)]")],
+        p![
             text("呼叫 "),
             code("function"),
             text(" 來初始化屬性值。 "),
@@ -69,34 +69,34 @@ pub fn page_content() -> yew_site_lib::Content {
             text("，其中 "),
             code("T"),
             text(" 是欄位類型。"),
-        ]),
-        h2(vec![code("PartialEq")]),
-        p(vec![
+        ],
+        h2![code("PartialEq")],
+        p![
             code("Properties"),
             text(" 需要實作 "),
             code("PartialEq"),
             text("。這樣，Yew 才能比較它們，以便在它們發生變化時呼叫 "),
             code("changed"),
             text(" 方法。"),
-        ]),
-        h2(vec![text("使用 Properties 的效能開銷")]),
-        p(vec![text(
+        ],
+        h2![text("使用 Properties 的效能開銷")],
+        p![text(
             "內部屬性是基於引用計數的指標儲存的。這意味著只有一個指標被傳遞到元件樹中的屬性，\
              以避免複製整個屬性所帶來的昂貴效能開銷。",
-        )]),
-        admonition(
+        )],
+        admonition!(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("使用 "),
                 code("AttrValue"),
                 text(
                     "，這是我們提供的自訂屬性值類型，這樣就可以不用 String \
                      或其他類似的需要克隆的類型。",
                 ),
-            ])],
+            ],
         ),
-        h2(vec![text("範例")]),
+        h2![text("範例")],
         code_block(
             "rust",
             r#"use yew::Properties;
@@ -133,14 +133,14 @@ pub struct LinkProps {
     active: bool,
 }"#,
         ),
-        h2(vec![text("Props 巨集")]),
-        p(vec![
+        h2![text("Props 巨集")],
+        p![
             code("yew::props!"),
             text(" 巨集允許您以與 "),
             code("html!"),
             text(" 巨集相同的方式建立屬性。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("這個巨集使用與結構體表達式相同的語法，只是您不能使用屬性或基本表達式 ("),
             code("Foo { ..base }"),
             text(")。類型路徑可以直接指向屬性 ("),
@@ -148,7 +148,7 @@ pub struct LinkProps {
             text(")，也可以指向元件的關聯屬性 ("),
             code("MyComp::Properties"),
             text(")。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{props, Properties, virtual_dom::AttrValue};

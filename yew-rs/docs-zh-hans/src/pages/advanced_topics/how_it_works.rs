@@ -1,9 +1,9 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h1(vec![text("底层库的内部细节")]),
-        h2(vec![code("html!"), text(" 宏的内部")]),
-        p(vec![
+        h1![text("底层库的内部细节")],
+        h2![code("html!"), text(" 宏的内部")],
+        p![
             code("html!"),
             text(
                 " macro 会将使用类似 HTML 的自定义语法编写的代码转换为有效的 Rust \
@@ -16,8 +16,8 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 的每次更新，生成的代码将会更加高效，并且可以处理任何破坏性的更改，而不需要对 "),
             code("html!"),
             text(" 语法进行很多（如果有的话）修改。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("由于 "),
             code("html!"),
             text(
@@ -25,8 +25,8 @@ pub fn page_content() -> yew_site_lib::Content {
                  非常相似。随着您的应用程序变得更加交互式，您的代码库变得更大，\
                  这种方式变得越来越有用。与手动编写所有操作 DOM 的代码相比，宏会为您处理好这一切。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("使用 "),
             code("html!"),
             text(
@@ -43,18 +43,15 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 一起提供的，所以如果您还没有安装它，您需要使用 "),
             code("cargo install cargo-expand"),
             text(" 来安装它。"),
-            link(
-                "https://rust-analyzer.github.io/",
-                vec![text("Rust-Analyzer")],
-            ),
+            link!["https://rust-analyzer.github.io/", text("Rust-Analyzer"),],
             text(" 也提供了一种"),
-            link(
+            link![
                 "https://rust-analyzer.github.io/manual.html#expand-macro-recursively",
-                vec![text("从 IDE 中获取宏输出的机制")],
-            ),
+                text("从 IDE 中获取宏输出的机制"),
+            ],
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("html!"),
             text(
                 " 宏的输出通常非常简洁！这是一个特性：\
@@ -62,9 +59,9 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("proc_macro"),
             text(" 遵循了\"卫生\"规则。一些例子包括："),
-        ]),
-        ol(vec![
-            li(vec![
+        ],
+        ol![
+            li![
                 text("为了确保正确引用 Yew 包，宏生成的代码中使用 "),
                 code("::yew::<module>"),
                 text("，而不是直接使用 "),
@@ -74,20 +71,20 @@ pub fn page_content() -> yew_site_lib::Content {
                 text(" 而不是直接调用 "),
                 code("Vec::new()"),
                 text("。"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("由于可能存在 trait 方法名称冲突，使用 "),
                 code("<Type as Trait>"),
                 text(" 来确保我们使用的是正确的 trait 成员。"),
-            ]),
-        ]),
-        h2(vec![text("什么是虚拟 DOM？")]),
-        p(vec![text(
+            ],
+        ],
+        h2![text("什么是虚拟 DOM？")],
+        p![text(
             "DOM（\"文档对象模型\"）是由浏览器管理的 HTML 内容的表示。\"虚拟\" DOM 只是 DOM \
              的一个内存中的副本。管理虚拟 DOM \
              会导致更高的内存开销，但可以通过避免或延迟使用浏览器 API 来实现批处理和更快的读取。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "在内存中拥有 DOM 的副本对于促进使用声明式 UI \
              的库是有帮助的。与需要特定代码来描述如何根据用户事件修改 DOM \
              不同，库可以使用一种通用的方法来进行 DOM \"diffing\"。当 Yew \
@@ -95,42 +92,44 @@ pub fn page_content() -> yew_site_lib::Content {
              的第二个副本，并直接将其与镜像当前屏幕上的内容的虚拟 DOM 进行比较。两者之间的 \
              \"diff\"（差异）可以分解为增量更新，并与浏览器 API 一起应用。一旦更新应用，旧的虚拟 \
              DOM 副本将被丢弃，新的副本将被保存以供将来的差异检查。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "这种 \"diff\" 算法可以随着时间的推移进行优化，以提高复杂应用程序的性能。由于 Yew \
              应用程序是通过 WebAssembly 运行的，我们相信 Yew \
              在未来采用更复杂的算法方面具有竞争优势。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "Yew 的虚拟 DOM 与浏览器 DOM 不完全一一对应。它还包括用于组织 DOM 元素的 \"列表\" 和 \
              \"组件\"。列表可以简单地是元素的有序列表，但也可以更强大。通过为每个列表元素添加 \
              \"key\" 注解，应用程序开发人员可以帮助 Yew \
              进行额外的优化，以确保在列表更改时，计算差异更新所需的工作量最小。同样，\
              组件提供了自定义逻辑，指示是否需要重新渲染，以帮助提高性能。",
-        )]),
-        h2(vec![text("Yew 调度器和组件范围的事件循环")]),
-        p(vec![italic(vec![
+        )],
+        h2![text("Yew 调度器和组件范围的事件循环")],
+        p![italic![
             text("贡献文档 - 深入解释 "),
             code("yew::scheduler"),
             text(" 和 "),
             code("yew::html::scope"),
             text(" 的工作原理"),
-        ])]),
-        h2(vec![text("进一步阅读")]),
-        ul(vec![
-            li(vec![link(
+        ]],
+        h2![text("进一步阅读")],
+        ul![
+            li![link![
                 "https://doc.rust-lang.org/stable/book/ch19-06-macros.html",
-                vec![text("Rust 手册中关于宏的更多信息")],
-            )]),
-            li(vec![link(
+                text("Rust 手册中关于宏的更多信息"),
+            ]],
+            li![link![
                 "https://github.com/dtolnay/cargo-expand",
-                vec![code("cargo-expand"), text(" 的更多信息")],
-            )]),
-            li(vec![link(
+                code("cargo-expand"),
+                text(" 的更多信息"),
+            ]],
+            li![link![
                 "https://docs.rs/yew/*/yew/virtual_dom/index.html",
-                vec![code("yew::virtual_dom"), text(" 的 API 文档")],
-            )]),
-        ]),
+                code("yew::virtual_dom"),
+                text(" 的 API 文档"),
+            ]],
+        ],
     ])
 }
 

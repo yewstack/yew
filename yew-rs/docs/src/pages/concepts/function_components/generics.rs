@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text("The "),
             code("#[component]"),
             text(" attribute also works with generic functions for creating generic components."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use std::fmt::Display;

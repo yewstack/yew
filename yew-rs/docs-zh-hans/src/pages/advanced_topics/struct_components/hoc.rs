@@ -1,17 +1,17 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "在一些情况下，结构组件不直接支持某些功能（例如 \
              Suspense），或者使用某些功能需要大量的样板代码（例如 Context）。",
-        )]),
-        p(vec![text("在这些情况下，建议创建高阶组件的函数组件。")]),
-        h2(vec![text("高阶组件定义")]),
-        p(vec![text(
+        )],
+        p![text("在这些情况下，建议创建高阶组件的函数组件。")],
+        h2![text("高阶组件定义")],
+        p![text(
             "高阶组件是不添加任何新 HTML 的组件，只是包装其他组件以提供额外功能。",
-        )]),
-        h3(vec![text("示例")]),
-        p(vec![text("对 Context (上下文) 挂钩并将其传递给结构组件")]),
+        )],
+        h3![text("示例")],
+        p![text("对 Context (上下文) 挂钩并将其传递给结构组件")],
         code_block(
             "rust",
             r##"use yew::prelude::*;

@@ -1,10 +1,10 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("如何存储状态的一般视图")]),
-        p(vec![text(
+        h2![text("如何存储状态的一般视图")],
+        p![text(
             "这个表格可以作为一个指南，帮助您决定哪种状态存储类型最适合您的用例：",
-        )]),
+        )],
         table(
             vec![
                 vec![text("Hook")],

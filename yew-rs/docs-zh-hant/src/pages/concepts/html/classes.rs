@@ -1,17 +1,14 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("類別")]),
-        p(vec![
-            code("Classes"),
-            text(" 結構體可以用來處理 HTML 類別。"),
-        ]),
-        p(vec![
+        h2![text("類別")],
+        p![code("Classes"), text(" 結構體可以用來處理 HTML 類別。"),],
+        p![
             text("將字串推送到集合時，"),
             code("Classes"),
             text(" 確保每個類別都有一個元素，即使單一字串可能包含多個類別。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("Classes"),
             text(" 也可以透過使用 "),
             code("Extend"),
@@ -26,95 +23,93 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" 的類型都可以推送到現有的 "),
             code("Classes"),
             text(" 上。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("classes!"),
             text(" 是一個方便的巨集，它建立一個單一的 "),
             code("Classes"),
             text("。它的輸入接受一個逗號分隔的表達式清單。唯一的要求是每個表達式都實作了 "),
             code("Into<Classes>"),
             text("。"),
-        ]),
-        tabs(
+        ],
+        tabs![
             "Literal",
-            vec![
-                tab(
-                    "Literal",
-                    "Literal",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            tab![
+                "Literal",
+                "Literal",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
     <div class={classes!("container")}></div>
 };"#,
-                    )],
                 ),
-                tab(
-                    "Multiple",
-                    "Multiple",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            ],
+            tab![
+                "Multiple",
+                "Multiple",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!("class-1", "class-2")}></div>
 };"#,
-                    )],
                 ),
-                tab(
-                    "String",
-                    "String",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            ],
+            tab![
+                "String",
+                "String",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 let my_classes = String::from("class-1 class-2");
 
 html! {
   <div class={classes!(my_classes)}></div>
 };"#,
-                    )],
                 ),
-                tab(
-                    "Optional",
-                    "Optional",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            ],
+            tab![
+                "Optional",
+                "Optional",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!(Some("class"))} />
 };"#,
-                    )],
                 ),
-                tab(
-                    "Vector",
-                    "Vector",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            ],
+            tab![
+                "Vector",
+                "Vector",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!(vec!["class-1", "class-2"])}></div>
 };"#,
-                    )],
                 ),
-                tab(
-                    "Array",
-                    "Array",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{classes, html};
+            ],
+            tab![
+                "Array",
+                "Array",
+                code_block(
+                    "rust",
+                    r#"use yew::{classes, html};
 
 html! {
   <div class={classes!(["class-1", "class-2"])}></div>
 };"#,
-                    )],
                 ),
             ],
-        ),
-        h2(vec![text("接受類別的元件")]),
+        ],
+        h2![text("接受類別的元件")],
         code_block(
             "rust",
             r#"use yew::prelude::*;

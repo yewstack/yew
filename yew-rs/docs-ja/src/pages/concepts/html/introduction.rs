@@ -1,96 +1,96 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("html!"),
             text(" マクロを使用すると、宣言的に HTML および SVG コードを記述できます。これは、JavaScript で HTML に似たコードを記述できる拡張機能である JSX に似ています。"),
-        ]),
-        p(vec![bold(vec![text("重要な注意点")])]),
-        ol(vec![
-            li(vec![
+        ],
+        p![bold![text("重要な注意点")]],
+        ol![
+            li![
                 code("html!"),
                 text(" マクロは 1 つのルート HTML ノードしか受け入れません（これを回避するには、"),
-                link("/ja/docs/concepts/html/fragments", vec![text("fragments")]),
+                link!["/ja/docs/concepts/html/fragments", text("fragments")],
                 text(" または "),
-                link("/ja/docs/concepts/html/lists", vec![text("iterators")]),
+                link!["/ja/docs/concepts/html/lists", text("iterators")],
                 text(" を使用できます）"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("空の "),
                 code("html! {}"),
                 text(" 呼び出しは有効で、何もレンダリングしません"),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("リテラルは常に引用符で囲み、中括弧で囲む必要があります："),
                 code("html! { <p>{ \"Hello, World\" }</p> }"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("html!"),
                 text(" マクロはすべてのタグ名を小文字に変換します。大文字の文字（特定の SVG 要素に必要な文字）を使用するには、"),
-                link("/ja/docs/concepts/html/elements#dynamic-tag-names", vec![text("動的タグ名")]),
+                link!["/ja/docs/concepts/html/elements#dynamic-tag-names", text("動的タグ名")],
                 text(" を使用してください："),
                 code("html! { <@{\"myTag\"}></@> }"),
-            ]),
-        ]),
-        admonition(AdmonitionType::Note, None, vec![
-            p(vec![
+            ],
+        ],
+        admonition![AdmonitionType::Note, None,
+            p![
                 code("html!"),
                 text(" マクロはコンパイラのデフォルトの再帰制限に達する可能性があります。コンパイル エラーが発生した場合は、クレートのルートに "),
                 code("#![recursion_limit=\"1024\"]"),
                 text(" のような属性を追加して問題を解決してください。"),
-            ]),
-        ]),
-        h2(vec![text("タグ (Tags) 構造")]),
-        p(vec![text("タグ (Tags) は HTML タグに基づいています。コンポーネント、要素、およびリストはすべてこのタグ構文に基づいています。")]),
-        p(vec![
+            ],
+        ],
+        h2![text("タグ (Tags) 構造")],
+        p![text("タグ (Tags) は HTML タグに基づいています。コンポーネント、要素、およびリストはすべてこのタグ構文に基づいています。")],
+        p![
             text("タグは自己閉鎖 "),
             code("<... />"),
             text(" であるか、開始タグごとに対応する終了タグが必要です。"),
-        ]),
-        tabs("Open - Close", vec![
-            tab("Open - Close", "Open - Close", vec![
+        ],
+        tabs!["Open - Close",
+            tab!["Open - Close", "Open - Close",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <div id="my_div"></div>
 };"#),
-            ]),
-            tab("Invalid", "Invalid", vec![
+            ],
+            tab!["Invalid", "Invalid",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <div id="my_div"> // <- 閉じタグがありません
 };"#),
-            ]),
-        ]),
-        tabs("Self-closing", vec![
-            tab("Self-closing", "Self-closing", vec![
+            ],
+        ],
+        tabs!["Self-closing",
+            tab!["Self-closing", "Self-closing",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <input id="my_input" />
 };"#),
-            ]),
-            tab("Invalid", "Invalid", vec![
+            ],
+            tab!["Invalid", "Invalid",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
   <input id="my_input"> // <- 閉じタグがありません
 };"#),
-            ]),
-        ]),
-        admonition(AdmonitionType::Tip, None, vec![
-            p(vec![
+            ],
+        ],
+        admonition![AdmonitionType::Tip, None,
+            p![
                 text("便利のために、通常は閉じタグが必要な要素も"),
-                bold(vec![text("自己閉じ")]),
+                bold![text("自己閉じ")],
                 text("が許可されています。例えば、"),
                 code("html! { <div class=\"placeholder\" /> }"),
                 text(" と記述することができます。"),
-            ]),
-        ]),
-        p(vec![text("複雑なネストされた HTML および SVG レイアウトを作成するのは依然として簡単です：")]),
-        tabs("HTML", vec![
-            tab("HTML", "HTML", vec![
+            ],
+        ],
+        p![text("複雑なネストされた HTML および SVG レイアウトを作成するのは依然として簡単です：")],
+        tabs!["HTML",
+            tab!["HTML", "HTML",
                 code_block("rust", r#"use yew::prelude::*;
 
 html! {
@@ -109,8 +109,8 @@ html! {
         </div>
     </div>
 };"#),
-            ]),
-            tab("SVG", "SVG", vec![
+            ],
+            tab!["SVG", "SVG",
                 code_block("rust", r##"use yew::prelude::*;
 
 html! {
@@ -130,85 +130,85 @@ html! {
         </defs>
     </svg>
 };"##),
-            ]),
-        ]),
-        h2(vec![text("Lints")]),
-        p(vec![
+            ],
+        ],
+        h2![text("Lints")],
+        p![
             text("もし、Rust コンパイラの開発者バージョンを使用して Yew をコンパイルする場合、マクロは一般的な落とし穴について警告します。もちろん、安定版コンパイラを使用してリリースビルドを行う必要があるかもしれません（例えば、組織のポリシーでそうする必要がある場合など）。しかし、安定版ツールチェーンを使用している場合でも、"),
             code("cargo +nightly check"),
             text(" を実行すると、HTML コードを改善する方法がいくつか示されるかもしれません。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("現在、これらのリントは主にアクセシビリティに関連しています。リントに関するアイデアがあれば、"),
-            link("https://github.com/yewstack/yew/issues/1334", vec![text("この問題")]),
+            link!["https://github.com/yewstack/yew/issues/1334", text("この問題")],
             text("に自由にコメントしてください。"),
-        ]),
-        h2(vec![text("属性とプロパティの指定")]),
-        p(vec![text("属性は通常の HTML と同じ方法で要素に設定されます：")]),
+        ],
+        h2![text("属性とプロパティの指定")],
+        p![text("属性は通常の HTML と同じ方法で要素に設定されます：")],
         code_block("rust", r#"use yew::prelude::*;
 
 let value = "something";
 html! { <div attribute={value} /> };"#),
-        p(vec![
+        p![
             text("属性は要素名の前に "),
             code("~"),
             text(" を使用して指定されます："),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 html! { <my-element ~property="abc" /> };"#),
-        admonition(AdmonitionType::Tip, None, vec![
-            p(vec![text("値がリテラルの場合、値を囲む中括弧は省略できます。")]),
-        ]),
-        admonition(AdmonitionType::Note, Some("リテラルとは"), vec![
-            p(vec![
+        admonition![AdmonitionType::Tip, None,
+            p![text("値がリテラルの場合、値を囲む中括弧は省略できます。")],
+        ],
+        admonition![AdmonitionType::Note, Some("リテラルとは"),
+            p![
                 text("リテラルは、Rust のすべての有効な"),
-                link("https://doc.rust-lang.org/reference/expressions/literal-expr.html", vec![text("リテラル式")]),
+                link!["https://doc.rust-lang.org/reference/expressions/literal-expr.html", text("リテラル式")],
                 text("です。注意してください、"),
-                link("https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333", vec![text("負の数は"), bold(vec![text("リテラルではありません")])]),
+                link!["https://users.rust-lang.org/t/why-are-negative-value-literals-expressions/43333", text("負の数は"), bold![text("リテラルではありません")]],
                 text("、したがって中括弧で囲む必要があります "),
                 code("{-6}"),
-            ]),
-        ]),
-        admonition(AdmonitionType::Note, Some("コンポーネント属性"), vec![
-            p(vec![
+            ],
+        ],
+        admonition![AdmonitionType::Note, Some("コンポーネント属性"),
+            p![
                 text("コンポーネント属性は Rust オブジェクトとして渡され、ここで説明されている要素のパラメータ (Attributes) / 属性 (Properties) とは異なります。"),
-                link("/ja/docs/concepts/function-components/properties", vec![text("コンポーネント属性")]),
+                link!["/ja/docs/concepts/function-components/properties", text("コンポーネント属性")],
                 text("で詳細を確認してください。"),
-            ]),
-        ]),
-        h3(vec![text("特殊属性")]),
-        p(vec![
+            ],
+        ],
+        h3![text("特殊属性")],
+        p![
             text("いくつかの特殊な属性があり、これらは直接 DOM に影響を与えるのではなく、Yew 仮想 DOM の指示として機能します。現在、2 つの特殊な属性があります："),
             code("ref"),
             text(" と "),
             code("key"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("ref"),
             text(" は、基礎となる DOM ノードに直接アクセスして操作することを可能にします。詳細については、"),
-            link("/ja/docs/concepts/function-components/node-refs", vec![text("Refs")]),
+            link!["/ja/docs/concepts/function-components/node-refs", text("Refs")],
             text("を参照してください。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("一方、"),
             code("key"),
             text(" は要素に一意の識別子を提供し、Yew が最適化のために使用できます。"),
-        ]),
-        admonition(AdmonitionType::Info, None, vec![
-            p(vec![
-                link("/ja/docs/concepts/html/lists", vec![text("詳細はこちら")]),
-            ]),
-        ]),
-        h2(vec![text("条件付きレンダリング")]),
-        p(vec![
+        ],
+        admonition![AdmonitionType::Info, None,
+            p![
+                link!["/ja/docs/concepts/html/lists", text("詳細はこちら")],
+            ],
+        ],
+        h2![text("条件付きレンダリング")],
+        p![
             text("Rust の条件構造を使用して、条件付きでマークアップをレンダリングできます。現在、"),
             code("if"),
             text(" と "),
             code("if let"),
             text(" のみがサポートされています。"),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 html! {
@@ -216,13 +216,13 @@ html! {
       <p>{ "True case" }</p>
   }
 };"#),
-        admonition(AdmonitionType::Info, None, vec![
-            p(vec![
+        admonition![AdmonitionType::Info, None,
+            p![
                 text("条件付きレンダリングの詳細については、"),
-                link("/ja/docs/concepts/html/conditional-rendering", vec![text("条件付きレンダリング")]),
+                link!["/ja/docs/concepts/html/conditional-rendering", text("条件付きレンダリング")],
                 text("のセクションを参照してください。"),
-            ]),
-        ]),
+            ],
+        ],
     ])
 }
 

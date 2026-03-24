@@ -1,7 +1,7 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("ref"),
             text(" 属性を使用して、"),
             code("NodeRef"),
@@ -14,34 +14,35 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" ライフサイクルメソッドの外部で DOM を変更したり、"),
             code("<input>"),
             text(" の値を取得したり、JavaScript API を介して直接 DOM と対話したりできます。"),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "これは、canvas \
              要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。",
-        )]),
-        admonition(
+        )],
+        admonition![
             AdmonitionType::Caution,
             None,
-            vec![p(vec![
+            p![
                 text(
                     "Yew がレンダリングした DOM \
                      ツリーを手動で変更しないでください。確信が持てない場合は、",
                 ),
                 code("NodeRef"),
                 text(" を読み取り専用アクセスとして扱ってください。"),
-            ])],
-        ),
-        h2(vec![text("さらに読む")]),
-        ul(vec![
-            li(vec![link(
+            ],
+        ],
+        h2![text("さらに読む")],
+        ul![
+            li![link![
                 "https://yew-rs-api.web.app/next/yew/functional/fn.use_node_ref.html",
-                vec![text("use_node_ref フック")],
-            )]),
-            li(vec![link(
+                text("use_node_ref フック"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-                vec![code("node_refs"), text(" の例")],
-            )]),
-        ]),
+                code("node_refs"),
+                text(" の例"),
+            ]],
+        ],
     ])
 }
 

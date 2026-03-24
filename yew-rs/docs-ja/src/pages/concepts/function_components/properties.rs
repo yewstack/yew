@@ -1,59 +1,58 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        admonition(AdmonitionType::Note, None, vec![
-            p(vec![text("プロパティ (Properties) は通常 \"Props\" と略されます。")]),
-        ]),
-        p(vec![text("プロパティ (Properties) はコンポーネントのパラメータであり、Yew はこれらのパラメータを監視できます。")]),
-        p(vec![
+        admonition!(AdmonitionType::Note, None,
+            p![text("プロパティ (Properties) は通常 \"Props\" と略されます。")],
+        ),
+        p![text("プロパティ (Properties) はコンポーネントのパラメータであり、Yew はこれらのパラメータを監視できます。")],
+        p![
             text("コンポーネントのプロパティで型を使用する前に、その型は "),
             code("Properties"),
             text(" トレイトを実装している必要があります。"),
-        ]),
-        h2(vec![text("リアクティブ性")]),
-        p(vec![text("再レンダリング時に、Yew は仮想DOMを調整する際にプロパティが変更されたかどうかを確認し、ネストされたコンポーネントを再レンダリングする必要があるかどうかを判断します。これにより、Yew は非常にリアクティブなフレームワークと見なされます。親コンポーネントからの変更は常に下位に伝播し、ビューはプロパティ/状態からのデータと常に同期します。")]),
-        admonition(AdmonitionType::Tip, None, vec![
-            p(vec![
+        ],
+        h2![text("リアクティブ性")],
+        p![text("再レンダリング時に、Yew は仮想DOMを調整する際にプロパティが変更されたかどうかを確認し、ネストされたコンポーネントを再レンダリングする必要があるかどうかを判断します。これにより、Yew は非常にリアクティブなフレームワークと見なされます。親コンポーネントからの変更は常に下位に伝播し、ビューはプロパティ/状態からのデータと常に同期します。")],
+        admonition!(AdmonitionType::Tip, None,
+            p![
                 text("まだ "),
-                link("/ja/docs/tutorial", vec![text("チュートリアル")]),
+                link!("/ja/docs/tutorial", text("チュートリアル")),
                 text(" を完了していない場合は、このリアクティブ性を自分でテストしてみてください！"),
-            ]),
-        ]),
-        h2(vec![text("派生マクロ")]),
-        p(vec![
+            ],
+        ),
+        h2![text("派生マクロ")],
+        p![
             text("Yew は、構造体に "),
             code("Properties"),
             text(" トレイトを簡単に実装できる派生マクロを提供します。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("Properties"),
             text(" を派生する型は、Yew がデータ比較を行えるように "),
             code("PartialEq"),
             text(" も実装している必要があります。"),
-        ]),
+        ],
         code_block("rust", r#"use yew::Properties;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub is_loading: bool,
 }"#),
-        h2(vec![text("関数コンポーネントでの使用")]),
-        p(vec![
+        h2![text("関数コンポーネントでの使用")],
+        p![
             text("属性 "),
             code("#[component]"),
             text(" は、関数の引数で Props を選択的に受け取ることを可能にします。それらを提供するには、"),
             code("html!"),
             text(" マクロ内の属性を通じて割り当てることができます。"),
-        ]),
-        tabs(
+        ],
+        tabs!(
             "with-props",
-            vec![
-                tab(
-                    "with-props",
-                    "With Props",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{component, html, Html, Properties};
+            tab!(
+                "with-props",
+                "With Props",
+                code_block(
+                    "rust",
+                    r#"use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -70,14 +69,14 @@ fn HelloWorld(&Props { is_loading }: &Props) -> Html {
 fn App() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }"#,
-                    )],
                 ),
-                tab(
-                    "no-props",
-                    "No Props",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::{component, html, Html};
+            ),
+            tab!(
+                "no-props",
+                "No Props",
+                code_block(
+                    "rust",
+                    r#"use yew::{component, html, Html};
 
 #[component]
 fn HelloWorld() -> Html {
@@ -89,35 +88,32 @@ fn HelloWorld() -> Html {
 fn App() -> Html {
     html! { <HelloWorld /> }
 }"#,
-                    )],
                 ),
-            ],
+            ),
         ),
-        h2(vec![text("派生マクロフィールド属性")]),
-        p(vec![
+        h2![text("派生マクロフィールド属性")],
+        p![
             code("Properties"),
             text(" を派生する際、デフォルトではすべてのフィールドが必須です。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("以下の属性を使用すると、親コンポーネントがそれらを設定しなかった場合にデフォルト値を提供することができます。"),
-        ]),
-        admonition(AdmonitionType::Tip, None, vec![
-            p(vec![text("属性は Rustdoc によって生成されたドキュメントには表示されません。属性のドキュメント文字列には、その属性がオプションであるかどうか、および特定のデフォルト値があるかどうかを記載する必要があります。")]),
-        ]),
-        tabs(
+        ],
+        admonition!(AdmonitionType::Tip, None,
+            p![text("属性は Rustdoc によって生成されたドキュメントには表示されません。属性のドキュメント文字列には、その属性がオプションであるかどうか、および特定のデフォルト値があるかどうかを記載する必要があります。")],
+        ),
+        tabs!(
             "prop_or_default",
-            vec![
-                tab(
-                    "prop_or_default",
-                    "#[prop_or_default]",
-                    vec![
-                        p(vec![
-                            code("Default"),
-                            text(" トレイトを使用して、フィールド型のデフォルト値でプロパティ値を初期化します。"),
-                        ]),
-                        code_block(
-                            "rust",
-                            r#"use yew::{component, html, Html, Properties};
+            tab!(
+                "prop_or_default",
+                "#[prop_or_default]",
+                p![
+                    code("Default"),
+                    text(" トレイトを使用して、フィールド型のデフォルト値でプロパティ値を初期化します。"),
+                ],
+                code_block(
+                    "rust",
+                    r#"use yew::{component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -144,29 +140,27 @@ fn Case1() -> Html {
 fn Case2() -> Html {
     html! { <HelloWorld is_loading=true /> }
 }"#,
-                        ),
-                    ],
                 ),
-                tab(
-                    "prop_or_value",
-                    "#[prop_or(value)]",
-                    vec![
-                        p(vec![
-                            code("value"),
-                            text(" を使用してプロパティ値を初期化します。"),
-                            code("value"),
-                            text(" はフィールド型を返す任意の式である可能性があります。"),
-                        ]),
-                        p(vec![
-                            text("例えば、ブールプロパティをデフォルトで "),
-                            code("true"),
-                            text(" にするには、属性 "),
-                            code("#[prop_or(true)]"),
-                            text(" を使用します。プロパティが構築されるときに、式が評価され、明示的な値が与えられていない場合に適用されます。"),
-                        ]),
-                        code_block(
-                            "rust",
-                            r#"use yew::prelude::*;
+            ),
+            tab!(
+                "prop_or_value",
+                "#[prop_or(value)]",
+                p![
+                    code("value"),
+                    text(" を使用してプロパティ値を初期化します。"),
+                    code("value"),
+                    text(" はフィールド型を返す任意の式である可能性があります。"),
+                ],
+                p![
+                    text("例えば、ブールプロパティをデフォルトで "),
+                    code("true"),
+                    text(" にするには、属性 "),
+                    code("#[prop_or(true)]"),
+                    text(" を使用します。プロパティが構築されるときに、式が評価され、明示的な値が与えられていない場合に適用されます。"),
+                ],
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -195,27 +189,25 @@ fn Case1() -> Html {
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }"#,
-                        ),
-                    ],
                 ),
-                tab(
-                    "prop_or_else_function",
-                    "#[prop_or_else(function)]",
-                    vec![
-                        p(vec![
-                            text("属性値を初期化するために "),
-                            code("function"),
-                            text(" を呼び出します。"),
-                            code("function"),
-                            text(" は "),
-                            code("FnMut() -> T"),
-                            text(" シグネチャを持つ必要があり、ここで "),
-                            code("T"),
-                            text(" はフィールドの型です。このプロパティに明示的な値が与えられていない場合、その関数が呼び出されます。この関数はプロパティが構築されるときに呼び出されます。"),
-                        ]),
-                        code_block(
-                            "rust",
-                            r#"use yew::prelude::*;
+            ),
+            tab!(
+                "prop_or_else_function",
+                "#[prop_or_else(function)]",
+                p![
+                    text("属性値を初期化するために "),
+                    code("function"),
+                    text(" を呼び出します。"),
+                    code("function"),
+                    text(" は "),
+                    code("FnMut() -> T"),
+                    text(" シグネチャを持つ必要があり、ここで "),
+                    code("T"),
+                    text(" はフィールドの型です。このプロパティに明示的な値が与えられていない場合、その関数が呼び出されます。この関数はプロパティが構築されるときに呼び出されます。"),
+                ],
+                code_block(
+                    "rust",
+                    r#"use yew::prelude::*;
 
 fn create_default_name() -> AttrValue {
     AttrValue::Static("Bob")
@@ -248,27 +240,25 @@ fn Case1() -> Html {
 fn Case2() -> Html {
     html! { <Hello name="Sam" /> }
 }"#,
-                        ),
-                    ],
                 ),
-            ],
+            ),
         ),
-        h2(vec![text("Properties のパフォーマンスオーバーヘッド")]),
-        p(vec![text("内部プロパティは参照カウントされたスマートポインタとして渡されます。これにより、コンポーネントツリー内のプロパティに対して共有ポインタが1つだけ渡されるため、プロパティ全体をクローンする高コストを節約できます。")]),
-        admonition(AdmonitionType::Tip, None, vec![
-            p(vec![
+        h2![text("Properties のパフォーマンスオーバーヘッド")],
+        p![text("内部プロパティは参照カウントされたスマートポインタとして渡されます。これにより、コンポーネントツリー内のプロパティに対して共有ポインタが1つだけ渡されるため、プロパティ全体をクローンする高コストを節約できます。")],
+        admonition!(AdmonitionType::Tip, None,
+            p![
                 code("AttrValue"),
                 text(" はプロパティ値に使用するカスタムタイプであり、これにより String やその他のクローンコストが高いタイプとして定義する必要がなくなります。"),
-            ]),
-        ]),
-        h2(vec![text("Props マクロ")]),
-        p(vec![
+            ],
+        ),
+        h2![text("Props マクロ")],
+        p![
             code("yew::props!"),
             text(" マクロを使用すると、"),
             code("html!"),
             text(" マクロと同じ方法でプロパティを構築できます。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("このマクロは構造体の式と同じ構文を使用しますが、プロパティや基本式 ("),
             code("Foo { ..base }"),
             text(") を使用することはできません。タイプパスはプロパティ ("),
@@ -276,7 +266,7 @@ fn Case2() -> Html {
             text(") に直接指すことも、コンポーネントの関連プロパティ ("),
             code("MyComp::Properties"),
             text(") に指すこともできます。"),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
@@ -305,8 +295,8 @@ fn App() -> Html {
     // highlight-end
     html! { <Hello ..pre_made_props /> }
 }"#),
-        h2(vec![text("自動生成プロパティ (yew-autoprops)")]),
-        p(vec![
+        h2![text("自動生成プロパティ (yew-autoprops)")],
+        p![
             text("開発プロセスを簡素化するために、"),
             code("#[autoprops]"),
             text(" マクロ（"),
@@ -314,7 +304,7 @@ fn App() -> Html {
             text(" パッケージから）を使用して "),
             code("Properties"),
             text(" 構造体を自動生成することもできます。"),
-        ]),
+        ],
         code_block("rust", r#"use yew::prelude::*;
 use yew_autoprops::autoprops;
 
@@ -339,8 +329,8 @@ fn Greetings(
 // 構造体 "GreetingsProps" は自動的に生成されます。
 //
 // `is_loading` は値としてコンポーネントに渡され、`message` と `name` は定義に先行する `&` があるため参照として渡されます。"#),
-        h2(vec![text("評価順序")]),
-        p(vec![text("属性は指定された順序で評価されます。以下の例を参照してください：")]),
+        h2![text("評価順序")],
+        p![text("属性は指定された順序で評価されます。以下の例を参照してください：")],
         code_block("rust", r#"#[derive(yew::Properties, PartialEq)]
 struct Props { first: usize, second: usize, last: usize }
 
@@ -352,18 +342,18 @@ fn main() {
     assert_eq!(props.second, 2);
     assert_eq!(props.last, 3);
 }"#),
-        h2(vec![text("アンチパターン")]),
-        p(vec![text("ほとんどのRust型はプロパティとして渡すことができますが、避けるべきアンチパターンがいくつかあります。これらには以下が含まれますが、これに限定されません：")]),
-        ol(vec![
-            li_blocks(vec![
-                p(vec![
+        h2![text("アンチパターン")],
+        p![text("ほとんどのRust型はプロパティとして渡すことができますが、避けるべきアンチパターンがいくつかあります。これらには以下が含まれますが、これに限定されません：")],
+        ol![
+            li_blocks![
+                p![
                     code("String"),
                     text(" 型を "),
                     code("AttrValue"),
                     text(" の代わりに使用する。"),
-                ]),
-                p(vec![
-                    bold(vec![text("なぜ悪いのか？")]),
+                ],
+                p![
+                    bold![text("なぜ悪いのか？")],
                     text(" "),
                     code("String"),
                     text(" のクローンは高コストです。プロパティ値がフックやコールバックと一緒に使用される場合、通常クローンが必要です。"),
@@ -373,40 +363,40 @@ fn main() {
                     text(") または "),
                     code("&'static str"),
                     text(" であり、非常に安価にクローンできます。"),
-                ]),
-                p(vec![
-                    bold(vec![text("注意")]),
+                ],
+                p![
+                    bold![text("注意")],
                     text("："),
                     code("AttrValue"),
                     text(" は内部的には "),
-                    link("https://crates.io/crates/implicit-clone", vec![text("implicit-clone")]),
+                    link!("https://crates.io/crates/implicit-clone", text("implicit-clone")),
                     text(" からの "),
                     code("IString"),
                     text(" です。詳細はそのパッケージを参照してください。"),
-                ]),
-            ]),
-            li_blocks(vec![
-                p(vec![text("内部可変性を使用する。")]),
-                p(vec![
-                    bold(vec![text("なぜ悪いのか？")]),
+                ],
+            ],
+            li_blocks![
+                p![text("内部可変性を使用する。")],
+                p![
+                    bold![text("なぜ悪いのか？")],
                     text(" 内部可変性（例えば "),
                     code("RefCell"),
                     text("、"),
                     code("Mutex"),
                     text(" など）は "),
-                    italic(vec![text("通常")]),
+                    italic![text("通常")],
                     text(" 避けるべきです。これにより再レンダリングの問題が発生する可能性があり（Yewは状態が変更されたことを認識しません）、手動で再レンダリングを強制する必要があるかもしれません。すべてのものと同様に、適切な使用場所があります。慎重に使用してください。"),
-                ]),
-            ]),
-            li_blocks(vec![
-                p(vec![
+                ],
+            ],
+            li_blocks![
+                p![
                     code("Vec<T>"),
                     text(" 型を "),
                     code("IArray<T>"),
                     text(" の代わりに使用する。"),
-                ]),
-                p(vec![
-                    bold(vec![text("なぜ悪いのか？")]),
+                ],
+                p![
+                    bold![text("なぜ悪いのか？")],
                     text(" "),
                     code("Vec<T>"),
                     text(" も "),
@@ -418,25 +408,25 @@ fn main() {
                     text(") または "),
                     code("&'static [T]"),
                     text(" であり、非常に安価にクローンできます。"),
-                ]),
-                p(vec![
-                    bold(vec![text("注意")]),
+                ],
+                p![
+                    bold![text("注意")],
                     text("："),
                     code("IArray"),
                     text(" は "),
-                    link("https://crates.io/crates/implicit-clone", vec![text("implicit-clone")]),
+                    link!("https://crates.io/crates/implicit-clone", text("implicit-clone")),
                     text(" からインポートできます。詳細はそのパッケージを参照してください。"),
-                ]),
-            ]),
-            li_blocks(vec![
-                p(vec![text("新しい発見があるかもしれません。早く知っておきたかったエッジケースに遭遇しましたか？問題を作成するか、このドキュメントに修正のPRを提供してください。")]),
-            ]),
-        ]),
-        h2(vec![text("yew-autoprops")]),
-        p(vec![
-            link("https://crates.io/crates/yew-autoprops", vec![text("yew-autoprops")]),
+                ],
+            ],
+            li_blocks![
+                p![text("新しい発見があるかもしれません。早く知っておきたかったエッジケースに遭遇しましたか？問題を作成するか、このドキュメントに修正のPRを提供してください。")],
+            ],
+        ],
+        h2![text("yew-autoprops")],
+        p![
+            link!("https://crates.io/crates/yew-autoprops", text("yew-autoprops")),
             text(" は実験的なパッケージで、関数の引数に基づいて動的にProps構造体を作成することを可能にします。プロパティ構造体が再利用されない場合、これは有用かもしれません。"),
-        ]),
+        ],
     ])
 }
 

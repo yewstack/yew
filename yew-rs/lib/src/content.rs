@@ -207,6 +207,16 @@ macro_rules! ol { ($($e:expr),* $(,)?) => { $crate::content::ol(vec![$($e),*]) }
 macro_rules! blockquote { ($($e:expr),* $(,)?) => { $crate::content::blockquote(vec![$($e),*]) }; }
 #[macro_export]
 macro_rules! admonition { ($kind:expr, $title:expr, $($e:expr),* $(,)?) => { $crate::content::admonition($kind, $title, vec![$($e),*]) }; }
+#[macro_export]
+macro_rules! tabs { ($default:expr, $($e:expr),* $(,)?) => { $crate::content::tabs($default, vec![$($e),*]) }; }
+#[macro_export]
+macro_rules! tab { ($value:expr, $label:expr, $($e:expr),* $(,)?) => { $crate::content::tab($value, $label, vec![$($e),*]) }; }
+
+#[doc(hidden)]
+pub use crate::{
+    admonition, blockquote, bold, h1, h2, h2_id, h3, h3_id, h4, h4_id, h5, italic, li, li_blocks,
+    link, ol, p, sup, tab, tabs, ul,
+};
 
 pub fn text(s: impl Into<AttrValue>) -> Inline {
     Inline::Text(s.into())

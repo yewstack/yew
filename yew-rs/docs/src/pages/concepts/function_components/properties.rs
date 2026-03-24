@@ -1,51 +1,49 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        admonition(
+        admonition!(
             AdmonitionType::Note,
             None,
-            vec![p(vec![text(
-                "Properties are often shortened as \"Props\".",
-            )])],
+            p![text("Properties are often shortened as \"Props\".",)],
         ),
-        p(vec![text(
+        p![text(
             "Properties are essentially component arguments that Yew can keep watch on.",
-        )]),
-        p(vec![
+        )],
+        p![
             text("A type has to implement the "),
             code("Properties"),
             text(" trait before it can be used as the properties of a component."),
-        ]),
-        h2(vec![text("Reactivity")]),
-        p(vec![text(
+        ],
+        h2![text("Reactivity")],
+        p![text(
             "Yew checks if props have changed when reconciling the Virtual DOM during \
              re-rendering, to know if nested components need to be re-rendered. This way Yew can \
              be considered a very reactive framework, as changes from the parent will always be \
              propagated downward, and the view will never be out of sync with the data coming \
              from props/state.",
-        )]),
-        admonition(
+        )],
+        admonition!(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("If you have not yet completed the "),
-                link("/docs/tutorial", vec![text("tutorial")]),
+                link!("/docs/tutorial", text("tutorial")),
                 text(", try it out and test this reactivity yourself!"),
-            ])],
+            ],
         ),
-        h2(vec![text("Derive macro")]),
-        p(vec![
+        h2![text("Derive macro")],
+        p![
             text("Yew provides a derive macro to easily implement the "),
             code("Properties"),
             text(" trait on structs."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Types for which you derive "),
             code("Properties"),
             text(" must also implement "),
             code("PartialEq"),
             text(" so Yew can do data comparison."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::Properties;
@@ -55,8 +53,8 @@ pub struct Props {
     pub is_loading: bool,
 }"#,
         ),
-        h2(vec![text("Use in function components")]),
-        p(vec![
+        h2![text("Use in function components")],
+        p![
             text("The attribute "),
             code("#[component]"),
             text(
@@ -65,7 +63,7 @@ pub struct Props {
             ),
             code("html!"),
             text(" macro."),
-        ]),
+        ],
         tabs(
             "with-props",
             vec![
@@ -114,23 +112,23 @@ fn App() -> Html {
                 ),
             ],
         ),
-        h2(vec![text("Derive macro field attributes")]),
-        p(vec![
+        h2![text("Derive macro field attributes")],
+        p![
             text("When deriving "),
             code("Properties"),
             text(
                 " all fields are required by default. The following attributes allow you to give \
                  your props default values which will be used when the parent has not set them.",
             ),
-        ]),
-        admonition(
+        ],
+        admonition!(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![text(
+            p![text(
                 "Attributes aren't visible in Rustdoc generated documentation. The doc strings of \
                  your properties should mention whether a prop is optional and if it has a \
                  special default value.",
-            )])],
+            )],
         ),
         tabs(
             "prop_or_default",
@@ -139,14 +137,14 @@ fn App() -> Html {
                     "prop_or_default",
                     "#[prop_or_default]",
                     vec![
-                        p(vec![
+                        p![
                             text(
                                 "Initialize the prop value with the default value of the field's \
                                  type using the ",
                             ),
                             code("Default"),
                             text(" trait."),
-                        ]),
+                        ],
                         code_block(
                             "rust",
                             r#"use yew::{component, html, Html, Properties};
@@ -183,7 +181,7 @@ fn Case2() -> Html {
                     "prop_or_value",
                     "#[prop_or(value)]",
                     vec![
-                        p(vec![
+                        p![
                             text("Use "),
                             code("value"),
                             text(" to initialize the prop value. "),
@@ -199,7 +197,7 @@ fn Case2() -> Html {
                                 ". The expression is evaluated when the properties are \
                                  constructed and no explicit value has been given.",
                             ),
-                        ]),
+                        ],
                         code_block(
                             "rust",
                             r#"use yew::prelude::*;
@@ -238,7 +236,7 @@ fn Case2() -> Html {
                     "prop_or_else_function",
                     "#[prop_or_else(function)]",
                     vec![
-                        p(vec![
+                        p![
                             text("Call "),
                             code("function"),
                             text(" to initialize the prop value. "),
@@ -251,7 +249,7 @@ fn Case2() -> Html {
                                 " is the field type. The function is called when no explicit \
                                  value has been given for that attribute.",
                             ),
-                        ]),
+                        ],
                         code_block(
                             "rust",
                             r#"use yew::prelude::*;
@@ -292,33 +290,33 @@ fn Case2() -> Html {
                 ),
             ],
         ),
-        h2(vec![text("Memory/speed overhead of using Properties")]),
-        p(vec![text(
+        h2![text("Memory/speed overhead of using Properties")],
+        p![text(
             "Internally properties are reference counted. This means that only a shared pointer \
              is passed down the component tree for props. It saves us from the cost of having to \
              clone the entire props, which might be expensive.",
-        )]),
-        admonition(
+        )],
+        admonition!(
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("Make use of "),
                 code("AttrValue"),
                 text(
                     " which is our custom type for attribute values instead of defining them as \
                      String or another similar type.",
                 ),
-            ])],
+            ],
         ),
-        h2(vec![text("Props macro")]),
-        p(vec![
+        h2![text("Props macro")],
+        p![
             text("The "),
             code("yew::props!"),
             text(" macro allows you to build properties the same way the "),
             code("html!"),
             text(" macro does it."),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "The macro uses the same syntax as a struct expression except that you can't use \
                  attributes or a base expression (",
@@ -329,7 +327,7 @@ fn Case2() -> Html {
             text(") or the associated properties of a component ("),
             code("MyComp::Properties"),
             text(")."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -361,10 +359,8 @@ fn App() -> Html {
     html! { <Hello ..pre_made_props /> }
 }"#,
         ),
-        h2(vec![text(
-            "Automatically generate properties (yew-autoprops)",
-        )]),
-        p(vec![
+        h2![text("Automatically generate properties (yew-autoprops)",)],
+        p![
             text("In order to streamline your development process, you can also use the macro "),
             code("#[autoprops]"),
             text(" (from the crate "),
@@ -372,7 +368,7 @@ fn App() -> Html {
             text(") that will automatically generate the "),
             code("Properties"),
             text(" struct for you."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -401,11 +397,11 @@ fn Greetings(
 // `is_loading` will be passed as value to the components while `message` and
 // `name` will use references because of the leading `&` in the definition."#,
         ),
-        h2(vec![text("Evaluation Order")]),
-        p(vec![text(
+        h2![text("Evaluation Order")],
+        p![text(
             "Props are evaluated in the order they're specified, as shown by the following \
              example:",
-        )]),
+        )],
         code_block(
             "rust",
             r#"#[derive(yew::Properties, PartialEq)]
@@ -418,22 +414,22 @@ assert_eq!(props.first, 1);
 assert_eq!(props.second, 2);
 assert_eq!(props.last, 3);"#,
         ),
-        h2(vec![text("Anti Patterns")]),
-        p(vec![text(
+        h2![text("Anti Patterns")],
+        p![text(
             "While almost any Rust type can be passed as properties, there are some anti-patterns \
              that should be avoided. These include, but are not limited to:",
-        )]),
-        ol(vec![
-            li_blocks(vec![
-                p(vec![
+        )],
+        ol![
+            li_blocks![
+                p![
                     text("Using "),
                     code("String"),
                     text(" type instead of "),
                     code("AttrValue"),
                     text("."),
-                ]),
-                p(vec![
-                    bold(vec![text("Why is this bad?")]),
+                ],
+                p![
+                    bold![text("Why is this bad?")],
                     text(" "),
                     code("String"),
                     text(
@@ -446,48 +442,48 @@ assert_eq!(props.last, 3);"#,
                     text(") or a "),
                     code("&'static str"),
                     text(", thus very cheap to clone."),
-                ]),
-                p(vec![
-                    bold(vec![text("Note")]),
+                ],
+                p![
+                    bold![text("Note")],
                     text(": "),
                     code("AttrValue"),
                     text(" internally is "),
                     code("IString"),
                     text(" from "),
-                    link(
+                    link!(
                         "https://crates.io/crates/implicit-clone",
-                        vec![text("implicit-clone")],
+                        text("implicit-clone"),
                     ),
                     text("\nSee that crate to learn more."),
-                ]),
-            ]),
-            li_blocks(vec![
-                p(vec![text("Using interior mutability.")]),
-                p(vec![
-                    bold(vec![text("Why is this bad?")]),
+                ],
+            ],
+            li_blocks![
+                p![text("Using interior mutability.")],
+                p![
+                    bold![text("Why is this bad?")],
                     text(" Interior mutability (such as with "),
                     code("RefCell"),
                     text(", "),
                     code("Mutex"),
                     text(", etc.) should "),
-                    italic(vec![text("generally")]),
+                    italic![text("generally")],
                     text(
                         " be avoided. It can cause problems with re-renders (Yew doesn't know \
                          when the state has changed) so you may have to manually force a render. \
                          Like all things, it has its place. Use it with caution.",
                     ),
-                ]),
-            ]),
-            li_blocks(vec![
-                p(vec![
+                ],
+            ],
+            li_blocks![
+                p![
                     text("Using "),
                     code("Vec<T>"),
                     text(" type instead of "),
                     code("IArray<T>"),
                     text("."),
-                ]),
-                p(vec![
-                    bold(vec![text("Why is this bad?")]),
+                ],
+                p![
+                    bold![text("Why is this bad?")],
                     text(" "),
                     code("Vec<T>"),
                     text(", just like "),
@@ -499,36 +495,36 @@ assert_eq!(props.last, 3);"#,
                     text(") or a "),
                     code("&'static [T]"),
                     text(", thus very cheap to clone."),
-                ]),
-                p(vec![
-                    bold(vec![text("Note")]),
+                ],
+                p![
+                    bold![text("Note")],
                     text(": "),
                     code("IArray"),
                     text(" can be imported from "),
-                    link(
+                    link!(
                         "https://crates.io/crates/implicit-clone",
-                        vec![text("implicit-clone")],
+                        text("implicit-clone"),
                     ),
                     text("\nSee that crate to learn more."),
-                ]),
-            ]),
-            li_blocks(vec![p(vec![text(
+                ],
+            ],
+            li_blocks![p![text(
                 "You tell us. Did you run into an edge-case you wish you knew about earlier? Feel \
                  free to create an issue or PR a fix to this documentation.",
-            )])]),
-        ]),
-        h2(vec![text("yew-autoprops")]),
-        p(vec![
-            link(
+            )]],
+        ],
+        h2![text("yew-autoprops")],
+        p![
+            link!(
                 "https://crates.io/crates/yew-autoprops",
-                vec![text("yew-autoprops")],
+                text("yew-autoprops"),
             ),
             text(
                 " is an experimental package that allows one to create the Props struct on the \
                  fly out of the arguments of your function. Might be useful, if the properties \
                  struct is never reused.",
             ),
-        ]),
+        ],
     ])
 }
 

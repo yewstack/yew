@@ -1,12 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text("サスペンス (Suspense) は、タスクが完了するまでコンポーネントのレンダリングを一時停止し、その間にフォールバック（プレースホルダー）UI を表示する方法です。")]),
-        p(vec![text("これは、サーバーからデータを取得したり、プロキシがタスクを完了するのを待ったり、他のバックグラウンド非同期タスクを実行したりするために使用できます。")]),
-        p(vec![text("サスペンスが表示される前に、データ取得は通常、コンポーネントのレンダリング後（レンダリング時取得）またはレンダリング前（取得後レンダリング）に発生します。")]),
-        h3(vec![text("レンダリングしながらダウンロード")]),
-        p(vec![text("サスペンス (Suspense) は、新しい方法を提供し、コンポーネントがレンダリング中にデータリクエストを発行できるようにします。コンポーネントがデータリクエストを発行すると、レンダリングプロセスが一時停止され、リクエストが完了するまでフォールバック UI が表示されます。")]),
-        p(vec![text("サスペンスを使用するには、フック (Hook) を使用することをお勧めします。")]),
+        p![text("サスペンス (Suspense) は、タスクが完了するまでコンポーネントのレンダリングを一時停止し、その間にフォールバック（プレースホルダー）UI を表示する方法です。")],
+        p![text("これは、サーバーからデータを取得したり、プロキシがタスクを完了するのを待ったり、他のバックグラウンド非同期タスクを実行したりするために使用できます。")],
+        p![text("サスペンスが表示される前に、データ取得は通常、コンポーネントのレンダリング後（レンダリング時取得）またはレンダリング前（取得後レンダリング）に発生します。")],
+        h3![text("レンダリングしながらダウンロード")],
+        p![text("サスペンス (Suspense) は、新しい方法を提供し、コンポーネントがレンダリング中にデータリクエストを発行できるようにします。コンポーネントがデータリクエストを発行すると、レンダリングプロセスが一時停止され、リクエストが完了するまでフォールバック UI が表示されます。")],
+        p![text("サスペンスを使用するには、フック (Hook) を使用することをお勧めします。")],
         code_block("rust", r##"use yew::prelude::*;
 
 #[component(Content)]
@@ -26,7 +26,7 @@ fn app() -> Html {
         </Suspense>
     }
 }"##),
-        p(vec![
+        p![
             text("上記の例では、"),
             code("use_user"),
             text(" フックはユーザー情報の読み込み中にコンポーネントのレンダリングを一時停止し、"),
@@ -34,8 +34,8 @@ fn app() -> Html {
             text(" が読み込まれる前に "),
             code("Loading..."),
             text(" プレースホルダーを表示します。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("コンポーネントのレンダリングを一時停止するフックを定義するには、"),
             code("SuspensionResult<T>"),
             text(" を返す必要があります。コンポーネントが一時停止する必要がある場合、フックは "),
@@ -45,7 +45,7 @@ fn app() -> Html {
             text(" でアンパックする必要があります。これにより、それが "),
             code("Html"),
             text(" に変換されます。"),
-        ]),
+        ],
         code_block("rust", r##"use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 
@@ -68,29 +68,29 @@ fn use_user() -> SuspensionResult<User> {
         },
     }
 }"##),
-        h4(vec![text("サスペンスフック (Hook) の実装に関する注意事項")]),
-        p(vec![
-            link("https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new", vec![code("Suspension::new")]),
+        h4![text("サスペンスフック (Hook) の実装に関する注意事項")],
+        p![
+            link!("https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new", code("Suspension::new")),
             text(" は 2 つの値を返します：サスペンスコンテキスト自体とサスペンスハンドル。後者はサスペンスされたコンポーネントを再レンダリングするタイミングを管理し、2 つの方法で操作できます："),
-        ]),
-        ol(vec![
-            li(vec![
+        ],
+        ol![
+            li![
                 text("その "),
-                link("https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume", vec![code("resume")]),
+                link!("https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume", code("resume")),
                 text(" メソッドを呼び出す。"),
-            ]),
-            li(vec![text("ハンドルを破棄する。")]),
-        ]),
-        admonition(AdmonitionType::Danger, None, vec![
-            p(vec![
+            ],
+            li![text("ハンドルを破棄する。")],
+        ],
+        admonition![AdmonitionType::Danger, None,
+            p![
                 text("サスペンスハンドルは、新しいデータを受け取ってコンポーネントを更新するまで保存する必要があります。そうしないと、サスペンスされたコンポーネントが無限再レンダリングループに入り、パフォーマンスに影響を与えます。上記の例では、サスペンスハンドルはクロージャに移動し、"),
                 code("on_load_user_complete"),
                 text(" に渡されることで保存されます。仮想ユーザーが読み込まれると、クロージャが呼び出され、"),
                 code("handle.resume()"),
                 text(" が呼び出され、サスペンスコンテキストに関連するコンポーネントが再レンダリングされます。"),
-            ]),
-        ]),
-        h1(vec![text("完全な例")]),
+            ],
+        ],
+        h1![text("完全な例")],
         code_block("rust", r##"use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult};
 
@@ -140,21 +140,21 @@ fn app() -> Html {
         </Suspense>
     }
 }"##),
-        h3(vec![text("構造体コンポーネントでプレースホルダーを使用する")]),
-        p(vec![
+        h3![text("構造体コンポーネントでプレースホルダーを使用する")],
+        p![
             text("構造体コンポーネントを直接サスペンドすることはできません。しかし、関数コンポーネントを"),
-            link("/ja/docs/advanced-topics/struct-components/hoc", vec![text("高階コンポーネント")]),
+            link!("/ja/docs/advanced-topics/struct-components/hoc", text("高階コンポーネント")),
             text("として使用し、プレースホルダーに基づいたデータ取得を実現することができます。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Yew リポジトリの"),
-            link("https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs", vec![text("プレースホルダーの例")]),
+            link!("https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs", text("プレースホルダーの例")),
             text("は、このコンポーネントの使用方法を示しています。"),
-        ]),
-        h2(vec![text("関連例")]),
-        ul(vec![
-            li(vec![link("https://github.com/yewstack/yew/tree/master/examples/suspense", vec![text("プレースホルダー")])]),
-        ]),
+        ],
+        h2![text("関連例")],
+        ul![
+            li![link!("https://github.com/yewstack/yew/tree/master/examples/suspense", text("プレースホルダー"))],
+        ],
     ])
 }
 

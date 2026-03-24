@@ -1,10 +1,10 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("#[component]"),
             text(" 属性は、ジェネリックコンポーネントを作成するためのジェネリック関数にも適用されます。"),
-        ]),
+        ],
         code_block("rust", r#"use std::fmt::Display;
 use yew::{component, html, Properties, Html};
 

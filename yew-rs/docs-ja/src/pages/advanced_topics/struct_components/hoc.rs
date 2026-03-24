@@ -1,24 +1,24 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "いくつかの状況では、構造コンポーネントは特定の機能（例えば \
              Suspense）を直接サポートしていないか、\
              または特定の機能を使用するために大量のボイラープレートコードが必要です（例えば \
              Context）。",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "このような場合、高階コンポーネントの関数コンポーネントを作成することをお勧めします。",
-        )]),
-        h2(vec![text("高階コンポーネントの定義")]),
-        p(vec![text(
+        )],
+        h2![text("高階コンポーネントの定義")],
+        p![text(
             "高階コンポーネントは、新しい HTML \
              を追加せず、他のコンポーネントをラップして追加機能を提供するコンポーネントです。",
-        )]),
-        h3(vec![text("例")]),
-        p(vec![text(
+        )],
+        h3![text("例")],
+        p![text(
             "Context（コンテキスト）フックを使用し、それを構造コンポーネントに渡す例",
-        )]),
+        )],
         code_block(
             "rust",
             r##"use yew::prelude::*;

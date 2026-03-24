@@ -1,13 +1,13 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("html!"),
             text(
                 " マクロを使用して、HTML に似た式を記述できます。Yew はバックグラウンドでそれを \
                  DOM を表現する Rust コードに変換します。",
             ),
-        ]),
+        ],
         code_block(
             "rust",
             "use yew::prelude::*;
@@ -16,10 +16,10 @@ let my_header: Html = html! {
     <img src=\"img_girl.jpg\" alt=\"Girl in a jacket\" width=\"500\" height=\"600\" />
 };",
         ),
-        p(vec![text(
+        p![text(
             "フォーマットされた式と同様に、波括弧を使用して周囲のコンテキストの値を HTML \
              に埋め込むことができます：",
-        )]),
+        )],
         code_block(
             "rust",
             "use yew::prelude::*;
@@ -38,7 +38,7 @@ let combined_html: Html = html! {
     <div>{header_html}{counter_html}</div>
 };",
         ),
-        p(vec![
+        p![
             code("html!"),
             text(
                 " を使用する際の重要なルールの 1 つは、1 \
@@ -50,7 +50,7 @@ let combined_html: Html = html! {
                 " は空のタグ（フラグメント）の使用を許可しています。空のタグは名前のないタグで、\
                  それ自体は HTML 要素を生成しません。",
             ),
-        ]),
+        ],
         tabs(
             "Invalid",
             vec![
@@ -88,11 +88,11 @@ html! {
                 ),
             ],
         ),
-        p(vec![
+        p![
             text("詳細については、"),
-            link("/ja/docs/concepts/html", vec![text("HTML の詳細")]),
+            link!("/ja/docs/concepts/html", text("HTML の詳細")),
             text("を参照してください。"),
-        ]),
+        ],
     ])
 }
 

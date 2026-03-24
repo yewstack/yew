@@ -1,13 +1,13 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h1(vec![text("Low-level library internals")]),
-        h2(vec![
+        h1![text("Low-level library internals")],
+        h2![
             text("Under the hood of the "),
             code("html!"),
             text(" macro"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("The "),
             code("html!"),
             text(
@@ -24,8 +24,8 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("html!"),
             text(" syntax."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Because the "),
             code("html!"),
             text(
@@ -35,8 +35,8 @@ pub fn page_content() -> yew_site_lib::Content {
                  Rather than manually writing all of the code to manipulate the DOM yourself, the \
                  macro will handle it for you.",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Using the "),
             code("html!"),
             text(
@@ -53,18 +53,15 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" by default so you will need to install it with "),
             code("cargo install cargo-expand"),
             text(" if you have not already. "),
-            link(
-                "https://rust-analyzer.github.io/",
-                vec![text("Rust-Analyzer")],
-            ),
+            link!["https://rust-analyzer.github.io/", text("Rust-Analyzer")],
             text(" also provides a mechanism for "),
-            link(
+            link![
                 "https://rust-analyzer.github.io/manual.html#expand-macro-recursively",
-                vec![text("obtaining macro output from within an IDE")],
-            ),
+                text("obtaining macro output from within an IDE"),
+            ],
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Output from the "),
             code("html!"),
             text(
@@ -73,9 +70,9 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("proc_macro"),
             text(" \"hygiene\" is adhered to. Some examples include:"),
-        ]),
-        ol(vec![
-            li(vec![
+        ],
+        ol![
+            li![
                 text("Instead of using "),
                 code("yew::<module>"),
                 text(" the macro generates "),
@@ -87,22 +84,22 @@ pub fn page_content() -> yew_site_lib::Content {
                 text(" is called instead of just "),
                 code("Vec::new()"),
                 text("."),
-            ]),
-            li(vec![
+            ],
+            li![
                 text("Due to potential trait method name collisions, "),
                 code("<Type as Trait>"),
                 text(" is used to make sure that we are using members from the correct trait."),
-            ]),
-        ]),
-        h2(vec![text("What is a virtual DOM?")]),
-        p(vec![text(
+            ],
+        ],
+        h2![text("What is a virtual DOM?")],
+        p![text(
             "The DOM (\"document object model\") is a representation of the HTML content that is \
              managed by the browser for your web page. A \"virtual\" DOM is simply a copy of the \
              DOM that is held in application memory. Managing a virtual DOM results in a higher \
              memory overhead, but allows for batching and faster reads by avoiding or delaying \
              the use of browser APIs.",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "Having a copy of the DOM in memory can be helpful for libraries that promote the use \
              of declarative UIs. Rather than needing specific code for describing how the DOM \
              should be modified in response to a user event, the library can use a generalized \
@@ -112,13 +109,13 @@ pub fn page_content() -> yew_site_lib::Content {
              \"diff\" (or difference) between the two can be broken down into incremental updates \
              and applied in a batch with browser APIs. Once the updates are applied, the old \
              virtual DOM copy is discarded and the new copy is saved for future diff checks.",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "This \"diff\" algorithm can be optimized over time to improve the performance of \
              complex applications. Since Yew applications are run with WebAssembly, we believe \
              that Yew has a competitive edge to adopt more sophisticated algorithms in the future.",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "The Yew virtual DOM is not exactly one-to-one with the browser DOM. It also includes \
              \"lists\" and \"components\" for organizing DOM elements. A list can simply be an \
              ordered list of elements but can also be much more powerful. By annotating each list \
@@ -126,30 +123,32 @@ pub fn page_content() -> yew_site_lib::Content {
              optimizations to ensure that when a list changes, the least amount of work is done \
              to calculate the diff update. Similarly, components provide custom logic to indicate \
              whether a re-render is required to help with performance.",
-        )]),
-        h2(vec![text("Yew scheduler and component-scoped event loop")]),
-        p(vec![italic(vec![
+        )],
+        h2![text("Yew scheduler and component-scoped event loop")],
+        p![italic![
             text("Contribute to the docs – explain how "),
             code("yew::scheduler"),
             text(" and "),
             code("yew::html::scope"),
             text(" work in depth"),
-        ])]),
-        h2(vec![text("Further reading")]),
-        ul(vec![
-            li(vec![link(
+        ]],
+        h2![text("Further reading")],
+        ul![
+            li![link![
                 "https://doc.rust-lang.org/stable/book/ch19-06-macros.html",
-                vec![text("More information about macros from the Rust Book")],
-            )]),
-            li(vec![link(
+                text("More information about macros from the Rust Book"),
+            ]],
+            li![link![
                 "https://github.com/dtolnay/cargo-expand",
-                vec![text("More information about "), code("cargo-expand")],
-            )]),
-            li(vec![link(
+                text("More information about "),
+                code("cargo-expand"),
+            ]],
+            li![link![
                 "https://docs.rs/yew/*/yew/virtual_dom/index.html",
-                vec![text("The API documentation for "), code("yew::virtual_dom")],
-            )]),
-        ]),
+                text("The API documentation for "),
+                code("yew::virtual_dom"),
+            ]],
+        ],
     ])
 }
 

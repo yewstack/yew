@@ -1,27 +1,27 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("Component"),
             text(" トレイトには、実装する必要がある多くのメソッドがあります。Yew はコンポーネントのライフサイクルのさまざまな段階でこれらのメソッドを呼び出します。"),
-        ]),
-        h2(vec![text("ライフサイクル")]),
-        admonition(AdmonitionType::Important, Some("ドキュメントの改善"), vec![
-            p(vec![
+        ],
+        h2![text("ライフサイクル")],
+        admonition!(AdmonitionType::Important, Some("ドキュメントの改善"),
+            p![
                 code("ドキュメントに貢献する："),
                 text(" "),
-                link("https://github.com/yewstack/yew/issues/1915", vec![text("カスタムライフサイクルを持つコンポーネントの例を追加")]),
-            ]),
-        ]),
-        h2(vec![text("ライフサイクルメソッド")]),
-        h3(vec![text("Create")]),
-        p(vec![
+                link!("https://github.com/yewstack/yew/issues/1915", text("カスタムライフサイクルを持つコンポーネントの例を追加")),
+            ],
+        ),
+        h2![text("ライフサイクルメソッド")],
+        h3![text("Create")],
+        p![
             text("コンポーネントが作成されるとき、それは親コンポーネントからプロパティを受け取り、それらは "),
             code("create"),
             text(" メソッドに渡される "),
             code("Context<Self>"),
             text(" に保存されます。これらのプロパティはコンポーネントの状態を初期化するために使用でき、\"link\" はコールバックを登録したり、コンポーネントにメッセージを送信したりするために使用できます。"),
-        ]),
+        ],
         code_block("rust", r#"use yew::{Component, Context, html, Html, Properties};
 
 #[derive(PartialEq, Properties)]
@@ -45,8 +45,8 @@ impl Component for MyComponent {
         }
     }
 }"#),
-        h3(vec![text("View")]),
-        p(vec![
+        h3![text("View")],
+        p![
             code("view"),
             text(" メソッドは、コンポーネントがDOMにどのようにレンダリングされるべきかを記述することを可能にします。Rust関数を使用してHTMLに似たコードを書くことは非常に混乱する可能性があるため、Yewは"),
             code("html!"),
@@ -55,7 +55,7 @@ impl Component for MyComponent {
             text("とだけ書くことができ、"),
             code("onclick={onclick}"),
             text("と書く必要はありません。"),
-        ]),
+        ],
         code_block("rust", r#"use yew::{Component, Context, html, Html, Properties};
 
 enum Msg {
@@ -86,20 +86,20 @@ impl Component for MyComponent {
     }
     // highlight-end
 }"#),
-        p(vec![
+        p![
             text("使用方法の詳細については、"),
-            link("/ja/docs/concepts/html", vec![text("html! ガイド")]),
+            link!("/ja/docs/concepts/html", text("html! ガイド")),
             text(" を参照してください。"),
-        ]),
-        h3(vec![text("Rendered")]),
-        p(vec![
+        ],
+        h3![text("Rendered")],
+        p![
             code("rendered"),
             text(" コンポーネントライフサイクルメソッドは、"),
             code("view"),
             text(" が呼び出され、Yew がその結果を DOM にレンダリングした後、ブラウザがページを更新する前に呼び出されます。このメソッドは、コンポーネントが要素をレンダリングした後にのみ完了できる操作を実行したい場合に非常に便利です。また、"),
             code("first_render"),
             text(" という名前のパラメーターがあり、この関数が最初のレンダリング時に呼び出されたか、後続のレンダリング時に呼び出されたかを判断するために使用できます。"),
-        ]),
+        ],
         code_block("rust", r#"use web_sys::HtmlInputElement;
 use yew::{
     Component, Context, html, Html, NodeRef,
@@ -135,20 +135,20 @@ impl Component for MyComponent {
     }
     // highlight-end
 }"#),
-        admonition(AdmonitionType::Tip, Some("note"), vec![
-            p(vec![text("このライフサイクルメソッドは実装する必要はなく、デフォルトでは何も実行しません。")]),
-        ]),
-        h3(vec![text("Update")]),
-        p(vec![
+        admonition!(AdmonitionType::Tip, Some("note"),
+            p![text("このライフサイクルメソッドは実装する必要はなく、デフォルトでは何も実行しません。")],
+        ),
+        h3![text("Update")],
+        p![
             text("コンポーネントとの通信は主にメッセージを通じて行われ、これらのメッセージは "),
             code("update"),
             text(" ライフサイクルメソッドによって処理されます。これにより、コンポーネントはメッセージに基づいて自身を更新し、再レンダリングが必要かどうかを判断できます。メッセージはイベントリスナー、子コンポーネント、エージェント、サービス、またはフューチャーによって送信されることがあります。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("以下は "),
             code("update"),
             text(" の実装例です："),
-        ]),
+        ],
         code_block("rust", r#"use yew::{Component, Context, html, Html};
 
 // highlight-start
@@ -194,17 +194,17 @@ impl Component for MyComponent {
     }
 
 }"#),
-        h3(vec![text("Changed")]),
-        p(vec![text("コンポーネントは親コンポーネントによって再レンダリングされることがあります。この場合、新しいプロパティを受け取り、再レンダリングが必要になることがあります。この設計により、プロパティの値を変更するだけで親子コンポーネント間の通信が促進されます。プロパティが変更されると、デフォルトの実装によりコンポーネントが再レンダリングされます。")]),
-        h3(vec![text("Destroy")]),
-        p(vec![
+        h3![text("Changed")],
+        p![text("コンポーネントは親コンポーネントによって再レンダリングされることがあります。この場合、新しいプロパティを受け取り、再レンダリングが必要になることがあります。この設計により、プロパティの値を変更するだけで親子コンポーネント間の通信が促進されます。プロパティが変更されると、デフォルトの実装によりコンポーネントが再レンダリングされます。")],
+        h3![text("Destroy")],
+        p![
             text("コンポーネントがDOMからアンマウントされると、Yewは"),
             code("destroy"),
             text("ライフサイクルメソッドを呼び出します。コンポーネントが破棄される前にクリーンアップ操作を実行する必要がある場合に便利です。このメソッドはオプションであり、デフォルトでは何も実行しません。"),
-        ]),
-        h3(vec![text("無限ループ")]),
-        p(vec![text("Yewのライフサイクルメソッドでは無限ループが発生する可能性がありますが、それは各レンダリング後に同じコンポーネントを更新し、その更新が再レンダリングを要求する場合にのみ発生します。")]),
-        p(vec![text("以下は簡単な例です：")]),
+        ],
+        h3![text("無限ループ")],
+        p![text("Yewのライフサイクルメソッドでは無限ループが発生する可能性がありますが、それは各レンダリング後に同じコンポーネントを更新し、その更新が再レンダリングを要求する場合にのみ発生します。")],
+        p![text("以下は簡単な例です：")],
         code_block("rust", r#"use yew::{Context, Component, Html};
 
 struct Comp;
@@ -232,58 +232,58 @@ impl Component for Comp {
         ctx.link().send_message(());
     }
 }"#),
-        p(vec![text("ここで何が起こっているのか見てみましょう：")]),
-        ol(vec![
-            li(vec![
+        p![text("ここで何が起こっているのか見てみましょう：")],
+        ol![
+            li![
                 code("create"),
                 text(" 関数を使用してコンポーネントを作成します。"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("view"),
                 text(" メソッドを呼び出して、Yew がブラウザの DOM にレンダリングする内容を知ることができます。"),
-            ]),
-            li(vec![
+            ],
+            li![
                 code("rendered"),
                 text(" メソッドを呼び出し、"),
                 code("Context"),
                 text(" リンクを使用して更新メッセージをスケジュールします。"),
-            ]),
-            li(vec![text("Yew がレンダリングフェーズを完了します。")]),
-            li(vec![text("Yew はスケジュールされたイベントをチェックし、更新メッセージキューが空でないことを確認してメッセージを処理します。")]),
-            li(vec![
+            ],
+            li![text("Yew がレンダリングフェーズを完了します。")],
+            li![text("Yew はスケジュールされたイベントをチェックし、更新メッセージキューが空でないことを確認してメッセージを処理します。")],
+            li![
                 code("update"),
                 text(" メソッドを呼び出し、変更が発生し、コンポーネントが再レンダリングする必要があることを示す "),
                 code("true"),
                 text(" を返します。"),
-            ]),
-            li(vec![text("ステップ2に戻ります。")]),
-        ]),
-        p(vec![
+            ],
+            li![text("ステップ2に戻ります。")],
+        ],
+        p![
             code("rendered"),
             text(" メソッドで更新をスケジュールすることは依然として可能であり、これは通常便利ですが、その際にはこのループをどのように終了させるかを考慮してください。"),
-        ]),
-        h2(vec![text("関連タイプ")]),
-        p(vec![
+        ],
+        h2![text("関連タイプ")],
+        p![
             code("Component"),
             text(" トレイトには、"),
             code("Message"),
             text(" と "),
             code("Properties"),
             text(" の2つの関連タイプがあります。"),
-        ]),
+        ],
         code_block("rust", r#"impl Component for MyComponent {
     type Message = Msg;
     type Properties = Props;
 
     // ...
 }"#),
-        p(vec![
+        p![
             code("Message"),
             text(" タイプは、イベントが発生した後にコンポーネントにメッセージを送信するために使用されます。例えば、ユーザーがボタンをクリックしたり、ページをスクロールしたりしたときに何かを実行したい場合があります。コンポーネントは通常、複数のイベントに応答する必要があるため、"),
             code("Message"),
             text(" タイプは通常、処理するイベントごとにバリアントを持つ列挙型です。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("コードベースを整理する際には、"),
             code("Message"),
             text(" タイプの定義をコンポーネントを定義する同じモジュールに含めるのが賢明です。メッセージタイプの命名に一貫した命名規則を採用することが役立つ場合があります。一つのオプション（唯一のオプションではありませんが）は、タイプを "),
@@ -293,12 +293,12 @@ impl Component for Comp {
             text(" と名付けられている場合、タイプを "),
             code("HomepageMsg"),
             text(" と命名することができます。"),
-        ]),
+        ],
         code_block("rust", r#"enum Msg {
     Click,
     FormInput(String)
 }"#),
-        p(vec![
+        p![
             code("Properties"),
             text(" は、親コンポーネントからコンポーネントに渡される情報を表します。この型は "),
             code("Properties"),
@@ -313,15 +313,15 @@ impl Component for Comp {
             text(" を持ちます。ルートコンポーネントにプロパティを指定する場合は、"),
             code("App::mount_with_props"),
             text(" メソッドを使用します。"),
-        ]),
-        admonition(AdmonitionType::Info, None, vec![
-            p(vec![link(
+        ],
+        admonition!(AdmonitionType::Info, None,
+            p![link!(
                 "/ja/docs/advanced-topics/struct-components/properties",
-                vec![text("プロパティに関する詳細はこちら")],
-            )]),
-        ]),
-        h2(vec![text("ライフサイクルコンテキスト")]),
-        p(vec![text("すべてのコンポーネントライフサイクルメソッドは、コンテキストオブジェクトを受け取ります。このオブジェクトは、コンポーネントのスコープへの参照を提供し、コンポーネントにメッセージを送信したり、コンポーネントに渡されたプロパティを取得したりすることができます。")]),
+                text("プロパティに関する詳細はこちら"),
+            )],
+        ),
+        h2![text("ライフサイクルコンテキスト")],
+        p![text("すべてのコンポーネントライフサイクルメソッドは、コンテキストオブジェクトを受け取ります。このオブジェクトは、コンポーネントのスコープへの参照を提供し、コンポーネントにメッセージを送信したり、コンポーネントに渡されたプロパティを取得したりすることができます。")],
     ])
 }
 

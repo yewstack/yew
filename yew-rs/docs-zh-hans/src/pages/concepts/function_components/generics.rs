@@ -1,10 +1,10 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             code("#[component]"),
             text(" 属性也适用于用于创建泛型组件的泛型函数。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use std::fmt::Display;

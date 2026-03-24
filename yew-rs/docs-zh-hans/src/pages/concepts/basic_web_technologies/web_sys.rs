@@ -1,18 +1,18 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
-            link(
+        p![
+            link!(
                 "https://crates.io/crates/web-sys",
-                vec![text("web-sys crate")],
+                text("web-sys crate"),
             ),
             text(
                 " 为 Web API 提供绑定。这是从浏览器 WebIDL \
                  生成的，这就是为什么有些名称如此之长，有些类型如此模糊的原因。",
             ),
-        ]),
-        h2(vec![text("`web-sys` 中的特性 (features)")]),
-        p(vec![
+        ],
+        h2![text("`web-sys` 中的特性 (features)")],
+        p![
             code("web-sys"),
             text(
                 " crate 中启用了所有特性可能会给 Wasm \
@@ -25,11 +25,11 @@ pub fn page_content() -> yew_site_lib::Content {
             ),
             code("web-sys"),
             text(" 添加为依赖项。"),
-        ]),
-        h2(vec![text("`web-sys` 中的继承")]),
-        p(vec![
+        ],
+        h2![text("`web-sys` 中的继承")],
+        p![
             text("在"),
-            link("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance", vec![text("模拟继承")]),
+            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance", text("模拟继承")),
             text(
                 "部分，你可以了解到 Rust 通常提供了一种模拟 JavaScript 中继承的方法。这在 ",
             ),
@@ -37,17 +37,17 @@ pub fn page_content() -> yew_site_lib::Content {
             text(
                 " 中非常重要，因为了解一个类型上有哪些方法意味着了解它的继承。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("这一部分将查看一个特定的元素，并使用 Rust 调用 "),
-            link(
+            link!(
                 "https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref",
-                vec![text("Deref::deref")],
+                text("Deref::deref"),
             ),
             text(" 列出其继承，直到该值为 "),
-            link("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue", vec![text("JsValue")]),
+            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue", text("JsValue")),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use std::ops::Deref;
@@ -91,25 +91,25 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 
 }"#,
         ),
-        p(vec![
+        p![
             text("_"),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/web-sys/inheritance.html",
-                vec![text("wasm-bindgen 指引中的 web-sys 继承")],
+                text("wasm-bindgen 指引中的 web-sys 继承"),
             ),
             text("_"),
-        ]),
-        h2(vec![text("`NodeRef` 中的 `Node`")]),
-        p(vec![
+        ],
+        h2![text("`NodeRef` 中的 `Node`")],
+        p![
             text("Yew 使用 "),
-            link(
+            link!(
                 "/zh-Hans/docs/concepts/function-components/node-refs",
-                vec![text("NodeRef")],
+                text("NodeRef"),
             ),
             text(" 来提供一种方式来保留由 "),
-            link(
+            link!(
                 "/zh-Hans/docs/concepts/html",
-                vec![text("html!")],
+                text("html!"),
             ),
             text(" 宏创建的 "),
             code("Node"),
@@ -118,16 +118,16 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
             text(" 中的 "),
             code("Node"),
             text(" 指的是 "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Node.html",
-                vec![text("web_sys::Node")],
+                text("web_sys::Node"),
             ),
             text("。"),
             code("NodeRef::get"),
             text(" 方法将返回一个 "),
             code("Option<Node>"),
             text(" 值，但是，在 Yew 中，大多数情况下，您希望将此值转换为特定元素，以便使用其特定方法。如果存在，可以使用 "),
-            link("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jscast", vec![text("JsCast")]),
+            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jscast", text("JsCast")),
             text(" 对 "),
             code("Node"),
             text(" 值进行转换，但是 Yew 提供了 "),
@@ -137,30 +137,29 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
             text(" 特性包含 "),
             code("wasm-bindgen"),
             text(" 依赖项。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("下面的两个代码块本质上是相同的，第一个使用 "),
             code("NodeRef::cast"),
             text("，第二个使用 "),
-            link(
+            link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into",
-                vec![text("JsCast::dyn_into")],
+                text("JsCast::dyn_into"),
             ),
             text(" 在 "),
             code("NodeRef::get"),
             text(" 返回的 "),
             code("web_sys::Node"),
             text(" 上。"),
-        ]),
-        tabs(
+        ],
+        tabs![
             "Using NodeRef::cast",
-            vec![
-                tab(
-                    "Using NodeRef::cast",
-                    "Using NodeRef::cast",
-                    vec![code_block(
-                        "rust",
-                        r#"use web_sys::HtmlInputElement;
+            tab![
+                "Using NodeRef::cast",
+                "Using NodeRef::cast",
+                code_block(
+                    "rust",
+                    r#"use web_sys::HtmlInputElement;
 use yew::NodeRef;
 
 fn with_node_ref_cast(node_ref: NodeRef) {
@@ -168,14 +167,14 @@ fn with_node_ref_cast(node_ref: NodeRef) {
         // 在这里处理 HtmlInputElement
     }
 }"#,
-                    )],
                 ),
-                tab(
-                    "Using NodeRef::get",
-                    "Using NodeRef::get",
-                    vec![code_block(
-                        "rust",
-                        r#"use wasm_bindgen::JsCast;
+            ],
+            tab![
+                "Using NodeRef::get",
+                "Using NodeRef::get",
+                code_block(
+                    "rust",
+                    r#"use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
 use yew::NodeRef;
 
@@ -186,17 +185,16 @@ fn with_jscast(node_ref: NodeRef) {
         // 在这里处理 HtmlInputElement
     }
 }"#,
-                    )],
                 ),
             ],
-        ),
-        h2(vec![text("JavaScript 重构为 Rust 的示例")]),
-        p(vec![
+        ],
+        h2![text("JavaScript 重构为 Rust 的示例")],
+        p![
             text("这一节展示了如何将与 Web API 交互的 JavaScript 代码示例重写为 Rust 中的 "),
             code("web-sys"),
             text("。"),
-        ]),
-        h3(vec![text("JavaScript 示例")]),
+        ],
+        h3![text("JavaScript 示例")],
         code_block(
             "js",
             r#"document.getElementById('mousemoveme').onmousemove = (e) => {
@@ -207,12 +205,12 @@ fn with_jscast(node_ref: NodeRef) {
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }"#,
         ),
-        h3(vec![text("用 `web-sys` 重写的示例")]),
-        p(vec![
+        h3![text("用 `web-sys` 重写的示例")],
+        p![
             text("仅使用 "),
             code("web-sys"),
             text("，上面的 JavaScript 示例可以这样实现："),
-        ]),
+        ],
         code_block_title(
             "toml",
             "Cargo.toml",
@@ -256,25 +254,25 @@ Document::new()
 
 // 我们现在需要保存 `mousemove` 闭包，以便在事件触发时闭包仍然在内存中。"#,
         ),
-        p(vec![
+        p![
             text("这个版本更加冗长，但你可能会注意到其中的一部分是由于失败类型提醒我们，一些函数调用有必须保持的不变量，否则将在 Rust 中引发 panic。另一个冗长的部分是调用 "),
             code("JsCast"),
             text(" 来将不同类型转换为特定类型，以便调用其特定方法。"),
-        ]),
-        h3(vec![text("用 Yew 重写的示例")]),
-        p(vec![
+        ],
+        h3![text("用 Yew 重写的示例")],
+        p![
             text("在 Yew 中，您将主要创建 "),
-            link(
+            link!(
                 "/zh-Hans/docs/concepts/function-components/callbacks",
-                vec![text("Callback")],
+                text("Callback"),
             ),
             text(" 以在 "),
-            link(
+            link!(
                 "/zh-Hans/docs/concepts/html",
-                vec![text("html!")],
+                text("html!"),
             ),
             text(" 宏中使用，因此示例将使用这种方法，而不是完全复制上面的方法："),
-        ]),
+        ],
         code_block_title(
             "toml",
             "Cargo.toml",
@@ -309,8 +307,8 @@ html! {
     <div id="mousemoveme" {onmousemove}></div>
 };"#,
         ),
-        h2(vec![text("补充依赖库")]),
-        p(vec![
+        h2![text("补充依赖库")],
+        p![
             code("web-sys"),
             text(
                 " 是 Web API 的原始绑定，因此在 Rust \
@@ -319,15 +317,15 @@ html! {
             ),
             code("web-sys"),
             text(" 的抽象，以提供更符合 Rust 习惯的 API。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("_"),
-            link(
+            link!(
                 "/community/external-libs",
-                vec![text("补充依赖库清单")],
+                text("补充依赖库清单"),
             ),
             text("_"),
-        ]),
+        ],
     ])
 }
 

@@ -1,12 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![text("基础")]),
-        p(vec![
+        h2![text("基础")],
+        p![
             text("组件可以在 "),
             code("html!"),
             text(" 宏中使用："),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -53,14 +53,14 @@ html!{
     </>
 };"#,
         ),
-        h2(vec![text("嵌套")]),
-        p(vec![
+        h2![text("嵌套")],
+        p![
             text("如果组件在其 "),
             code("Properties"),
             text(" 中有一个 "),
             code("children"),
             text(" 字段，它可以接受子组件/元素"),
-        ]),
+        ],
         code_block_title(
             "rust",
             "parent.rs",
@@ -88,16 +88,16 @@ html! {
     </Container>
 };"#,
         ),
-        p(vec![
+        p![
             code("html!"),
             text(" 宏允许您使用 "),
             code("..props"),
             text(
                 " 语法传递一个基本表达式，而不是单独指定每个属性，类似于 Rust 的",
             ),
-            link(
+            link!(
                 "https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax",
-                vec![text("函数式更新语法")],
+                text("函数式更新语法"),
             ),
             text("。 这个基本表达式必须出现在传递任何单独的 props 之后。 当传递一个带有 "),
             code("children"),
@@ -106,7 +106,7 @@ html! {
             text(
                 " 宏中传递的子元素将覆盖已经存在于 props 中的子元素。",
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -138,17 +138,17 @@ html! {
     </Container>
 };"#,
         ),
-        h2(vec![text("相关示例")]),
-        ul(vec![
-            li(vec![link(
+        h2![text("相关示例")],
+        ul![
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/function_todomvc",
-                vec![text("函数化 Todo MVC")],
-            )]),
-            li(vec![link(
+                text("函数化 Todo MVC"),
+            )],
+            li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/function_router",
-                vec![text("函数化路由")],
-            )]),
-        ]),
+                text("函数化路由"),
+            )],
+        ],
     ])
 }
 

@@ -1,43 +1,41 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        admonition(
+        admonition![
             AdmonitionType::Caution,
             None,
-            vec![
-                p(vec![
-                    text("檢查和操作 "),
-                    code("Children"),
-                    text(
-                        " 往往會導致應用程式中令人驚訝且難以解釋的行為。這可能導致邊緣情況，\
-                         並且通常不會產生預期的結果。如果您嘗試操作 ",
-                    ),
-                    code("Children"),
-                    text("，則應考慮其他方法。"),
-                ]),
-                p(vec![
-                    text("Yew 支援將 "),
-                    code("Html"),
-                    text(" 用作子元件屬性的類型。如果您不需要 "),
-                    code("Children"),
-                    text(" 或 "),
-                    code("ChildrenRenderer"),
-                    text("，則應使用 "),
-                    code("Html"),
-                    text(" 作為子元件。它沒有 "),
-                    code("Children"),
-                    text(" 的缺點，且效能開銷較低。"),
-                ]),
+            p![
+                text("檢查和操作 "),
+                code("Children"),
+                text(
+                    " 往往會導致應用程式中令人驚訝且難以解釋的行為。這可能導致邊緣情況，\
+                     並且通常不會產生預期的結果。如果您嘗試操作 ",
+                ),
+                code("Children"),
+                text("，則應考慮其他方法。"),
             ],
-        ),
-        h2(vec![text("一般用法")]),
-        p(vec![
-            italic(vec![text("大多數情況下，")]),
+            p![
+                text("Yew 支援將 "),
+                code("Html"),
+                text(" 用作子元件屬性的類型。如果您不需要 "),
+                code("Children"),
+                text(" 或 "),
+                code("ChildrenRenderer"),
+                text("，則應使用 "),
+                code("Html"),
+                text(" 作為子元件。它沒有 "),
+                code("Children"),
+                text(" 的缺點，且效能開銷較低。"),
+            ],
+        ],
+        h2![text("一般用法")],
+        p![
+            italic![text("大多數情況下，")],
             text(
                 "當允許元件具有子元件時，您不關心元件具有的子元件的類型。在這種情況下，\
                  下面的範例就足夠了。",
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html, Properties};
@@ -67,13 +65,13 @@ impl Component for List {
     }
 }"#,
         ),
-        h2(vec![text("進階用法")]),
-        h3(vec![text("類型化子元件")]),
-        p(vec![
+        h2![text("進階用法")],
+        h3![text("類型化子元件")],
+        p![
             text("在您希望將一種類型的元件作為子元件傳遞給您的元件的情況下，您可以使用 "),
             code("yew::html::ChildrenWithProps<T>"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
@@ -120,10 +118,10 @@ impl Component for List {
     }
 }"#,
         ),
-        h2(vec![text("帶有屬性的巢狀子元件")]),
-        p(vec![text(
+        h2![text("帶有屬性的巢狀子元件")],
+        p![text(
             "如果包含元件對其子元件進行了類型化，則可以存取和變更巢狀元件的屬性。",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use std::rc::Rc;
@@ -167,21 +165,18 @@ html! {
     </List>
 };"#,
         ),
-        h3(vec![text("枚舉類型的子元件")]),
-        p(vec![text(
+        h3![text("枚舉類型的子元件")],
+        p![text(
             "當然，有時您可能需要將子元件限制為幾種不同的元件。在這些情況下，您必須更深入地了解 \
              Yew。",
-        )]),
-        p(vec![
+        )],
+        p![
             text("這裡使用 "),
-            link(
-                "https://github.com/JelteF/derive_more",
-                vec![code("derive_more")],
-            ),
+            link!["https://github.com/JelteF/derive_more", code("derive_more"),],
             text(" 來提供更好的人體工學。如果您不想使用它，您可以為每個變體手動實現 "),
             code("From"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{
@@ -265,8 +260,8 @@ impl Component for List {
     }
 }"#,
         ),
-        h3(vec![text("可選類型的子元件")]),
-        p(vec![text("您也可以具有特定類型的單一可選子元件：")]),
+        h3![text("可選類型的子元件")],
+        p![text("您也可以具有特定類型的單一可選子元件：")],
         code_block(
             "rust",
             r#"use yew::{
@@ -335,17 +330,17 @@ pub fn render_page(with_sidebar: bool) -> Html {
     }
 }"#,
         ),
-        h2(vec![text("進一步閱讀")]),
-        ul(vec![li(vec![
+        h2![text("進一步閱讀")],
+        ul![li![
             text(
                 "有關此模式的真實範例，請查閱 yew-router 的原始程式碼。有關更高級的範例，請查看 \
                  yew 儲存庫中的",
             ),
-            link(
+            link![
                 "https://github.com/yewstack/yew/tree/master/examples/nested_list",
-                vec![text("相關範例清單")],
-            ),
-        ])]),
+                text("相關範例清單"),
+            ],
+        ]],
     ])
 }
 

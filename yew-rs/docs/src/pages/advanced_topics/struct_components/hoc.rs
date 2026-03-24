@@ -1,24 +1,24 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "There are several cases where Struct components do not directly support a feature \
              (ex. Suspense) or require a lot of boilerplate code to use the features (ex. \
              Context).",
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "In those cases, it is recommended to create function components that are \
              higher-order components.",
-        )]),
-        h2(vec![text("Higher Order Components Definition")]),
-        p(vec![text(
+        )],
+        h2![text("Higher Order Components Definition")],
+        p![text(
             "Higher Order Components are components that do not add any new HTML and only wrap \
              some other components to provide extra functionality.",
-        )]),
-        h3(vec![text("Example")]),
-        p(vec![text(
+        )],
+        h3![text("Example")],
+        p![text(
             "Hook into Context and pass it down to a struct component",
-        )]),
+        )],
         code_block(
             "rust",
             r##"use yew::prelude::*;

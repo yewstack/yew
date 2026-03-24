@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2(vec![
+        h2![
             code("use_reducer"),
             text(" が同一ディスパッチで再レンダリングしなくなりました"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("use_reducer"),
             text(" はリデューサーが同じ "),
             code("Rc"),
@@ -14,23 +14,22 @@ pub fn page_content() -> yew_site_lib::Content {
                  再レンダリングをスキップするようになりました。以前は、\
                  すべてのディスパッチで再レンダリングが発生していました。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("リデューサーに "),
             code("self"),
             text(" をそのまま返すコードパスがあり、それによる再レンダリングに依存していた場合は、"),
             code("use_force_update"),
             text(" に置き換えてください:"),
-        ]),
-        tabs(
+        ],
+        tabs![
             "before",
-            vec![
-                tab(
-                    "before",
-                    "変更前",
-                    vec![code_block(
-                        "rust",
-                        r##"pub enum Action {
+            tab![
+                "before",
+                "変更前",
+                code_block(
+                    "rust",
+                    r##"pub enum Action {
     Increment,
     ForceRefresh,
 }
@@ -74,14 +73,14 @@ pub fn App() -> Html {
         </div>
     }
 }"##,
-                    )],
                 ),
-                tab(
-                    "after",
-                    "変更後",
-                    vec![code_block(
-                        "rust",
-                        r##"pub enum Action {
+            ],
+            tab![
+                "after",
+                "変更後",
+                code_block(
+                    "rust",
+                    r##"pub enum Action {
     Increment,
 }
 
@@ -116,10 +115,9 @@ pub fn App() -> Html {
         </div>
     }
 }"##,
-                    )],
                 ),
             ],
-        ),
+        ],
     ])
 }
 

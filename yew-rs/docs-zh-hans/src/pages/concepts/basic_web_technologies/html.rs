@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text("你可以使用 "),
             code("html!"),
             text(" 宏编写类似 HTML 的表达式。Yew 会在后台将其转换为表达 DOM 的 Rust 代码。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -14,9 +14,9 @@ let my_header: Html = html! {
     <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />
 };"#,
         ),
-        p(vec![text(
+        p![text(
             "类似于格式化表达式，您可以通过使用花括号将周围上下文的值嵌入 HTML 中：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -35,7 +35,7 @@ let combined_html: Html = html! {
     <div>{header_html}{counter_html}</div>
 };"#,
         ),
-        p(vec![
+        p![
             text("使用 "),
             code("html!"),
             text(" 有一个重要的规则 - 您只能返回一个包装节点。为了渲染多个元素的列表，"),
@@ -44,16 +44,15 @@ let combined_html: Html = html! {
                 " 允许使用空标签（Fragments）。空标签是没有名称的标签，它们本身不会产生 HTML \
                  元素。",
             ),
-        ]),
-        tabs(
+        ],
+        tabs![
             "Invalid",
-            vec![
-                tab(
-                    "Invalid",
-                    "Invalid",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::html;
+            tab![
+                "Invalid",
+                "Invalid",
+                code_block(
+                    "rust",
+                    r#"use yew::html;
 
 // 错误：只允许一个根 HTML 元素
 html! {
@@ -62,14 +61,14 @@ html! {
     <p></p>
 
 };"#,
-                    )],
                 ),
-                tab(
-                    "Valid",
-                    "Valid",
-                    vec![code_block(
-                        "rust",
-                        r#"use yew::html;
+            ],
+            tab![
+                "Valid",
+                "Valid",
+                code_block(
+                    "rust",
+                    r#"use yew::html;
 
 // 修复：使用 HTML 空标签包裹
 html! {
@@ -78,15 +77,14 @@ html! {
         <p></p>
     </>
 };"#,
-                    )],
                 ),
             ],
-        ),
-        p(vec![
+        ],
+        p![
             text("更多关于 Yew 和 HTML 的内容请参见"),
-            link("/zh-Hans/docs/concepts/html", vec![text("更多 HTML")]),
+            link!("/zh-Hans/docs/concepts/html", text("更多 HTML")),
             text("。"),
-        ]),
+        ],
     ])
 }
 

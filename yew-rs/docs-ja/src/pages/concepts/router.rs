@@ -1,29 +1,29 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "シングルページアプリケーション (SPA) のルーターは、URL に基づいて異なるページを表示する処理を行います。リンクをクリックしたときに異なるリモートリソースを要求するデフォルトの動作とは異なり、ルーターはアプリケーション内の有効なルートを指すようにローカルで URL を設定します。その後、ルーターはこの変更を検出し、レンダリングする内容を決定します。"
-        )]),
-        p(vec![
+        )],
+        p![
             text("Yew は "),
             code("yew-router"),
             text(" クレートでルーターサポートを提供します。使用を開始するには、依存関係を "),
             code("Cargo.toml"),
             text(" ファイルに追加してください。"),
-        ]),
+        ],
         code_block("toml", "yew-router = { git = \"https://github.com/yewstack/yew.git\" }"),
-        p(vec![
+        p![
             text("必要なツールはすべて "),
             code("yew_router::prelude"),
             text(" モジュールで提供されています。"),
-        ]),
-        h2(vec![text("使用方法")]),
-        p(vec![
+        ],
+        h2![text("使用方法")],
+        p![
             text("まず、"),
             code("Route"),
             text(" を定義する必要があります。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("ルートは "),
             code("Routable"),
             text(" を派生する "),
@@ -31,7 +31,7 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" で定義されます。この列挙型は "),
             code("Clone + PartialEq"),
             text(" を実装する必要があります。"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew_router::prelude::*;
@@ -47,7 +47,7 @@ enum Route {
     NotFound,
 }"##
         ),
-        p(vec![
+        p![
             code("Route"),
             text(" と "),
             code("<Switch />"),
@@ -56,8 +56,8 @@ enum Route {
             text(" コールバックに渡します。その後、コールバックがレンダリングする内容を決定します。パスが一致しない場合、ルーターは "),
             code("not_found"),
             text(" 属性を持つパスにナビゲートします。指定されたルートがない場合、何もレンダリングされず、一致するルートがないことを示すメッセージがコンソールに記録されます。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("yew-router のほとんどのコンポーネント、特に "),
             code("<Link />"),
             text(" と "),
@@ -67,18 +67,18 @@ enum Route {
             text("）の（深い）子要素である必要があります。通常、アプリケーションには 1 つの Router しか必要なく、通常は最上位の "),
             code("<App />"),
             text(" コンポーネントによって直ちにレンダリングされます。Router はコンテキストを登録し、これは Links と Switches の機能に必要です。以下に例を示します。"),
-        ]),
-        admonition(AdmonitionType::Caution, None, vec![
-            p(vec![
+        ],
+        admonition![AdmonitionType::Caution, None,
+            p![
                 text("ブラウザ環境で "),
                 code("yew-router"),
                 text(" を使用する場合、"),
                 code("<BrowserRouter />"),
                 text(" を強く推奨します。他のルータータイプについては "),
-                link("https://docs.rs/yew-router/", vec![text("API リファレンス")]),
+                link!("https://docs.rs/yew-router/", text("API リファレンス")),
                 text(" を参照してください。"),
-            ]),
-        ]),
+            ],
+        ],
         code_block(
             "rust",
             r##"use yew_router::prelude::*;
@@ -127,12 +127,12 @@ fn app() -> Html {
     }
 }"##
         ),
-        h3(vec![text("パスセグメント")]),
-        p(vec![
+        h3![text("パスセグメント")],
+        p![
             text("ルーターは、動的および名前付きワイルドカードセグメントを使用してルートから情報を抽出することもできます。次に、"),
             code("<Switch />"),
             text(" 内で投稿の ID にアクセスし、それを適切なコンポーネントにプロパティとして渡すことができます。"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -156,19 +156,19 @@ fn switch(route: Route) -> Html {
     }
 }"##
         ),
-        admonition(AdmonitionType::Note, None, vec![
-            p(vec![
+        admonition![AdmonitionType::Note, None,
+            p![
                 code("Post {id: String}"),
                 text(" の代わりに通常の "),
                 code("Post"),
                 text(" バリアントを使用することもできます。例えば、"),
                 code("Post"),
                 text(" が別のルーターと一緒にレンダリングされる場合、そのフィールドは冗長になる可能性があります。詳細については、以下の"),
-                link("#nested-router", vec![text("ネストされたルーター")]),
+                link!("#nested-router", text("ネストされたルーター")),
                 text("セクションを参照してください。"),
-            ]),
-        ]),
-        p(vec![
+            ],
+        ],
+        p![
             text("フィールドは "),
             code("Route"),
             text(" 列挙型の一部として "),
@@ -178,13 +178,13 @@ fn switch(route: Route) -> Html {
             text(" と "),
             code("std::str::FromStr"),
             text(" を実装する必要があります。整数、浮動小数点数、および文字列などのプリミティブ型はこれらの要件を既に満たしています。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("パスの形式が一致しても、逆シリアル化が失敗した場合（"),
             code("FromStr"),
             text(" に基づく）、ルーターはルートが一致しないと見なし、見つからないルートをレンダリングしようとします（または、見つからないルートが指定されていない場合は空白ページをレンダリングします）。"),
-        ]),
-        p(vec![text("以下の例を参照してください：")]),
+        ],
+        p![text("以下の例を参照してください：")],
         code_block(
             "rust",
             r##"#[derive(Clone, Routable, PartialEq)]
@@ -197,52 +197,52 @@ enum Route {
 }
 // switch 関数は News と id をレンダリングします。ここでは省略されています。"##
         ),
-        p(vec![
+        p![
             text("セグメントが 255 を超えると、"),
             code("u8::from_str()"),
             text(" は失敗し、"),
             code("ParseIntError"),
             text(" を返します。この場合、ルーターはルートが一致しないと見なします。"),
-        ]),
+        ],
         img(
             "/img/router-deserialization-failure-behavior.gif",
             "ルーターの逆シリアル化失敗の動作",
         ),
-        p(vec![
+        p![
             text("ルーティング構文やパラメータのバインディング方法の詳細については、"),
-            link(
+            link!(
                 "https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params",
-                vec![text("route-recognizer")],
+                text("route-recognizer"),
             ),
             text(" を参照してください。"),
-        ]),
-        h3(vec![text("位置 (Location)")]),
-        p(vec![
+        ],
+        h3![text("位置 (Location)")],
+        p![
             text("ルーターはコンテキストを介して一般的な "),
             code("Location"),
             text(" 構造体を提供し、ルート情報にアクセスするために使用できます。これらはフックまたは "),
             code("ctx.link()"),
             text(" 上の便利な関数を介して取得できます。"),
-        ]),
-        h3(vec![text("ナビゲーション")]),
-        p(vec![
+        ],
+        h3![text("ナビゲーション")],
+        p![
             code("yew_router"),
             text(" はナビゲーションを処理するためのいくつかのツールを提供します。"),
-        ]),
-        h4(vec![text("リンク")]),
-        p(vec![
+        ],
+        h4![text("リンク")],
+        p![
             code("<Link />"),
             text(" は "),
             code("<a>"),
             text(" 要素としてレンダリングされ、"),
             code("onclick"),
             text(" イベントハンドラは "),
-            link("https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault", vec![text("preventDefault")]),
+            link!("https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault", text("preventDefault")),
             text(" を呼び出し、ターゲットページを履歴にプッシュして必要なページをレンダリングします。これはシングルページアプリケーションに期待される動作です。通常のアンカー要素のデフォルトの "),
             code("onclick"),
             text(" はページをリロードします。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("<Link />"),
             text(" コンポーネントはその子要素を "),
             code("<a>"),
@@ -253,30 +253,30 @@ enum Route {
             text(" の代わりに "),
             code("to"),
             text(" 属性を提供する必要があることです。使用例は以下の通りです："),
-        ]),
+        ],
         code_block(
             "rust",
             r#"<Link<Route> to={Route::Home}>{ "click here to go home" }</Link<Route>>"#,
         ),
-        p(vec![text("構造体変数も正常に動作します：")]),
+        p![text("構造体変数も正常に動作します：")],
         code_block(
             "rust",
             r#"<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew!" }</Link<Route>>"#,
         ),
-        h4(vec![text("ナビゲーションインターフェース")]),
-        p(vec![
+        h4![text("ナビゲーションインターフェース")],
+        p![
             text("ナビゲーター API は、関数コンポーネントと構造体コンポーネントの両方で提供されます。これにより、コールバックがルートを変更できるようになります。どちらの場合でも、"),
             code("Navigator"),
             text(" インスタンスを取得してルートを操作できます。"),
-        ]),
-        h5(vec![text("関数コンポーネント")]),
-        p(vec![
+        ],
+        h5![text("関数コンポーネント")],
+        p![
             text("関数コンポーネントの場合、基礎となるナビゲータープロバイダーが変更されると、"),
             code("use_navigator"),
             text(" フックはコンポーネントを再レンダリングします。以下は、クリック時に "),
             code("Home"),
             text(" ルートにナビゲートするボタンを実装する例です。"),
-        ]),
+        ],
         code_block(
             "rust",
             r##"#[component(MyComponent)]
@@ -291,30 +291,30 @@ pub fn my_component() -> Html {
     }
 }"##
         ),
-        admonition(AdmonitionType::Caution, None, vec![
-            p(vec![
+        admonition![AdmonitionType::Caution, None,
+            p![
                 text("ここでの例では "),
                 code("Callback::from"),
                 text(" を使用しています。ターゲットルートがコンポーネントのルートと同じになる可能性がある場合、または安全のために、通常のコールバックを使用してください。例えば、各ページにロゴボタンがあり、そのボタンをクリックするとホームに戻るとします。ホームページでそのボタンを2回クリックすると、同じHomeルートがプッシュされ、"),
                 code("use_navigator"),
                 text(" フックが再レンダリングをトリガーしないため、コードがクラッシュします。"),
-            ]),
-        ]),
-        p(vec![
+            ],
+        ],
+        p![
             text("現在の位置をスタックに新しい位置としてプッシュするのではなく置き換えたい場合は、"),
             code("navigator.push()"),
             text(" の代わりに "),
             code("navigator.replace()"),
             text(" を使用してください。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("navigator"),
             text(" はコールバックに移動する必要があるため、他のコールバックで再利用できないことに気付くかもしれません。幸いなことに、"),
             code("navigator"),
             text(" は "),
             code("Clone"),
             text(" を実装しているため、異なるルートに対して複数のボタンを設定する方法は次のとおりです："),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -356,14 +356,14 @@ pub fn nav_items() -> Html {
     }
 }"##
         ),
-        h5(vec![text("構造体コンポーネント")]),
-        p(vec![
+        h5![text("構造体コンポーネント")],
+        p![
             text("構造体コンポーネントの場合、"),
             code("ctx.link().navigator()"),
             text(" API を使用して "),
             code("Navigator"),
             text(" インスタンスを取得できます。残りの部分は関数コンポーネントの場合と同じです。以下は、単一のボタンをレンダリングするビュー関数の例です。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"fn view(&self, ctx: &Context<Self>) -> Html {
@@ -374,8 +374,8 @@ pub fn nav_items() -> Html {
     }
 }"#
         ),
-        h4(vec![text("リダイレクト")]),
-        p(vec![
+        h4![text("リダイレクト")],
+        p![
             code("yew-router"),
             text(" は prelude に "),
             code("<Redirect />"),
@@ -384,7 +384,7 @@ pub fn nav_items() -> Html {
             text(" 属性を受け取ります。"),
             code("<Redirect/>"),
             text(" がレンダリングされると、ユーザーは指定されたルートにリダイレクトされます。以下はその例です："),
-        ]),
+        ],
         code_block(
             "rust",
             r##"#[component(SomePage)]
@@ -400,36 +400,36 @@ fn some_page() -> Html {
     // ... 実際のページ内容
 }"##
         ),
-        admonition(AdmonitionType::Tip, Some("`Redirect` と `Navigator` の選択方法"), vec![
-            p(vec![
+        admonition![AdmonitionType::Tip, Some("`Redirect` と `Navigator` の選択方法"),
+            p![
                 text("Navigator API はコールバック内でルートを操作する唯一の方法です。一方、"),
                 code("<Redirect />"),
                 text(" はコンポーネント内の戻り値として使用できます。また、"),
-                link("#nested-router", vec![text("ネストされたルーター")]),
+                link!("#nested-router", text("ネストされたルーター")),
                 text("の switch 関数など、他の非コンポーネントコンテキストでも "),
                 code("<Redirect />"),
                 text(" を使用することができます。"),
-            ]),
-        ]),
-        h3(vec![text("変更のリスニング")]),
-        h4(vec![text("関数コンポーネント")]),
-        p(vec![
+            ],
+        ],
+        h3![text("変更のリスニング")],
+        h4![text("関数コンポーネント")],
+        p![
             code("use_location"),
             text(" と "),
             code("use_route"),
             text(" フックを使用できます。提供された値が変更されると、コンポーネントが再レンダリングされます。"),
-        ]),
-        h4(vec![text("構造体コンポーネント")]),
-        p(vec![
+        ],
+        h4![text("構造体コンポーネント")],
+        p![
             text("ルートの変更に応答するために、"),
             code("ctx.link()"),
             text(" の "),
             code("add_location_listener()"),
             text(" メソッドにコールバッククロージャを渡すことができます。"),
-        ]),
-        admonition(AdmonitionType::Note, None, vec![
-            p(vec![text("位置リスナーが削除されると、それは登録解除されます。ハンドルをコンポーネントの状態に保存することを確認してください。")]),
-        ]),
+        ],
+        admonition![AdmonitionType::Note, None,
+            p![text("位置リスナーが削除されると、それは登録解除されます。ハンドルをコンポーネントの状態に保存することを確認してください。")],
+        ],
         code_block(
             "rust",
             r#"fn create(ctx: &Context<Self>) -> Self {
@@ -443,15 +443,15 @@ fn some_page() -> Html {
     }
 }"#
         ),
-        p(vec![
+        p![
             code("ctx.link().location()"),
             text(" と "),
             code("ctx.link().route::<R>()"),
             text(" も、一度だけ位置とルートを取得するために使用できます。"),
-        ]),
-        h3(vec![text("クエリパラメータ")]),
-        h4(vec![text("ナビゲーション時にクエリパラメータを指定する")]),
-        p(vec![
+        ],
+        h3![text("クエリパラメータ")],
+        h4![text("ナビゲーション時にクエリパラメータを指定する")],
+        p![
             text("新しいルートにナビゲートする際にクエリパラメータを指定するには、"),
             code("navigator.push_with_query"),
             text(" または "),
@@ -463,19 +463,19 @@ fn some_page() -> Html {
             text(" を実装している任意の型を渡すことができます。最も簡単な形式は文字列ペアを含む "),
             code("HashMap"),
             text(" です。"),
-        ]),
-        h4(vec![text("現在のルートのクエリパラメータを取得する")]),
-        p(vec![
+        ],
+        h4![text("現在のルートのクエリパラメータを取得する")],
+        p![
             text("クエリパラメータを取得するには、"),
             code("location.query"),
             text(" を使用します。これは "),
             code("serde"),
             text(" を使用して URL のクエリ文字列からパラメータを逆シリアル化します。"),
-        ]),
-        h2_id("nested-router", vec![text("ネストされたルーター")]),
-        p(vec![text("アプリケーションが大きくなると、ネストされたルーターが役立つ場合があります。次のルーター構造を考えてみましょう：")]),
+        ],
+        h2_id!["nested-router", text("ネストされたルーター")],
+        p![text("アプリケーションが大きくなると、ネストされたルーターが役立つ場合があります。次のルーター構造を考えてみましょう：")],
         themed_img("/img/nested-router-light.svg", "/img/nested-router-dark.svg", "nested router structure"),
-        p(vec![
+        p![
             text("ネストされた "),
             code("SettingsRouter"),
             text(" は、すべての "),
@@ -487,11 +487,11 @@ fn some_page() -> Html {
             text(" は "),
             code("/404"),
             text(" にリダイレクトされます。"),
-        ]),
-        admonition(AdmonitionType::Caution, None, vec![
-            p(vec![text("このインターフェースはまだ開発中であり、このように記述する方法は最終決定されていません。")]),
-        ]),
-        p(vec![text("以下のコードで実装できます：")]),
+        ],
+        admonition![AdmonitionType::Caution, None,
+            p![text("このインターフェースはまだ開発中であり、このように記述する方法は最終決定されていません。")],
+        ],
+        p![text("以下のコードで実装できます：")],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -557,16 +557,16 @@ pub fn app() -> Html {
     }
 }"##
         ),
-        h3(vec![text("ベースパス (Basename)")]),
-        p(vec![
+        h3![text("ベースパス (Basename)")],
+        p![
             code("yew-router"),
             text(" を使用してベースパス (Basename) を定義できます。ベースパスはすべてのルートの共通プレフィックスです。ナビゲーター API と "),
             code("<Switch />"),
             text(" コンポーネントはどちらもベースパスの設定をサポートしています。プッシュされるすべてのルートにはベースパスのプレフィックスが追加され、すべてのスイッチはパスを "),
             code("Routable"),
             text(" に解析する前にベースパスを削除します。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Router コンポーネントにベースパス属性が提供されていない場合、HTML ファイルの "),
             code("<base />"),
             text(" 要素の href 属性を使用し、HTML ファイルに "),
@@ -574,15 +574,15 @@ pub fn app() -> Html {
             text(" 要素がない場合は "),
             code("/"),
             text(" にフォールバックします。"),
-        ]),
-        h2(vec![text("関連例")]),
-        ul(vec![
-            li(vec![link("https://github.com/yewstack/yew/tree/master/examples/router", vec![text("ルーター")])]),
-        ]),
-        h2(vec![text("インターフェースリファレンス")]),
-        ul(vec![
-            li(vec![link("https://docs.rs/yew-router/", vec![text("yew-router")])]),
-        ]),
+        ],
+        h2![text("関連例")],
+        ul![
+            li![link!("https://github.com/yewstack/yew/tree/master/examples/router", text("ルーター"))],
+        ],
+        h2![text("インターフェースリファレンス")],
+        ul![
+            li![link!("https://docs.rs/yew-router/", text("yew-router"))],
+        ],
     ])
 }
 

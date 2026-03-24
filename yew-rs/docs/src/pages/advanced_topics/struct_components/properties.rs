@@ -1,7 +1,7 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text(
                 "Properties enable child and parent components to communicate with each other. \
                  Every component has an associated properties type which describes what is passed \
@@ -12,9 +12,9 @@ pub fn page_content() -> yew_site_lib::Content {
                 " trait, but in practice, there is no reason for it to be anything but a struct \
                  where each field represents a property.",
             ),
-        ]),
-        h2(vec![text("Derive macro")]),
-        p(vec![
+        ],
+        h2![text("Derive macro")],
+        p![
             text("Instead of implementing the "),
             code("Properties"),
             text(" trait yourself, you should use "),
@@ -27,9 +27,9 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" must also implement "),
             code("PartialEq"),
             text("."),
-        ]),
-        h3(vec![text("Field attributes")]),
-        p(vec![
+        ],
+        h3![text("Field attributes")],
+        p![
             text("When deriving "),
             code("Properties"),
             text(
@@ -37,24 +37,24 @@ pub fn page_content() -> yew_site_lib::Content {
                  your props initial values which will be used unless they are set to another \
                  value.",
             ),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![text(
+            p![text(
                 "Attributes aren't visible in Rustdoc generated documentation. The doc strings of \
                  your properties should mention whether a prop is optional and if it has a \
                  special default value.",
-            )])],
-        ),
-        h4(vec![code("#[prop_or_default]")]),
-        p(vec![
+            )],
+        ],
+        h4![code("#[prop_or_default]")],
+        p![
             text("Initialize the prop value with the default value of the field's type using the "),
             code("Default"),
             text(" trait."),
-        ]),
-        h4(vec![code("#[prop_or(value)]")]),
-        p(vec![
+        ],
+        h4![code("#[prop_or(value)]")],
+        p![
             text("Use "),
             code("value"),
             text(" to initialize the prop value. "),
@@ -67,9 +67,9 @@ pub fn page_content() -> yew_site_lib::Content {
             text(", use the attribute "),
             code("#[prop_or(true)]"),
             text("."),
-        ]),
-        h4(vec![code("#[prop_or_else(function)]")]),
-        p(vec![
+        ],
+        h4![code("#[prop_or_else(function)]")],
+        p![
             text("Call "),
             code("function"),
             text(" to initialize the prop value. "),
@@ -79,35 +79,35 @@ pub fn page_content() -> yew_site_lib::Content {
             text(" where "),
             code("T"),
             text(" is the field type."),
-        ]),
-        h2(vec![code("PartialEq")]),
-        p(vec![
+        ],
+        h2![code("PartialEq")],
+        p![
             code("Properties"),
             text(" require "),
             code("PartialEq"),
             text(" to be implemented. This is so that they can be compared by Yew to call the "),
             code("changed"),
             text(" method only when they change."),
-        ]),
-        h2(vec![text("Memory/speed overhead of using Properties")]),
-        p(vec![text(
+        ],
+        h2![text("Memory/speed overhead of using Properties")],
+        p![text(
             "Internally properties are reference counted. This means that only a pointer is \
              passed down the component tree for props. It saves us from the cost of having to \
              clone the entire props, which might be expensive.",
-        )]),
-        admonition(
+        )],
+        admonition![
             AdmonitionType::Tip,
             None,
-            vec![p(vec![
+            p![
                 text("Make use of "),
                 code("AttrValue"),
                 text(
                     " which is our custom type for attribute values instead of defining them as \
                      String or another similar type.",
                 ),
-            ])],
-        ),
-        h2(vec![text("Example")]),
+            ],
+        ],
+        h2![text("Example")],
         code_block(
             "rust",
             r##"use yew::Properties;
@@ -144,15 +144,15 @@ pub struct LinkProps {
     active: bool,
 }"##,
         ),
-        h2(vec![text("Props macro")]),
-        p(vec![
+        h2![text("Props macro")],
+        p![
             text("The "),
             code("yew::props!"),
             text(" macro allows you to build properties the same way the "),
             code("html!"),
             text(" macro does it."),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "The macro uses the same syntax as a struct expression except that you cannot use \
                  attributes or a base expression (",
@@ -163,7 +163,7 @@ pub struct LinkProps {
             text(") or the associated properties of a component ("),
             code("MyComp::Properties"),
             text(")."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::{props, Properties, virtual_dom::AttrValue};

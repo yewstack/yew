@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p(vec![
+        p![
             text("Yew リポジトリには多くの"),
-            link(
+            link!(
                 "https://github.com/yewstack/yew/tree/master/examples",
-                vec![text("例")],
+                text("例"),
             ),
             text(
                 "（メンテナンス状態はさまざま）があります。 \
@@ -13,23 +13,23 @@ pub fn page_content() -> yew_site_lib::Content {
                  それらを参照することをお勧めします。 \
                  無視されがちで助けが必要な場合に備えて、プルリクエストや問題も歓迎します ♥️。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("詳細については、"),
-            link(
+            link!(
                 "https://github.com/yewstack/yew/tree/master/examples#yew-examples",
-                vec![text("README")],
+                text("README"),
             ),
             text(" を参照してください。"),
-        ]),
-        admonition(
+        ],
+        admonition!(
             AdmonitionType::Note,
             None,
-            vec![p(vec![text(
+            p![text(
                 "ほとんどの例には、https://examples.yew.rs/< example_name > \
                  で見つけることができるオンラインデプロイがあります。 それぞれのサブフォルダーの \
                  README ページでバッジをクリックして、オンラインデモに移動します。",
-            )])],
+            )],
         ),
     ])
 }
