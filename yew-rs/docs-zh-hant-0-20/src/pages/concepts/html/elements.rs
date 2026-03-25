@@ -2,59 +2,49 @@ crate::doc_page!(
     "Elements",
     "/zh-Hant/docs/concepts/html/elements",
     Content::new(vec![
-        h2(vec![text("標籤結構")]),
-        p(vec![
+        h2![text("標籤結構")],
+        p![
             text("元件標籤都必須要是自封閉的標籤 "),
             code("<... />"),
             text(" 或是跟開啟標籤對應的關閉標籤。"),
-        ]),
-        tabs(
+        ],
+        tabs!(
             "Open - Close",
-            vec![
-                tab(
-                    "Open - Close",
-                    "Open - Close",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div id=\"my_div\"></div>\n}",
-                    )],
+            tab!(
+                "Open - Close",
+                "Open - Close",
+                code_block("rust", "html! {\n  <div id=\"my_div\"></div>\n}",),
+            ),
+            tab!(
+                "INVALID",
+                "INVALID",
+                code_block(
+                    "rust",
+                    "html! {\n  <div id=\"my_div\"> // <- 缺少關閉標籤\n}",
                 ),
-                tab(
-                    "INVALID",
-                    "INVALID",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div id=\"my_div\"> // <- 缺少關閉標籤\n}",
-                    )],
-                ),
-            ],
+            ),
         ),
-        tabs(
+        tabs!(
             "Self-Closing",
-            vec![
-                tab(
-                    "Self-Closing",
-                    "Self-Closing",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <input id=\"my_input\" />\n}",
-                    )],
+            tab!(
+                "Self-Closing",
+                "Self-Closing",
+                code_block("rust", "html! {\n  <input id=\"my_input\" />\n}",),
+            ),
+            tab!(
+                "INVALID2",
+                "INVALID",
+                code_block(
+                    "rust",
+                    "html! {\n  <input id=\"my_input\"> // <- 缺少自封閉標籤語法\\
+                     n}",
                 ),
-                tab(
-                    "INVALID2",
-                    "INVALID",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <input id=\"my_input\"> // <- 缺少自封閉標籤語法\\
-                         n}",
-                    )],
-                ),
-            ],
+            ),
         ),
-        admonition(
+        admonition!(
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text(
                     "為了方便起見，通常\\
                      u{9700}要關閉標籤的元件\\
@@ -63,19 +53,18 @@ crate::doc_page!(
                 ),
                 code("html! { <div class=\"placeholder\" /> }"),
                 text(" 是合法的。"),
-            ])],
+            ],
         ),
-        h2(vec![text("子結點")]),
-        p(vec![text("輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：")]),
-        tabs(
+        h2![text("子結點")],
+        p![text("輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：")],
+        tabs!(
             "HTML",
-            vec![
-                tab(
-                    "HTML",
-                    "HTML",
-                    vec![code_block(
-                        "rust",
-                        r#"html! {
+            tab!(
+                "HTML",
+                "HTML",
+                code_block(
+                    "rust",
+                    r#"html! {
     <div>
         <div data-key="abc"></div>
         <div class="parent">
@@ -91,14 +80,14 @@ crate::doc_page!(
         </div>
     </div>
 }"#,
-                    )],
                 ),
-                tab(
-                    "SVG",
-                    "SVG",
-                    vec![code_block(
-                        "rust",
-                        r##"html! {
+            ),
+            tab!(
+                "SVG",
+                "SVG",
+                code_block(
+                    "rust",
+                    r##"html! {
     <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
         <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -115,70 +104,61 @@ crate::doc_page!(
         </defs>
     </svg>
 }"##,
-                    )],
                 ),
-            ],
+            ),
         ),
-        h2(vec![text("Classes")]),
-        p(vec![text(
+        h2![text("Classes")],
+        p![text(
             "你很多方便的選項可以\\
              u{5BEB}元件裡的 class："
-        )]),
-        tabs(
+        )],
+        tabs!(
             "Literal",
-            vec![
-                tab(
-                    "Literal",
-                    "Literal",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div class=\"container\"></div>\n}"
-                    )]
+            tab!(
+                "Literal",
+                "Literal",
+                code_block("rust", "html! {\n  <div class=\"container\"></div>\n}",),
+            ),
+            tab!(
+                "Multiple",
+                "Multiple",
+                code_block(
+                    "rust",
+                    "html! {\n  <div class=\"container center-align\"></div>\n}",
                 ),
-                tab(
-                    "Multiple",
-                    "Multiple",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div class=\"container center-align\"></div>\n}"
-                    )]
+            ),
+            tab!(
+                "Interpolated",
+                "Interpolated",
+                code_block(
+                    "rust",
+                    "html! {\n  <div class={format!(\"{}-container\", size)}></div>\n}",
                 ),
-                tab(
-                    "Interpolated",
-                    "Interpolated",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div class={format!(\"{}-container\", size)}></div>\n}"
-                    )]
+            ),
+            tab!(
+                "Expression",
+                "Expression",
+                code_block("rust", "html! {\n  <div class={self.classes()}></div>\n}",),
+            ),
+            tab!(
+                "Tuple",
+                "Tuple",
+                code_block(
+                    "rust",
+                    "html! {\n  <div class={(\"class-1\", \"class-2\")}></div>\n}",
                 ),
-                tab(
-                    "Expression",
-                    "Expression",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div class={self.classes()}></div>\n}"
-                    )]
+            ),
+            tab!(
+                "Vector",
+                "Vector",
+                code_block(
+                    "rust",
+                    "html! {\n  <div class={vec![\"class-1\", \"class-2\"]}></div>\n}",
                 ),
-                tab(
-                    "Tuple",
-                    "Tuple",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div class={(\"class-1\", \"class-2\")}></div>\n}"
-                    )]
-                ),
-                tab(
-                    "Vector",
-                    "Vector",
-                    vec![code_block(
-                        "rust",
-                        "html! {\n  <div class={vec![\"class-1\", \"class-2\"]}></div>\n}"
-                    )]
-                ),
-            ],
+            ),
         ),
-        h2(vec![text("監聽")]),
-        p(vec![
+        h2![text("監聽")],
+        p![
             text(
                 "監聽器的屬性必須要傳\\
                  u{5165}一個 "
@@ -189,16 +169,15 @@ crate::doc_page!(
                  u{76E3}聽事件時，你希望應\\
                  u{7528}程式有什麼反應：",
             ),
-        ]),
-        tabs(
+        ],
+        tabs!(
             "Component Handler",
-            vec![
-                tab(
-                    "Component Handler",
-                    "Component Handler",
-                    vec![code_block(
-                        "rust",
-                        r#"struct MyComponent {
+            tab!(
+                "Component Handler",
+                "Component Handler",
+                code_block(
+                    "rust",
+                    r#"struct MyComponent {
     link: ComponentLink<Self>,
 }
 
@@ -230,14 +209,14 @@ impl Component for MyComponent {
         }
     }
 }"#,
-                    )],
                 ),
-                tab(
-                    "Agent Handler",
-                    "Agent Handler",
-                    vec![code_block(
-                        "rust",
-                        r#"struct MyComponent {
+            ),
+            tab!(
+                "Agent Handler",
+                "Agent Handler",
+                code_block(
+                    "rust",
+                    r#"struct MyComponent {
     worker: Dispatcher<MyWorker>,
 }
 
@@ -264,14 +243,14 @@ impl Component for MyComponent {
         }
     }
 }"#,
-                    )],
                 ),
-                tab(
-                    "Other Cases",
-                    "Other Cases",
-                    vec![code_block(
-                        "rust",
-                        r#"struct MyComponent;
+            ),
+            tab!(
+                "Other Cases",
+                "Other Cases",
+                code_block(
+                    "rust",
+                    r#"struct MyComponent;
 
 impl Component for MyComponent {
     type Message = ();
@@ -297,9 +276,8 @@ impl Component for MyComponent {
         }
     }
 }"#,
-                    )],
                 ),
-            ],
+            ),
         ),
     ])
 );

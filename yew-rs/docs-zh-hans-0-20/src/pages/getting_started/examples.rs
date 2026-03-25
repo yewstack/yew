@@ -3,45 +3,41 @@ crate::doc_page!(
     "/zh-Hans/docs/getting-started/examples",
     Content::new(vec![
         h1(vec![text("通过例子学习")]),
-        p(vec![text(
+        p![text(
             "Yew 的 github \
              项目中就包含了各种各样的示例（这些项目在不同程度的维护中）。我们建议仔细地学习它们, \
              了解如何使用不同的框架特性. 我们在书中有纰漏和错误的时候也欢迎 pull-requests 和提交 \
              issues ♥️"
-        )]),
-        ul(vec![
-            li(vec![link(
+        )],
+        ul![
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/std_web/todomvc",
-                vec![text("**Todo App（代办事项）\\(stdweb\\)**")]
-            )]),
-            li(vec![link(
+                text("**Todo App（代办事项）\\(stdweb\\)**"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/web_sys/todomvc",
-                vec![text("**Todo App（代办事项）\\(web_sys\\)**")]
-            )]),
-            li(vec![link(
+                text("**Todo App（代办事项）\\(web_sys\\)**"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/custom_components",
-                vec![text("**Custom Components（自定义 Component 组件）**")]
-            )]),
-            li(vec![link(
+                text("**Custom Components（自定义 Component 组件）**"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/std_web/multi_thread",
-                vec![text(
-                    "**Multi-threading \\(Agents\\)（多线程 Agents）\\(stdweb\\)**"
-                )]
-            )]),
-            li(vec![link(
+                text("**Multi-threading \\(Agents\\)（多线程 Agents）\\(stdweb\\)**"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/web_sys/multi_thread",
-                vec![text(
-                    "**Multi-threading \\(Agents\\)（多线程 Agents）\\(web_sys\\)**"
-                )]
-            )]),
-            li(vec![link(
+                text("**Multi-threading \\(Agents\\)（多线程 Agents）\\(web_sys\\)**"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/timer",
-                vec![text("**Timer Service（计时器）**")]
-            )]),
-            li(vec![link(
+                text("**Timer Service（计时器）**"),
+            ]],
+            li![link![
                 "https://github.com/yewstack/yew/tree/v0.14.0/examples/nested_list",
-                vec![text("**Nested Components（嵌套 Component 组件）**")]
-            )]),
-        ]),
+                text("**Nested Components（嵌套 Component 组件）**"),
+            ]],
+        ],
     ])
 );

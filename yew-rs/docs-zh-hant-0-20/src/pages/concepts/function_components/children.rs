@@ -2,12 +2,12 @@ crate::doc_page!(
     "Children",
     "/zh-Hant/docs/concepts/function-components/children",
     Content::new(vec![
-        p(vec![
+        p![
             code("Children"),
             text(" is a special prop type that allows you to receive nested "),
             code("Html"),
             text(" that is provided like html child elements."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html, Properties, Children};
@@ -40,10 +40,10 @@ fn HelloWorld(props: &Props) -> Html {
     }
 }"#
         ),
-        h2(vec![text("Further reading")]),
-        ul(vec![li(vec![link(
+        h2![text("Further reading")],
+        ul![li![link!(
             "/zh-Hant/docs/advanced-topics/children",
-            vec![text("Advanced ways to handle children")]
-        ),]),]),
+            text("Advanced ways to handle children")
+        )]],
     ])
 );

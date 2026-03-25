@@ -2,32 +2,28 @@ crate::doc_page!(
     "Router",
     "/ja/docs/concepts/router",
     Content::new(vec![
-        p(vec![text(
+        p![text(
             "Routers in Single Page Applications (SPA) handle displaying different pages \
              depending on what the URL is. Instead of the default behavior of requesting a \
              different remote resource when a link is clicked, the router instead sets the URL \
              locally to point to a valid route in your application. The router then detects this \
              change and then decides what to render."
-        ),]),
-        p(vec![
+        )],
+        p![
             text("Yew provides router support in the "),
             code("yew-router"),
             text(" crate. To start using it, add the dependency to your "),
             code("Cargo.toml"),
-        ]),
+        ],
         code_block("toml", r#"yew-router = "0.17""#),
-        p(vec![
+        p![
             text("The utilities needed are provided under "),
             code("yew_router::prelude"),
             text(","),
-        ]),
-        h2(vec![text("Usage")]),
-        p(vec![
-            text("You start by defining a "),
-            code("Route"),
-            text("."),
-        ]),
-        p(vec![
+        ],
+        h2![text("Usage")],
+        p![text("You start by defining a "), code("Route"), text("."),],
+        p![
             text("Routes are defined as an "),
             code("enum"),
             text(" which derives "),
@@ -35,7 +31,7 @@ crate::doc_page!(
             text(". This enum must be "),
             code("Clone + PartialEq"),
             text("."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew_router::prelude::*;
@@ -51,7 +47,7 @@ enum Route {
     NotFound,
 }"##
         ),
-        p(vec![
+        p![
             text("A "),
             code("Route"),
             text(" is paired with a "),
@@ -70,8 +66,8 @@ enum Route {
                 " attribute. If no route is specified, nothing is rendered, and a message is \
                  logged to console stating that no route was matched."
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Most of yew-router's components, in particular "),
             code("<Link />"),
             text(" and "),
@@ -87,20 +83,20 @@ enum Route {
                 " component. The Router registers a context, which is needed for Links and \
                  Switches to function. An example is shown below."
             ),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Caution,
             None,
-            vec![p(vec![
+            p![
                 text("When using "),
                 code("yew-router"),
                 text(" in browser environment, "),
                 code("<BrowserRouter />"),
                 text(" is highly recommended. You can find other router flavours in the "),
-                link("https://docs.rs/yew-router/", vec![text("API Reference")]),
+                link!["https://docs.rs/yew-router/", text("API Reference")],
                 text("."),
-            ]),]
-        ),
+            ],
+        ],
         code_block(
             "rust",
             r##"use yew_router::prelude::*;
@@ -149,15 +145,15 @@ fn app() -> Html {
     }
 }"##
         ),
-        h3(vec![text("Path Segments")]),
-        p(vec![
+        h3![text("Path Segments")],
+        p![
             text(
                 "It is also possible to extract information from a route using dynamic and named \
                  wildcard segments. You can then access the post's id inside "
             ),
             code("<Switch />"),
             text(" and forward it to the appropriate component via properties."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -181,10 +177,10 @@ fn switch(route: Route) -> Html {
     }
 }"##
         ),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("You can have a normal "),
                 code("Post"),
                 text(" variant instead of "),
@@ -195,11 +191,11 @@ fn switch(route: Route) -> Html {
                     " is rendered with another router, the field can then be redundant as the \
                      other router is able to match and handle the path. See the "
                 ),
-                link("#nested-router", vec![text("Nested Router")]),
+                link!["#nested-router", text("Nested Router")],
                 text(" section below for details"),
-            ]),]
-        ),
-        p(vec![
+            ],
+        ],
+        p![
             text("Note the fields must implement "),
             code("Clone + PartialEq"),
             text(" as part of the "),
@@ -212,8 +208,8 @@ fn switch(route: Route) -> Html {
                 " for serialization and deserialization. Primitive types like integer, float, and \
                  String already satisfy the requirements."
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "In case when the form of the path matches, but the deserialization fails (as per "
             ),
@@ -222,8 +218,8 @@ fn switch(route: Route) -> Html {
                 "). The router will consider the route as unmatched and try to render the not \
                  found route (or a blank page if the not found route is unspecified)."
             ),
-        ]),
-        p(vec![text("Consider this example:")]),
+        ],
+        p![text("Consider this example:")],
         code_block_ignore(
             "rust",
             r##"#[derive(Clone, Routable, PartialEq)]
@@ -236,30 +232,30 @@ enum Route {
 }
 // switch function renders News and id as is. Omitted here."##
         ),
-        p(vec![
+        p![
             text("When the segment goes over 255, "),
             code("u8::from_str()"),
             text(" fails with "),
             code("ParseIntError"),
             text(", the router will then consider the route unmatched."),
-        ]),
+        ],
         img(
             "/img/router-deserialization-failure-behavior.gif",
             "router deserialization failure behavior"
         ),
-        p(vec![
+        p![
             text(
                 "For more information about the route syntax and how to bind parameters, check \
                  out "
             ),
-            link(
+            link![
                 "https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params",
-                vec![text("route-recognizer")]
-            ),
+                text("route-recognizer")
+            ],
             text("."),
-        ]),
-        h3(vec![text("Location")]),
-        p(vec![
+        ],
+        h3![text("Location")],
+        p![
             text("The router provides a universal "),
             code("Location"),
             text(
@@ -268,14 +264,14 @@ enum Route {
             ),
             code("ctx.link()"),
             text("."),
-        ]),
-        h3(vec![text("Navigation")]),
-        p(vec![
+        ],
+        h3![text("Navigation")],
+        p![
             code("yew_router"),
             text(" provides a handful of tools to work with navigation."),
-        ]),
-        h4(vec![text("Link")]),
-        p(vec![
+        ],
+        h4![text("Link")],
+        p![
             text("A "),
             code("<Link />"),
             text(" renders as an "),
@@ -283,17 +279,17 @@ enum Route {
             text(" element, the "),
             code("onclick"),
             text(" event handler will call "),
-            link(
+            link![
                 "https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault",
-                vec![text("preventDefault")]
-            ),
+                text("preventDefault")
+            ],
             text(
                 ", and push the targeted page to the history and render the desired page, which \
                  is what should be expected from a Single Page App. The default onclick of a \
                  normal anchor element would reload the page."
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("The "),
             code("<Link />"),
             text(" component also passes its children to the "),
@@ -305,27 +301,27 @@ enum Route {
             text(" attribute instead of a "),
             code("href"),
             text(". An example usage:"),
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r#"<Link<Route> to={Route::Home}>{ "click here to go home" }</Link<Route>>"#
         ),
-        p(vec![text("Struct variants work as expected too:")]),
+        p![text("Struct variants work as expected too:")],
         code_block_ignore(
             "rust",
             r###"<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew v0.19 out now!" }</Link<Route>>"###
         ),
-        h4(vec![text("Navigator API")]),
-        p(vec![
+        h4![text("Navigator API")],
+        p![
             text(
                 "Navigator API is provided for both function components and struct components. \
                  They enable callbacks to change the route. An "
             ),
             code("Navigator"),
             text(" instance can be obtained in either cases to manipulate the route."),
-        ]),
-        h5(vec![text("Function Components")]),
-        p(vec![
+        ],
+        h5![text("Function Components")],
+        p![
             text("For function components, the "),
             code("use_navigator"),
             text(
@@ -334,7 +330,7 @@ enum Route {
             ),
             code("Home"),
             text(" route when clicked."),
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r##"#[function_component(MyComponent)]
@@ -349,10 +345,10 @@ pub fn my_component() -> Html {
     }
 }"##
         ),
-        admonition(
+        admonition![
             AdmonitionType::Caution,
             None,
-            vec![p(vec![
+            p![
                 text("The example here uses "),
                 code("Callback::from"),
                 text(
@@ -364,9 +360,9 @@ pub fn my_component() -> Html {
                 ),
                 code("use_navigator"),
                 text(" hook won't trigger a re-render."),
-            ]),]
-        ),
-        p(vec![
+            ],
+        ],
+        p![
             text(
                 "If you want to replace the current location instead of pushing a new location \
                  onto the stack, use "
@@ -375,8 +371,8 @@ pub fn my_component() -> Html {
             text(" instead of "),
             code("navigator.push()"),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text("You may notice "),
             code("navigator"),
             text(
@@ -387,7 +383,7 @@ pub fn my_component() -> Html {
             text(" implements "),
             code("Clone"),
             text(", here's for example how to have multiple buttons to different routes:"),
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r##"use yew::prelude::*;
@@ -429,8 +425,8 @@ pub fn nav_items() -> Html {
     }
 }"##
         ),
-        h5(vec![text("Struct Components")]),
-        p(vec![
+        h5![text("Struct Components")],
+        p![
             text("For struct components, the "),
             code("Navigator"),
             text(" instance can be obtained through the "),
@@ -439,7 +435,7 @@ pub fn nav_items() -> Html {
                 " API. The rest is identical with the function component case. Here's an example \
                  of a view function that renders a single button."
             ),
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r#"fn view(&self, ctx: &Context<Self>) -> Html {
@@ -450,8 +446,8 @@ pub fn nav_items() -> Html {
     }
 }"#
         ),
-        h4(vec![text("Redirect")]),
-        p(vec![
+        h4![text("Redirect")],
+        p![
             code("yew-router"),
             text(" also provides a "),
             code("<Redirect />"),
@@ -466,7 +462,7 @@ pub fn nav_items() -> Html {
                 " is rendered users will be redirect to the route specified in props. Here is an \
                  example:"
             ),
-        ]),
+        ],
         code_block_ignore(
             "rust",
             r##"#[function_component(SomePage)]
@@ -482,44 +478,44 @@ fn some_page() -> Html {
     // ... actual page content.
 }"##
         ),
-        admonition(
+        admonition![
             AdmonitionType::Tip,
             Some("Redirect vs Navigator, which to use"),
-            vec![p(vec![
+            p![
                 text("The Navigator API is the only way to manipulate route in callbacks. While "),
                 code("<Redirect />"),
                 text(" can be used as return values in a component. You might also want to use "),
                 code("<Redirect />"),
                 text(" in other non-component context, for example in the switch function of a "),
-                link("#nested-router", vec![text("Nested Router")]),
+                link!["#nested-router", text("Nested Router")],
                 text("."),
-            ]),]
-        ),
-        h3(vec![text("Listening to Changes")]),
-        h4(vec![text("Function Components")]),
-        p(vec![
+            ],
+        ],
+        h3![text("Listening to Changes")],
+        h4![text("Function Components")],
+        p![
             text("You can use "),
             code("use_location"),
             text(" and "),
             code("use_route"),
             text(" hooks. Your components will re-render when provided values change."),
-        ]),
-        h4(vec![text("Struct Components")]),
-        p(vec![
+        ],
+        h4![text("Struct Components")],
+        p![
             text("In order to react on route changes, you can pass a callback closure to the "),
             code("add_location_listener()"),
             text(" method of "),
             code("ctx.link()"),
             text("."),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![text(
+            p![text(
                 "The location listener will get unregistered once it is dropped. Make sure to \
                  store the handle inside your component state."
-            ),]),]
-        ),
+            )],
+        ],
         code_block_ignore(
             "rust",
             r#"fn create(ctx: &Context<Self>) -> Self {
@@ -533,15 +529,15 @@ fn some_page() -> Html {
     }
 }"#
         ),
-        p(vec![
+        p![
             code("ctx.link().location()"),
             text(" and "),
             code("ctx.link().route::<R>()"),
             text(" can also be used to retrieve the location and the route once."),
-        ]),
-        h3(vec![text("Query Parameters")]),
-        h4(vec![text("Specifying query parameters when navigating")]),
-        p(vec![
+        ],
+        h3![text("Query Parameters")],
+        h4![text("Specifying query parameters when navigating")],
+        p![
             text(
                 "In order to specify query parameters when navigating to a new route, use either "
             ),
@@ -558,25 +554,25 @@ fn some_page() -> Html {
             text(" can be passed. In its simplest form this is just a "),
             code("HashMap"),
             text(" containing string pairs."),
-        ]),
-        h4(vec![text("Obtaining query parameters for current route")]),
-        p(vec![
+        ],
+        h4![text("Obtaining query parameters for current route")],
+        p![
             code("location.query"),
             text(" is used to obtain the query parameters. It uses "),
             code("serde"),
             text(" to deserialize the parameters from query string in the URL."),
-        ]),
-        h2_id("nested-router", vec![text("Nested Router")]),
-        p(vec![text(
+        ],
+        h2_id!["nested-router", text("Nested Router")],
+        p![text(
             "Nested router can be useful when the app grows larger. Consider the following router \
              structure:"
-        )]),
+        )],
         themed_img(
             "/img/nested-router-light.svg",
             "/img/nested-router-dark.svg",
             "nested router structure"
         ),
-        p(vec![
+        p![
             text("The nested "),
             code("SettingsRouter"),
             text(" handles all urls that start with "),
@@ -588,16 +584,16 @@ fn some_page() -> Html {
             text(" will redirect to "),
             code("/404"),
             text("."),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Caution,
             None,
-            vec![p(vec![text(
+            p![text(
                 "Though note that this is still work in progress so the way we do this is not \
                  final"
-            )]),]
-        ),
-        p(vec![text("It can be implemented with the following code:")]),
+            )],
+        ],
+        p![text("It can be implemented with the following code:")],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -663,8 +659,8 @@ pub fn app() -> Html {
     }
 }"##
         ),
-        h3(vec![text("Basename")]),
-        p(vec![
+        h3![text("Basename")],
+        p![
             text("It's possible to define a basename with "),
             code("yew-router"),
             text(". A basename is a common prefix of all routes. Both the Navigator API and "),
@@ -676,8 +672,8 @@ pub fn app() -> Html {
             ),
             code("Routable"),
             text("."),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "If a basename prop is not supplied to the Router component, it will use the href \
                  attribute of the "
@@ -688,16 +684,16 @@ pub fn app() -> Html {
             text(" if no "),
             code("<base />"),
             text(" presents in the html file."),
-        ]),
-        h2(vec![text("Relevant examples")]),
-        ul(vec![li(vec![link(
+        ],
+        h2![text("Relevant examples")],
+        ul![li![link![
             "https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/router",
-            vec![text("Router")]
-        )]),]),
-        h2(vec![text("API Reference")]),
-        ul(vec![li(vec![link(
+            text("Router")
+        ]]],
+        h2![text("API Reference")],
+        ul![li![link![
             "https://docs.rs/yew-router/",
-            vec![text("yew-router")]
-        )]),]),
+            text("yew-router")
+        ]]],
     ])
 );

@@ -2,21 +2,21 @@ crate::doc_page!(
     "Literals and Expressions",
     "/ja/docs/concepts/html/literals-and-expressions",
     Content::new(vec![
-        h2(vec![text("Literals")]),
-        p(vec![
+        h2![text("Literals")],
+        p![
             text("If expressions resolve to types that implement "),
             code("Display"),
             text(", they will be converted to strings and inserted into the DOM as a "),
-            link(
+            link![
                 "https://developer.mozilla.org/en-US/docs/Web/API/Text",
-                vec![text("Text")]
-            ),
+                text("Text")
+            ],
             text(" node."),
-        ]),
-        admonition(
+        ],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text("String literals create "),
                 code("Text"),
                 text(
@@ -30,16 +30,16 @@ crate::doc_page!(
                 ),
                 code("<script>"),
                 text(" block."),
-            ]),]
-        ),
-        p(vec![
+            ]
+        ],
+        p![
             text("All display text must be enclosed by "),
             code("{}"),
             text(
                 " blocks because text is handled as an expression. This is the largest deviation \
                  from normal HTML syntax that Yew makes."
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -53,13 +53,13 @@ html!{
 </>
 };"#
         ),
-        h2(vec![text("Expressions")]),
-        p(vec![
+        h2![text("Expressions")],
+        p![
             text("You can insert expressions in your HTML using "),
             code("{}"),
             text(" blocks, as long as they resolve to "),
             code("Html"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -80,10 +80,10 @@ html! {}
 </div>
 };"#
         ),
-        p(vec![text(
+        p![text(
             "It often makes sense to extract these expressions into functions or closures to \
              optimize for readability:"
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;

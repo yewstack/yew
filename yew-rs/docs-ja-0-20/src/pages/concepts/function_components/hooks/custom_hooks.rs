@@ -2,19 +2,19 @@ crate::doc_page!(
     "Custom Hooks",
     "/ja/docs/concepts/function-components/hooks/custom-hooks",
     Content::new(vec![
-        h2(vec![text("Defining custom Hooks")]),
-        p(vec![text(
+        h2![text("Defining custom Hooks")],
+        p![text(
             "Component's stateful logic can be extracted into reusable function by creating \
              custom Hooks."
-        )]),
-        p(vec![
+        )],
+        p![
             text(
                 "Consider that we wish to create an event listener that listens to an event on \
                  the "
             ),
             code("window"),
             text(" object."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -39,12 +39,12 @@ pub fn show_storage_changed() -> Html {
     html! { <div>{"Storage Event Fired: "}{*state_storage_changed}</div> }
 }"#
         ),
-        p(vec![text(
+        p![text(
             "There's one problem with this code: the logic can't be reused by another component. \
              If we build another component which keeps track of the an event, instead of copying \
              the code, we can move the logic into a custom hook."
-        ),]),
-        p(vec![
+        )],
+        p![
             text("We'll start by creating a new function called "),
             code("use_event"),
             text(". The "),
@@ -55,7 +55,7 @@ pub fn show_storage_changed() -> Html {
             ),
             code("#[hook]"),
             text(" to function as hook."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Event, EventTarget};
@@ -72,14 +72,14 @@ where
     todo!()
 }"#
         ),
-        p(vec![
+        p![
             text(
                 "This is a simple hook which can be created by composing built-in hooks. For this \
                  example, we'll use the "
             ),
             code("use_effect_with_deps"),
             text(" hook, so an event listener can be recreated when the hook arguments change."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -127,16 +127,16 @@ where
     );
 }"#
         ),
-        p(vec![text(
+        p![text(
             "Although this approach works in almost all cases, it can't be used to write \
              primitive hooks like the pre-defined hooks we've been using already."
-        ),]),
-        p(vec![
+        )],
+        p![
             text("View the docs on "),
-            link("https://docs.rs/yew", vec![text("docs.rs")]),
+            link!["https://docs.rs/yew", text("docs.rs")],
             text(" for documentation and "),
             code("hooks"),
             text(" directory to see implementations of pre-defined hooks."),
-        ]),
+        ],
     ])
 );

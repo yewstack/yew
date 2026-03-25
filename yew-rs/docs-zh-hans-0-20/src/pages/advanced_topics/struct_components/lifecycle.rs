@@ -3,40 +3,40 @@ crate::doc_page!(
     "/zh-Hans/docs/advanced-topics/struct-components/lifecycle",
     Content::new(vec![
         h1(vec![text("组件（Components）")]),
-        h2(vec![text("组件是什么？")]),
-        p(vec![
+        h2![text("组件是什么？")],
+        p![
             text(
                 "组件是 Yew 的基石。它们管理自己的状态，并可以渲染为 \
                  DOM。组件是通过实现描述组件生命周期的 "
             ),
             code("Component"),
             text(" trait 来创建的。"),
-        ]),
-        h2(vec![text("生命周期")]),
-        admonition(
+        ],
+        h2![text("生命周期")],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 code("为我们的文档做出贡献："),
-                link(
+                link![
                     "https://github.com/yewstack/docs/issues/22",
-                    vec![text("添加组件的生命周期图示")],
-                ),
-            ])],
-        ),
-        h2(vec![text("生命周期方法")]),
-        h3(vec![text("Create")]),
-        p(vec![
+                    text("添加组件的生命周期图示"),
+                ],
+            ],
+        ],
+        h2![text("生命周期方法")],
+        h3![text("Create")],
+        p![
             text("当一个组件被创建时，它会从其父组件以及一个 "),
             code("ComponentLink"),
             text(
                 " 接收属性（properties）。属性（properties）可用于初始化组件的状态，\"link\"\
                  可用于注册回调或向组件发送消息。"
             ),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "通常将 props 和 link 存储在组件的结构体中，如下所示："
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -63,8 +63,8 @@ impl Component for MyComponent {
     }
 }"#
         ),
-        h3(vec![text("View")]),
-        p(vec![
+        h3![text("View")],
+        p![
             text("组件在 "),
             code("view()"),
             text(" 方法中声明它的布局。Yew 提供了 "),
@@ -73,7 +73,7 @@ impl Component for MyComponent {
                 " 宏来声明 HTML 和 SVG 节点和它们的监听器及其子组件。这个宏的行为很像 React 中的 \
                  JSX，但是使用的是 Rust 表达式而不是 JavaScript。"
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -107,13 +107,13 @@ impl Component for MyComponent {
     // highlight-end
 }"#
         ),
-        p(vec![
+        p![
             text("有关用法的详细信息，请查看 "),
-            link("concepts/html/introduction.mdx", vec![text("html! 宏指南")]),
+            link!["concepts/html/introduction.mdx", text("html! 宏指南")],
             text("]"),
-        ]),
-        h3(vec![text("Mounted")]),
-        p(vec![
+        ],
+        h3![text("Mounted")],
+        p![
             code("mounted()"),
             text(" 组件生命周期方法调用是在 "),
             code("view()"),
@@ -125,7 +125,7 @@ impl Component for MyComponent {
             ),
             code("true"),
             text(" 就可以了。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::HtmlInputElement;
@@ -164,15 +164,15 @@ impl Component for MyComponent {
     // highlight-end
 }"#
         ),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![text(
+            p![text(
                 "请注意，此生命周期方法不要求必须实现，默认情况下不会执行任何操作。"
-            )])],
-        ),
-        h3(vec![text("Update")]),
-        p(vec![
+            )],
+        ],
+        h3![text("Update")],
+        p![
             text("组件是动态的，可以注册以接收异步信息。"),
             code("update()"),
             text(
@@ -180,8 +180,8 @@ impl Component for MyComponent {
                  并决定是否需要重新渲染自己。消息可以由 HTML \
                  元素监听器触发，或者由子组件，Agents，Services 或 Futures 发送。"
             ),
-        ]),
-        p(vec![code("update()"), text(" 可能看起来像下面这个例子："),]),
+        ],
+        p![code("update()"), text(" 可能看起来像下面这个例子：")],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html};
@@ -230,8 +230,8 @@ impl Component for MyComponent {
 
 }"#
         ),
-        h3(vec![text("Change")]),
-        p(vec![
+        h3![text("Change")],
+        p![
             text(
                 "组件可能被其父节点重新渲染。发生这种情况时，\
                  它们可以接收新的属性（properties）并选择重新渲染。\
@@ -239,8 +239,8 @@ impl Component for MyComponent {
             ),
             code("change()"),
             text("，但是如果想在组件被创建后通过 props 来更新组件，则可能要这么做。"),
-        ]),
-        p(vec![text("一个原始的实现可能看起来像：")]),
+        ],
+        p![text("一个原始的实现可能看起来像：")],
         code_block(
             "rust",
             r#"use yew::{Context, Component, Html};
@@ -271,24 +271,24 @@ impl Component for Comp {
     }
 }"#
         ),
-        h3(vec![text("Destroy")]),
-        p(vec![
+        h3![text("Destroy")],
+        p![
             text("组件从 DOM 上被卸载后，Yew 调用 "),
             code("destroy()"),
             text(
                 " 生命周期方法来支持任何必要的清理操作。这个方法是可选的，\
                  默认情况下不执行任何操作。"
             ),
-        ]),
-        h2(vec![text("关联类型")]),
-        p(vec![
+        ],
+        h2![text("关联类型")],
+        p![
             code("Component"),
             text(" trait 有两个关联类型："),
             code("Message"),
             text(" 和 "),
             code("Properties"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"impl Component for MyComponent {
@@ -298,7 +298,7 @@ impl Component for Comp {
     // ...
 }"#
         ),
-        p(vec![
+        p![
             code("Message"),
             text(" 表示组件可以处理以触发某些副作用的各种消息。例如，你可能有一条 "),
             code("Click"),
@@ -308,7 +308,7 @@ impl Component for Comp {
             ),
             code("Msg"),
             text(" 的枚举并将其用作组件中的消息类型。通常将\"message\"缩写为\"msg\"。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"enum Msg {
@@ -316,7 +316,7 @@ impl Component for Comp {
     FormInput(String)
 }"#
         ),
-        p(vec![
+        p![
             code("Properties"),
             text(" 表示从父级传递到组件的信息。此类型必须实现 "),
             code("Properties"),
@@ -337,6 +337,6 @@ impl Component for Comp {
             text("。如果你希望为根组件指定属性（properties），请使用 "),
             code("App::mount_with_props"),
             text(" 方法。"),
-        ]),
+        ],
     ])
 );

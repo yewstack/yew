@@ -2,11 +2,11 @@ crate::doc_page!(
     "Generic Components",
     "/ja/docs/concepts/function-components/generics",
     Content::new(vec![
-        p(vec![
+        p![
             text("The "),
             code("#[function_component]"),
             text(" attribute also works with generic functions for creating generic components."),
-        ]),
+        ],
         code_block(
             "rust",
             r##"use std::fmt::Display;

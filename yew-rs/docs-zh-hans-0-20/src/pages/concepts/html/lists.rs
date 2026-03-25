@@ -3,8 +3,8 @@ crate::doc_page!(
     "/zh-Hans/docs/concepts/html/lists",
     Content::new(vec![
         h1(vec![text("列表")]),
-        h2(vec![text("Fragments")]),
-        p(vec![
+        h2![text("Fragments")],
+        p![
             code("html!"),
             text(
                 " 宏总是要求一个单一\\
@@ -13,7 +13,7 @@ crate::doc_page!(
                  u{4e00}个空标签内是有效的\\
                  u{ff1a}"
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -38,8 +38,8 @@ html! {
     </ul>
 };"#
         ),
-        h2(vec![text("迭代器")]),
-        p(vec![text("Yew 支持两种从迭代器构建 html 的语法：")]),
+        h2![text("迭代器")],
+        p![text("Yew 支持两种从迭代器构建 html 的语法：")],
         code_block(
             "rust",
             r#"use yew::prelude::*;

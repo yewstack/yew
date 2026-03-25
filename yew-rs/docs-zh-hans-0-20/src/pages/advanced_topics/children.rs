@@ -2,14 +2,14 @@ crate::doc_page!(
     "Children",
     "/zh-Hans/docs/advanced-topics/children",
     Content::new(vec![
-        h2(vec![text("General usage")]),
-        p(vec![
-            italic(vec![text("Most of the time,")]),
+        h2![text("General usage")],
+        p![
+            italic![text("Most of the time,")],
             text(
                 " when allowing a component to have children, you don't care what type of \
                  children the component has. In such cases, the below example will suffice."
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, Children, Component, Context, Html, Properties};
@@ -39,16 +39,16 @@ impl Component for List {
     }
 }"#
         ),
-        h2(vec![text("Advanced usage")]),
-        h3(vec![text("Typed children")]),
-        p(vec![
+        h2![text("Advanced usage")],
+        h3![text("Typed children")],
+        p![
             text(
                 "In cases where you want one type of component to be passed as children to your \
                  component, you can use "
             ),
             code("yew::html::ChildrenWithProps<T>"),
             text("."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{html, ChildrenWithProps, Component, Context, Html, Properties};
@@ -95,24 +95,21 @@ impl Component for List {
     }
 }"#
         ),
-        h3(vec![text("Enum typed children")]),
-        p(vec![text(
+        h3![text("Enum typed children")],
+        p![text(
             "Of course, sometimes you might need to restrict the children to a few different \
              components. In these cases, you have to get a little more hands-on with Yew."
-        ),]),
-        p(vec![
+        )],
+        p![
             text("The "),
-            link(
-                "https://github.com/JelteF/derive_more",
-                vec![text("derive_more")]
-            ),
+            link!["https://github.com/JelteF/derive_more", text("derive_more")],
             text(
                 " crate is used here for better ergonomics. If you don't want to use it, you can \
                  manually implement "
             ),
             code("From"),
             text(" for each variant."),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{
@@ -196,10 +193,10 @@ impl Component for List {
     }
 }"#
         ),
-        h3(vec![text("Optional typed child")]),
-        p(vec![text(
+        h3![text("Optional typed child")],
+        p![text(
             "You can also have a single optional child component of a specific type too:"
-        ),]),
+        )],
         code_block(
             "rust",
             r#"use yew::{

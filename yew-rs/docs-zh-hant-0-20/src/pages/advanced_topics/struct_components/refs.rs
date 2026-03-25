@@ -2,17 +2,17 @@ crate::doc_page!(
     "Refs",
     "/zh-Hant/docs/advanced-topics/struct-components/refs",
     Content::new(vec![
-        h2(vec![text("Refs")]),
-        p(vec![
+        h2![text("Refs")],
+        p![
             code("ref"),
             text(" 關鍵字可以被使用在任何 HTML 的元素或是元件，用來得到那個物件附加的 DOM ",),
             code("Element"),
             text("。這個可以在 view 生命周期方法之外，改變 DOM。"),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "對於要存取 canvas 元素，或滾動到頁面不同的區塊，很有幫助。",
-        )]),
-        p(vec![text("語法可以這樣使用：")]),
+        )],
+        p![text("語法可以這樣使用：")],
         code_block(
             "rust",
             r#"use web_sys::Element;

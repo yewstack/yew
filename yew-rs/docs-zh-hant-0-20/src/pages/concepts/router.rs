@@ -2,37 +2,37 @@ crate::doc_page!(
     "路由器",
     "/zh-Hant/docs/concepts/router",
     Content::new(vec![
-        p(vec![link(
+        p![link![
             "https://crates.io/crates/yew-router",
-            vec![text("https://crates.io/crates/yew-router")],
-        )]),
-        p(vec![text(
+            text("https://crates.io/crates/yew-router"),
+        ]],
+        p![text(
             "單頁應用程式（SPA）中的路由器，會依據 URL \
              來顯示不同的畫面。當連結被點擊後，路由器沒有預設要請求遠端的資源， 而是將 URL \
              設定導向應用程式中的有效路由。路由器會偵測 URL 被更改，然後決定要渲染什麼畫面。",
-        )]),
-        h2(vec![text("核心元素")]),
-        h3(vec![text("Route")]),
-        p(vec![text(
+        )],
+        h2![text("核心元素")],
+        h3![text("Route")],
+        p![text(
             "包含一個字串，這個字串是網域名後的那串文字，並且可以選擇要不要將狀態存入 history \
              api。",
-        )]),
-        h3(vec![text("RouteService")]),
-        p(vec![text("與瀏覽器溝通，存取路由。")]),
-        h3(vec![text("RouteAgent")]),
-        p(vec![text(
+        )],
+        h3![text("RouteService")],
+        p![text("與瀏覽器溝通，存取路由。")],
+        h3![text("RouteAgent")],
+        p![text(
             "擁有 RouteService \
              並且協調與更新，從應用程式邏輯造成的，或是從瀏覽器事件中造成的，路由的改變。",
-        )]),
-        h3(vec![text("Switch")]),
-        p(vec![
+        )],
+        h3![text("Switch")],
+        p![
             code("Switch"),
             text(" trait 用於讓 Route 在實作的 "),
             code("trait"),
             text(" 之間來回轉換。"),
-        ]),
-        h3(vec![text("Router")]),
-        p(vec![
+        ],
+        h3![text("Router")],
+        p![
             text("Router 元件會與 "),
             code("RouteAgent"),
             text(
@@ -41,25 +41,25 @@ crate::doc_page!(
             ),
             code("Html"),
             text("。"),
-        ]),
-        h2(vec![text("如何使用路由器")]),
-        p(vec![
+        ],
+        h2![text("如何使用路由器")],
+        p![
             text(
                 "首先，你要建立一個代表你的應用程式所有狀態的型別。特別注意，這個型別可以是 \
                  enum、struct 都可以，而且你可以透過在裡面實作 "
             ),
             code("Switch"),
             text(" 來巢狀其他項目"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("然後你必須為你的型別 derive "),
             code("Switch"),
             text(" 。對 enums 來說，每一個變數都必須宣告 "),
             code("#[to = \"/some/route\"]"),
             text("，或是如果你用 struct，那就要 struct 的外部宣告。"),
-        ]),
+        ],
         code_block("rust", r#"yew-router = "0.17""#),
-        p(vec![
+        p![
             text(
                 "特別注意，這個巨集會試著依序配對每個變數，所以如果有任何路由可能配對到兩著不同的 "
             ),
@@ -71,7 +71,7 @@ crate::doc_page!(
             text(" ，那路由將永遠只會配對到 "),
             code("AppRoute::Home"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"#[derive(Switch)]
@@ -90,7 +90,7 @@ enum AppRoute {
   ViewPosts,
 }"#,
         ),
-        p(vec![
+        p![
             text("你還可以拿到 url 中的參數，透過在"),
             code("#[to = \"\"]"),
             text(" 中宣告 "),
@@ -113,20 +113,20 @@ enum AppRoute {
             text(" 表示取得特定數量的的分隔符號之前的變數。（例如： "),
             code("{2}"),
             text(" 會取得兩個分隔符號之前的變數。）"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("對於有命名欄位的 struct 與 enum，你必須給出變數的名字，像是： "),
             code("{user_name}"),
             text(" 或是 "),
             code("{*:age}"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("Switch trait 可以協助取得比起字串要更有結構的變數。你可以實作 "),
             code("Switch"),
             text("，這樣你就可以得到特定結構的變數，而他會是一個 "),
             code("unsize"),
             text("。但如果這個 URL 無法被轉換，就會被視為沒有匹配。"),
-        ]),
+        ],
     ])
 );

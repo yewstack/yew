@@ -3,8 +3,8 @@ crate::doc_page!(
     "/zh-Hans/docs/concepts/html/elements",
     Content::new(vec![
         h1(vec![text("元素")]),
-        h2(vec![text("标签结构")]),
-        p(vec![
+        h2![text("标签结构")],
+        p![
             text(
                 "元素标签必须是自闭合\\
                  u{7684} "
@@ -14,7 +14,7 @@ crate::doc_page!(
                 "，或是每个标签都有一\\
                  u{4e2a}对应的闭合标签。"
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Element, Node};
@@ -64,22 +64,22 @@ html! {
 };"#
         ),
         code_block("rust", r#"<div hidden>This div is hidden.</div>"#),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 text(
                     "为方便起见，一些 _通常_ 需要闭合标签的元素\\
                      u{662f}被"
                 ),
-                bold(vec![text("允许")]),
+                bold![text("允许")],
                 text("自闭合的。例如，"),
                 code("html! { <div class=\"placeholder\" /> }"),
                 text(" 这样写是有效的。"),
-            ]),]
-        ),
-        h2(vec![text("Children")]),
-        p(vec![text("轻松创建复杂的嵌套 HTML 和 SVG 布局：")]),
+            ],
+        ],
+        h2![text("Children")],
+        p![text("轻松创建复杂的嵌套 HTML 和 SVG 布局：")],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -93,11 +93,11 @@ html! {
 };"#
         ),
         code_block("rust", r##"<div>This div is NOT hidden.</div>"##),
-        h2(vec![text("Classes")]),
-        p(vec![text(
+        h2![text("Classes")],
+        p![text(
             "有许多方便的选项可用\\
              u{4e8e}元素指定 classes："
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{html, virtual_dom::AttrValue};
@@ -152,8 +152,8 @@ html! {
   <div class={vec!["class-1", "class-2"]}></div>
 }"#
         ),
-        h2(vec![text("监听器")]),
-        p(vec![
+        h2![text("监听器")],
+        p![
             text(
                 "监听器属性需要传递一\\
                  u{4e2a}由闭包包裹的 "
@@ -164,7 +164,7 @@ html! {
                  u{4e8e}你希望你的应用程序\\
                  u{5982}何响应监听器事件："
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"struct MyComponent {

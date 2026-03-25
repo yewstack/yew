@@ -3,11 +3,11 @@ crate::doc_page!(
     "/zh-Hans/docs/concepts/router",
     Content::new(vec![
         h1(vec![text("Router")]),
-        p(vec![link(
+        p![link!(
             "https://crates.io/crates/yew-router",
-            vec![text("https://crates.io/crates/yew-router")]
-        )]),
-        p(vec![text(
+            text("https://crates.io/crates/yew-router")
+        )],
+        p![text(
             "Routers 在单页应用（SPA）中根\\
              u{636e} URL 的不同显示不同的页面\\
              u{3002}当点击一个链接时\\
@@ -16,37 +16,37 @@ crate::doc_page!(
              u{6c42}一个不同的远程资源\\
              u{3002}然后 Router 检测到此更改后决定要\\
              u{6e32}染的内容。"
-        )]),
-        h2(vec![text("核心元素")]),
-        h3(vec![text("Route")]),
-        p(vec![text(
+        )],
+        h2![text("核心元素")],
+        h3![text("Route")],
+        p![text(
             "包含一个字符串，该字\\
              u{7b26}串表示网址中域名之\\
              u{540e}的所有内容，还可以\\
              u{9009}择表示存储在 history api 中的状态。"
-        )]),
-        h3(vec![text("RouteService")]),
-        p(vec![text(
+        )],
+        h3![text("RouteService")],
+        p![text(
             "与浏览器通信以获取和\\
              u{8bbe}置路由。"
-        )]),
-        h3(vec![text("RouteAgent")]),
-        p(vec![text(
+        )],
+        h3![text("RouteAgent")],
+        p![text(
             "拥有一个 RouteService，并用于当路由改变\\
              u{65f6}协调更新，无论更新\\
              u{662f}来自应用程序自身逻\\
              u{8f91}还是来自浏览器触发\\
              u{7684}事件。"
-        )]),
-        h3(vec![text("Switch")]),
-        p(vec![
+        )],
+        h3![text("Switch")],
+        p![
             code("Switch"),
             text(" trait 用于在该 trait 的实现者之间转换 "),
             code("Route"),
             text("。"),
-        ]),
-        h3(vec![text("Router")]),
-        p(vec![
+        ],
+        h3![text("Router")],
+        p![
             text("Router 组件同 "),
             code("RouterAgent"),
             text(
@@ -60,9 +60,9 @@ crate::doc_page!(
             ),
             code("HTML"),
             text(" 的方式。"),
-        ]),
-        h2(vec![text("如何使用 Router")]),
-        p(vec![
+        ],
+        h2![text("如何使用 Router")],
+        p![
             text(
                 "首先，你要创建一个表\\
                  u{5f81}你的应用程序所有状\\
@@ -74,8 +74,8 @@ crate::doc_page!(
             ),
             code("Switch"),
             text(" trait 的其他项。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "然后你应该为了你创建\\
                  u{7684}类型派生 "
@@ -92,8 +92,8 @@ crate::doc_page!(
                  u{51fa}现在结构体声明之外\\
                  u{3002}"
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("请注意，由派生宏为 "),
             code("Switch"),
             text(
@@ -109,8 +109,8 @@ crate::doc_page!(
                  u{4e00}个会被匹配，第二个\\
                  u{5c06}永远不会被尝试。"
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("你还可以在 "),
             code("#[to = \"\"]"),
             text(" 标注中使用 "),
@@ -141,8 +141,8 @@ crate::doc_page!(
                  u{9047}到两个分隔符为止）\\
                  u{3002}"
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "对于具有命名字段的结\\
                  u{6784}体和枚举，你必须在\\
@@ -153,8 +153,8 @@ crate::doc_page!(
             text(" 或 "),
             code("{*:age}"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text(
                 "Switch trait 适用于比字符串更结构\\
                  u{5316}的捕获组。你可以指\\
@@ -171,6 +171,6 @@ crate::doc_page!(
                  u{5b83}，则该成员不会被匹\\
                  u{914d}。"
             ),
-        ]),
+        ],
     ])
 );

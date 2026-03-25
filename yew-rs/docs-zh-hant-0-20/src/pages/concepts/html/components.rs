@@ -2,14 +2,14 @@ crate::doc_page!(
     "Components",
     "/zh-Hant/docs/concepts/html/components",
     Content::new(vec![
-        h2(vec![text("基本")]),
-        p(vec![
+        h2![text("基本")],
+        p![
             text("任何實作 "),
             code("Component"),
             text(" 的型別，都可以在 "),
             code("html!"),
             text(" 的巨集中使用："),
-        ]),
+        ],
         code_block(
             "rust",
             r#"html!{
@@ -25,14 +25,14 @@ crate::doc_page!(
     </>
 }"#,
         ),
-        h2(vec![text("巢狀")]),
-        p(vec![
+        h2![text("巢狀")],
+        p![
             text("只要元件的 "),
             code("Properties"),
             text(" 中有 "),
             code("children"),
             text("，就可以傳遞子結點給元件。"),
-        ]),
+        ],
         code_block_title(
             "rust",
             "parent.rs",
@@ -67,8 +67,8 @@ impl Component for Container {
     }
 }"#,
         ),
-        h2(vec![text("指定子結點的型別")]),
-        p(vec![
+        h2![text("指定子結點的型別")],
+        p![
             text("如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， "),
             code("List"),
             text(" 元件包裹 "),
@@ -78,7 +78,7 @@ impl Component for Container {
             text(" 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 "),
             code("nested-list"),
             text(" 範例。"),
-        ]),
+        ],
         code_block_title(
             "rust",
             "parent.rs",

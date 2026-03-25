@@ -2,15 +2,15 @@ crate::doc_page!(
     "Fragments",
     "/ja/docs/concepts/html/fragments",
     Content::new(vec![
-        p(vec![
+        p![
             text("The "),
             code("html!"),
             text(
                 " macro always requires a single root node. In order to get around this \
                  restriction, you can use an \"empty tag\" (these are also called \"fragments\")."
             ),
-        ]),
-        p(vec![text("Valid:")]),
+        ],
+        p![text("Valid:")],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -22,7 +22,7 @@ html! {
 </>
 };"#
         ),
-        p(vec![text("Invalid:")]),
+        p![text("Invalid:")],
         code_block(
             "rust",
             r#"use yew::prelude::*;

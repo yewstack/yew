@@ -2,7 +2,7 @@ crate::doc_page!(
     "Refs",
     "/zh-Hans/docs/advanced-topics/struct-components/refs",
     Content::new(vec![
-        p(vec![
+        p![
             code("ref"),
             text(
                 " 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM \
@@ -10,11 +10,11 @@ crate::doc_page!(
             ),
             code("view"),
             text(" 生命周期方法之外来对 DOM 进行更改。"),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。"
-        )]),
-        p(vec![text("语法如下：")]),
+        )],
+        p![text("语法如下：")],
         code_block(
             "rust",
             r#"use web_sys::Element;

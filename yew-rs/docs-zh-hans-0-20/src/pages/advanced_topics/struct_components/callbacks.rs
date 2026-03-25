@@ -3,12 +3,12 @@ crate::doc_page!(
     "/zh-Hans/docs/advanced-topics/struct-components/callbacks",
     Content::new(vec![
         h1(vec![text("回调（Callbacks）")]),
-        p(vec![text(
+        p![text(
             "组件\"link\"是一种机制，通过该机制，组件可以注册回调并自行更新。"
-        )]),
-        h2(vec![text("ComponentLink API")]),
-        h3(vec![text("callback")]),
-        p(vec![
+        )],
+        h2![text("ComponentLink API")],
+        h3![text("callback")],
+        p![
             text(
                 "注册一个回调，该回调将在执行时将消息发送到组件的更新机制。在内部，\
                  它将使用提供的闭包返回的消息调用 "
@@ -19,13 +19,13 @@ crate::doc_page!(
             text("，返回 "),
             code("Callback<IN>"),
             text("。"),
-        ]),
-        h3(vec![text("send_message")]),
-        p(vec![text(
+        ],
+        h3![text("send_message")],
+        p![text(
             "当前循环结束后立即向组件发送消息，导致另一个更新循环启动。"
-        )]),
-        h3(vec![text("send_message_batch")]),
-        p(vec![
+        )],
+        h3![text("send_message_batch")],
+        p![
             text(
                 "注册一个回调，该回调在执行时立即发送一批消息。\
                  如果其中任何一个消息将导致组件重新渲染，\
@@ -35,16 +35,16 @@ crate::doc_page!(
             text("，返回 "),
             code("Callback<IN>"),
             text("。"),
-        ]),
-        h2(vec![text("Callbacks")]),
-        p(vec![
+        ],
+        h2![text("Callbacks")],
+        p![
             text("Callbacks 用于与 Yew 中的 services，agents 和父组件进行通信。它们仅仅是个 "),
             code("Fn"),
             text("，并由 "),
             code("Rc"),
             text(" 包裹以允许被克隆。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("它们有一个 "),
             code("emit"),
             text(" 函数，该函数将它的 "),
@@ -59,6 +59,6 @@ crate::doc_page!(
             text("，以将消息发送回父组件。在 "),
             code("html!"),
             text(" 宏内被提供作为 props 的闭包或函数会自动转换为 Callbacks。"),
-        ]),
+        ],
     ])
 );

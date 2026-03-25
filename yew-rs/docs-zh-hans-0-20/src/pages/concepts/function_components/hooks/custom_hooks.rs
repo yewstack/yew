@@ -2,17 +2,17 @@ crate::doc_page!(
     "自定义钩子（Custom Hooks）",
     "/zh-Hans/docs/concepts/function-components/hooks/custom-hooks",
     Content::new(vec![
-        h2(vec![text("定义自定义钩子")]),
-        p(vec![text(
+        h2![text("定义自定义钩子")],
+        p![text(
             "组件中与状态有关的逻\\
              u{8f91}可以通过创建自定义 Hooks 提取到函数中。"
-        )]),
-        p(vec![text(
+        )],
+        p![text(
             "假设我们有一个组件，\\
              u{5b83}订阅了一个代理（agent）\\
              u{5e76}且会显示发送给它的\\
              u{6d88}息。"
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -37,7 +37,7 @@ pub fn show_storage_changed() -> Html {
     html! { <div>{"Storage Event Fired: "}{*state_storage_changed}</div> }
 }"#
         ),
-        p(vec![text(
+        p![text(
             "这段代码有一个问题：\\
              u{903b}辑不能被另一个组件\\
              u{91cd}用。如果我们构建另\\
@@ -45,8 +45,8 @@ pub fn show_storage_changed() -> Html {
              u{6211}们可以将逻辑移动到\\
              u{81ea}定义钩子中，而不是\\
              u{590d}制代码。"
-        )]),
-        p(vec![
+        )],
+        p![
             text(
                 "我们将首先创建一个名\\
                  u{4e3a}"
@@ -61,7 +61,7 @@ pub fn show_storage_changed() -> Html {
             ),
             code("Rc<RefCell<Vec<String>>>"),
             text(" 。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::{Event, EventTarget};
@@ -78,7 +78,7 @@ where
     todo!()
 }"#
         ),
-        p(vec![
+        p![
             text("钩子的逻辑在"),
             code("use_hook"),
             text("的回调中。 "),
@@ -88,8 +88,8 @@ where
             text("和"),
             code("initial_state_producer"),
             text(" 。"),
-        ]),
-        p(vec![
+        ],
+        p![
             code("hook_runner"),
             text(
                 "中包含了所有钩子的逻\\
@@ -136,12 +136,12 @@ where
             ),
             code("Hook"),
             text(" trait 的结构体。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("现在让我们为"),
             code("use_subscribe"),
             text("钩子创建状态（state struct）。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -189,11 +189,11 @@ where
     );
 }"#
         ),
-        p(vec![
+        p![
             text("接下来我们为"),
             code("use_subscribe"),
             text("添加实际逻辑。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"fn use_subscribe() -> Rc<RefCell<Vec<String>>> {
@@ -223,10 +223,10 @@ where
     )
 }"#
         ),
-        p(vec![text(
+        p![text(
             "现在我们可以使用自定\\
              u{4e49}钩子了："
-        )]),
+        )],
         code_block(
             "rust",
             r#"#[function_component(ShowMessages)]
@@ -237,7 +237,7 @@ pub fn show_messages() -> Html {
     html! { <div>{ for output }</div> }
 }"#
         ),
-        p(vec![
+        p![
             text(
                 "需要特别注意的是创建\\
                  u{81ea}定义钩子时"
@@ -250,7 +250,7 @@ pub fn show_messages() -> Html {
             ),
             code("use_hook"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"fn use_subscribe() -> Rc<Vec<String>> {

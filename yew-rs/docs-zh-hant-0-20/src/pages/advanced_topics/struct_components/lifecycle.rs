@@ -2,41 +2,41 @@ crate::doc_page!(
     "元件",
     "/zh-Hant/docs/advanced-topics/struct-components/lifecycle",
     Content::new(vec![
-        h2(vec![text("什麼是元件？")]),
-        p(vec![
+        h2![text("什麼是元件？")],
+        p![
             text(
                 "元件是 Yew 的基石。他們管理自己的狀態，可以渲染自己成為 \
                  DOM。元件可以透過實作，描述元件生命周期的 ",
             ),
             code("Component"),
             text(" trait 來建立。"),
-        ]),
-        h2(vec![text("生命周期")]),
-        admonition(
+        ],
+        h2![text("生命周期")],
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![
+            p![
                 code("歡迎來貢獻我們的文件："),
                 text(" "),
-                link(
+                link![
                     "https://github.com/yewstack/docs/issues/22",
-                    vec![text("Add a diagram of the component lifecycle")],
-                ),
-            ])],
-        ),
-        h2(vec![text("生命周期的方法")]),
-        h3(vec![text("Create")]),
-        p(vec![
+                    text("Add a diagram of the component lifecycle"),
+                ],
+            ],
+        ],
+        h2![text("生命周期的方法")],
+        h3![text("Create")],
+        p![
             text("當一個元件被建立，他會接收從父元件，也就是 "),
             code("ComponentLink"),
             text(
                 " ，傳下來的屬性。 這些屬性用來初始化元件的狀態，此外，\
                  「link」可以用來註冊回調函式或傳訊息給元件。"
             ),
-        ]),
-        p(vec![text(
+        ],
+        p![text(
             "通常，你的元件 struct 會儲存 props 與 link，就像下面的例子：",
-        )]),
+        )],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -63,8 +63,8 @@ impl Component for MyComponent {
     }
 }"#,
         ),
-        h3(vec![text("View")]),
-        p(vec![
+        h3![text("View")],
+        p![
             text("元件會在 "),
             code("view()"),
             text(" 方法中宣告佈局。Yew 提供 "),
@@ -73,7 +73,7 @@ impl Component for MyComponent {
                 " 巨集來宣告 HTML 合 SVG 的結點，包含他們的監聽事件與子結點。這個巨集扮演像是 \
                  React 的 JSX 的角色，但是是使用 Rust 的表達式，而不是 JavaScript 的。",
             ),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html, Properties};
@@ -107,13 +107,13 @@ impl Component for MyComponent {
     // highlight-end
 }"#,
         ),
-        p(vec![
+        p![
             text("更多使用細節，請參考 "),
-            link("/zh-Hant/docs/concepts/html", vec![text("html! 教學")],),
+            link!["/zh-Hant/docs/concepts/html", text("html! 教學"),],
             text("。"),
-        ]),
-        h3(vec![text("Rendered")]),
-        p(vec![
+        ],
+        h3![text("Rendered")],
+        p![
             code("rendered()"),
             text(" 生命周期的方法會，在 "),
             code("view()"),
@@ -124,7 +124,7 @@ impl Component for MyComponent {
             ),
             code("first_render"),
             text(" 變數來確認這個元件是不是第一次被渲染。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"use web_sys::HtmlInputElement;
@@ -163,15 +163,15 @@ impl Component for MyComponent {
     // highlight-end
 }"#,
         ),
-        admonition(
+        admonition![
             AdmonitionType::Note,
             None,
-            vec![p(vec![text(
+            p![text(
                 "注意，這個生命周期方法，不是一定要被實作，預設的行為是不做任何事情。",
-            )])],
-        ),
-        h3(vec![text("Update")]),
-        p(vec![
+            )],
+        ],
+        h3![text("Update")],
+        p![
             text("元件是可動態更新且可以註冊接收非同步的訊息。 "),
             code("update()"),
             text(
@@ -179,8 +179,8 @@ impl Component for MyComponent {
                  且會決定是否需要重新渲染。 訊息可以被 HTML \
                  元素的監聽器觸發，或被子元件、Agents、Services 或 Futures 傳送。",
             ),
-        ]),
-        p(vec![code("update()"), text(" 應用範例："),]),
+        ],
+        p![code("update()"), text(" 應用範例："),],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html};
@@ -229,12 +229,12 @@ impl Component for MyComponent {
 
 }"#,
         ),
-        h3(vec![text("Change")]),
-        p(vec![text(
+        h3![text("Change")],
+        p![text(
             "元件可能會被他的父元件重新渲染。當他被父元件重新渲染時，他會收到新的屬性，\
              然後決定要不要再渲染一次。 這設計是讓父元件透過便於跟子元件溝通。",
-        )]),
-        p(vec![text("一個簡單的實作方式像：")]),
+        )],
+        p![text("一個簡單的實作方式像：")],
         code_block(
             "rust",
             r#"use yew::{Context, Component, Html};
@@ -265,24 +265,24 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h3(vec![text("Destroy")]),
-        p(vec![
+        h3![text("Destroy")],
+        p![
             text("當元件從 DOM 上被解除掛載，Yew 會呼叫 "),
             code("destroy()"),
             text(
                 " 生命周期方法以提供任何需要清理的操作。這個方法是不一定要被實作的，\
                  預設不會做設任何事。",
             ),
-        ]),
-        h2(vec![text("相關的型別")]),
-        p(vec![
+        ],
+        h2![text("相關的型別")],
+        p![
             code("Component"),
             text(" trait 有兩個相關的型別："),
             code("Message"),
             text(" 與 "),
             code("Properties"),
             text("。"),
-        ]),
+        ],
         code_block(
             "rust",
             r#"impl Component for MyComponent {
@@ -292,7 +292,7 @@ impl Component for Comp {
     // ...
 }"#,
         ),
-        p(vec![
+        p![
             code("Message"),
             text(" 負責各式各樣的訊息，他可能被元件處理去觸發各種影響。舉例來說，你可能有一個 ",),
             code("Click"),
@@ -302,7 +302,7 @@ impl Component for Comp {
             ),
             code("Msg"),
             text(" 的 enum，然後把他當作元件裡的 Message 型別。通常 message 會縮寫成 msg。",),
-        ]),
+        ],
         code_block(
             "rust",
             r#"enum Msg {
@@ -310,7 +310,7 @@ impl Component for Comp {
     FormInput(String)
 }"#,
         ),
-        p(vec![
+        p![
             code("Properties"),
             text(" 代表要從父員件傳遞到子元件的資訊。這個型別必須實作 ",),
             code("Properties"),
@@ -333,6 +333,6 @@ impl Component for Comp {
             text("。如果你希望你的根元件有特定的屬性，可以使用 "),
             code("App::mount_with_props"),
             text(" 的方法。"),
-        ]),
+        ],
     ])
 );

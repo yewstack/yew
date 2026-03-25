@@ -2,17 +2,17 @@ crate::doc_page!(
     "第一個簡單的 App",
     "/zh-Hant/docs/getting-started/build-a-sample-app",
     Content::new(vec![
-        p(vec![text("首先，先建立一個新的 binary 專案：")]),
+        p![text("首先，先建立一個新的 binary 專案：")],
         code_block("bash", "cargo new --bin yew-app && cd yew-app"),
-        p(vec![
+        p![
             text("在依賴庫裡加入 "),
             code("yew"),
             text(" 與 "),
             code("wasm-bindgen"),
             text("（最新的版號，請參考"),
-            link("https://docs.rs/yew", vec![text("這裡")]),
+            link!("https://docs.rs/yew", text("這裡")),
             text("）"),
-        ]),
+        ],
         code_block_title(
             "text",
             "Cargo.toml",
@@ -26,11 +26,11 @@ edition = "2018"
 yew = "0.16"
 wasm-bindgen = "0.2""#,
         ),
-        p(vec![
+        p![
             text("將下面的模板複製進你的 "),
             code("src/lib.rs"),
             text(" 檔案："),
-        ]),
+        ],
         code_block_title(
             "rust",
             "src/lib.rs",
@@ -82,7 +82,7 @@ pub fn run_app() {
     App::<Model>::new().mount_to_body();
 }"#,
         ),
-        p(vec![
+        p![
             text("模板會建置名叫 "),
             code("Model"),
             text(" 的根元件 "),
@@ -100,14 +100,14 @@ pub fn run_app() {
             text(" 標籤中。如果你想要在啟動應用程式時，帶入動態的屬性，你可以改用 "),
             code("App::<Model>::new().mount_to_body_with_props(..)"),
             text("。"),
-        ]),
-        p(vec![
+        ],
+        p![
             text("最後，在你的專案，新增 "),
             code("static"),
             text(" 資料夾，並新增 "),
             code("index.html"),
             text(" 檔案到 static 裡。"),
-        ]),
+        ],
         code_block("bash", "mkdir static"),
         code_block_title(
             "bash",
@@ -125,24 +125,24 @@ pub fn run_app() {
     <body></body>
 </html>"#,
         ),
-        h2(vec![text("執行你的 App！")]),
-        p(vec![
+        h2![text("執行你的 App！")],
+        p![
             text("使用 "),
-            link(
+            link!(
                 "https://drager.github.io/wasm-pack/book/",
-                vec![code("wasm-pack")],
+                code("wasm-pack"),
             ),
             text(" 來執行專案是比較好的選擇。如果你還沒有做任何準備，先用"),
             code("cargo install wasm-pack"),
             text("安裝 "),
             code("wasm-pack"),
             text(" ，然後用下面的指令，建置與開啟開發用伺服器："),
-        ]),
+        ],
         code_block(
             "bash",
             "wasm-pack build --target web --out-name wasm --out-dir ./static",
         ),
-        p(vec![
+        p![
             code("wasm-pack"),
             text(" 會在 "),
             code("./static"),
@@ -150,12 +150,12 @@ pub fn run_app() {
                 " 裡產生一個 bundle，裡面包含專案編成的 WebAssembly，以及 JavaScript \
                  的包裹器，這些東西都會在你的專案執行時被載入。",
             ),
-        ]),
-        p(vec![
+        ],
+        p![
             text("最後，用你最喜歡的網頁伺服器，去啟動在"),
             code("./static"),
             text(" 底下的檔案。範例："),
-        ]),
+        ],
         code_block(
             "bash",
             "cargo +nightly install miniserve\nminiserve ./static --index index.html",
