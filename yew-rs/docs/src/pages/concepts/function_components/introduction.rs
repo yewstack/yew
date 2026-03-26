@@ -15,7 +15,10 @@ pub fn page_content() -> yew_site_lib::Content {
         ul![
             li![
                 "Take arguments in form of ",
-                link!("/docs/concepts/function-components/properties", "Props",),
+                doc_link!(
+                    crate::pages::concepts::function_components::properties,
+                    "Props",
+                ),
             ],
             li!["Can have their own state"],
             li!["Compute pieces of HTML visible to the user (DOM)"],

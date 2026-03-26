@@ -95,8 +95,9 @@ fn Modal(props: &ModalProps) -> Html {
             ") which is unavailable on the server. If you need to render content into ",
             code("<head>"),
             " during SSR, see the ",
-            link![
-                "/docs/advanced-topics/server-side-rendering#rendering-head-tags",
+            doc_link![
+                crate::pages::advanced_topics::server_side_rendering,
+                #"rendering-head-tags",
                 "head rendering section",
             ],
             " in the SSR documentation.",

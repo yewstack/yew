@@ -278,7 +278,7 @@ log_many("Logging", "many values!");"#),
         ],
         p![
             "A common example of this in ",
-            link!["/docs/concepts/basic-web-technologies/web-sys", code("web-sys")],
+            doc_link![crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")],
             " is when you are trying to get the target of an event. You might know what the target element is, but the ",
             link![
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html",
@@ -378,9 +378,9 @@ fn handle_event(event: Event) {
             ". An example of using a ",
             code("Closure"),
             " in Yew can be found in the ",
-            link!["/docs/concepts/html/events#using-closure-verbose", "Using ", code("Closure"), " section"],
+            doc_link![crate::pages::concepts::html::events, #"using-closure-verbose", "Using ", code("Closure"), " section"],
             " on the ",
-            link!["/docs/concepts/html/events", "Events"],
+            doc_link![crate::pages::concepts::html::events, "Events"],
             " page.",
         ],
         p![
@@ -404,7 +404,7 @@ fn handle_event(event: Event) {
         ],
         p![
             "This does not include any web APIs; that's what ",
-            link!["/docs/concepts/basic-web-technologies/web-sys", code("web-sys")],
+            doc_link![crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")],
             " is for!",
         ],
         p![

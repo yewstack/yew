@@ -61,7 +61,10 @@ fn HelloWorld(props: &Props) -> Html {
              それが「純粋」でない可能性があるかどうか疑問に思うかもしれません。なぜなら、\
              それは毎回レンダリングされる固定関数として呼び出されるだけだからです。 \
              これが次のトピック - ",
-            link!["/ja/docs/concepts/function-components/hooks", "フック"],
+            doc_link![
+                crate::pages::concepts::function_components::hooks::introduction,
+                "フック"
+            ],
             " の出番です。",
         ],
     ])

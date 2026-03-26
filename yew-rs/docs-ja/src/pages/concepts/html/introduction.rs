@@ -10,9 +10,9 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 code("html!"),
                 " マクロは 1 つのルート HTML ノードしか受け入れません（これを回避するには、",
-                link!["/ja/docs/concepts/html/fragments", "fragments"],
+                doc_link![crate::pages::concepts::html::fragments, "fragments"],
                 " または ",
-                link!["/ja/docs/concepts/html/lists", "iterators"],
+                doc_link![crate::pages::concepts::html::lists, "iterators"],
                 " を使用できます）",
             ],
             li![
@@ -27,7 +27,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 code("html!"),
                 " マクロはすべてのタグ名を小文字に変換します。大文字の文字（特定の SVG 要素に必要な文字）を使用するには、",
-                link!["/ja/docs/concepts/html/elements#dynamic-tag-names", "動的タグ名"],
+                doc_link![crate::pages::concepts::html::elements, #"dynamic-tag-names", "動的タグ名"],
                 " を使用してください：",
                 code("html! { <@{\"myTag\"}></@> }"),
             ],
@@ -173,7 +173,7 @@ html! { <my-element ~property="abc" /> };"#),
         admonition![AdmonitionType::Note, Some("コンポーネント属性"),
             p![
                 "コンポーネント属性は Rust オブジェクトとして渡され、ここで説明されている要素のパラメータ (Attributes) / 属性 (Properties) とは異なります。",
-                link!["/ja/docs/concepts/function-components/properties", "コンポーネント属性"],
+                doc_link![crate::pages::concepts::function_components::properties, "コンポーネント属性"],
                 "で詳細を確認してください。",
             ],
         ],
@@ -188,7 +188,7 @@ html! { <my-element ~property="abc" /> };"#),
         p![
             code("ref"),
             " は、基礎となる DOM ノードに直接アクセスして操作することを可能にします。詳細については、",
-            link!["/ja/docs/concepts/function-components/node-refs", "Refs"],
+            doc_link![crate::pages::concepts::function_components::node_refs, "Refs"],
             "を参照してください。",
         ],
         p![
@@ -198,7 +198,7 @@ html! { <my-element ~property="abc" /> };"#),
         ],
         admonition![AdmonitionType::Info, None,
             p![
-                link!["/ja/docs/concepts/html/lists", "詳細はこちら"],
+                doc_link![crate::pages::concepts::html::lists, "詳細はこちら"],
             ],
         ],
         h2!["条件付きレンダリング"],
@@ -219,7 +219,7 @@ html! {
         admonition![AdmonitionType::Info, None,
             p![
                 "条件付きレンダリングの詳細については、",
-                link!["/ja/docs/concepts/html/conditional-rendering", "条件付きレンダリング"],
+                doc_link![crate::pages::concepts::html::conditional_rendering, "条件付きレンダリング"],
                 "のセクションを参照してください。",
             ],
         ],

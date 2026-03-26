@@ -808,7 +808,10 @@ fn App() -> Html {
         h3!["Learning more about Yew"],
         p![
             "Read our ",
-            link!("/docs/getting-started", "official documentation",),
+            doc_link!(
+                crate::pages::getting_started::introduction,
+                "official documentation",
+            ),
             ". It explains a lot of concepts in much more detail. To learn more about the Yew \
              API, see our ",
             link!("https://docs.rs/yew", "API docs"),

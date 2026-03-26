@@ -17,7 +17,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ],
         p![
             "下記の表に記載されていないイベントについても、",
-            link!["/ja/docs/concepts/function-components/callbacks",
+            doc_link![crate::pages::concepts::function_components::callbacks,
                 code("Callback"),
             ],
             " を追加してリッスンすることができます。詳細は",
@@ -63,7 +63,7 @@ html! {
         h2_id!["event-bubbling", "イベントキャプチャ"],
         p![
             "Yew がディスパッチするイベントは仮想 DOM 階層に従い、リスナーに向かってバブルアップします。現在、リスナーのバブルフェーズのみがサポートされています。仮想 DOM 階層は通常（ただし常にではありません）実際の DOM 階層と同じです。",
-            link!["/ja/docs/advanced-topics/portals", "ポータル"],
+            doc_link![crate::pages::advanced_topics::portals, "ポータル"],
             "やその他の高度な技術を扱う際には、この違いが重要です。よく設計されたコンポーネントでは、直感的にイベントは子コンポーネントから親コンポーネントにバブルアップするはずです。これにより、",
             code("html!"),
             " で記述した階層がイベントハンドラによって観察される階層となります。",
@@ -87,7 +87,7 @@ html! {
                 " はリスナーが追加された要素ではなく、Yew サブツリーのルートノードを指します。基になる ",
                 code("HtmlElement"),
                 " にアクセスしたい場合は、",
-                link!["/ja/docs/concepts/function-components/node-refs",
+                doc_link![crate::pages::concepts::function_components::node_refs,
                     code("NodeRef"),
                 ],
                 " を使用してください。",
@@ -379,7 +379,7 @@ fn MyComponent() -> Html {
         ],
         h3!["NodeRef の使用"],
         p![
-            link!["/ja/docs/concepts/function-components/node-refs",
+            doc_link![crate::pages::concepts::function_components::node_refs,
                 code("NodeRef"),
             ],
             " は、与えられたイベントを ",
@@ -490,7 +490,7 @@ fn MyComponent() -> Html {
         ],
         p![
             "手動で要素にイベントリスナーを追加するには、",
-            link!["/ja/docs/concepts/function-components/node-refs",
+            doc_link![crate::pages::concepts::function_components::node_refs,
                 code("NodeRef"),
             ],
             " を使用して、",

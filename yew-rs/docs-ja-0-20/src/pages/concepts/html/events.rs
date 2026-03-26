@@ -14,7 +14,7 @@ crate::doc_page!("Events", "/ja/docs/concepts/html/events",
         ],
         p![
             "You can still add a ",
-            link!["/ja/docs/concepts/function-components/callbacks", code("Callback")],
+            doc_link![crate::pages::concepts::function_components::callbacks, code("Callback")],
             " for an event that is not listed in the table below, see ",
             link!["#manual-event-listener", "Manual event listener"],
             ".",
@@ -62,7 +62,7 @@ html! {
             "Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase \
               is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual \
               DOM hierarchy. The distinction is important when working with ",
-            link!["/ja/docs/advanced-topics/portals", "portals"],
+            doc_link![crate::pages::advanced_topics::portals, "portals"],
             " and other more advanced techniques. The intuition for well implemented components should be that events bubble from children \
               to parents, so that the hierarchy in your coded ",
             code("html!"),
@@ -89,7 +89,7 @@ html! {
             li![
                 link!["https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html#method.current_target", code("Event::current_target")],
                 " points to the Yew subtree root instead of the element the listener is added on. Use ",
-                link!["/ja/docs/concepts/function-components/node-refs", code("NodeRef")],
+                doc_link![crate::pages::concepts::function_components::node_refs, code("NodeRef")],
                 " if you want access to the underlying ",
                 code("HtmlElement"),
                 ".",
@@ -382,7 +382,7 @@ html! {
         ],
         h3!["Using NodeRef"],
         p![
-            link!["/ja/docs/concepts/function-components/node-refs", code("NodeRef")],
+            doc_link![crate::pages::concepts::function_components::node_refs, code("NodeRef")],
             " can be used instead of querying the event given to a ",
             code("Callback"),
             ".",
@@ -496,7 +496,7 @@ html! {
         ],
         p![
             "In order to add an event listener to one of elements manually we need the help of ",
-            link!["/ja/docs/concepts/function-components/node-refs", code("NodeRef")],
+            doc_link![crate::pages::concepts::function_components::node_refs, code("NodeRef")],
             " so that in ",
             code("use_effect_with_deps"),
             " we can add a listener using the ",

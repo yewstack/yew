@@ -84,7 +84,7 @@ html! {
         ),
         p![
             "詳細については、",
-            link!("/ja/docs/concepts/html", "HTML の詳細"),
+            doc_link!(crate::pages::concepts::html::introduction, "HTML の詳細"),
             "を参照してください。",
         ],
     ])

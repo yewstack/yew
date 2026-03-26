@@ -114,7 +114,7 @@ fn app() -> Html {
     }
 }"##),
         h3!["Use Suspense in Struct Components"],
-        p!["It's not possible to suspend a struct component directly. However, you can use a function component as a ", link!["/docs/0.21/advanced-topics/struct-components/hoc", "Higher Order Component"], " to achieve suspense-based data fetching."],
+        p!["It's not possible to suspend a struct component directly. However, you can use a function component as a ", doc_link![crate::pages::advanced_topics::struct_components::hoc, "Higher Order Component"], " to achieve suspense-based data fetching."],
         p!["The ", link!["https://github.com/yewstack/yew/tree/master/examples/suspense/src/struct_consumer.rs", "suspense example in the Yew repository"], " demonstrates how to use."],
         h2!["Relevant examples"],
         ul![li![link!["https://github.com/yewstack/yew/tree/master/examples/suspense", "Suspense"]]]

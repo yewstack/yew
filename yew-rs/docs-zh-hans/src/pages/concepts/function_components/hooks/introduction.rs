@@ -22,7 +22,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ],
             li![
                 "每次渲染时，Hooks 必须以相同的顺序调用。只有在使用 ",
-                link!("/zh-Hans/docs/concepts/suspense", "Suspense"),
+                doc_link!(crate::pages::concepts::suspense, "Suspense"),
                 " 时才允许提前返回",
             ],
         ],

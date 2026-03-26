@@ -18,7 +18,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ],
         p![
             "您仍然可以为下表中未列出的事件添加 ",
-            link!("/zh-Hans/docs/concepts/function-components/callbacks", code("Callback")),
+            doc_link!(crate::pages::concepts::function_components::callbacks, code("Callback")),
             "，请参见",
             link!("#manual-event-listener", "手动事件监听器"),
             "。",
@@ -67,7 +67,7 @@ html! {
         h2_id!("event-bubbling", "事件捕获"),
         p![
             "Yew 调度的事件遵循虚拟 DOM 层次结构，向上冒泡到监听器。目前，仅支持监听器的冒泡阶段。请注意，虚拟 DOM 层次结构通常（但并非总是）与实际 DOM 层次结构相同。在处理",
-            link!("/zh-Hans/docs/advanced-topics/portals", "传送门"),
+            doc_link!(crate::pages::advanced_topics::portals, "传送门"),
             "和其他更高级技术时，这一区别很重要。对于良好实现的组件，直觉应该是事件从子组件冒泡到父组件。这样，您在 ",
             code("html!"),
             " 中编写的层次结构就是事件处理程序观察到的层次结构。",
@@ -93,7 +93,7 @@ html! {
                 " 指向 Yew 子树根节点，而不是添加监听器的元素。如果您想访问底层的 ",
                 code("HtmlElement"),
                 "，请使用 ",
-                link!("/zh-Hans/docs/concepts/function-components/node-refs", code("NodeRef")),
+                doc_link!(crate::pages::concepts::function_components::node_refs, code("NodeRef")),
                 "。",
             ],
             li![
@@ -166,7 +166,7 @@ html! {
             " ",
             code("Callback"),
             "，每次调用时，我们希望向组件发送一个",
-            link!("/zh-Hans/docs/concepts/html/components#update", "更新"),
+            doc_link!(crate::pages::concepts::html::components, #"update", "更新"),
             " ",
             code("Msg"),
             "。",
@@ -422,7 +422,7 @@ fn MyComponent() -> Html {
         ],
         h3!["使用 ", code("NodeRef")],
         p![
-            link!("/zh-Hans/docs/concepts/function-components/node-refs", code("NodeRef")),
+            doc_link!(crate::pages::concepts::function_components::node_refs, code("NodeRef")),
             " 可以代替查询给定给 ",
             code("Callback"),
             " 的事件。",
@@ -544,7 +544,7 @@ fn MyComponent() -> Html {
         ],
         p![
             "为了手动向某个元素添加事件监听器，我们需要借助 ",
-            link!("/zh-Hans/docs/concepts/function-components/node-refs", code("NodeRef")),
+            doc_link!(crate::pages::concepts::function_components::node_refs, code("NodeRef")),
             "，以便在 ",
             code("use_effect_with"),
             " 中使用 ",

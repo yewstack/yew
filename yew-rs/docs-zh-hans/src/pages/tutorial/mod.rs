@@ -807,7 +807,7 @@ fn app() -> Html {
         h3!["了解更多关于 Yew"],
         p![
             "阅读我们的",
-            link!["/zh-Hans/docs/getting-started", "官方文档"],
+            doc_link![crate::pages::getting_started::introduction, "官方文档"],
             "。它更详细地解释了许多概念。要了解有关 Yew API 的更多信息，请查看我们的",
             link!["https://docs.rs/yew", "API 文档"],
             "。",

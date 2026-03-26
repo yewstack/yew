@@ -17,8 +17,8 @@ crate::doc_page!("Events", "/ja/docs/concepts/html/events",
         ],
         p![
             "You can still add a ",
-            link![
-                "/ja/docs/concepts/function-components/callbacks",
+            doc_link![
+                crate::pages::concepts::function_components::callbacks,
                 code("Callback")
             ],
             " for an event that is not listed in the table below, see ",
@@ -70,7 +70,7 @@ html! {
             "Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase \
                   is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual \
                   DOM hierarchy. The distinction is important when working with ",
-            link!["/ja/docs/advanced-topics/portals", "portals"],
+            doc_link![crate::pages::advanced_topics::portals, "portals"],
             " and other more advanced techniques. The intuition for well-implemented components should be that events bubble from children \
                   to parents. In this way the hierarchy in your coded ",
             code("html!"),
@@ -98,8 +98,8 @@ html! {
                     code("Event::current_target")
                 ],
                 " points to the Yew subtree root instead of the element the listener is added on. Use ",
-                link![
-                    "/ja/docs/concepts/function-components/node-refs",
+                doc_link![
+                    crate::pages::concepts::function_components::node_refs,
                     code("NodeRef")
                 ],
                 " if you want access to the underlying ",
@@ -431,8 +431,8 @@ fn MyComponent() -> Html {
         ],
         h3!["Using NodeRef"],
         p![
-            link![
-                "/ja/docs/concepts/function-components/node-refs",
+            doc_link![
+                crate::pages::concepts::function_components::node_refs,
                 code("NodeRef")
             ],
             " can be used instead of querying the event given to a ",
@@ -546,8 +546,8 @@ fn MyComponent() -> Html {
         ],
         p![
             "In order to add an event listener to one of elements manually we need the help of ",
-            link![
-                "/ja/docs/concepts/function-components/node-refs",
+            doc_link![
+                crate::pages::concepts::function_components::node_refs,
                 code("NodeRef")
             ],
             " so that in ",

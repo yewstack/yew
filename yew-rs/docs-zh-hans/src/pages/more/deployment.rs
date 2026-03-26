@@ -25,7 +25,7 @@ pub fn page_content() -> yew_site_lib::Content {
         h3!["将 ", code("index.html"), " 作为回退提供"],
         p![
             "如果应用程序使用了 ",
-            link!("/zh-Hans/docs/concepts/router", "Yew 路由"),
+            doc_link!(crate::pages::concepts::router, "Yew 路由"),
             "，您必须配置服务器在请求不存在的文件时返回 ",
             code("index.html"),
             "。",

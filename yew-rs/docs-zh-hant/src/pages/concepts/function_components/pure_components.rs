@@ -43,8 +43,9 @@ fn HelloWorld(props: &Props) -> Html {
                 "如果您有一個內部純元件，它不使用 hooks 和其他元件機制，您通常可以將其編寫為傳回 ",
                 code("Html"),
                 " 的普通函數，從而避免 Yew 運行元件生命週期相關的一些開銷。使用 ",
-                link!(
-                    "/zh-Hant/docs/concepts/html/literals-and-expressions#expressions",
+                doc_link!(
+                    crate::pages::concepts::html::literals_and_expressions,
+                    #"expressions",
                     "表達式語法",
                 ),
                 " 在 ",
@@ -56,7 +57,10 @@ fn HelloWorld(props: &Props) -> Html {
         p![
             "您可能想知道，如果元件不使用任何全域變量，那麼它是否可以是不\"純\"的，\
              因為它只是在每次渲染時調用的固定函數。 這就是下一個主題 - ",
-            link!("/zh-Hant/docs/concepts/function-components/hooks", "hooks",),
+            doc_link!(
+                crate::pages::concepts::function_components::hooks::introduction,
+                "hooks",
+            ),
             " 的用武之地。",
         ],
     ])

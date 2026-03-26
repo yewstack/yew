@@ -36,7 +36,7 @@ crate::doc_page!(
             li![
                 "Hooks must be called in the same order for every render. Returning early is only \
                  allowed when using ",
-                link!("/docs/0.21/concepts/suspense", "Suspense")
+                doc_link!(crate::pages::concepts::suspense, "Suspense")
             ]
         ],
         p!["These rules are enforced by either compile-time or run-time errors."],

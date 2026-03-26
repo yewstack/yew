@@ -242,7 +242,7 @@ log_many("Logging", "many values!");"#),
         ],
         p![
             "A common example of this in ",
-            link!["/zh-Hant/docs/concepts/basic-web-technologies/web-sys", code("web-sys")],
+            doc_link![crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")],
             " is when you are trying to get the target of an event, you might know what the target element is but the ",
             link!["https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html", code("web_sys::Event")],
             " API will always return an ",
@@ -321,9 +321,9 @@ let input_element: HtmlInputElement = target.unchecked_into();
             ". An example of using a ",
             code("Closure"),
             " in Yew can be found in the ",
-            link!["/zh-Hant/docs/concepts/html/events#using-closure-verbose", "Using Closure section"],
+            doc_link![crate::pages::concepts::html::events, #"using-closure-verbose", "Using Closure section"],
             " on the ",
-            link!["/zh-Hant/docs/concepts/html/events", "Events"],
+            doc_link![crate::pages::concepts::html::events, "Events"],
             " page.",
         ],
         p![
@@ -341,7 +341,7 @@ let input_element: HtmlInputElement = target.unchecked_into();
         ],
         p![
             "This does not include any web APIs as this is what ",
-            link!["/zh-Hant/docs/concepts/basic-web-technologies/web-sys", code("web-sys")],
+            doc_link![crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")],
             " is for!",
         ],
         p![

@@ -8,6 +8,7 @@ use crate::components::navbar::Navbar;
 use crate::components::sidebar::{flatten_sidebar, Sidebar, SidebarEntry};
 use crate::content::TocEntry;
 use crate::styles::GlobalStyles;
+use crate::DocContext;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct LayoutProps {
@@ -189,7 +190,8 @@ pub fn Layout(props: &LayoutProps) -> Html {
 
     {
         let content_ref = content_ref.clone();
-        yew_hooks::use_effect_once(move || {
+        let sidebar_path = props.active_sidebar_path.clone();
+        use_effect_with(sidebar_path, move |_| {
             scroll_to_hash(&content_ref);
         });
     }
@@ -238,7 +240,13 @@ pub fn Layout(props: &LayoutProps) -> Html {
         "0 auto"
     };
 
+    let doc_ctx = crate::DocContext {
+        lang: props.lang.clone(),
+        doc_version: props.doc_version.clone(),
+    };
+
     html! {
+        <ContextProvider<DocContext> context={doc_ctx}>
         <div class={css!(display: flex; flex-direction: column; min-height: 100vh;)}>
             <GlobalStyles />
             <Navbar
@@ -556,6 +564,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
             </div>
             <Footer />
         </div>
+        </ContextProvider<DocContext>>
     }
 }
 
@@ -572,11 +581,13 @@ fn scroll_to_hash(content_ref: &NodeRef) {
             None => return,
         };
         if let Ok(Some(el)) = content_el.query_selector(&format!("[id=\"{}\"]", &hash[1..])) {
-            gloo::timers::callback::Timeout::new(100, move || {
+            gloo::timers::callback::Timeout::new(50, move || {
                 el.scroll_into_view();
             })
             .forget();
         }
+    } else {
+        window.scroll_to_with_x_and_y(0.0, 0.0);
     }
 }
 

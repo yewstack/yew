@@ -19,7 +19,7 @@ crate::doc_page!(
         h3!["Slice"],
         p![
             "We will expand upon this concept in ",
-            link!("/docs/0.21/more/css", "more CSS"),
+            doc_link!(crate::pages::more::css, "more CSS"),
             "."
         ],
         h2!["Inline Styles"],
@@ -30,7 +30,7 @@ crate::doc_page!(
         ],
         p![
             "We will expand upon this concept in ",
-            link!("/docs/0.21/more/css", "more CSS"),
+            doc_link!(crate::pages::more::css, "more CSS"),
             "."
         ]
     ])

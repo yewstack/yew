@@ -111,7 +111,10 @@ impl Component for MyComponent {
         ),
         p![
             "For usage details, check out ",
-            link!("/ja/docs/concepts/html", "the html! guide"),
+            doc_link!(
+                crate::pages::concepts::html::introduction,
+                "the html! guide"
+            ),
             ".",
         ],
         h3!["Rendered"],
@@ -400,8 +403,8 @@ impl Component for Comp {
         admonition![
             AdmonitionType::Info,
             None,
-            p![link!(
-                "/ja/docs/advanced-topics/struct-components/properties",
+            p![doc_link!(
+                crate::pages::advanced_topics::struct_components::properties,
                 "Learn more about properties"
             ),],
         ],

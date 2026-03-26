@@ -43,8 +43,9 @@ fn HelloWorld(props: &Props) -> Html {
                 "如果您有一个内部纯组件，它不使用 hooks 和其他组件机制，您通常可以将其编写为返回 ",
                 code("Html"),
                 " 的普通函数，从而避免 Yew 运行组件生命周期相关的一些开销。使用 ",
-                link!(
-                    "/zh-Hans/docs/concepts/html/literals-and-expressions#expressions",
+                doc_link!(
+                    crate::pages::concepts::html::literals_and_expressions,
+                    #"expressions",
                     "表达式语法",
                 ),
                 " 在 ",
@@ -56,7 +57,10 @@ fn HelloWorld(props: &Props) -> Html {
         p![
             "您可能想知道，如果组件不使用任何全局变量，那么它是否可以是不\"纯\"的，\
              因为它只是在每次渲染时调用的固定函数。 这就是下一个主题 - ",
-            link!("/zh-Hans/docs/concepts/function-components/hooks", "hooks",),
+            doc_link!(
+                crate::pages::concepts::function_components::hooks::introduction,
+                "hooks",
+            ),
             " 的用武之地。",
         ],
     ])

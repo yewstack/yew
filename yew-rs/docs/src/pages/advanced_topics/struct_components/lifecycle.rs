@@ -110,7 +110,12 @@ impl Component for MyComponent {
         ),
         p![
             "For usage details, check out ",
-            link!["/docs/concepts/html", "the ", code("html!"), " guide",],
+            doc_link![
+                crate::pages::concepts::html::introduction,
+                "the ",
+                code("html!"),
+                " guide",
+            ],
             ".",
         ],
         h3!["Rendered"],

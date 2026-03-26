@@ -7,7 +7,7 @@ pub fn page_content() -> yew_site_lib::Content {
         h2!["使用 props 的問題：\"Prop Drilling\""],
         p![
             "傳遞 ",
-            link!("/zh-Hant/docs/concepts/function-components/properties", "props"),
+            doc_link!(crate::pages::concepts::function_components::properties, "props"),
             " 是從父元件直接傳遞資料到子元件的好方法。 \
                  但是，當需要透過深層嵌套的組件樹傳遞資料或多個組件共享相同的資料時，傳遞 props 變得繁瑣。 \
                  一種常見的資料共享解決方案是將資料提升到一個共同的祖先，並使子元件將其作為 props 接收。 \
@@ -177,7 +177,7 @@ pub fn ThemedButton() -> Html {
         p!["我們有兩種選擇在結構體組件中使用上下文："],
         ul![
             li![
-                link!("/zh-Hant/docs/advanced-topics/struct-components/hoc", "高階元件"),
+                doc_link!(crate::pages::advanced_topics::struct_components::hoc, "高階元件"),
                 "：高階函數元件將使用上下文並將資料傳遞給需要它的結構體元件。",
             ],
             li![

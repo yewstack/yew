@@ -4,7 +4,10 @@ pub fn page_content() -> yew_site_lib::Content {
         h2!["Parent to child messaging"],
         p![
             "Pass data as ",
-            link!("/docs/concepts/function-components/properties", "props",),
+            doc_link!(
+                crate::pages::concepts::function_components::properties,
+                "props",
+            ),
             " that cause a re-render, this is the way to pass messages to children.",
         ],
         h2!["Child to parent messaging"],

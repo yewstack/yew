@@ -101,7 +101,7 @@ impl Component for MyComponent {
         ),
         p![
             "更多使用細節，請參考 ",
-            link!["/zh-Hant/docs/concepts/html", "html! 教學",],
+            doc_link![crate::pages::concepts::html::introduction, "html! 教學",],
             "。",
         ],
         h3!["Rendered"],

@@ -170,7 +170,7 @@ port = 8000"#,
         p!["您现在已经成功设置了您的 Yew 开发环境，并构建了您的第一个 Web 应用程序。"],
         p![
             "尝试这个应用程序，并查看",
-            link!("/zh-Hans/docs/getting-started/examples", "示例"),
+            doc_link!(crate::pages::getting_started::examples, "示例"),
             "以进一步学习。",
         ],
     ])

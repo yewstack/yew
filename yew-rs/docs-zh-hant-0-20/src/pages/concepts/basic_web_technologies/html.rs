@@ -74,7 +74,7 @@ html! {
         ),
         p![
             "We will introduce Yew and HTML further in depth in ",
-            link!["/zh-Hant/docs/concepts/html", "more HTML"],
+            doc_link![crate::pages::concepts::html::introduction, "more HTML"],
             ".",
         ],
     ])

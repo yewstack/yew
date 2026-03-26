@@ -18,7 +18,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ],
         p![
             "您仍然可以為下表中未列出的事件新增 ",
-            link!("/zh-Hant/docs/concepts/function-components/callbacks", code("Callback")),
+            doc_link!(crate::pages::concepts::function_components::callbacks, code("Callback")),
             "，請參閱",
             link!(
                 "#manual-event-listener",
@@ -70,7 +70,7 @@ html! {
         h2!["事件捕獲"],
         p![
             "Yew 調度的事件遵循虛擬 DOM 層次結構，向上冒泡到監聽器。目前，僅支援監聽器的冒泡階段。請注意，虛擬 DOM 層次結構通常（但並非總是）與實際 DOM 層次結構相同。在處理",
-            link!("/zh-Hant/docs/advanced-topics/portals", "傳送門"),
+            doc_link!(crate::pages::advanced_topics::portals, "傳送門"),
             "和其他更高級技術時，這一區別很重要。對於良好實現的元件，直覺應該是事件從子元件冒泡到父元件。這樣，您在 ",
             code("html!"),
             " 中所寫的層次結構就是事件處理程序觀察到的層次結構。",
@@ -93,7 +93,7 @@ html! {
                 " 指向 Yew 子樹根節點，而不是新增監聽器的元素。如果您想存取底層的 ",
                 code("HtmlElement"),
                 "，請使用 ",
-                link!("/zh-Hant/docs/concepts/function-components/node-refs", "NodeRef"),
+                doc_link!(crate::pages::concepts::function_components::node_refs, "NodeRef"),
                 "。",
             ],
             li![
@@ -420,7 +420,7 @@ fn MyComponent() -> Html {
         ],
         h3!["使用 ", code("NodeRef")],
         p![
-            link!("/zh-Hant/docs/concepts/function-components/node-refs", code("NodeRef")),
+            doc_link!(crate::pages::concepts::function_components::node_refs, code("NodeRef")),
             " 可以取代查詢給定給 ",
             code("Callback"),
             " 的事件。",
@@ -545,7 +545,7 @@ fn MyComponent() -> Html {
         ],
         p![
             "為了手動為某個元素新增事件監聽器，我們需要藉助 ",
-            link!("/zh-Hant/docs/concepts/function-components/node-refs", code("NodeRef")),
+            doc_link!(crate::pages::concepts::function_components::node_refs, code("NodeRef")),
             "，以便在 ",
             code("use_effect_with"),
             " 中使用 ",

@@ -92,7 +92,7 @@ html! {
         ),
         p![
             "詳細な CSS に関する内容は",
-            link!("/ja/docs/more/css", "こちらのドキュメント"),
+            doc_link!(crate::pages::more::css, "こちらのドキュメント"),
             "をご覧ください。",
         ],
         h2!["インラインスタイル"],
@@ -111,7 +111,7 @@ html! {
         ),
         p![
             "詳細な CSS に関する内容は",
-            link!("/ja/docs/more/css", "こちらのドキュメント"),
+            doc_link!(crate::pages::more::css, "こちらのドキュメント"),
             "をご覧ください。",
         ],
     ])

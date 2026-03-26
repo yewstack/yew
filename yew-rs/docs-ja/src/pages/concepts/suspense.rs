@@ -143,7 +143,7 @@ fn app() -> Html {
         h3!["構造体コンポーネントでプレースホルダーを使用する"],
         p![
             "構造体コンポーネントを直接サスペンドすることはできません。しかし、関数コンポーネントを",
-            link!("/ja/docs/advanced-topics/struct-components/hoc", "高階コンポーネント"),
+            doc_link!(crate::pages::advanced_topics::struct_components::hoc, "高階コンポーネント"),
             "として使用し、プレースホルダーに基づいたデータ取得を実現することができます。",
         ],
         p![

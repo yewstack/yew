@@ -26,8 +26,8 @@ crate::doc_page!(
                 "documentation"
             ],
             " and our ",
-            link![
-                "/ja/docs/concepts/basic-web-technologies/wasm-bindgen",
+            doc_link![
+                crate::pages::concepts::basic_web_technologies::wasm_bindgen,
                 "quick guide"
             ],
             ".",
@@ -64,8 +64,8 @@ let document = window()
                 "documentation"
             ],
             " and our ",
-            link![
-                "/ja/docs/concepts/basic-web-technologies/web-sys",
+            doc_link![
+                crate::pages::concepts::basic_web_technologies::web_sys,
                 "quick guide"
             ],
             ".",

@@ -160,7 +160,7 @@ fn app() -> Html {
         h3!["在結構體組件中使用佔位標籤"],
         p![
             "直接暫停結構體組件是不可能的。然而，您可以使用函數元件作為",
-            link!("/zh-Hant/docs/advanced-topics/struct-components/hoc", "高階元件"),
+            doc_link!(crate::pages::advanced_topics::struct_components::hoc, "高階元件"),
             "來實現基於佔位標籤的資料取得。",
         ],
         p![

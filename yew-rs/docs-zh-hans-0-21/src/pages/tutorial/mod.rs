@@ -759,7 +759,10 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         h3!["Learning more about Yew"],
         p![
             "Read our ",
-            link!("/docs/0.21/getting-started", "official documentation"),
+            doc_link!(
+                crate::pages::getting_started::introduction,
+                "official documentation"
+            ),
             link!("https://docs.rs/yew", "API docs"),
             "."
         ]

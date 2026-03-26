@@ -10,9 +10,9 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 code("html! {}"),
                 " 巨集只能接受一個根HTML 節點（您可以透過使用",
-                link!("/zh-Hant/docs/concepts/html/fragments", "fragments"),
+                doc_link!(crate::pages::concepts::html::fragments, "fragments"),
                 " 或",
-                link!("/zh-Hant/docs/concepts/html/lists", "iterators"),
+                doc_link!(crate::pages::concepts::html::lists, "iterators"),
                 " 來規避這一點）",
             ],
             li![
@@ -27,8 +27,9 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 code("html!"),
                 " 巨集會將所有標籤名稱轉換為小寫。若要使用大寫字元（某些SVG 元素所需的字元）請使用",
-                link!(
-                    "/zh-Hant/docs/concepts/html/elements#dynamic-tag-names",
+                doc_link!(
+                    crate::pages::concepts::html::elements,
+                    #"dynamic-tag-names",
                     "動態標籤名稱",
                 ),
                 "：",
@@ -202,7 +203,7 @@ html! { <my-element ~property="abc" /> };"#,
             Some("元件屬性"),
             p![
                 "元件屬性以 Rust 物件傳遞，與此處所述的元素參數 (Attributes) / 屬性 (Properties) 不同。\n在",
-                link!("/zh-Hant/docs/concepts/function-components/properties", "元件屬性"),
+                doc_link!(crate::pages::concepts::function_components::properties, "元件屬性"),
                 "中了解更多。",
             ],
         ],
@@ -217,7 +218,7 @@ html! { <my-element ~property="abc" /> };"#,
         p![
             code("ref"),
             " 可讓您直接存取和操作底層 DOM 節點。有關更多詳細信息，請參閱 ",
-            link!("/zh-Hant/docs/concepts/function-components/node-refs", "Refs"),
+            doc_link!(crate::pages::concepts::function_components::node_refs, "Refs"),
             "。",
         ],
         p![
@@ -228,8 +229,8 @@ html! { <my-element ~property="abc" /> };"#,
         admonition![
             AdmonitionType::Info,
             None,
-            p![link!(
-                "/zh-Hant/docs/concepts/html/lists",
+            p![doc_link!(
+                crate::pages::concepts::html::lists,
                 "了解更多相關內容",
             )],
         ],
@@ -256,7 +257,7 @@ html! {
             None,
             p![
                 "閱讀",
-                link!("/zh-Hant/docs/concepts/html/conditional-rendering", "條件渲染"),
+                doc_link!(crate::pages::concepts::html::conditional_rendering, "條件渲染"),
                 "一節以了解更多",
             ],
         ],

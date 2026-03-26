@@ -14,9 +14,9 @@ crate::doc_page!(
                 "The ",
                 code("html!"),
                 " macro only accepts one root html node (you can counteract this by using ",
-                link!["/docs/concepts/html/fragments", "fragments"],
+                doc_link![crate::pages::concepts::html::fragments, "fragments"],
                 " or ",
-                link!["/docs/concepts/html/lists", "iterators"],
+                doc_link![crate::pages::concepts::html::lists, "iterators"],
                 ")",
             ],
             li![
@@ -32,7 +32,7 @@ crate::doc_page!(
                 "The ",
                 code("html!"),
                 " macro will make all tag names lowercase. To use upper case characters (which are required for some SVG elements) use ",
-                link!["/docs/concepts/html/elements#dynamic-tag-names", "dynamic tag names"],
+                doc_link![crate::pages::concepts::html::elements, #"dynamic-tag-names", "dynamic tag names"],
                 ": ",
                 code("html! { <@{\"myTag\"}></@> }"),
             ],
@@ -189,7 +189,7 @@ html! { <my-element ~property="abc" /> };"#),
             p![
                 "Component properties are passed as Rust objects and are different from the element attributes/properties described here. \
                       Read more about them at ",
-                link!["/docs/concepts/function-components/properties", "Component Properties"],
+                doc_link![crate::pages::concepts::function_components::properties, "Component Properties"],
             ],
         ],
         h3!["Special properties"],
@@ -204,7 +204,7 @@ html! { <my-element ~property="abc" /> };"#),
         p![
             code("ref"),
             " allows you to access and manipulate the underlying DOM node directly. See ",
-            link!["/docs/concepts/function-components/node-refs", "Refs"],
+            doc_link![crate::pages::concepts::function_components::node_refs, "Refs"],
             " for more details.",
         ],
         p![
@@ -216,7 +216,7 @@ html! { <my-element ~property="abc" /> };"#),
             None,
             p![
                 "Read more at ",
-                link!["/docs/concepts/html/lists", "Lists"],
+                doc_link![crate::pages::concepts::html::lists, "Lists"],
             ],
         ],
         h2!["Conditional Rendering"],
@@ -240,7 +240,7 @@ html! {
             None,
             p![
                 "Read more at ",
-                link!["/docs/concepts/html/conditional-rendering", "Conditional Rendering"],
+                doc_link![crate::pages::concepts::html::conditional_rendering, "Conditional Rendering"],
             ],
         ],
     ])

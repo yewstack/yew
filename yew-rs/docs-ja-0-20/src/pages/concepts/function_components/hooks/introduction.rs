@@ -36,7 +36,7 @@ crate::doc_page!(
             li![
                 "Hooks must be called in the same order for every render. Returning early is only \
                  allowed when using ",
-                link!["/ja/docs/concepts/suspense", "Suspense"],
+                doc_link![crate::pages::concepts::suspense, "Suspense"],
             ],
         ],
         p!["These rules are enforced by either compile time or run-time errors."],
@@ -67,8 +67,9 @@ crate::doc_page!(
         p![
             "There are cases where you want to define your own Hooks to encapsulate potentially \
              stateful logic from a component into reusable functions. See the ",
-            link![
-                "/ja/docs/concepts/function-components/hooks/custom-hooks#defining-custom-hooks",
+            doc_link![
+                crate::pages::concepts::function_components::hooks::custom_hooks,
+                #"defining-custom-hooks",
                 "Defining custom hooks"
             ],
             " section for more information.",

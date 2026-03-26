@@ -163,7 +163,7 @@ fn app() -> Html {
         h3!["在结构体组件中使用占位标签"],
         p![
             "直接暂停结构体组件是不可能的。然而，您可以使用一个函数组件作为",
-            link!("/zh-Hans/docs/advanced-topics/struct-components/hoc", "高阶组件"),
+            doc_link!(crate::pages::advanced_topics::struct_components::hoc, "高阶组件"),
             "来实现基于占位标签的数据获取。",
         ],
         p![

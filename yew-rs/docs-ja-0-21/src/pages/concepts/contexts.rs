@@ -12,7 +12,7 @@ crate::doc_page!("Contexts", "/ja/docs/concepts/contexts",
         h2!["The problem with props: \"Prop Drilling\""],
         p![
             "Passing ",
-            link!("/ja/docs/concepts/function-components/properties", "props"),
+            doc_link!(crate::pages::concepts::function_components::properties, "props"),
             " is a great way to pass data directly from a parent to a child. \
                   They become cumbersome to pass down through deeply nested component trees or when multiple components share the same data. \
                   A common solution to data sharing is lifting the data to a common ancestor and making the children take it as props. \
@@ -183,7 +183,7 @@ pub fn ThemedButton() -> Html {
         p!["We have 2 options to consume contexts in struct components:"],
         ul![
             li![
-                link!("/ja/docs/advanced-topics/struct-components/hoc", "Higher Order Components"),
+                doc_link!(crate::pages::advanced_topics::struct_components::hoc, "Higher Order Components"),
                 ": A higher-order function component will consume the context and pass the data to the struct component which requires it.",
             ],
             li![

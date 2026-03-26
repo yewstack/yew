@@ -10,7 +10,7 @@ crate::doc_page!("Introduction", "/ja/docs/concepts/html",
             li![
                 code("html!"),
                 "マクロはルートの HTML ノードのみ受け付けます (",
-                link!["/ja/docs/concepts/html/lists", "フラグメントかイテレータを使う"],
+                doc_link![crate::pages::concepts::html::lists, "フラグメントかイテレータを使う"],
                 "ことでやり取りできます)",
             ],
             li![

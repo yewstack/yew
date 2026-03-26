@@ -49,7 +49,7 @@ crate::doc_page!(
             None,
             p![
                 "For other than parent/child communication, use ",
-                link!["/docs/concepts/contexts", "contexts"],
+                doc_link![crate::pages::concepts::contexts, "contexts"],
             ],
         ],
     ])

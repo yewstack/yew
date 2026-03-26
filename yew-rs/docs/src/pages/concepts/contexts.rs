@@ -9,7 +9,7 @@ pub fn page_content() -> yew_site_lib::Content {
         h2!["The problem with props: \"Prop Drilling\""],
         p![
             "Passing ",
-            link!("/docs/concepts/function-components/properties", "props"),
+            doc_link!(crate::pages::concepts::function_components::properties, "props"),
             " is a great way to pass data directly from a parent to a child. They become cumbersome to pass down through deeply nested component trees or when multiple components share the same data. A common solution to data sharing is lifting the data to a common ancestor and making the children take it as props. However, this can lead to cases where the prop has to go through multiple components to reach the component that needs it. This situation is called \"Prop Drilling\".",
         ],
         p!["Consider the following example which passes down the theme using props:"],
@@ -169,7 +169,7 @@ pub fn ThemedButton() -> Html {
         p!["We have 2 options to consume contexts in struct components:"],
         ul![
             li![
-                link!("/docs/advanced-topics/struct-components/hoc", "Higher Order Components"),
+                doc_link!(crate::pages::advanced_topics::struct_components::hoc, "Higher Order Components"),
                 ": A higher-order function component will consume the context and pass the data to the struct component which requires it.",
             ],
             li![

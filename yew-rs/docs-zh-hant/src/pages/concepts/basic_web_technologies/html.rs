@@ -77,7 +77,7 @@ html! {
         ),
         p![
             "更多關於 Yew 和 HTML 的內容請參考",
-            link!("/zh-Hant/docs/concepts/html/introduction", "更多 HTML"),
+            doc_link!(crate::pages::concepts::html::introduction, "更多 HTML"),
             "。",
         ],
     ])

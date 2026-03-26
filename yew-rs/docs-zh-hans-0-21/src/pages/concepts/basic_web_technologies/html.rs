@@ -25,7 +25,7 @@ crate::doc_page!(
         p![""],
         p![
             "We will introduce Yew and HTML further in depth in ",
-            link!("/docs/0.21/concepts/html", "more HTML"),
+            doc_link!(crate::pages::concepts::html::introduction, "more HTML"),
             "."
         ]
     ])

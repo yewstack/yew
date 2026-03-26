@@ -292,7 +292,7 @@ log_many("Logging", "many values!");"#,
         ],
         p![
             "一个常见的例子是在 ",
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/web-sys", "web-sys"),
+            doc_link!(crate::pages::concepts::basic_web_technologies::web_sys, "web-sys"),
             " 中，当您尝试获取事件的目标时。您可能知道目标元素是什么，但 ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html",
@@ -381,9 +381,9 @@ fn handle_event(event: Event) {
             " API 时，通常会使用 ",
             code("Closure"),
             "。在 ",
-            link!("/zh-Hans/docs/concepts/html/events", "Events"),
+            doc_link!(crate::pages::concepts::html::events, "Events"),
             " 页面的 ",
-            link!("/zh-Hans/docs/concepts/html/events#using-closure-verbose", "Using Closure 部分"),
+            doc_link!(crate::pages::concepts::html::events, #"using-closure-verbose", "Using Closure 部分"),
             " 中可以找到在 Yew 中使用 ",
             code("Closure"),
             " 的示例。",
@@ -403,7 +403,7 @@ fn handle_event(event: Event) {
         ],
         p![
             "这不包括任何 Web API，因为这是 ",
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/web-sys", "web-sys"),
+            doc_link!(crate::pages::concepts::basic_web_technologies::web_sys, "web-sys"),
             " 的作用！",
         ],
         p![

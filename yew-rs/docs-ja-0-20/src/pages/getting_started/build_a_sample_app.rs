@@ -181,7 +181,7 @@ port = 8000"#
         ],
         p![
             "Experiment with this application and review the ",
-            link!("/ja/docs/getting-started/examples", "examples"),
+            doc_link!(crate::pages::getting_started::examples, "examples"),
             " to further your learning.",
         ],
     ])

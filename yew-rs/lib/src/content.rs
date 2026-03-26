@@ -10,10 +10,38 @@ use crate::components::tabs::{TabItem, Tabs};
 pub struct ContentLinkProps {
     pub href: AttrValue,
     pub children: Html,
+    #[prop_or_default]
+    pub internal: bool,
 }
 
 #[styled_component]
 pub fn ContentLink(props: &ContentLinkProps) -> Html {
+    let nav_ctx = use_context::<crate::NavigationContext>();
+    let doc_ctx = use_context::<crate::DocContext>();
+    let (display_href, onclick) = if props.internal {
+        let rewritten = if let Some(ctx) = &doc_ctx {
+            let (base, fragment) = props
+                .href
+                .split_once('#')
+                .map_or((props.href.as_str(), ""), |(b, f)| (b, f));
+            let mut url = crate::components::layout::rewrite_doc_href(
+                base,
+                ctx.lang.as_str(),
+                ctx.doc_version.as_str(),
+            );
+            if !fragment.is_empty() {
+                url.push('#');
+                url.push_str(fragment);
+            }
+            url
+        } else {
+            props.href.to_string()
+        };
+        let onclick = crate::nav_onclick(&nav_ctx, &rewritten);
+        (AttrValue::from(rewritten), onclick)
+    } else {
+        (props.href.clone(), None)
+    };
     html! {
         <a class={css!(
             color: var(--color-primary);
@@ -22,7 +50,7 @@ pub fn ContentLink(props: &ContentLinkProps) -> Html {
             &:hover {
                 text-decoration: underline;
             }
-        )} href={props.href.clone()}>{props.children.clone()}</a>
+        )} href={display_href} {onclick}>{props.children.clone()}</a>
     }
 }
 
@@ -107,6 +135,10 @@ pub enum Inline {
         href: AttrValue,
         children: Vec<Inline>,
     },
+    DocLink {
+        href: AttrValue,
+        children: Vec<Inline>,
+    },
     LineBreak,
     Superscript(Vec<Inline>),
 }
@@ -184,6 +216,17 @@ macro_rules! sup { ($($e:expr),* $(,)?) => { $crate::content::sup(vec![$($e.into
 #[macro_export]
 macro_rules! link { ($href:expr, $($e:expr),* $(,)?) => { $crate::content::link($href, vec![$($e.into()),*]) }; }
 #[macro_export]
+macro_rules! doc_link {
+    ($page_mod:path, # $fragment:expr, $($e:expr),+ $(,)?) => {{
+        use $page_mod as __page;
+        $crate::content::doc_link(format!("{}#{}", __page::HREF, $fragment), vec![$($e.into()),+])
+    }};
+    ($page_mod:path, $($e:expr),+ $(,)?) => {{
+        use $page_mod as __page;
+        $crate::content::doc_link(__page::HREF, vec![$($e.into()),+])
+    }};
+}
+#[macro_export]
 macro_rules! h1 { ($($e:expr),* $(,)?) => { $crate::content::h1(vec![$($e.into()),*]) }; }
 #[macro_export]
 macro_rules! h2 { ($($e:expr),* $(,)?) => { $crate::content::h2(vec![$($e.into()),*]) }; }
@@ -220,8 +263,8 @@ macro_rules! tab { ($value:expr, $label:expr, $($e:expr),* $(,)?) => { $crate::c
 
 #[doc(hidden)]
 pub use crate::{
-    admonition, blockquote, bold, h1, h2, h2_id, h3, h3_id, h4, h4_id, h5, italic, li, li_blocks,
-    link, ol, p, sup, tab, tabs, ul,
+    admonition, blockquote, bold, doc_link, h1, h2, h2_id, h3, h3_id, h4, h4_id, h5, italic, li,
+    li_blocks, link, ol, p, sup, tab, tabs, ul,
 };
 
 impl From<&'static str> for Inline {
@@ -241,6 +284,12 @@ pub fn italic(children: Vec<Inline>) -> Inline {
 }
 pub fn link(href: impl Into<AttrValue>, children: Vec<Inline>) -> Inline {
     Inline::Link {
+        href: href.into(),
+        children,
+    }
+}
+pub fn doc_link(href: impl Into<AttrValue>, children: Vec<Inline>) -> Inline {
+    Inline::DocLink {
         href: href.into(),
         children,
     }
@@ -441,7 +490,9 @@ impl Inline {
             Inline::Bold(children) | Inline::Italic(children) => {
                 children.iter().map(Inline::to_plain_text).collect()
             }
-            Inline::Link { children, .. } => children.iter().map(Inline::to_plain_text).collect(),
+            Inline::Link { children, .. } | Inline::DocLink { children, .. } => {
+                children.iter().map(Inline::to_plain_text).collect()
+            }
             Inline::LineBreak => String::new(),
             Inline::Superscript(children) => children.iter().map(Inline::to_plain_text).collect(),
         }
@@ -459,6 +510,9 @@ impl Inline {
             }
             Inline::Link { href, children } => html! {
                 <ContentLink href={href.clone()}>for child in children { {child.to_html()} }</ContentLink>
+            },
+            Inline::DocLink { href, children } => html! {
+                <ContentLink href={href.clone()} internal=true>for child in children { {child.to_html()} }</ContentLink>
             },
             Inline::LineBreak => html! { <br /> },
             Inline::Superscript(children) => {
@@ -479,7 +533,7 @@ impl Inline {
                 let inner: String = children.iter().map(Inline::to_markdown).collect();
                 format!("*{inner}*")
             }
-            Inline::Link { href, children } => {
+            Inline::Link { href, children } | Inline::DocLink { href, children } => {
                 let inner: String = children.iter().map(Inline::to_markdown).collect();
                 format!("[{inner}]({href})")
             }

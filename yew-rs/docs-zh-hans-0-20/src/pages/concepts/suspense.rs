@@ -148,7 +148,7 @@ fn app() -> Html {
         p![
             "It's not possible to suspend a struct component directly. However, you can use a \
              function component as a ",
-            link!("/docs/0.20/advanced-topics/struct-components/hoc", "HOC"),
+            doc_link!(crate::pages::advanced_topics::struct_components::hoc, "HOC"),
             " to achieve suspense-based data fetching.",
         ],
         code_block(

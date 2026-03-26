@@ -16,8 +16,8 @@ pub fn page_content() -> yew_site_lib::Content {
             " の構文は HTML に似ていますが、同じではありません。ルールもより厳格です。また、条件付きレンダリングやイテレータを使用したリストのレンダリングなどの強力な機能も提供します。",
         ],
         admonition!(AdmonitionType::Info, None,
-            p![link!(
-                "/ja/docs/concepts/html",
+            p![doc_link!(
+                crate::pages::concepts::html::introduction,
                 "html! マクロ、その使用方法、および構文についてさらに詳しく知る",
             )],
         ),
@@ -28,15 +28,15 @@ pub fn page_content() -> yew_site_lib::Content {
             " を使用して親コンポーネントと子コンポーネント間で通信します。親コンポーネントは任意のデータを props として子コンポーネントに渡すことができます。Props は HTML 属性に似ていますが、任意の Rust 型を props として渡すことができます。",
         ],
         admonition!(AdmonitionType::Info, None,
-            p![link!(
-                "/ja/docs/advanced-topics/struct-components/properties",
+            p![doc_link!(
+                crate::pages::advanced_topics::struct_components::properties,
                 "props についてさらに詳しく知る",
             )],
         ),
         admonition!(AdmonitionType::Info, None,
             p![
                 "親/子通信以外の通信には、",
-                link!("/ja/docs/concepts/contexts", "コンテキスト"),
+                doc_link!(crate::pages::concepts::contexts, "コンテキスト"),
                 " を使用してください",
             ],
         ),

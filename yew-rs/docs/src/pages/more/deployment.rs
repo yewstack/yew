@@ -32,7 +32,7 @@ pub fn page_content() -> yew_site_lib::Content {
         h3!["Serving ", code("index.html"), " as a fallback",],
         p![
             "If the application uses the ",
-            link!["/docs/concepts/router", "Yew router"],
+            doc_link![crate::pages::concepts::router, "Yew router"],
             ", you must configure the server to return the ",
             code("index.html"),
             " when asked for a file that it does not have.",

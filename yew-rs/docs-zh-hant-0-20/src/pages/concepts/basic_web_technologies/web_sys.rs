@@ -21,7 +21,7 @@ crate::doc_page!("web-sys", "/zh-Hant/docs/concepts/basic-web-technologies/web-s
         h2!["Inheritance in web-sys"],
         p![
             "In the ",
-            link!["/zh-Hant/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance", "Simulating inheritance section"],
+            doc_link![crate::pages::concepts::basic_web_technologies::wasm_bindgen, #"simulating-inheritance", "Simulating inheritance section"],
             " you can read how in general Rust provides an approach to simulate inheritance in JavaScript. \
               This is very important in ",
             code("web-sys"),
@@ -31,7 +31,7 @@ crate::doc_page!("web-sys", "/zh-Hant/docs/concepts/basic-web-technologies/web-s
             "This section is going to look at a specific element and list out it's inheritance using Rust by calling ",
             link!["https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref", code("Deref::deref")],
             " until the value is ",
-            link!["/zh-Hant/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue", code("JsValue")],
+            doc_link![crate::pages::concepts::basic_web_technologies::wasm_bindgen, #"jsvalue", code("JsValue")],
             ":",
         ],
         code_block("rust",
@@ -90,11 +90,11 @@ let event_target: &EventTarget = text_area.as_ref();
         h2!["The Node in NodeRef"],
         p![
             "Yew uses a ",
-            link!["/zh-Hant/docs/concepts/function-components/node-refs", code("NodeRef")],
+            doc_link![crate::pages::concepts::function_components::node_refs, code("NodeRef")],
             " in order to provide a way for keeping a reference to a ",
             code("Node"),
             " made by the ",
-            link!["/zh-Hant/docs/concepts/html", code("html!")],
+            doc_link![crate::pages::concepts::html::introduction, code("html!")],
             " macro. The ",
             code("Node"),
             " part of ",
@@ -107,7 +107,7 @@ let event_target: &EventTarget = text_area.as_ref();
             code("Option<Node>"),
             " value, however, most of the time in Yew you want to cast this value to a specific element \
               so you can use it's specific methods. This casting can be done using ",
-            link!["/zh-Hant/docs/concepts/basic-web-technologies/wasm-bindgen#JsCast", code("JsCast")],
+            doc_link![crate::pages::concepts::basic_web_technologies::wasm_bindgen, #"JsCast", code("JsCast")],
             " on the ",
             code("Node"),
             " value, if present, but Yew provides the ",
@@ -224,9 +224,9 @@ Document::new()
         h3!["Yew example"],
         p![
             "In Yew you will mostly be creating ",
-            link!["/zh-Hant/docs/concepts/function-components/callbacks", code("Callback")],
+            doc_link![crate::pages::concepts::function_components::callbacks, code("Callback")],
             "s to use in the ",
-            link!["/zh-Hant/docs/concepts/html", code("html!")],
+            doc_link![crate::pages::concepts::html::introduction, code("html!")],
             " macro so the example is going to use this approach instead of completely copying \
               the approach above:",
         ],

@@ -21,7 +21,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ],
         ol![li![
             "每次渲染時，Hooks 必須以相同的順序呼叫。只有在使用 ",
-            link!("/zh-Hant/docs/concepts/suspense", "Suspense"),
+            doc_link!(crate::pages::concepts::suspense, "Suspense"),
             " 時才允許提前返回",
         ]],
         p!["這些規則由編譯時或執行時錯誤來執行。"],

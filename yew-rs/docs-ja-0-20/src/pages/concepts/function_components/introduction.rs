@@ -16,7 +16,10 @@ crate::doc_page!(
         ul![
             li![
                 "Take arguments in form of ",
-                link!["/ja/docs/concepts/function-components/properties", "Props"]
+                doc_link![
+                    crate::pages::concepts::function_components::properties,
+                    "Props"
+                ]
             ],
             li!["Can have their own state"],
             li!["Compute pieces of HTML visible to the user (DOM)"],
@@ -28,8 +31,8 @@ crate::doc_page!(
         ],
         p![
             "There is a more advanced, but less accessible, way to write components - ",
-            link![
-                "/ja/docs/advanced-topics/struct-components",
+            doc_link![
+                crate::pages::advanced_topics::struct_components::introduction,
                 "Struct components"
             ],
             ". They allow very detailed control, though you will not need that level of detail \

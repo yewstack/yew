@@ -72,7 +72,7 @@ html! {
         ),
         p![
             "We will expand upon this concept in ",
-            link!("/docs/more/css", "more CSS"),
+            doc_link![crate::pages::more::css, "more CSS"],
             ".",
         ],
         h2!["Inline Styles"],
@@ -91,7 +91,7 @@ html! {
         ),
         p![
             "We will expand upon this concept in ",
-            link!("/docs/more/css", "more CSS"),
+            doc_link![crate::pages::more::css, "more CSS"],
             ".",
         ],
     ])

@@ -24,8 +24,8 @@ pub fn page_content() -> yew_site_lib::Content {
                 "ドキュメント",
             ),
             "と私たちの",
-            link!(
-                "/ja/docs/concepts/basic-web-technologies/wasm-bindgen",
+            doc_link!(
+                crate::pages::concepts::basic_web_technologies::wasm_bindgen,
                 "クイックガイド",
             ),
             "を強くお勧めします。",
@@ -72,8 +72,8 @@ let document = window()
                 "ドキュメント",
             ),
             "と私たちの",
-            link!(
-                "/ja/docs/concepts/basic-web-technologies/web-sys",
+            doc_link!(
+                crate::pages::concepts::basic_web_technologies::web_sys,
                 "クイックガイド",
             ),
             "を強くお勧めします。",

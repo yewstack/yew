@@ -146,7 +146,7 @@ port = 8000"),
         p!["これで、Yew 開発環境の設定が完了し、最初の Web アプリケーションを構築できました。"],
         p![
             "このアプリケーションを試してみて、さらに学習するために",
-            link!("/ja/docs/getting-started/examples", "サンプル"),
+            doc_link!(crate::pages::getting_started::examples, "サンプル"),
             "を参照してください。",
         ],
     ])

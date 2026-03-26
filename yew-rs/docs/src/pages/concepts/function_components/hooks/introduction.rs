@@ -35,7 +35,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 "Hooks must be called in the same order for every render. Returning early is only \
                  allowed when using ",
-                link!("/docs/concepts/suspense", "Suspense"),
+                doc_link!(crate::pages::concepts::suspense, "Suspense"),
             ],
         ],
         p!["These rules are enforced by either compile-time or run-time errors."],

@@ -46,7 +46,7 @@ pub fn page_content() -> yew_site_lib::Content {
             None,
             p![
                 "對於除了父/子通信之外的其他通信，請使用 ",
-                link!("/zh-Hant/docs/concepts/contexts", "contexts"),
+                doc_link!(crate::pages::concepts::contexts, "contexts"),
             ],
         ),
     ])

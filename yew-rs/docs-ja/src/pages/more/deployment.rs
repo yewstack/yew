@@ -30,7 +30,7 @@ pub fn page_content() -> yew_site_lib::Content {
         h3!["index.html をフォールバックとして提供する"],
         p![
             "アプリケーションが ",
-            link!("/ja/docs/concepts/router", "Yew ルーター"),
+            doc_link!(crate::pages::concepts::router, "Yew ルーター"),
             " を使用している場合、存在しないファイルへのリクエスト時にサーバーが ",
             code("index.html"),
             " を返すように設定する必要があります。",

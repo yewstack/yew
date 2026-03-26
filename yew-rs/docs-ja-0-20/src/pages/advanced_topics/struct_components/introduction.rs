@@ -23,8 +23,8 @@ crate::doc_page!(
         admonition![
             AdmonitionType::Info,
             None,
-            p![link![
-                "/ja/docs/concepts/html",
+            p![doc_link![
+                crate::pages::concepts::html::introduction,
                 "Learn more about the html! macro, how it's used and its syntax"
             ],],
         ],
@@ -39,8 +39,8 @@ crate::doc_page!(
         admonition![
             AdmonitionType::Info,
             None,
-            p![link![
-                "/ja/docs/advanced-topics/struct-components/properties",
+            p![doc_link![
+                crate::pages::advanced_topics::struct_components::properties,
                 "Learn more about the props"
             ],],
         ],
@@ -49,7 +49,7 @@ crate::doc_page!(
             None,
             p![
                 "For other than parent/child communication, use ",
-                link!["/ja/docs/concepts/contexts", "contexts"],
+                doc_link![crate::pages::concepts::contexts, "contexts"],
             ],
         ],
     ])

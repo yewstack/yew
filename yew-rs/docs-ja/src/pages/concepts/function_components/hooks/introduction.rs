@@ -34,7 +34,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ],
             li![
                 "各レンダリング時に、Hooks は同じ順序で呼び出される必要があります。",
-                link!["/ja/docs/concepts/suspense", "Suspense"],
+                doc_link![crate::pages::concepts::suspense, "Suspense"],
                 " を使用する場合のみ、早期リターンが許可されます",
             ],
         ],

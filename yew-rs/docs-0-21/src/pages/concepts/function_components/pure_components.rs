@@ -59,7 +59,10 @@ fn HelloWorld(props: &Props) -> Html {
             "You might wonder if a component can be impure if it does not use any globals, since \
              it is just a function that is called every render. This is where the next topic \
              comes in - ",
-            link!["/docs/concepts/function-components/hooks", "hooks"],
+            doc_link![
+                crate::pages::concepts::function_components::hooks::introduction,
+                "hooks"
+            ],
         ],
     ])
 );

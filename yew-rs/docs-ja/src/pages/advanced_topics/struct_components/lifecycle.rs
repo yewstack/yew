@@ -88,7 +88,7 @@ impl Component for MyComponent {
 }"#),
         p![
             "使用方法の詳細については、",
-            link!("/ja/docs/concepts/html", "html! ガイド"),
+            doc_link!(crate::pages::concepts::html::introduction, "html! ガイド"),
             " を参照してください。",
         ],
         h3!["Rendered"],
@@ -315,8 +315,8 @@ impl Component for Comp {
             " メソッドを使用します。",
         ],
         admonition!(AdmonitionType::Info, None,
-            p![link!(
-                "/ja/docs/advanced-topics/struct-components/properties",
+            p![doc_link!(
+                crate::pages::advanced_topics::struct_components::properties,
                 "プロパティに関する詳細はこちら",
             )],
         ),

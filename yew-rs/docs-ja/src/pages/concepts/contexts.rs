@@ -6,7 +6,7 @@ pub fn page_content() -> yew_site_lib::Content {
         ],
         h2!["Props を使用する際の問題：\"Prop Drilling\""],
         p![
-            link!("/ja/docs/concepts/function-components/properties", "props"),
+            doc_link!(crate::pages::concepts::function_components::properties, "props"),
             " を介してデータを親コンポーネントから直接子コンポーネントに渡すことは良い方法です。しかし、深くネストされたコンポーネントツリーを介してデータを渡す必要がある場合や、複数のコンポーネントが同じデータを共有する必要がある場合、props を渡すことは煩雑になります。一般的なデータ共有の解決策は、データを共通の祖先に持ち上げ、子コンポーネントがそれを props として受け取るようにすることです。しかし、これにより props が複数のコンポーネントを介して渡される必要がある場合があります。この状況は \"Prop Drilling\" と呼ばれます。",
         ],
         p!["以下の例を考えてみましょう。これは props を介してテーマを渡しています："],
@@ -163,7 +163,7 @@ pub fn ThemedButton() -> Html {
         p!["構造体コンポーネント内でコンテキストを使用するには、2つの方法があります："],
         ul![
             li![
-                link!("/ja/docs/advanced-topics/struct-components/hoc", "高階コンポーネント"),
+                doc_link!(crate::pages::advanced_topics::struct_components::hoc, "高階コンポーネント"),
                 "：高階関数コンポーネントがコンテキストを使用し、必要なデータを構造体コンポーネントに渡します。",
             ],
             li![

@@ -11,9 +11,9 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 code("html! {}"),
                 " 宏只能接受一个根 HTML 节点（您可以通过使用 ",
-                link!("/zh-Hans/docs/concepts/html/fragments", "fragments"),
+                doc_link!(crate::pages::concepts::html::fragments, "fragments"),
                 " 或 ",
-                link!("/zh-Hans/docs/concepts/html/lists", "iterators"),
+                doc_link!(crate::pages::concepts::html::lists, "iterators"),
                 " 来规避这一点）",
             ],
             li![
@@ -28,8 +28,9 @@ pub fn page_content() -> yew_site_lib::Content {
             li![
                 code("html!"),
                 " 宏会将所有标签名称转换为小写。要使用大写字符（某些 SVG 元素所需的字符）请使用",
-                link!(
-                    "/zh-Hans/docs/concepts/html/elements#dynamic-tag-names",
+                doc_link!(
+                    crate::pages::concepts::html::elements,
+                    #"dynamic-tag-names",
                     "动态标签名称",
                 ),
                 "：",
@@ -203,7 +204,7 @@ html! { <my-element ~property="abc" /> };"#,
             Some("组件属性"),
             p![
                 "组件属性作为 Rust 对象传递，与此处描述的元素参数 (Attributes) / 属性 (Properties) 不同。\n在",
-                link!("/zh-Hans/docs/concepts/function-components/properties", "组件属性"),
+                doc_link!(crate::pages::concepts::function_components::properties, "组件属性"),
                 "中了解更多信息。",
             ],
         ],
@@ -218,7 +219,7 @@ html! { <my-element ~property="abc" /> };"#,
         p![
             code("ref"),
             " 允许您直接访问和操作底层 DOM 节点。有关更多详细信息，请参阅",
-            link!("/zh-Hans/docs/concepts/function-components/node-refs", "Refs"),
+            doc_link!(crate::pages::concepts::function_components::node_refs, "Refs"),
             "。",
         ],
         p![
@@ -229,8 +230,8 @@ html! { <my-element ~property="abc" /> };"#,
         admonition![
             AdmonitionType::Info,
             None,
-            p![link!(
-                "/zh-Hans/docs/concepts/html/lists",
+            p![doc_link!(
+                crate::pages::concepts::html::lists,
                 "了解更多相关内容",
             )],
         ],
@@ -257,7 +258,7 @@ html! {
             None,
             p![
                 "阅读",
-                link!("/zh-Hans/docs/concepts/html/conditional-rendering", "条件渲染"),
+                doc_link!(crate::pages::concepts::html::conditional_rendering, "条件渲染"),
                 "一节了解更多",
             ],
         ],

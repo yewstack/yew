@@ -296,7 +296,7 @@ log_many("Logging", "many values!");"#,
         ],
         p![
             "一個常見的例子是在 ",
-            link!("/zh-Hant/docs/concepts/basic-web-technologies/web-sys", code("web-sys")),
+            doc_link!(crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")),
             " 中，當您嘗試取得事件的目標時。您可能知道目標元素是什麼，但",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html",
@@ -389,9 +389,9 @@ fn handle_event(event: Event) {
             " API 時，通常會使用",
             code("Closure"),
             "。在",
-            link!("/zh-Hant/docs/concepts/html/events", "Events"),
+            doc_link!(crate::pages::concepts::html::events, "Events"),
             " 頁面的",
-            link!("/zh-Hant/docs/concepts/html/events#using-closure-verbose", "Using Closure 部分"),
+            doc_link!(crate::pages::concepts::html::events, #"using-closure-verbose", "Using Closure 部分"),
             " 中可以找到Yew 中使用",
             code("Closure"),
             " 的範例。",
@@ -411,7 +411,7 @@ fn handle_event(event: Event) {
         ],
         p![
             "這不包括任何 Web API，因為這是 ",
-            link!("/zh-Hant/docs/concepts/basic-web-technologies/web-sys", code("web-sys")),
+            doc_link!(crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")),
             " 的作用！",
         ],
         p![

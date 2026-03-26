@@ -23,7 +23,7 @@ pub fn page_content() -> yew_site_lib::Content {
         h2!["`web-sys` 中的继承"],
         p![
             "在",
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance", "模拟继承"),
+            doc_link!(crate::pages::concepts::basic_web_technologies::wasm_bindgen, #"simulating-inheritance", "模拟继承"),
             "部分，你可以了解到 Rust 通常提供了一种模拟 JavaScript 中继承的方法。这在 ",
             code("web-sys"),
             " 中非常重要，因为了解一个类型上有哪些方法意味着了解它的继承。",
@@ -35,7 +35,7 @@ pub fn page_content() -> yew_site_lib::Content {
                 "Deref::deref",
             ),
             " 列出其继承，直到该值为 ",
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue", "JsValue"),
+            doc_link!(crate::pages::concepts::basic_web_technologies::wasm_bindgen, #"jsvalue", "JsValue"),
             "。",
         ],
         code_block(
@@ -92,13 +92,13 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
         h2!["`NodeRef` 中的 `Node`"],
         p![
             "Yew 使用 ",
-            link!(
-                "/zh-Hans/docs/concepts/function-components/node-refs",
+            doc_link!(
+                crate::pages::concepts::function_components::node_refs,
                 "NodeRef",
             ),
             " 来提供一种方式来保留由 ",
-            link!(
-                "/zh-Hans/docs/concepts/html",
+            doc_link!(
+                crate::pages::concepts::html::introduction,
                 "html!",
             ),
             " 宏创建的 ",
@@ -117,7 +117,7 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
             " 方法将返回一个 ",
             code("Option<Node>"),
             " 值，但是，在 Yew 中，大多数情况下，您希望将此值转换为特定元素，以便使用其特定方法。如果存在，可以使用 ",
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jscast", "JsCast"),
+            doc_link!(crate::pages::concepts::basic_web_technologies::wasm_bindgen, #"jscast", "JsCast"),
             " 对 ",
             code("Node"),
             " 值进行转换，但是 Yew 提供了 ",
@@ -252,13 +252,13 @@ Document::new()
         h3!["用 Yew 重写的示例"],
         p![
             "在 Yew 中，您将主要创建 ",
-            link!(
-                "/zh-Hans/docs/concepts/function-components/callbacks",
+            doc_link!(
+                crate::pages::concepts::function_components::callbacks,
                 "Callback",
             ),
             " 以在 ",
-            link!(
-                "/zh-Hans/docs/concepts/html",
+            doc_link!(
+                crate::pages::concepts::html::introduction,
                 "html!",
             ),
             " 宏中使用，因此示例将使用这种方法，而不是完全复制上面的方法：",

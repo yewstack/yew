@@ -287,7 +287,7 @@ fn App() -> Html {
         admonition(AdmonitionType::Tip, None, vec![
             p![
                 "リスト項目にキーを使用することで、Yew はリスト内のどの項目が変更されたかを追跡し、より高速な再レンダリングを実現できます。",
-                link!["/ja/docs/concepts/html/lists", "リストには常にキーを使用することをお勧めします"],
+                doc_link![crate::pages::concepts::html::lists, "リストには常にキーを使用することをお勧めします"],
                 "。",
             ],
         ]),
@@ -476,13 +476,13 @@ fn VideoDetails(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
             "以前に使用した ",
             code("use_state"),
             " を覚えていますか？それは \"フック\" と呼ばれる特殊な関数です。フックは関数コンポーネントのライフサイクルに \"フック\" して操作を実行するために使用されます。このフックや他のフックについては",
-            link!["/ja/docs/concepts/function-components/hooks", "こちら"],
+            doc_link![crate::pages::concepts::function_components::hooks::introduction, "こちら"],
             "で詳しく学ぶことができます。",
         ],
         admonition(AdmonitionType::Note, None, vec![
             p![
                 "構造体コンポーネントは異なる動作をします。これらについては",
-                link!["/ja/docs/advanced-topics/struct-components", "ドキュメント"],
+                doc_link![crate::pages::advanced_topics::struct_components::introduction, "ドキュメント"],
                 "を参照してください。",
             ],
         ]),
@@ -620,7 +620,7 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##),
         h3!["Yew についてもっと知る"],
         p![
             "私たちの",
-            link!["/ja/docs/getting-started", "公式ドキュメント"],
+            doc_link![crate::pages::getting_started::introduction, "公式ドキュメント"],
             "を読んでください。多くの概念についてより詳細に説明しています。Yew API についてもっと知りたい場合は、",
             link!["https://docs.rs/yew", "API ドキュメント"],
             "を参照してください。",

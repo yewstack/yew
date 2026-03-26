@@ -107,11 +107,11 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
         h2!["The ", code("Node"), " in ", code("NodeRef")],
         p![
             "Yew uses a ",
-            link!["/docs/concepts/function-components/node-refs", code("NodeRef")],
+            doc_link![crate::pages::concepts::function_components::node_refs, code("NodeRef")],
             " to provide a way for keeping a reference to a ",
             code("Node"),
             " made by the ",
-            link!["/docs/concepts/html", code("html!")],
+            doc_link![crate::pages::concepts::html::introduction, code("html!")],
             " macro. The ",
             code("Node"),
             " part of ",
@@ -250,9 +250,9 @@ Document::new()
         h3!["Yew example"],
         p![
             "In Yew you will mostly be creating ",
-            link!["/docs/concepts/function-components/callbacks", code("Callback")],
+            doc_link![crate::pages::concepts::function_components::callbacks, code("Callback")],
             "s to use in the ",
-            link!["/docs/concepts/html", code("html!")],
+            doc_link![crate::pages::concepts::html::introduction, code("html!")],
             " macro so the example is going to use this approach instead of completely copying \
                   the approach above:",
         ],

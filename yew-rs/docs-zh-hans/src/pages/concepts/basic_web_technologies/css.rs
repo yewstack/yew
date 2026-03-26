@@ -90,7 +90,7 @@ html! {
         ],
         p![
             "更多 CSS 相关的内容请参见",
-            link!("/zh-Hans/docs/more/css", "这个文档"),
+            doc_link!(crate::pages::more::css, "这个文档"),
             "。",
         ],
         h2!["内联样式"],
@@ -109,7 +109,7 @@ html! {
         ),
         p![
             "更多 CSS 相关的内容请参见",
-            link!("/zh-Hans/docs/more/css", "这个文档"),
+            doc_link!(crate::pages::more::css, "这个文档"),
             "。",
         ],
     ])

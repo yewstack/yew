@@ -9,7 +9,7 @@ pub fn page_content() -> yew_site_lib::Content {
         p!["それらは次のことを行うべきです："],
         ul![
             li![
-                link!("/ja/docs/concepts/function-components/properties", "Props"),
+                doc_link!(crate::pages::concepts::function_components::properties, "Props"),
                 " の形式でパラメータを受け取る",
             ],
             li!["独自の状態を持つことができる"],
@@ -19,7 +19,7 @@ pub fn page_content() -> yew_site_lib::Content {
         p!["現在、関数コンポーネントについて読んでいます - これは Yew を使い始めるときや、シンプルなレンダリングロジックを書くときにコンポーネントを書くための推奨方法です。"],
         p![
             "もう一つの、より高度ですがアクセスしにくいコンポーネントの書き方があります - ",
-            link!("/ja/docs/advanced-topics/struct-components", "構造コンポーネント"),
+            doc_link!(crate::pages::advanced_topics::struct_components::introduction, "構造コンポーネント"),
             "。それらは非常に詳細な制御を可能にしますが、ほとんどの場合、そこまで詳細な制御は必要ありません。",
         ],
         h2!["関数コンポーネントの作成"],

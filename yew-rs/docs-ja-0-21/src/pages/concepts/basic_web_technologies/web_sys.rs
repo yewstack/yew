@@ -24,8 +24,9 @@ crate::doc_page!("web-sys", "/ja/docs/concepts/basic-web-technologies/web-sys",
         h2!["Inheritance in web-sys"],
         p![
             "In the ",
-            link![
-                "/ja/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance",
+            doc_link![
+                crate::pages::concepts::basic_web_technologies::wasm_bindgen,
+                #"simulating-inheritance",
                 "Simulating inheritance section"
             ],
             " you can read how in general Rust provides an approach to simulate inheritance in JavaScript. \
@@ -40,8 +41,9 @@ crate::doc_page!("web-sys", "/ja/docs/concepts/basic-web-technologies/web-sys",
                 code("Deref::deref")
             ],
             " until the value is ",
-            link![
-                "/ja/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue",
+            doc_link![
+                crate::pages::concepts::basic_web_technologies::wasm_bindgen,
+                #"jsvalue",
                 code("JsValue")
             ],
             ":",
@@ -105,11 +107,11 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
         h2!["The Node in NodeRef"],
         p![
             "Yew uses a ",
-            link!["/ja/docs/concepts/function-components/node-refs", code("NodeRef")],
+            doc_link![crate::pages::concepts::function_components::node_refs, code("NodeRef")],
             " to provide a way for keeping a reference to a ",
             code("Node"),
             " made by the ",
-            link!["/ja/docs/concepts/html", code("html!")],
+            doc_link![crate::pages::concepts::html::introduction, code("html!")],
             " macro. The ",
             code("Node"),
             " part of ",
@@ -125,8 +127,9 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
             code("Option<Node>"),
             " value, however, most of the time in Yew you want to cast this value to a specific element \
                   so you can use its specific methods. This casting can be done using ",
-            link![
-                "/ja/docs/concepts/basic-web-technologies/wasm-bindgen#jscast",
+            doc_link![
+                crate::pages::concepts::basic_web_technologies::wasm_bindgen,
+                #"jscast",
                 code("JsCast")
             ],
             " on the ",
@@ -248,9 +251,9 @@ Document::new()
         h3!["Yew example"],
         p![
             "In Yew you will mostly be creating ",
-            link!["/ja/docs/concepts/function-components/callbacks", code("Callback")],
+            doc_link![crate::pages::concepts::function_components::callbacks, code("Callback")],
             "s to use in the ",
-            link!["/ja/docs/concepts/html", code("html!")],
+            doc_link![crate::pages::concepts::html::introduction, code("html!")],
             " macro so the example is going to use this approach instead of completely copying \
                   the approach above:",
         ],

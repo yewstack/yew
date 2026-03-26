@@ -596,7 +596,10 @@ fn app() -> Html {
             " with a special ",
             code("{{ for ... }}"),
             " syntax ",
-            link!("/docs/concepts/html/lists", "supported by the html! macro"),
+            doc_link!(
+                crate::pages::concepts::html::lists,
+                "supported by the html! macro"
+            ),
             ".",
         ],
         h3!["Handling state"],
@@ -606,7 +609,10 @@ fn app() -> Html {
             " used earlier? That is a special function, called a \"hook\". Hooks are used to \
              \"hook\" into the lifecycle of a function component and perform actions. You can \
              learn more about this hook, and others ",
-            link!("/docs/concepts/function-components/hooks", "here"),
+            doc_link!(
+                crate::pages::concepts::function_components::hooks::introduction,
+                "here"
+            ),
             ".",
         ],
         admonition![
@@ -785,7 +791,10 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         h3!["Learning more about Yew"],
         p![
             "Read our ",
-            link!("/docs/getting-started", "official documentation"),
+            doc_link!(
+                crate::pages::getting_started::introduction,
+                "official documentation"
+            ),
             ". It explains a lot of concepts in much more details. To learn more about our the \
              Yew API, see our ",
             link!("https://docs.rs/yew", "API docs"),

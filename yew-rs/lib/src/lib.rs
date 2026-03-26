@@ -36,6 +36,12 @@ pub struct NavigationContext {
     pub navigate: Callback<(MouseEvent, AttrValue)>,
 }
 
+#[derive(Clone, PartialEq)]
+pub struct DocContext {
+    pub lang: AttrValue,
+    pub doc_version: AttrValue,
+}
+
 pub fn nav_onclick(
     nav_ctx: &Option<NavigationContext>,
     href: &str,
@@ -46,6 +52,13 @@ pub fn nav_onclick(
     Some(Callback::from(move |e: MouseEvent| {
         navigate.emit((e, href.clone()));
     }))
+}
+
+#[cfg(feature = "csr")]
+pub fn set_url_hash(hash: &str) {
+    if let Some(w) = web_sys::window() {
+        let _ = w.location().set_hash(hash);
+    }
 }
 
 #[cfg(feature = "csr")]
@@ -104,6 +117,8 @@ macro_rules! page_main {
 #[macro_export]
 macro_rules! doc_page_impl {
     ($title:expr, $path:expr, $content:expr, $sidebar_fn:path, $doc_version:expr, $lang:expr) => {
+        pub const HREF: &str = $path;
+
         #[allow(unused_imports)]
         use yew::prelude::*;
         #[allow(unused_imports)]
@@ -137,6 +152,8 @@ macro_rules! doc_page_impl {
 #[macro_export]
 macro_rules! doc_page_with_content_fn_impl {
     ($title:expr, $path:expr, $content:expr, $sidebar_fn:path, $doc_version:expr, $lang:expr) => {
+        pub const HREF: &str = $path;
+
         #[allow(unused_imports)]
         use yew::prelude::*;
         #[allow(unused_imports)]
@@ -712,10 +729,17 @@ macro_rules! spa_csr_boilerplate {
             let nav_callback = {
                 let navigator = navigator.clone();
                 Callback::from(move |(e, href): (MouseEvent, AttrValue)| {
-                    if let Some(r) = Route::recognize(href.as_str()) {
+                    let (path, fragment) = match href.find('#') {
+                        Some(i) => (&href[..i], &href[i + 1..]),
+                        None => (href.as_str(), ""),
+                    };
+                    if let Some(r) = Route::recognize(path) {
                         if !matches!(r, Route::NotFound) {
                             e.prevent_default();
                             navigator.push(&r);
+                            if !fragment.is_empty() {
+                                $crate::set_url_hash(&format!("#{fragment}"));
+                            }
                         }
                     }
                 })

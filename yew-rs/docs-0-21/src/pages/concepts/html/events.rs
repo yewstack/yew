@@ -72,7 +72,7 @@ html! {
             "Events dispatched by Yew follow the virtual DOM hierarchy when bubbling up to listeners. Currently, only the bubbling phase \
                   is supported for listeners. Note that the virtual DOM hierarchy is most often, but not always, identical to the actual \
                   DOM hierarchy. The distinction is important when working with ",
-            link!("/docs/advanced-topics/portals", "portals"),
+            doc_link!(crate::pages::advanced_topics::portals, "portals"),
             " and other more advanced techniques. The intuition for well-implemented components should be that events bubble from children \
                   to parents. In this way the hierarchy in your coded ",
             code("html!"),
@@ -182,7 +182,7 @@ html! {
             code("<input>"),
             " element and each time it is invoked we want to send \
                   an ",
-            link!("/docs/concepts/html/components#update", "update"),
+            doc_link!(crate::pages::concepts::html::components, #"update", "update"),
             " ",
             code("Msg"),
             " to our component.",

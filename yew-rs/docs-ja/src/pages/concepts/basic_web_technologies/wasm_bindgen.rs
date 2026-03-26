@@ -242,7 +242,7 @@ log_many("Logging", "many values!");"#),
         ],
         p![
             "一般的な例は ",
-            link!("/ja/docs/concepts/basic-web-technologies/web-sys", code("web-sys")),
+            doc_link!(crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")),
             " で、イベントのターゲットを取得しようとする場合です。ターゲット要素が何であるかを知っているかもしれませんが、",
             link!("https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html",
                 code("web_sys::Event"),
@@ -332,9 +332,9 @@ fn handle_event(event: Event) {
             " API を使用する際に一般的に使用されます。Yew で ",
             code("Closure"),
             " を使用する例は、",
-            link!("/ja/docs/concepts/html/events#using-closure-verbose", "Using Closure セクション"),
+            doc_link!(crate::pages::concepts::html::events, #"using-closure-verbose", "Using Closure セクション"),
             " の ",
-            link!("/ja/docs/concepts/html/events", "Events"),
+            doc_link!(crate::pages::concepts::html::events, "Events"),
             " ページにあります。",
         ],
         p![
@@ -354,7 +354,7 @@ fn handle_event(event: Event) {
         ],
         p![
             "これは Web API を含みません。Web API は ",
-            link!("/ja/docs/concepts/basic-web-technologies/web-sys", code("web-sys")),
+            doc_link!(crate::pages::concepts::basic_web_technologies::web_sys, code("web-sys")),
             " の役割です！",
         ],
         p![
