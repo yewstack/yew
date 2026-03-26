@@ -78,15 +78,19 @@ fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
             font-weight: normal;
         )} href={props.hash_href.clone()} aria-label={props.hash_label.clone()}>{"#"}</a>
     </> };
+    let heading_class = css!(r#"
+        scroll-margin-top: calc(var(--navbar-height) + 1rem);
+        &:hover a { opacity: 1; }
+    "#);
     match props.level {
         2 => {
-            html! { <h2 {id} class={css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);")}>{content}</h2> }
+            html! { <h2 {id} class={heading_class}>{content}</h2> }
         }
         3 => {
-            html! { <h3 {id} class={css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);")}>{content}</h3> }
+            html! { <h3 {id} class={heading_class}>{content}</h3> }
         }
         _ => {
-            html! { <h4 {id} class={css!("scroll-margin-top: calc(var(--navbar-height) + 1rem);")}>{content}</h4> }
+            html! { <h4 {id} class={heading_class}>{content}</h4> }
         }
     }
 }
@@ -863,7 +867,31 @@ pub struct Content {
 }
 
 impl Content {
-    pub fn new(blocks: Vec<Block>) -> Self {
+    pub fn new(mut blocks: Vec<Block>) -> Self {
+        let mut slug_counts = std::collections::HashMap::<String, usize>::new();
+        for block in &mut blocks {
+            if let Block::Heading {
+                level,
+                children,
+                id,
+            } = block
+            {
+                if *level >= 2 && *level <= 4 && id.is_none() {
+                    let text: String = children.iter().map(Inline::to_plain_text).collect();
+                    let base = slugify(&text);
+                    if !base.is_empty() {
+                        let count = slug_counts.entry(base.clone()).or_insert(0);
+                        let unique = if *count == 0 {
+                            base
+                        } else {
+                            format!("{base}-{count}")
+                        };
+                        *count += 1;
+                        *id = Some(AttrValue::from(unique));
+                    }
+                }
+            }
+        }
         Self { blocks }
     }
 

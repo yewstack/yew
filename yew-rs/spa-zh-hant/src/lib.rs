@@ -119,10 +119,10 @@ yew_site_lib::spa_csr_boilerplate!(
 yew_site_lib::spa_ssr_render_pages!(
     "zh-Hant", "/zh-Hant",
     yew_site_docs_zh_hant, yew_site_docs_zh_hant_0_21, yew_site_docs_zh_hant_0_20,
-    tutorial_sidebar_next: yew_site_docs_zh_hant::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_stable: yew_site_docs_zh_hant_0_23::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_0_22: yew_site_docs_zh_hant_0_22::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_0_21: yew_site_docs_zh_hant_0_21::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_0_20: yew_site_docs_zh_hant_0_20::sidebar_data::docs_sidebar(),
+    tutorial_sidebar_next: vec![],
+    tutorial_sidebar_stable: vec![],
+    tutorial_sidebar_0_22: vec![],
+    tutorial_sidebar_0_21: vec![],
+    tutorial_sidebar_0_20: vec![],
     home_pages: [yew_site_home::PageZhHant, yew_site_home::PageZhHantNext, yew_site_home::PageZhHantV022, yew_site_home::PageZhHantV021, yew_site_home::PageZhHantV020]
 );

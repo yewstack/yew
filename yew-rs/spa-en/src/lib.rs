@@ -263,10 +263,10 @@ yew_site_lib::spa_csr_boilerplate!(
 yew_site_lib::spa_ssr_render_pages!(
     "", "",
     yew_site_docs, yew_site_docs_0_21, yew_site_docs_0_20,
-    tutorial_sidebar_next: yew_site_docs::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_stable: yew_site_docs::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_0_22: yew_site_docs::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_0_21: yew_site_docs_0_21::sidebar_data::docs_sidebar(),
-    tutorial_sidebar_0_20: yew_site_docs_0_20::sidebar_data::docs_sidebar(),
+    tutorial_sidebar_next: vec![],
+    tutorial_sidebar_stable: vec![],
+    tutorial_sidebar_0_22: vec![],
+    tutorial_sidebar_0_21: vec![],
+    tutorial_sidebar_0_20: vec![],
     home_pages: [yew_site_home::Page, yew_site_home::PageNext, yew_site_home::PageV022, yew_site_home::PageV021, yew_site_home::PageV020]
 );

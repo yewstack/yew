@@ -157,7 +157,7 @@ fn build_breadcrumbs(
 
 #[styled_component]
 pub fn Layout(props: &LayoutProps) -> Html {
-    let has_sidebar = props.sidebar.is_some();
+    let has_sidebar = props.sidebar.as_ref().is_some_and(|s| !s.is_empty());
     let nav_ctx = use_context::<crate::NavigationContext>();
 
     let mobile_sidebar_open = use_state(|| false);
@@ -220,14 +220,15 @@ pub fn Layout(props: &LayoutProps) -> Html {
         String::new()
     };
 
-    let main_dir = if has_sidebar { "row" } else { "column" };
+    let has_toc = !props.toc.is_empty();
+    let main_dir = if has_sidebar || has_toc { "row" } else { "column" };
     let content_max_w = if props.full_width {
         "none"
     } else {
         "var(--content-max-width)"
     };
     let content_pad = if props.full_width { "0" } else { "2rem" };
-    let content_margin = if has_sidebar { "0" } else { "0 auto" };
+    let content_margin = if has_sidebar || has_toc { "0" } else { "0 auto" };
 
     html! {
         <div class={css!(display: flex; flex-direction: column; min-height: 100vh;)}>
@@ -251,7 +252,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                     flex-direction: column;
                 }
             )}>
-                if let Some(entries) = &props.sidebar {
+                if let Some(entries) = props.sidebar.as_ref().filter(|s| !s.is_empty()) {
                     <div class={if *mobile_sidebar_open {
                         css!(
                             display: contents;
@@ -541,7 +542,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         </nav>
                     }
                 </main>
-                if has_sidebar && !props.toc.is_empty() {
+                if !props.toc.is_empty() {
                     <Toc entries={props.toc.clone()} content_ref={content_ref.clone()} />
                 }
             </div>
