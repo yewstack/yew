@@ -191,7 +191,6 @@ struct EntryViewProps {
     doc_version: AttrValue,
 }
 
-
 #[styled_component]
 fn EntryView(props: &EntryViewProps) -> Html {
     use super::layout::rewrite_doc_href;

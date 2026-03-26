@@ -827,7 +827,7 @@ macro_rules! __ssr_migration_pages_impl {
 #[macro_export]
 macro_rules! __ssr_doc_pages {
     ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr) => {
-        $crate::__doc_page_list!{$crate::__ssr_doc_pages_impl, $pages, $url_prefix, $resolve_fn, $lang}
+        $crate::__doc_page_list! {$crate::__ssr_doc_pages_impl, $pages, $url_prefix, $resolve_fn, $lang}
     };
 }
 
@@ -837,7 +837,6 @@ macro_rules! __ssr_migration_pages {
         $crate::__migration_page_list!{$crate::__ssr_migration_pages_impl, $pages, $url_prefix, $resolve_fn, $lang}
     };
 }
-
 
 #[macro_export]
 macro_rules! spa_ssr_render_pages {

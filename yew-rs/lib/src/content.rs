@@ -78,10 +78,12 @@ fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
             font-weight: normal;
         )} href={props.hash_href.clone()} aria-label={props.hash_label.clone()}>{"#"}</a>
     </> };
-    let heading_class = css!(r#"
+    let heading_class = css!(
+        r#"
         scroll-margin-top: calc(var(--navbar-height) + 1rem);
         &:hover a { opacity: 1; }
-    "#);
+    "#
+    );
     match props.level {
         2 => {
             html! { <h2 {id} class={heading_class}>{content}</h2> }

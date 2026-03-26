@@ -221,14 +221,22 @@ pub fn Layout(props: &LayoutProps) -> Html {
     };
 
     let has_toc = !props.toc.is_empty();
-    let main_dir = if has_sidebar || has_toc { "row" } else { "column" };
+    let main_dir = if has_sidebar || has_toc {
+        "row"
+    } else {
+        "column"
+    };
     let content_max_w = if props.full_width {
         "none"
     } else {
         "var(--content-max-width)"
     };
     let content_pad = if props.full_width { "0" } else { "2rem" };
-    let content_margin = if has_sidebar || has_toc { "0" } else { "0 auto" };
+    let content_margin = if has_sidebar || has_toc {
+        "0"
+    } else {
+        "0 auto"
+    };
 
     html! {
         <div class={css!(display: flex; flex-direction: column; min-height: 100vh;)}>
