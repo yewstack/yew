@@ -2,90 +2,73 @@ crate::doc_page!(
     "Tutorial",
     "/ja/docs/tutorial",
     Content::new(vec![
-        h2![text("Introduction")],
+        h2!["Introduction"],
         p![
-            text(
-                "In this hands-on tutorial, we will take a look at how we can use Yew to build \
-                 web applications. "
-            ),
-            bold![text("Yew")],
-            text(" is a modern "),
-            link!("https://www.rust-lang.org/", text("Rust")),
-            text(" framework for building front-end web apps using "),
-            link!("https://webassembly.org/", text("WebAssembly")),
-            text(
-                ". Yew encourages a reusable, maintainable, and well-structured architecture by \
-                 leveraging Rust's powerful type system. A large ecosystem of community-created \
-                 libraries, known in Rust as "
-            ),
+            "In this hands-on tutorial, we will take a look at how we can use Yew to build web \
+             applications. ",
+            bold!["Yew"],
+            " is a modern ",
+            link!("https://www.rust-lang.org/", "Rust"),
+            " framework for building front-end web apps using ",
+            link!("https://webassembly.org/", "WebAssembly"),
+            ". Yew encourages a reusable, maintainable, and well-structured architecture by \
+             leveraging Rust's powerful type system. A large ecosystem of community-created \
+             libraries, known in Rust as ",
             link!(
                 "https://doc.rust-lang.org/book/ch07-01-packages-and-crates.html",
-                text("crates")
+                "crates"
             ),
-            text(", provide components for commonly-used patterns such as state management. "),
-            link!("https://doc.rust-lang.org/cargo/", text("Cargo")),
-            text(
-                ", the package manager for Rust, allows us to take advantage of the numerous \
-                 crates available on "
-            ),
-            link!("https://crates.io", text("crates.io")),
-            text(", such as Yew."),
+            ", provide components for commonly-used patterns such as state management. ",
+            link!("https://doc.rust-lang.org/cargo/", "Cargo"),
+            ", the package manager for Rust, allows us to take advantage of the numerous crates \
+             available on ",
+            link!("https://crates.io", "crates.io"),
+            ", such as Yew.",
         ],
-        h3![text("What we are going to build")],
-        p![text(
+        h3!["What we are going to build"],
+        p![
             "Rustconf is an intergalactic gathering of the Rust community that happens annually. \
              Rustconf 2020 had a plethora of talks that provided a good amount of information. In \
              this hands-on tutorial, we will be building a web application to help fellow \
              Rustaceans get an overview of the talks and watch them all from one page."
-        )],
-        h2![text("Setting up")],
-        h3![text("Prerequisites")],
+        ],
+        h2!["Setting up"],
+        h3!["Prerequisites"],
         p![
-            text(
-                "This tutorial assumes you are already familiar with Rust. If you are new to \
-                 Rust, the free "
-            ),
+            "This tutorial assumes you are already familiar with Rust. If you are new to Rust, \
+             the free ",
             link!(
                 "https://doc.rust-lang.org/book/ch00-00-introduction.html",
-                text("Rust Book")
+                "Rust Book"
             ),
-            text(
-                " offers a great starting point for beginners and continues to be an excellent \
-                 resource even for experienced Rust developers."
-            ),
+            " offers a great starting point for beginners and continues to be an excellent \
+             resource even for experienced Rust developers.",
         ],
         p![
-            text("Ensure the latest version of Rust is installed by running "),
+            "Ensure the latest version of Rust is installed by running ",
             code("rustup update"),
-            text(" or by "),
-            link!(
-                "https://www.rust-lang.org/tools/install",
-                text("installing rust")
-            ),
-            text(" if you have not already done so."),
+            " or by ",
+            link!("https://www.rust-lang.org/tools/install", "installing rust"),
+            " if you have not already done so.",
         ],
-        p![text(
-            "After installing Rust, you can use Cargo to install trunk by running:"
-        )],
+        p!["After installing Rust, you can use Cargo to install trunk by running:"],
         code_block("bash", "cargo install trunk"),
-        p![text(
-            "We will also need to add the WASM build target by running:"
-        )],
+        p!["We will also need to add the WASM build target by running:"],
         code_block("bash", "rustup target add wasm32-unknown-unknown"),
-        h3![text("Setting up the project")],
-        p![text("First, create a new cargo project:")],
+        h3!["Setting up the project"],
+        p!["First, create a new cargo project:"],
         code_block("bash", "cargo new yew-app\ncd yew-app"),
-        p![text(
+        p![
             "To verify the Rust environment is set up properly, run the initial project using the \
              cargo build tool. After the output about the build process, you should see the \
              expected \"Hello, world!\" message."
-        )],
+        ],
         code_block("bash", "cargo run"),
-        h2![text("Our first static page")],
-        p![text(
+        h2!["Our first static page"],
+        p![
             "To convert this simple command line application to a basic Yew web application, a \
              few changes are needed. Update the files as follows:"
-        )],
+        ],
         code_block(
             "toml",
             r##"[package]
@@ -101,23 +84,20 @@ yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }"##
             AdmonitionType::Info,
             None,
             p![
-                text("You only need the feature "),
+                "You only need the feature ",
                 code("csr"),
-                text(" if you are building an application. It will enable the "),
+                " if you are building an application. It will enable the ",
                 code("Renderer"),
-                text(" and all client-side rendering-related code."),
+                " and all client-side rendering-related code.",
             ],
-            p![text(
+            p![
                 "If you are making a library, do not enable this feature as it will pull in \
                  client-side rendering logic into the server-side rendering bundle."
-            )],
+            ],
             p![
-                text(
-                    "If you need the Renderer for testing or examples, you should enable it in \
-                     the "
-                ),
+                "If you need the Renderer for testing or examples, you should enable it in the ",
                 code("dev-dependencies"),
-                text(" instead."),
+                " instead.",
             ],
         ),
         code_block(
@@ -136,9 +116,9 @@ fn main() {
 }"##
         ),
         p![
-            text("Now, let's create an "),
+            "Now, let's create an ",
             code("index.html"),
-            text(" at the root of the project."),
+            " at the root of the project.",
         ],
         code_block(
             "html",
@@ -148,29 +128,25 @@ fn main() {
     <body></body>
 </html>"#
         ),
-        h3![text("Start the development server")],
-        p![text(
-            "Run the following command to build and serve the application locally."
-        )],
+        h3!["Start the development server"],
+        p!["Run the following command to build and serve the application locally."],
         code_block("bash", "trunk serve --open"),
         admonition!(
             AdmonitionType::Info,
             None,
             p![
-                text("Remove option '--open' to not open your default browser "),
+                "Remove option '--open' to not open your default browser ",
                 code("trunk serve"),
-                text("."),
+                ".",
             ],
         ),
         p![
-            text(
-                "Trunk will open your application in your default browser, watch the project \
-                 directory and helpfully rebuild your application if you modify any source files. \
-                 This will fail if the socket is being used by another application. By default \
-                 server will be listening at address '127.0.0.1' and port '8080' => "
-            ),
-            link!("http://127.0.0.1:8080", text("http://localhost:8080")),
-            text(". To change it, create the following file and edit as needed:"),
+            "Trunk will open your application in your default browser, watch the project \
+             directory and helpfully rebuild your application if you modify any source files. \
+             This will fail if the socket is being used by another application. By default server \
+             will be listening at address '127.0.0.1' and port '8080' => ",
+            link!("http://127.0.0.1:8080", "http://localhost:8080"),
+            ". To change it, create the following file and edit as needed:",
         ],
         code_block(
             "toml",
@@ -183,56 +159,48 @@ address = "127.0.0.1"
 port = 8000"##
         ),
         p![
-            text("If you are curious, you can run "),
+            "If you are curious, you can run ",
             code("trunk help"),
-            text(" and "),
+            " and ",
             code("trunk help <subcommand>"),
-            text(" for more details on what is happening."),
+            " for more details on what is happening.",
         ],
-        h3![text("Congratulations")],
-        p![text(
+        h3!["Congratulations"],
+        p![
             "You have now successfully set up your Yew development environment and built your \
              first Yew web application."
-        )],
-        h2![text("Building HTML")],
-        p![text(
+        ],
+        h2!["Building HTML"],
+        p![
             "Yew makes use of Rust's procedural macros and provides us with a syntax similar to \
              JSX (an extension to JavaScript which allows you to write HTML-like code inside \
              JavaScript) to create the markup."
-        )],
-        h3![text("Converting classic HTML")],
+        ],
+        h3!["Converting classic HTML"],
         p![
-            text(
-                "Since we already have a pretty good idea of what our website will look like, we \
-                 can simply translate our mental draft into a representation compatible with "
-            ),
+            "Since we already have a pretty good idea of what our website will look like, we can \
+             simply translate our mental draft into a representation compatible with ",
             code("html!"),
-            text(
-                ". If you are comfortable writing simple HTML, you should have no problem writing \
-                 marking inside "
-            ),
+            ". If you are comfortable writing simple HTML, you should have no problem writing \
+             marking inside ",
             code("html!"),
-            text(". It is important to note that the macro does differ from HTML in a few ways:"),
+            ". It is important to note that the macro does differ from HTML in a few ways:",
         ],
         ol![
             li![
-                text("Expressions must be wrapped in curly braces ("),
+                "Expressions must be wrapped in curly braces (",
                 code("{ }"),
-                text(")"),
+                ")",
             ],
             li![
-                text(
-                    "There must only be one root node. If you want to have multiple elements \
-                     without wrapping them in a container, an empty tag/fragment ("
-                ),
+                "There must only be one root node. If you want to have multiple elements without \
+                 wrapping them in a container, an empty tag/fragment (",
                 code("<> ... </>"),
-                text(") is used"),
+                ") is used",
             ],
-            li![text("Elements must be closed properly.")],
+            li!["Elements must be closed properly."],
         ],
-        p![text(
-            "We want to build a layout that looks something like this in raw HTML:"
-        )],
+        p!["We want to build a layout that looks something like this in raw HTML:"],
         code_block(
             "html",
             r##"<h1>RustConf Explorer</h1>
@@ -252,13 +220,13 @@ port = 8000"##
 </div>"##
         ),
         p![
-            text("Now, let's convert this HTML into "),
+            "Now, let's convert this HTML into ",
             code("html!"),
-            text(". Type (or copy/paste) the following snippet into the body of "),
+            ". Type (or copy/paste) the following snippet into the body of ",
             code("app"),
-            text(" function such that the value of "),
+            " function such that the value of ",
             code("html!"),
-            text(" is returned by the function"),
+            " is returned by the function",
         ],
         code_block(
             "rust",
@@ -284,28 +252,24 @@ fn App() -> Html {
 // highlight-end
 }"##
         ),
-        p![text(
-            "Refresh the browser page, and you should see the following output displayed:"
-        )],
+        p!["Refresh the browser page, and you should see the following output displayed:"],
         img(
             "/img/tutorial_application_screenshot.png",
             "Running WASM application screenshot"
         ),
-        h3![text("Using Rust language constructs in the markup")],
+        h3!["Using Rust language constructs in the markup"],
         p![
-            text(
-                "A big advantage of writing markup in Rust is that we get all the coolness of \
-                 Rust in our markup. Now, instead of hardcoding the list of videos in the HTML, \
-                 let's define them as a "
-            ),
+            "A big advantage of writing markup in Rust is that we get all the coolness of Rust in \
+             our markup. Now, instead of hardcoding the list of videos in the HTML, let's define \
+             them as a ",
             code("Vec"),
-            text(" of "),
+            " of ",
             code("Video"),
-            text(" structs. We create a simple "),
+            " structs. We create a simple ",
             code("struct"),
-            text(" (in "),
+            " (in ",
             code("main.rs"),
-            text(" or any file of our choice) that will hold our data."),
+            " or any file of our choice) that will hold our data.",
         ],
         code_block(
             "rust",
@@ -318,9 +282,9 @@ struct Video {
 }"##
         ),
         p![
-            text("Next, we will create instances of this struct in our "),
+            "Next, we will create instances of this struct in our ",
             code("app"),
-            text(" function and use those instead of hardcoding the data:"),
+            " function and use those instead of hardcoding the data:",
         ],
         code_block(
             "rust",
@@ -356,9 +320,9 @@ fn App() -> Html {
 // highlight-end"##
         ),
         p![
-            text("To display them, we can use a "),
+            "To display them, we can use a ",
             code("for"),
-            text(" loop right in the macro in place of the hardcoded HTML:"),
+            " loop right in the macro in place of the hardcoded HTML:",
         ],
         code_block(
             "rust",
@@ -381,48 +345,36 @@ fn App() -> Html {
             AdmonitionType::Tip,
             None,
             p![
-                text(
-                    "Keys on list items help Yew keep track of which items have changed in the \
-                     list, resulting in faster re-renders. "
-                ),
+                "Keys on list items help Yew keep track of which items have changed in the list, \
+                 resulting in faster re-renders. ",
                 link!(
                     "/ja/docs/concepts/html/lists",
-                    text("It is always recommended to use keys in lists")
+                    "It is always recommended to use keys in lists"
                 ),
-                text("."),
+                ".",
             ],
         ),
-        h2![text("Components")],
-        p![text(
+        h2!["Components"],
+        p![
             "Components are the building blocks of Yew applications. By combining components, \
              which can be made of other components, we build our application. By structuring our \
              components for re-usability and keeping them generic, we will be able to use them in \
              multiple parts of our application without having to duplicate code or logic."
-        )],
+        ],
         p![
-            text("The "),
+            "The ",
             code("app"),
-            text(" function we have been using so far is a component, called "),
+            " function we have been using so far is a component, called ",
             code("App"),
-            text(
-                ". It is a \"function component\". There are two different types of components in \
-                 Yew."
-            ),
+            ". It is a \"function component\". There are two different types of components in Yew.",
         ],
-        ol![
-            li![text("Struct Components")],
-            li![text("Function Components")],
-        ],
-        p![text(
-            "In this tutorial, we will be using function components."
-        )],
+        ol![li!["Struct Components"], li!["Function Components"],],
+        p!["In this tutorial, we will be using function components."],
         p![
-            text("Now, let's split up our "),
+            "Now, let's split up our ",
             code("App"),
-            text(
-                " component into smaller components. We begin by extracting the videos list into \
-                 its own component."
-            ),
+            " component into smaller components. We begin by extracting the videos list into its \
+             own component.",
         ],
         code_block(
             "rust",
@@ -441,31 +393,29 @@ fn VideosList(VideosListProps { videos }: &VideosListProps) -> Html {
 }"##
         ),
         p![
-            text("Notice the parameters of our "),
+            "Notice the parameters of our ",
             code("VideosList"),
-            text(
-                " function component. A function component takes only one argument which defines \
-                 its \"props\" (short for \"properties\"). Props are used to pass data down from \
-                 a parent component to a child component. In this case, "
-            ),
+            " function component. A function component takes only one argument which defines its \
+             \"props\" (short for \"properties\"). Props are used to pass data down from a parent \
+             component to a child component. In this case, ",
             code("VideosListProps"),
-            text(" is a struct that defines the props."),
+            " is a struct that defines the props.",
         ],
         admonition!(
             AdmonitionType::Important,
             None,
             p![
-                text("The struct used for props must implement "),
+                "The struct used for props must implement ",
                 code("Properties"),
-                text(" by deriving it."),
+                " by deriving it.",
             ],
         ),
         p![
-            text("Now, we can update our "),
+            "Now, we can update our ",
             code("App"),
-            text(" component to make use of "),
+            " component to make use of ",
             code("VideosList"),
-            text(" component."),
+            " component.",
         ],
         code_block(
             "rust",
@@ -486,26 +436,22 @@ fn App() -> Html {
 }"#
         ),
         p![
-            text(
-                "By looking at the browser window, we can verify that the lists are rendered as \
-                 they should be. We have moved the rendering logic of lists to its component. \
-                 This shortens the "
-            ),
+            "By looking at the browser window, we can verify that the lists are rendered as they \
+             should be. We have moved the rendering logic of lists to its component. This \
+             shortens the ",
             code("App"),
-            text(" component's source code, making it easier for us to read and understand."),
+            " component's source code, making it easier for us to read and understand.",
         ],
-        h3![text("Making it interactive")],
+        h3!["Making it interactive"],
         p![
-            text("The final goal here is to display the selected video. To do that, "),
+            "The final goal here is to display the selected video. To do that, ",
             code("VideosList"),
-            text(
-                " component needs to \"notify\" its parent when a video is selected, which is \
-                 done via a "
-            ),
+            " component needs to \"notify\" its parent when a video is selected, which is done \
+             via a ",
             code("Callback"),
-            text(". This concept is called \"passing handlers\". We modify its props to take an "),
+            ". This concept is called \"passing handlers\". We modify its props to take an ",
             code("on_click"),
-            text(" callback:"),
+            " callback:",
         ],
         code_block(
             "rust",
@@ -517,9 +463,9 @@ struct VideosListProps {
 }"##
         ),
         p![
-            text("Then we modify the "),
+            "Then we modify the ",
             code("VideosList"),
-            text(" component to \"emit\" the selected video to the callback."),
+            " component to \"emit\" the selected video to the callback.",
         ],
         code_block(
             "rust",
@@ -543,13 +489,11 @@ fn VideosList(VideosListProps { videos, on_click }: &VideosListProps) -> Html {
 }"##
         ),
         p![
-            text("Next, we need to modify the usage of "),
+            "Next, we need to modify the usage of ",
             code("VideosList"),
-            text(
-                " to pass that callback. But before doing that, we should create a new component, "
-            ),
+            " to pass that callback. But before doing that, we should create a new component, ",
             code("VideoDetails"),
-            text(", that is displayed when a video is clicked."),
+            ", that is displayed when a video is clicked.",
         ],
         code_block(
             "rust",
@@ -569,11 +513,11 @@ fn VideoDetails(VideosDetailsProps { video }: &VideosDetailsProps) -> Html {
 }"##
         ),
         p![
-            text("Now, modify the "),
+            "Now, modify the ",
             code("App"),
-            text(" component to display "),
+            " component to display ",
             code("VideoDetails"),
-            text(" component whenever a video is selected."),
+            " component whenever a video is selected.",
         ],
         code_block(
             "rust",
@@ -604,57 +548,55 @@ html! {
     </>
 }"#
         ),
-        h3![text("Handling state")],
+        h3!["Handling state"],
         p![
-            text("Remember the "),
+            "Remember the ",
             code("use_state"),
-            text(
-                " used earlier? That is a special function, called a \"hook\". Hooks are used to \
-                 \"hook\" into the lifecycle of a function component and perform actions. You can \
-                 learn more about this hook, and others "
-            ),
-            link!("/ja/docs/concepts/function-components/hooks", text("here")),
-            text("."),
+            " used earlier? That is a special function, called a \"hook\". Hooks are used to \
+             \"hook\" into the lifecycle of a function component and perform actions. You can \
+             learn more about this hook, and others ",
+            link!("/ja/docs/concepts/function-components/hooks", "here"),
+            ".",
         ],
         admonition!(
             AdmonitionType::Note,
             None,
             p![
-                text("Struct components act differently. See "),
+                "Struct components act differently. See ",
                 link!(
                     "/ja/docs/advanced-topics/struct-components",
-                    text("the documentation")
+                    "the documentation"
                 ),
-                text(" to learn about those."),
+                " to learn about those.",
             ],
         ),
-        h2![text("Fetching data (using external REST API)")],
-        p![text(
+        h2!["Fetching data (using external REST API)"],
+        p![
             "In a real-world application, data will usually come from an API instead of being \
              hardcoded. Let's fetch our videos list from an external source. For this we will \
              need to add the following crates:"
-        )],
+        ],
         ul![
             li![
                 link!("https://crates.io/crates/gloo-net", code("gloo-net")),
-                text(" - For making the fetch call."),
+                " - For making the fetch call.",
             ],
             li![
                 link!("https://serde.rs", code("serde")),
-                text(" with derive features - For de-serializing the JSON response"),
+                " with derive features - For de-serializing the JSON response",
             ],
             li![
                 link!(
                     "https://crates.io/crates/wasm-bindgen-futures",
                     code("wasm-bindgen-futures")
                 ),
-                text(" - For executing Rust Future as a Promise"),
+                " - For executing Rust Future as a Promise",
             ],
         ],
         p![
-            text("Let's update the dependencies in "),
+            "Let's update the dependencies in ",
             code("Cargo.toml"),
-            text(" file:"),
+            " file:",
         ],
         code_block(
             "toml",
@@ -667,31 +609,31 @@ wasm-bindgen-futures = "0.4"
 // highlight-end"##
         ),
         p![
-            text("Yew's "),
+            "Yew's ",
             code("serde"),
-            text(" feature enables integration with the "),
+            " feature enables integration with the ",
             code("serde"),
-            text(" crate, the important point for us is that it adds a "),
+            " crate, the important point for us is that it adds a ",
             code("serde::Deserialize"),
-            text(" impl to "),
+            " impl to ",
             code("AttrValue"),
-            text("."),
+            ".",
         ],
         admonition!(
             AdmonitionType::Note,
             None,
             p![
-                text("When choosing dependencies make sure they are "),
+                "When choosing dependencies make sure they are ",
                 code("wasm32"),
-                text(" compatible! Otherwise you won't be able to run your application."),
+                " compatible! Otherwise you won't be able to run your application.",
             ],
         ),
         p![
-            text("Update the "),
+            "Update the ",
             code("Video"),
-            text(" struct to derive the "),
+            " struct to derive the ",
             code("Deserialize"),
-            text(" trait:"),
+            " trait:",
         ],
         code_block(
             "rust",
@@ -709,9 +651,9 @@ struct Video {
 }"##
         ),
         p![
-            text("Now as the last step, we need to update our "),
+            "Now as the last step, we need to update our ",
             code("App"),
-            text(" component to make the fetch request instead of using hardcoded data"),
+            " component to make the fetch request instead of using hardcoded data",
         ],
         code_block(
             "rust",
@@ -760,76 +702,66 @@ fn App() -> Html {
             AdmonitionType::Note,
             None,
             p![
-                text("We are using "),
+                "We are using ",
                 code("unwrap"),
-                text(
-                    "s here because this is a demo application. In a real-world app, you would \
-                     likely want to have "
-                ),
+                "s here because this is a demo application. In a real-world app, you would likely \
+                 want to have ",
                 link!(
                     "https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html",
-                    text("proper error handling")
+                    "proper error handling"
                 ),
-                text("."),
+                ".",
             ],
         ),
-        p![text(
+        p![
             "Now, look at the browser to see everything working as expected... which would have \
              been the case if it were not for CORS. To fix that, we need a proxy server. Luckily \
              trunk provides that."
-        )],
-        p![text("Update the following line:")],
+        ],
+        p!["Update the following line:"],
         code_block(
             "rust",
             r##"// highlight-next-line
 let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         ),
-        p![text("Now, rerun the server with the following command:")],
+        p!["Now, rerun the server with the following command:"],
         code_block(
             "bash",
             "trunk serve --proxy-backend=https://yew.rs/tutorial"
         ),
-        p![text(
-            "Refresh the tab and everything should work as expected."
-        )],
-        h2![text("Wrapping up")],
-        p![text(
+        p!["Refresh the tab and everything should work as expected."],
+        h2!["Wrapping up"],
+        p![
             "Congratulations! You've created a web application that fetches data from an external \
              API and displays a list of videos."
-        )],
-        h2![text("What's next")],
-        p![text(
+        ],
+        h2!["What's next"],
+        p![
             "This application is very far from perfect or useful. After going through this \
              tutorial, you can use it as a jumping-off point to explore more advanced topics."
-        )],
-        h3![text("Styles")],
-        p![
-            text(
-                "Our apps look very ugly. There is no CSS or any kind of style. Unfortunately, \
-                 Yew does not offer a built-in way to style components. See "
-            ),
-            link!("https://trunkrs.dev/assets/", text("Trunk's assets")),
-            text(" to learn how to add style sheets."),
         ],
-        h3![text("More libraries")],
+        h3!["Styles"],
         p![
-            text(
-                "Our app made use of only a few external dependencies. There are lots of crates \
-                 out there that can be used. See "
-            ),
-            link!("/community/external-libs", text("external libraries")),
-            text(" for more details."),
+            "Our apps look very ugly. There is no CSS or any kind of style. Unfortunately, Yew \
+             does not offer a built-in way to style components. See ",
+            link!("https://trunkrs.dev/assets/", "Trunk's assets"),
+            " to learn how to add style sheets.",
         ],
-        h3![text("Learning more about Yew")],
+        h3!["More libraries"],
         p![
-            text("Read our "),
-            link!("/ja/docs/getting-started", text("official documentation")),
-            text(
-                ". It explains a lot of concepts in much more detail. To learn more about the Yew \
-                 API, see our "
-            ),
-            link!("https://docs.rs/yew", text("API docs")),
-            text("."),
+            "Our app made use of only a few external dependencies. There are lots of crates out \
+             there that can be used. See ",
+            link!("/community/external-libs", "external libraries"),
+            " for more details.",
+        ],
+        h3!["Learning more about Yew"],
+        p![
+            "Read our ",
+            link!("/ja/docs/getting-started", "official documentation"),
+            ". It explains a lot of concepts in much more detail. To learn more about the Yew \
+             API, see our ",
+            link!("https://docs.rs/yew", "API docs"),
+            ".",
         ],
     ])
 );

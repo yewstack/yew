@@ -2,24 +2,22 @@ crate::doc_page!(
     "Literals and Expressions",
     "/ja/docs/concepts/html/literals-and-expressions",
     Content::new(vec![
-        h2![text("リテラル")],
+        h2!["リテラル"],
         p![
-            text("式が"),
+            "式が",
             code("Display"),
-            text("を実装した型を解決する場合、文字列に変換されて DOM に"),
+            "を実装した型を解決する場合、文字列に変換されて DOM に",
             link![
                 "https://developer.mozilla.org/en-US/docs/Web/API/Text",
-                text("Text")
+                "Text"
             ],
-            text("ノードとして挿入されます。"),
+            "ノードとして挿入されます。",
         ],
         p![
-            text("テキストは式として処理されるため、全ての表示される内容は"),
+            "テキストは式として処理されるため、全ての表示される内容は",
             code("{}"),
-            text(
-                "ブロックによって囲まれる必要があります。これは Yew のアプリと通常の HTML \
-                 の構文で最も異なる点です。"
-            ),
+            "ブロックによって囲まれる必要があります。これは Yew のアプリと通常の HTML \
+             の構文で最も異なる点です。",
         ],
         code_block(
             "rust",
@@ -32,11 +30,11 @@ html!{
     </>
 }"#
         ),
-        h2![text("式")],
+        h2!["式"],
         p![
-            text("HTML に"),
+            "HTML に",
             code("{}"),
-            text("ブロックを使って式を挿入することができます。"),
+            "ブロックを使って式を挿入することができます。",
         ],
         code_block(
             "rust",
@@ -54,9 +52,7 @@ html!{
   </div>
 }"#
         ),
-        p![text(
-            "式を関数やクロージャに分離するのはコードの可読性の観点から有効なことがあります。"
-        )],
+        p!["式を関数やクロージャに分離するのはコードの可読性の観点から有効なことがあります。"],
         code_block(
             "rust",
             r#"let show_link = true;

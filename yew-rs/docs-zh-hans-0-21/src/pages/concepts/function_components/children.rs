@@ -4,9 +4,9 @@ crate::doc_page!(
     Content::new(vec![
         p![
             code("Children"),
-            text(" is a special prop type that allows you to receive nested "),
+            " is a special prop type that allows you to receive nested ",
             code("Html"),
-            text(" that is provided like html child elements.")
+            " that is provided like html child elements."
         ],
         code_block(
             "rust",

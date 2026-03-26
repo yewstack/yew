@@ -1,36 +1,36 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        p![text(
+        p![
             "Routers in Single Page Applications (SPA) handle displaying different pages \
              depending on what the URL is. Instead of the default behavior of requesting a \
              different remote resource when a link is clicked, the router instead sets the URL \
              locally to point to a valid route in your application. The router then detects this \
-             change and then decides what to render.",
-        )],
+             change and then decides what to render."
+        ],
         p![
-            text("Yew provides router support in the "),
+            "Yew provides router support in the ",
             code("yew-router"),
-            text(" crate. To start using it, add the dependency to your "),
+            " crate. To start using it, add the dependency to your ",
             code("Cargo.toml"),
-            text(":"),
+            ":",
         ],
         code_block("sh", r#"cargo add yew-router"#),
         p![
-            text("The utilities needed are provided under "),
+            "The utilities needed are provided under ",
             code("yew_router::prelude"),
-            text(","),
+            ",",
         ],
-        h2![text("Usage")],
-        p![text("You start by defining a "), code("Route"), text("."),],
+        h2!["Usage"],
+        p!["You start by defining a ", code("Route"), ".",],
         p![
-            text("Routes are defined as an "),
+            "Routes are defined as an ",
             code("enum"),
-            text(" which derives "),
+            " which derives ",
             code("Routable"),
-            text(". This enum must be "),
+            ". This enum must be ",
             code("Clone + PartialEq"),
-            text("."),
+            ".",
         ],
         code_block(
             "rust",
@@ -48,53 +48,43 @@ enum Route {
 }"##,
         ),
         p![
-            text("A "),
+            "A ",
             code("Route"),
-            text(" is paired with a "),
+            " is paired with a ",
             code("<Switch />"),
-            text(
-                " component, which finds the variant whose path matches the browser's current URL \
-                 and passes it to the ",
-            ),
+            " component, which finds the variant whose path matches the browser's current URL and \
+             passes it to the ",
             code("render"),
-            text(
-                " callback. The callback then decides what to render. In case no path is matched, \
-                 the router navigates to the path with ",
-            ),
+            " callback. The callback then decides what to render. In case no path is matched, the \
+             router navigates to the path with ",
             code("not_found"),
-            text(
-                " attribute. If no route is specified, nothing is rendered, and a message is \
-                 logged to the console stating that no route was matched.",
-            ),
+            " attribute. If no route is specified, nothing is rendered, and a message is logged \
+             to the console stating that no route was matched.",
         ],
         p![
-            text("Most of yew-router's components, in particular "),
+            "Most of yew-router's components, in particular ",
             code("<Link />"),
-            text(" and "),
+            " and ",
             code("<Switch />"),
-            text(", must be (grand-)children of one of the Router components (e.g. "),
+            ", must be (grand-)children of one of the Router components (e.g. ",
             code("<BrowserRouter />"),
-            text(
-                "). You usually only need a single Router in your app, most often rendered \
-                 immediately by your most top-level ",
-            ),
+            "). You usually only need a single Router in your app, most often rendered \
+             immediately by your most top-level ",
             code("<App />"),
-            text(
-                " component. The Router registers a context, which is needed for Links and \
-                 Switches to function. An example is shown below.",
-            ),
+            " component. The Router registers a context, which is needed for Links and Switches \
+             to function. An example is shown below.",
         ],
         admonition!(
             AdmonitionType::Caution,
             None,
             p![
-                text("When using "),
+                "When using ",
                 code("yew-router"),
-                text(" in a browser environment, "),
+                " in a browser environment, ",
                 code("<BrowserRouter />"),
-                text(" is highly recommended. You can find other router flavors in the "),
-                link!("https://docs.rs/yew-router/", text("API Reference")),
-                text("."),
+                " is highly recommended. You can find other router flavors in the ",
+                link!("https://docs.rs/yew-router/", "API Reference"),
+                ".",
             ],
         ),
         code_block(
@@ -145,14 +135,12 @@ fn app() -> Html {
     }
 }"##,
         ),
-        h3![text("Path Segments")],
+        h3!["Path Segments"],
         p![
-            text(
-                "It is also possible to extract information from a route using dynamic and named \
-                 wildcard segments. You can then access the post's id inside ",
-            ),
+            "It is also possible to extract information from a route using dynamic and named \
+             wildcard segments. You can then access the post's id inside ",
             code("<Switch />"),
-            text(" and forward it to the appropriate component via properties."),
+            " and forward it to the appropriate component via properties.",
         ],
         code_block(
             "rust",
@@ -181,45 +169,37 @@ fn switch(route: Route) -> Html {
             AdmonitionType::Note,
             None,
             p![
-                text("You can have a normal "),
+                "You can have a normal ",
                 code("Post"),
-                text(" variant instead of "),
+                " variant instead of ",
                 code("Post {id: String}"),
-                text(" too. For example, when "),
+                " too. For example, when ",
                 code("Post"),
-                text(
-                    " is rendered with another router, the field can then be redundant as the \
-                     other router can match and handle the path. See the ",
-                ),
-                link!("#nested-router", text("Nested Router")),
-                text(" section below for details"),
+                " is rendered with another router, the field can then be redundant as the other \
+                 router can match and handle the path. See the ",
+                link!("#nested-router", "Nested Router"),
+                " section below for details",
             ],
         ),
         p![
-            text("Note the fields must implement "),
+            "Note the fields must implement ",
             code("Clone + PartialEq"),
-            text(" as part of the "),
+            " as part of the ",
             code("Route"),
-            text(" enum. They must also implement "),
+            " enum. They must also implement ",
             code("std::fmt::Display"),
-            text(" and "),
+            " and ",
             code("std::str::FromStr"),
-            text(
-                " for serialization and deserialization. Primitive types like integer, float, and \
-                 String already satisfy the requirements.",
-            ),
+            " for serialization and deserialization. Primitive types like integer, float, and \
+             String already satisfy the requirements.",
         ],
         p![
-            text(
-                "In case when the form of the path matches, but the deserialization fails (as per ",
-            ),
+            "In case when the form of the path matches, but the deserialization fails (as per ",
             code("FromStr"),
-            text(
-                "). The router will consider the route as unmatched and try to render the not \
-                 found route (or a blank page if the not found route is unspecified).",
-            ),
+            "). The router will consider the route as unmatched and try to render the not found \
+             route (or a blank page if the not found route is unspecified).",
         ],
-        p![text("Consider this example:")],
+        p!["Consider this example:"],
         code_block_ignore(
             "rust",
             r##"#[derive(Clone, Routable, PartialEq)]
@@ -233,104 +213,93 @@ enum Route {
 // switch function renders News and id as is. Omitted here."##,
         ),
         p![
-            text("When the segment goes over 255, "),
+            "When the segment goes over 255, ",
             code("u8::from_str()"),
-            text(" fails with "),
+            " fails with ",
             code("ParseIntError"),
-            text(", the router will then consider the route unmatched."),
+            ", the router will then consider the route unmatched.",
         ],
         img(
             "/img/router-deserialization-failure-behavior.gif",
             "router deserialization failure behavior",
         ),
         p![
-            text(
-                "For more information about the route syntax and how to bind parameters, check \
-                 out ",
-            ),
+            "For more information about the route syntax and how to bind parameters, check out ",
             link!(
                 "https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params",
-                text("route-recognizer"),
+                "route-recognizer",
             ),
-            text("."),
+            ".",
         ],
-        h3![text("Location")],
+        h3!["Location"],
         p![
-            text("The router provides a universal "),
+            "The router provides a universal ",
             code("Location"),
-            text(
-                " struct via context which can be used to access routing information. They can be \
-                 retrieved by hooks or convenient functions on ",
-            ),
+            " struct via context which can be used to access routing information. They can be \
+             retrieved by hooks or convenient functions on ",
             code("ctx.link()"),
-            text("."),
+            ".",
         ],
-        h3![text("Navigation")],
+        h3!["Navigation"],
         p![
             code("yew_router"),
-            text(" provides a handful of tools to work with navigation."),
+            " provides a handful of tools to work with navigation.",
         ],
-        h4![text("Link")],
+        h4!["Link"],
         p![
-            text("A "),
+            "A ",
             code("<Link />"),
-            text(" renders as an "),
+            " renders as an ",
             code("<a>"),
-            text(" element, the "),
+            " element, the ",
             code("onclick"),
-            text(" event handler will call "),
+            " event handler will call ",
             link!(
                 "https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault",
-                text("preventDefault"),
+                "preventDefault",
             ),
-            text(
-                ", and push the targeted page to the history and render the desired page, which \
-                 is what should be expected from a Single Page App. The default ",
-            ),
+            ", and push the targeted page to the history and render the desired page, which is \
+             what should be expected from a Single Page App. The default ",
             code("onclick"),
-            text(" of a normal anchor element would reload the page."),
+            " of a normal anchor element would reload the page.",
         ],
         p![
-            text("The "),
+            "The ",
             code("<Link />"),
-            text(" component also passes its children to the "),
+            " component also passes its children to the ",
             code("<a>"),
-            text(" element. Consider it a replacement of "),
+            " element. Consider it a replacement of ",
             code("<a/>"),
-            text(" for in-app routes. Except you supply a "),
+            " for in-app routes. Except you supply a ",
             code("to"),
-            text(" attribute instead of a "),
+            " attribute instead of a ",
             code("href"),
-            text(". An example usage:"),
+            ". An example usage:",
         ],
         code_block_ignore(
             "rust",
             r#"<Link<Route> to={Route::Home}>{ "click here to go home" }</Link<Route>>"#,
         ),
-        p![text("Struct variants work as expected too:")],
+        p!["Struct variants work as expected too:"],
         code_block_ignore(
             "rust",
             r#"<Link<Route> to={Route::Post { id: "new-yew-release".to_string() }}>{ "Yew!" }</Link<Route>>"#,
         ),
-        h4![text("Navigator API")],
+        h4!["Navigator API"],
         p![
-            text(
-                "Navigator API is provided for both function components and struct components. \
-                 They enable callbacks to change the route. A ",
-            ),
+            "Navigator API is provided for both function components and struct components. They \
+             enable callbacks to change the route. A ",
             code("Navigator"),
-            text(" instance can be obtained in either case to manipulate the route."),
+            " instance can be obtained in either case to manipulate the route.",
         ],
-        h5![text("Function Components")],
+        h5!["Function Components"],
         p![
-            text("For function components, the "),
+            "For function components, the ",
             code("use_navigator"),
-            text(
-                " hook re-renders the component when the underlying navigator provider changes. \
-                 Here is how to implement a button that navigates to the ",
-            ),
+            " hook re-renders the component when the underlying navigator provider changes. Here \
+             is how to implement a button that navigates to the ",
             code("Home"),
-            text(" route when clicked."),
+            " route when clicked.",
         ],
         code_block_ignore(
             "rust",
@@ -345,26 +314,22 @@ pub fn MyComponent() -> Html {
 }"##,
         ),
         p![
-            text(
-                "If you want to replace the current location instead of pushing a new location \
-                 onto the stack, use ",
-            ),
+            "If you want to replace the current location instead of pushing a new location onto \
+             the stack, use ",
             code("navigator.replace()"),
-            text(" instead of "),
+            " instead of ",
             code("navigator.push()"),
-            text("."),
+            ".",
         ],
         p![
-            text("You may notice "),
+            "You may notice ",
             code("navigator"),
-            text(
-                " has to move into the callback, so it cannot be used again for other callbacks. \
-                 Luckily ",
-            ),
+            " has to move into the callback, so it cannot be used again for other callbacks. \
+             Luckily ",
             code("navigator"),
-            text(" implements "),
+            " implements ",
             code("Clone"),
-            text(", here is for example how to have multiple buttons for different routes:"),
+            ", here is for example how to have multiple buttons for different routes:",
         ],
         code_block_ignore(
             "rust",
@@ -407,16 +372,14 @@ pub fn nav_items() -> Html {
     }
 }"##,
         ),
-        h5![text("Struct Components")],
+        h5!["Struct Components"],
         p![
-            text("For struct components, the "),
+            "For struct components, the ",
             code("Navigator"),
-            text(" instance can be obtained through the "),
+            " instance can be obtained through the ",
             code("ctx.link().navigator()"),
-            text(
-                " API. The rest is identical to the function component case. Here is an example \
-                 of a view function that renders a single button.",
-            ),
+            " API. The rest is identical to the function component case. Here is an example of a \
+             view function that renders a single button.",
         ],
         code_block_ignore(
             "rust",
@@ -428,22 +391,18 @@ pub fn nav_items() -> Html {
     }
 }"#,
         ),
-        h4![text("Redirect")],
+        h4!["Redirect"],
         p![
             code("yew-router"),
-            text(" also provides a "),
+            " also provides a ",
             code("<Redirect />"),
-            text(
-                " component in the prelude. It can be used to achieve similar effects as the \
-                 navigator API. The component accepts a ",
-            ),
+            " component in the prelude. It can be used to achieve similar effects as the \
+             navigator API. The component accepts a ",
             code("to"),
-            text(" attribute as the target route. When a "),
+            " attribute as the target route. When a ",
             code("<Redirect/>"),
-            text(
-                " is rendered users will be redirected to the route specified in props. Here is \
-                 an example:",
-            ),
+            " is rendered users will be redirected to the route specified in props. Here is an \
+             example:",
         ],
         code_block_ignore(
             "rust",
@@ -464,39 +423,39 @@ fn some_page() -> Html {
             AdmonitionType::Tip,
             Some("`Redirect` vs `Navigator`, which to use"),
             p![
-                text("The Navigator API is the only way to manipulate route in callbacks. While "),
+                "The Navigator API is the only way to manipulate route in callbacks. While ",
                 code("<Redirect />"),
-                text(" can be used as return values in a component. You might also want to use "),
+                " can be used as return values in a component. You might also want to use ",
                 code("<Redirect />"),
-                text(" in another non-component context, for example in the switch function of a "),
-                link!("#nested-router", text("Nested Router")),
-                text("."),
+                " in another non-component context, for example in the switch function of a ",
+                link!("#nested-router", "Nested Router"),
+                ".",
             ],
         ),
-        h3![text("Listening to Changes")],
-        h4![text("Function Components")],
+        h3!["Listening to Changes"],
+        h4!["Function Components"],
         p![
-            text("You can use "),
+            "You can use ",
             code("use_location"),
-            text(" and "),
+            " and ",
             code("use_route"),
-            text(" hooks. Your components will re-render when provided values change."),
+            " hooks. Your components will re-render when provided values change.",
         ],
-        h4![text("Struct Components")],
+        h4!["Struct Components"],
         p![
-            text("In order to react on route changes, you can pass a callback closure to the "),
+            "In order to react on route changes, you can pass a callback closure to the ",
             code("add_location_listener()"),
-            text(" method of "),
+            " method of ",
             code("ctx.link()"),
-            text("."),
+            ".",
         ],
         admonition!(
             AdmonitionType::Note,
             None,
-            p![text(
+            p![
                 "The location listener will get unregistered once it is dropped. Make sure to \
-                 store the handle inside your component state.",
-            )],
+                 store the handle inside your component state."
+            ],
         ),
         code_block_ignore(
             "rust",
@@ -513,83 +472,78 @@ fn some_page() -> Html {
         ),
         p![
             code("ctx.link().location()"),
-            text(" and "),
+            " and ",
             code("ctx.link().route::<R>()"),
-            text(" can also be used to retrieve the location and the route once."),
+            " can also be used to retrieve the location and the route once.",
         ],
-        h3![text("Query Parameters")],
-        h4![text("Specifying query parameters when navigating")],
+        h3!["Query Parameters"],
+        h4!["Specifying query parameters when navigating"],
         p![
-            text(
-                "In order to specify query parameters when navigating to a new route, use either ",
-            ),
+            "In order to specify query parameters when navigating to a new route, use either ",
             code("navigator.push_with_query"),
-            text(" or the "),
+            " or the ",
             code("navigator.replace_with_query"),
-            text(" functions. It uses the "),
+            " functions. It uses the ",
             code("ToQuery"),
-            text(" trait to serialize the parameters into a query string for the URL. The "),
+            " trait to serialize the parameters into a query string for the URL. The ",
             code("ToQuery"),
-            text(" trait is automatically implemented for "),
+            " trait is automatically implemented for ",
             code("serde"),
-            text(" so any type that implements "),
+            " so any type that implements ",
             code("Serialize"),
-            text(" can be passed. In its simplest form, this is just a "),
+            " can be passed. In its simplest form, this is just a ",
             code("HashMap"),
-            text(" containing string pairs. In more complex scenarios the "),
+            " containing string pairs. In more complex scenarios the ",
             code("ToQuery"),
-            text(" trait can be implemented manually for a custom query format."),
+            " trait can be implemented manually for a custom query format.",
         ],
-        h4![text("Obtaining query parameters for the current route",)],
+        h4!["Obtaining query parameters for the current route"],
         p![
             code("location.query"),
-            text(" is used to obtain the query parameters. It uses the "),
+            " is used to obtain the query parameters. It uses the ",
             code("FromQuery"),
-            text(" trait to deserialize the parameters from the query string in the URL. The "),
+            " trait to deserialize the parameters from the query string in the URL. The ",
             code("FromQuery"),
-            text(" trait is automatically implemented for "),
+            " trait is automatically implemented for ",
             code("serde"),
-            text(" so any type that implements "),
+            " so any type that implements ",
             code("Deserialize"),
-            text(
-                " can be passed. If the URL is formatted in an custom way, a manual \
-                 implementation of ",
-            ),
+            " can be passed. If the URL is formatted in an custom way, a manual implementation of ",
             code("FromQuery"),
-            text(" can be used."),
+            " can be used.",
         ],
-        h2_id!("nested-router", text("Nested Router")),
-        p![text(
+        h2_id!("nested-router", "Nested Router"),
+        p![
             "Nested router can be useful when the app grows larger. Consider the following router \
-             structure:",
-        )],
+             structure:"
+        ],
         themed_img(
             "/img/nested-router-light.svg",
             "/img/nested-router-dark.svg",
             "nested router structure",
         ),
         p![
-            text("The nested "),
+            "The nested ",
             code("SettingsRouter"),
-            text(" handles all URLs that start with "),
+            " handles all URLs that start with ",
             code("/settings"),
-            text(". Additionally, it redirects URLs that are not matched to the main "),
+            ". Additionally, it redirects URLs that are not matched to the main ",
             code("NotFound"),
-            text(" route. So "),
+            " route. So ",
             code("/settings/gibberish"),
-            text(" will redirect to "),
+            " will redirect to ",
             code("/404"),
-            text("."),
+            ".",
         ],
         admonition!(
             AdmonitionType::Caution,
             None,
-            p![text(
+            p![
                 "Though note that this is still a work in progress so the way we do this is not \
-                 final",
-            )],
+                 final"
+            ],
         ),
-        p![text("It can be implemented with the following code:")],
+        p!["It can be implemented with the following code:"],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -655,42 +609,35 @@ pub fn app() -> Html {
     }
 }"##,
         ),
-        h3![text("Basename")],
+        h3!["Basename"],
         p![
-            text("It's possible to define a basename with "),
+            "It's possible to define a basename with ",
             code("yew-router"),
-            text(". A basename is a common prefix of all routes. Both the Navigator API and "),
+            ". A basename is a common prefix of all routes. Both the Navigator API and ",
             code("<Switch />"),
-            text(
-                " component respect basename setting. All pushed routes will be prefixed with the \
-                 basename and all switches will strip the basename before trying to parse the \
-                 path into a ",
-            ),
+            " component respect basename setting. All pushed routes will be prefixed with the \
+             basename and all switches will strip the basename before trying to parse the path \
+             into a ",
             code("Routable"),
-            text("."),
+            ".",
         ],
         p![
-            text(
-                "If a basename prop is not supplied to the Router component, it will use the href \
-                 attribute of the ",
-            ),
+            "If a basename prop is not supplied to the Router component, it will use the href \
+             attribute of the ",
             code("<base />"),
-            text(" element in your HTML file and fallback to "),
+            " element in your HTML file and fallback to ",
             code("/"),
-            text(" if no "),
+            " if no ",
             code("<base />"),
-            text(" is present in the HTML file."),
+            " is present in the HTML file.",
         ],
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/router",
-            text("Router"),
+            "Router",
         )]],
-        h2![text("API Reference")],
-        ul![li![link!(
-            "https://docs.rs/yew-router/",
-            text("yew-router"),
-        )]],
+        h2!["API Reference"],
+        ul![li![link!("https://docs.rs/yew-router/", "yew-router",)]],
     ])
 }
 

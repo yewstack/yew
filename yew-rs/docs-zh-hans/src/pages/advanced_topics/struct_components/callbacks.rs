@@ -1,31 +1,29 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("回调函数 (Callbacks)")],
+        h2!["回调函数 (Callbacks)"],
         p![
-            text("回调函数是用于在 Yew 中与服务、代理和父组件进行通信的。在内部，它们的类型只是 "),
+            "回调函数是用于在 Yew 中与服务、代理和父组件进行通信的。在内部，它们的类型只是 ",
             code("Fn"),
-            text(" 包装在 "),
+            " 包装在 ",
             code("Rc"),
-            text(" 中，以允许它们被克隆。"),
+            " 中，以允许它们被克隆。",
         ],
         p![
-            text("它们有一个 "),
+            "它们有一个 ",
             code("emit"),
-            text(" 函数，该函数以其 "),
+            " 函数，该函数以其 ",
             code("<IN>"),
-            text(
-                " 类型作为参数，并将其转换为其目标期望的消息。如果父组件中的回调函数作为 props \
-                 提供给子组件，子组件可以在其 ",
-            ),
+            " 类型作为参数，并将其转换为其目标期望的消息。如果父组件中的回调函数作为 props \
+             提供给子组件，子组件可以在其 ",
             code("update"),
-            text(" 生命周期钩子中调用回调函数的 "),
+            " 生命周期钩子中调用回调函数的 ",
             code("emit"),
-            text(" 函数，以将消息发送回其父组件。在 "),
+            " 函数，以将消息发送回其父组件。在 ",
             code("html!"),
-            text(" 宏中作为 props 提供的闭包或函数会自动转换为回调函数。"),
+            " 宏中作为 props 提供的闭包或函数会自动转换为回调函数。",
         ],
-        p![text("一个简单的回调函数的使用可能如下所示：")],
+        p!["一个简单的回调函数的使用可能如下所示："],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -56,21 +54,19 @@ impl Component for Comp {
 }"#,
         ),
         p![
-            text("这个函数传递给 "),
+            "这个函数传递给 ",
             code("callback"),
-            text(" 必须始终带有一个参数。例如，"),
+            " 必须始终带有一个参数。例如，",
             code("onclick"),
-            text(" 处理程序需要一个接受 "),
+            " 处理程序需要一个接受 ",
             code("MouseEvent"),
-            text(
-                " 类型参数的函数。然后处理程序可以决定应该发送什么类型的消息给组件。\
-                 这个消息无条件地被安排在下一个更新循环中。",
-            ),
+            " 类型参数的函数。然后处理程序可以决定应该发送什么类型的消息给组件。\
+             这个消息无条件地被安排在下一个更新循环中。",
         ],
         p![
-            text("如果你需要一个回调函数，它可能不需要引起更新，请使用 "),
+            "如果你需要一个回调函数，它可能不需要引起更新，请使用 ",
             code("batch_callback"),
-            text("。"),
+            "。",
         ],
         code_block(
             "rust",
@@ -108,15 +104,15 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2![text("相关示例")],
+        h2!["相关示例"],
         ul![
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/counter",
-                text("Counter"),
+                "Counter",
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/timer",
-                text("Timer"),
+                "Timer",
             )],
         ],
     ])

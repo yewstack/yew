@@ -2,26 +2,26 @@ crate::doc_page!(
     "Suspense",
     "/zh-Hant/docs/concepts/suspense",
     Content::new(vec![
-        p![text(
+        p![
             "Suspense is a way to suspend component rendering whilst waiting a task to complete \
-             and a fallback (placeholder) UI is shown in the meanwhile."
-        ),],
-        p![text(
+             and a fallback (placeholder) UI is shown in the meanwhile.",
+        ],
+        p![
             "It can be used to fetch data from server, wait for tasks to be completed by an \
-             agent, or perform other background asynchronous task."
-        ),],
-        p![text(
+             agent, or perform other background asynchronous task.",
+        ],
+        p![
             "Before suspense, data fetching usually happens after (Fetch-on-render) or before \
-             component rendering (Fetch-then-render)."
-        ),],
-        h3![text("Render-as-You-Fetch")],
-        p![text(
+             component rendering (Fetch-then-render).",
+        ],
+        h3!["Render-as-You-Fetch"],
+        p![
             "Suspense enables a new approach that allows components to initiate data request \
              during the rendering process. When a component initiates a data request, the \
              rendering process will become suspended and a fallback UI will be shown until the \
-             request is completed."
-        ),],
-        p![text("The recommended way to use suspense is with hooks.")],
+             request is completed.",
+        ],
+        p!["The recommended way to use suspense is with hooks."],
         code_block_ignore(
             "rust",
             r##"use yew::prelude::*;
@@ -45,27 +45,24 @@ fn app() -> Html {
 }"##
         ),
         p![
-            text("In the above example, the "),
+            "In the above example, the ",
             code("use_user"),
-            text(
-                " hook will suspend the component rendering while user information is loading and \
-                 a "
-            ),
+            " hook will suspend the component rendering while user information is loading and a ",
             code("Loading..."),
-            text(" placeholder will be shown until "),
+            " placeholder will be shown until ",
             code("user"),
-            text(" is loaded."),
+            " is loaded.",
         ],
         p![
-            text("To define a hook that suspends a component rendering, it needs to return a "),
+            "To define a hook that suspends a component rendering, it needs to return a ",
             code("SuspensionResult<T>"),
-            text(". When the component needs to be suspended, the hook should return a "),
+            ". When the component needs to be suspended, the hook should return a ",
             code("Err(Suspension)"),
-            text(" and users should unwrap it with "),
+            " and users should unwrap it with ",
             code("?"),
-            text(" in which it will be converted into "),
+            " in which it will be converted into ",
             code("Html"),
-            text("."),
+            ".",
         ],
         code_block_ignore(
             "rust",
@@ -93,7 +90,7 @@ fn use_user() -> SuspensionResult<User> {
     }
 }"##
         ),
-        h1(vec![text("Complete Example")]),
+        h1!["Complete Example"],
         code_block(
             "rust",
             r##"use yew::prelude::*;
@@ -147,17 +144,12 @@ fn app() -> Html {
     }
 }"##
         ),
-        h3![text("Use Suspense in Struct Components")],
+        h3!["Use Suspense in Struct Components"],
         p![
-            text(
-                "It's not possible to suspend a struct component directly. However, you can use a \
-                 function component as a "
-            ),
-            link![
-                "/zh-Hant/docs/advanced-topics/struct-components/hoc",
-                text("HOC")
-            ],
-            text(" to achieve suspense-based data fetching."),
+            "It's not possible to suspend a struct component directly. However, you can use a \
+             function component as a ",
+            link!["/zh-Hant/docs/advanced-topics/struct-components/hoc", "HOC"],
+            " to achieve suspense-based data fetching.",
         ],
         code_block_ignore(
             "rust",
@@ -196,10 +188,10 @@ impl Component for BaseUserContent {
 
 pub type UserContent = WithUser<BaseUserContent>;"##
         ),
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![li![link![
             "https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/suspense",
-            text("Suspense")
+            "Suspense"
         ],],],
     ])
 );

@@ -2,21 +2,21 @@ crate::doc_page!(
     "Conditional Rendering",
     "/zh-Hans/docs/concepts/html/conditional-rendering",
     Content::new(vec![
-        h2![text("If blocks")],
+        h2!["If blocks"],
         p![
-            text("To conditionally render some markup, we wrap it in an "),
+            "To conditionally render some markup, we wrap it in an ",
             code("if"),
-            text(" block:")
+            " block:"
         ],
-        p![code("if"), text(":")],
-        p![text("True case")],
-        p![code("if - else"), text(":")],
-        p![text("True case")],
-        p![text("False case")],
-        p![code("if let"), text(":")],
-        p![text("{ text }")],
-        p![code("if let else"), text(":")],
-        p![text("{ text }")],
-        p![text("False case")]
+        p![code("if"), ":"],
+        p!["True case"],
+        p![code("if - else"), ":"],
+        p!["True case"],
+        p!["False case"],
+        p![code("if let"), ":"],
+        p!["{ text }"],
+        p![code("if let else"), ":"],
+        p!["{ text }"],
+        p!["False case"]
     ])
 );

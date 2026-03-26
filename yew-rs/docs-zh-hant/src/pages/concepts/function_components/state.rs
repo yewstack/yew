@@ -1,86 +1,84 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("如何儲存狀態的一般視圖")],
-        p![text(
-            "這個表格可以作為一個指南，幫助您決定哪種狀態儲存類型最適合您的用例：",
-        )],
+        h2!["如何儲存狀態的一般視圖"],
+        p!["這個表格可以作為一個指南，幫助您決定哪種狀態儲存類型最適合您的用例："],
         table(
             vec![
-                vec![text("Hook")],
-                vec![text("類型")],
-                vec![text("何時渲染?")],
-                vec![text("作用域")],
+                vec!["Hook".into()],
+                vec!["類型".into()],
+                vec!["何時渲染?".into()],
+                vec!["作用域".into()],
             ],
             vec![
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html",
-                        text("use_state"),
+                        "use_state",
                     )],
                     vec![code("T")],
-                    vec![text("被設定一個值")],
-                    vec![text("組件內部實例")],
+                    vec!["被設定一個值".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html",
-                        text("use_state_eq"),
+                        "use_state_eq",
                     )],
                     vec![code("T: PartialEq")],
-                    vec![text("被設定一個不同的值")],
-                    vec![text("組件內部實例")],
+                    vec!["被設定一個不同的值".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html",
-                        text("use_reducer"),
+                        "use_reducer",
                     )],
                     vec![code("T: Reducible")],
-                    vec![text("被呼叫歸納")],
-                    vec![text("組件內部實例")],
+                    vec!["被呼叫歸納".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer_eq.html",
-                        text("use_reducer_eq"),
+                        "use_reducer_eq",
                     )],
                     vec![code("T: Reducible + PartialEq")],
-                    vec![text("被呼叫歸納，歸納後的值與之前不同")],
-                    vec![text("組件內部實例")],
+                    vec!["被呼叫歸納，歸納後的值與之前不同".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_memo.html",
-                        text("use_memo"),
+                        "use_memo",
                     )],
                     vec![code("Deps -> T")],
-                    vec![text("依賴項發生變化")],
-                    vec![text("組件內部實例")],
+                    vec!["依賴項發生變化".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_callback.html",
-                        text("use_callback"),
+                        "use_callback",
                     )],
                     vec![code("Deps -> Callback<E>")],
-                    vec![text("依賴項發生變化")],
-                    vec![text("組件內部實例")],
+                    vec!["依賴項發生變化".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
                     vec![link!(
                         "https://yew-rs-api.web.app/next/yew/functional/fn.use_mut_ref.html",
-                        text("use_mut_ref"),
+                        "use_mut_ref",
                     )],
                     vec![code("T")],
-                    vec![text("-")],
-                    vec![text("組件內部實例")],
+                    vec!["-".into()],
+                    vec!["組件內部實例".into()],
                 ],
                 vec![
-                    vec![text("全域靜態常數")],
+                    vec!["全域靜態常數".into()],
                     vec![code("T")],
-                    vec![text("-")],
-                    vec![text("全域，任何位置都可以使用")],
+                    vec!["-".into()],
+                    vec!["全域，任何位置都可以使用".into()],
                 ],
             ],
         ),

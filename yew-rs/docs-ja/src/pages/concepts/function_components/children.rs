@@ -3,9 +3,9 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("Children"),
-            text(" は特別なプロパティタイプで、HTMLの子要素のようにネストされた "),
+            " は特別なプロパティタイプで、HTMLの子要素のようにネストされた ",
             code("Html"),
-            text(" を受け取ることができます。"),
+            " を受け取ることができます。",
         ],
         code_block(
             "rust",

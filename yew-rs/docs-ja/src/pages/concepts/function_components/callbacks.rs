@@ -2,16 +2,16 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         p![
-            text("コールバック関数は、コンポーネントツリー内で情報を上向きに伝達したり、イベント処理中に他のコンポーネント（例えばエージェントやDOM）と通信したりするために使用されます。内部的には、コールバック関数の型は単なる "),
+            "コールバック関数は、コンポーネントツリー内で情報を上向きに伝達したり、イベント処理中に他のコンポーネント（例えばエージェントやDOM）と通信したりするために使用されます。内部的には、コールバック関数の型は単なる ",
             code("Fn"),
-            text(" であり、安価にクローンできるように "),
+            " であり、安価にクローンできるように ",
             code("Rc"),
-            text(" に包まれています。"),
+            " に包まれています。",
         ],
         p![
-            text("コールバック関数を手動で呼び出したい場合は、"),
+            "コールバック関数を手動で呼び出したい場合は、",
             code("emit"),
-            text(" 関数を使用できます。"),
+            " 関数を使用できます。",
         ],
         code_block("rust", r#"use yew::{html, Component, Context, Html, Callback};
 
@@ -21,8 +21,8 @@ let cb: Callback<String, String> = Callback::from(move |name: String| {
 
 let result = cb.emit(String::from("Bob"));  // コールバック関数を呼び出す
 // web_sys::console::log_1(&result.into()); // コメントを解除すると、「Bye Bob」 が出力されます"#),
-        h2![text("コールバック関数をプロパティとして渡す")],
-        p![text("yew で一般的なパターンは、コールバック関数を作成し、それをプロパティとして子コンポーネントに渡すことです。")],
+        h2!["コールバック関数をプロパティとして渡す"],
+        p!["yew で一般的なパターンは、コールバック関数を作成し、それをプロパティとして子コンポーネントに渡すことです。"],
         code_block("rust", r#"use yew::{component, html, Html, Properties, Callback};
 
 #[derive(Properties, PartialEq)]
@@ -48,9 +48,9 @@ fn App() -> Html {
 
     html! { <HelloWorld {on_name_entry} /> }
 }"#),
-        h2![text("DOM イベントとコールバック関数")],
-        p![text("コールバック関数は、DOM イベントに接続するためにも使用されます。")],
-        p![text("例えば、ここではユーザーがボタンをクリックしたときに呼び出されるコールバック関数を定義します：")],
+        h2!["DOM イベントとコールバック関数"],
+        p!["コールバック関数は、DOM イベントに接続するためにも使用されます。"],
+        p!["例えば、ここではユーザーがボタンをクリックしたときに呼び出されるコールバック関数を定義します："],
         code_block("rust", r#"use yew::{component, html, Html, Properties, Callback};
 
 #[component]

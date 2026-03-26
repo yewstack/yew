@@ -4,36 +4,26 @@ pub fn page_content() -> yew_site_lib::Content {
         admonition!(
             AdmonitionType::Important,
             Some("改善ドキュメント"),
-            p![text(
-                "異なるエディタを使用していますか？おすすめがあれば、\
-                 選択したエディタの説明を自由に追加してください。",
-            )],
+            p!["異なるエディタを使用していますか？おすすめがあれば、\
+                選択したエディタの説明を自由に追加してください。"],
         ),
-        h2![text("コンポーネント作成のためのテンプレートを追加")],
-        h3![text("JetBrains IDEs")],
+        h2!["コンポーネント作成のためのテンプレートを追加"],
+        h3!["JetBrains IDEs"],
         ol![
-            li![text(
+            li![
                 "ナビゲーションバーから順に File | Settings | Editor | Live Templates \
-                 をクリックします。",
-            )],
-            li![text(
-                "Rust を選択し、+ アイコンをクリックして新しい Live Template を追加します。",
-            )],
-            li![text("必要に応じて名前と説明を入力します。")],
-            li![text(
-                "以下のコードスニペットをテンプレートテキスト部分に貼り付けます。",
-            )],
-            li![text(
-                "右下の適用範囲を変更し、Rust > Item > Module を選択します。",
-            )],
+                 をクリックします。"
+            ],
+            li!["Rust を選択し、+ アイコンをクリックして新しい Live Template を追加します。"],
+            li!["必要に応じて名前と説明を入力します。"],
+            li!["以下のコードスニペットをテンプレートテキスト部分に貼り付けます。"],
+            li!["右下の適用範囲を変更し、Rust > Item > Module を選択します。"],
         ],
-        p![text(
-            "関数型コンポーネントの場合、以下のテンプレートを使用します。",
-        )],
+        p!["関数型コンポーネントの場合、以下のテンプレートを使用します。"],
         ul![li![
-            text("(オプション) 変数を編集し、"),
+            "(オプション) 変数を編集し、",
             code("tag"),
-            text(" に適切なデフォルト値（例：\"div\"）を設定します。"),
+            " に適切なデフォルト値（例：\"div\"）を設定します。",
         ]],
         code_block(
             "rust",
@@ -48,9 +38,7 @@ pub fn $Name$(props: &$Name$Props) -> Html {
     }
 }"#,
         ),
-        p![text(
-            "構造体コンポーネントの場合、以下のより複雑なテンプレートを使用できます。",
-        )],
+        p!["構造体コンポーネントの場合、以下のより複雑なテンプレートを使用できます。"],
         code_block(
             "rust",
             r#"struct $NAME$;
@@ -73,13 +61,11 @@ impl Component for $NAME$ {
     }
 }"#,
         ),
-        h3![text("VS Code")],
+        h3!["VS Code"],
         ol![
-            li![text(
-                "ナビゲーションバーから順に File > Preferences > User Snippets をクリックします。",
-            )],
-            li![text("設定言語として Rust を選択します。")],
-            li![text("以下の JSON ファイルにコードスニペットを追加します。",)],
+            li!["ナビゲーションバーから順に File > Preferences > User Snippets をクリックします。"],
+            li!["設定言語として Rust を選択します。"],
+            li!["以下の JSON ファイルにコードスニペットを追加します。"],
         ],
         code_block(
             "json",
@@ -127,37 +113,35 @@ impl Component for $NAME$ {
     }
 }"##,
         ),
-        h2![code("html!"), text(" マクロのサポート")],
-        h3![text("JetBrains IDEs")],
-        p![text("Contribution Welcome!")],
-        h3![text("VS Code")],
-        h4![text("Rust-Yew 拡張機能")],
+        h2![code("html!"), " マクロのサポート"],
+        h3!["JetBrains IDEs"],
+        p!["Contribution Welcome!"],
+        h3!["VS Code"],
+        h4!["Rust-Yew 拡張機能"],
         blockquote![p![
-            text("これは"),
-            bold![text("進行中の")],
-            text("、"),
-            bold![text("コミュニティが維持している")],
-            text("プロジェクトです！"),
+            "これは",
+            bold!["進行中の"],
+            "、",
+            bold!["コミュニティが維持している"],
+            "プロジェクトです！",
             link!(
                 "https://github.com/TechTheAwesome/code-yew-server",
-                text(
-                    "詳細を確認し、関連するバグ報告/問題/\
-                     質問を直接拡張機能のリポジトリに送信してください",
-                ),
+                "詳細を確認し、関連するバグ報告/問題/\
+                 質問を直接拡張機能のリポジトリに送信してください",
             ),
         ]],
         p![
-            text("Rust-Yew 拡張機能は "),
+            "Rust-Yew 拡張機能は ",
             link!(
                 "https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew",
-                text("VSC Marketplace で見つけることができます"),
+                "VSC Marketplace で見つけることができます",
             ),
-            text("、シンタックスハイライト、リネーム、ホバーなどの機能を提供します。"),
+            "、シンタックスハイライト、リネーム、ホバーなどの機能を提供します。",
         ],
         p![
-            text("Emmet サポートは直接使用できるはずですが、できない場合は "),
+            "Emmet サポートは直接使用できるはずですが、できない場合は ",
             code("settings.json"),
-            text(" ファイルを編集してください："),
+            " ファイルを編集してください：",
         ],
         code_block(
             "json",
@@ -165,16 +149,16 @@ impl Component for $NAME$ {
     "rust": "html",
 }"#,
         ),
-        h3![text("Neovim")],
-        h4![text("Lazyvim")],
+        h3!["Neovim"],
+        h4!["Lazyvim"],
         blockquote![p![
-            text("以下の設定は "),
-            link!("https://www.lazyvim.org", text("LazyVim")),
-            text(" 設定および lazy.vim プラグインに適用されます。"),
+            "以下の設定は ",
+            link!("https://www.lazyvim.org", "LazyVim"),
+            " 設定および lazy.vim プラグインに適用されます。",
             code("lua/plugins/nvim-lspconfig.lua"),
-            text(" にファイルを作成するか、既存の "),
+            " にファイルを作成するか、既存の ",
             code("lspconfig"),
-            text(" を更新してください："),
+            " を更新してください：",
         ]],
         code_block(
             "json",

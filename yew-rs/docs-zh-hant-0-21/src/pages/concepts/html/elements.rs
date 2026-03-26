@@ -2,10 +2,8 @@ crate::doc_page!(
     "Elements",
     "/zh-Hant/docs/concepts/html/elements",
     Content::new(vec![
-        h2![text("標籤結構")],
-        p![text(
-            "元件標籤都必須要是自封閉的標籤或是跟開啟標籤對應的關閉標籤。",
-        )],
+        h2!["標籤結構"],
+        p!["元件標籤都必須要是自封閉的標籤或是跟開啟標籤對應的關閉標籤。"],
         tabs![
             "open-close",
             tab![
@@ -52,13 +50,13 @@ crate::doc_page!(
         admonition![
             AdmonitionType::Note,
             None,
-            p![text(
+            p![
                 "為了方便起見，通常需要關閉標籤的元件，也都可以用自封閉標籤表示。例如，寫 html! { \
-                 <div class=\"placeholder\" /> } 是合法的。",
-            )],
+                 <div class=\"placeholder\" /> } 是合法的。"
+            ],
         ],
-        h2![text("子結點")],
-        p![text("輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：")],
+        h2!["子結點"],
+        p!["輕鬆寫出複雜巢狀的 HTML 與 SVG 架構："],
         tabs![
             "html",
             tab![
@@ -109,8 +107,8 @@ crate::doc_page!(
                 ),
             ],
         ],
-        h2![text("Classes")],
-        p![text("你很多方便的選項可以寫元件裡的 class：")],
+        h2!["Classes"],
+        p!["你很多方便的選項可以寫元件裡的 class："],
         tabs![
             "literal",
             tab![
@@ -174,14 +172,11 @@ crate::doc_page!(
                 ),
             ],
         ],
-        h2![text("監聽")],
+        h2!["監聽"],
         p![
-            text("監聽器的屬性必須要傳入一個 "),
+            "監聽器的屬性必須要傳入一個 ",
             code("Callback"),
-            text(
-                "，他封裝了閉包。callback \
-                 的內容取決於，當觸發監聽事件時，你希望應用程式有什麼反應："
-            ),
+            "，他封裝了閉包。callback 的內容取決於，當觸發監聽事件時，你希望應用程式有什麼反應：",
         ],
         tabs![
             "component-handler",

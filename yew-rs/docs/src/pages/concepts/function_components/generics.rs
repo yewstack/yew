@@ -2,9 +2,9 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         p![
-            text("The "),
+            "The ",
             code("#[component]"),
-            text(" attribute also works with generic functions for creating generic components."),
+            " attribute also works with generic functions for creating generic components.",
         ],
         code_block(
             "rust",

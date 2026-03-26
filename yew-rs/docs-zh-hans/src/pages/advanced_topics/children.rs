@@ -5,36 +5,32 @@ pub fn page_content() -> yew_site_lib::Content {
             AdmonitionType::Caution,
             None,
             p![
-                text("检查和操作 "),
+                "检查和操作 ",
                 code("Children"),
-                text(
-                    " 往往会导致应用程序中令人惊讶且难以解释的行为。这可能导致边缘情况，\
-                     并且通常不会产生预期的结果。如果您尝试操作 ",
-                ),
+                " 往往会导致应用程序中令人惊讶且难以解释的行为。这可能导致边缘情况，\
+                 并且通常不会产生预期的结果。如果您尝试操作 ",
                 code("Children"),
-                text("，则应考虑其他方法。"),
+                "，则应考虑其他方法。",
             ],
             p![
-                text("Yew 支持将 "),
+                "Yew 支持将 ",
                 code("Html"),
-                text(" 用作子组件属性的类型。如果您不需要 "),
+                " 用作子组件属性的类型。如果您不需要 ",
                 code("Children"),
-                text(" 或 "),
+                " 或 ",
                 code("ChildrenRenderer"),
-                text("，则应使用 "),
+                "，则应使用 ",
                 code("Html"),
-                text(" 作为子组件。它没有 "),
+                " 作为子组件。它没有 ",
                 code("Children"),
-                text(" 的缺点，并且性能开销较低。"),
+                " 的缺点，并且性能开销较低。",
             ],
         ],
-        h2![text("通用用法")],
+        h2!["通用用法"],
         p![
-            italic![text("大多数情况下，")],
-            text(
-                "当允许组件具有子组件时，您不关心组件具有的子组件的类型。在这种情况下，\
-                 下面的示例就足够了。",
-            ),
+            italic!["大多数情况下，"],
+            "当允许组件具有子组件时，您不关心组件具有的子组件的类型。在这种情况下，\
+             下面的示例就足够了。",
         ],
         code_block(
             "rust",
@@ -65,12 +61,12 @@ impl Component for List {
     }
 }"#,
         ),
-        h2![text("高级用法")],
-        h3![text("类型化子组件")],
+        h2!["高级用法"],
+        h3!["类型化子组件"],
         p![
-            text("在您希望将一种类型的组件作为子组件传递给您的组件的情况下，您可以使用 "),
+            "在您希望将一种类型的组件作为子组件传递给您的组件的情况下，您可以使用 ",
             code("yew::html::ChildrenWithProps<T>"),
-            text("。"),
+            "。",
         ],
         code_block(
             "rust",
@@ -118,10 +114,8 @@ impl Component for List {
     }
 }"#,
         ),
-        h2![text("带有属性的嵌套子组件")],
-        p![text(
-            "如果包含组件对其子组件进行了类型化，则可以访问和更改嵌套组件的属性。",
-        )],
+        h2!["带有属性的嵌套子组件"],
+        p!["如果包含组件对其子组件进行了类型化，则可以访问和更改嵌套组件的属性。"],
         code_block(
             "rust",
             r#"use std::rc::Rc;
@@ -165,17 +159,17 @@ html! {
     </List>
 };"#,
         ),
-        h3![text("枚举类型的子组件")],
-        p![text(
-            "当然，有时您可能需要将子组件限制为几种不同的组件。在这些情况下，您必须更深入地了解 \
-             Yew。",
-        )],
+        h3!["枚举类型的子组件"],
         p![
-            text("这里使用 "),
-            link!["https://github.com/JelteF/derive_more", text("derive_more"),],
-            text(" 来提供更好的人机工程学。如果您不想使用它，您可以为每个变体手动实现 "),
+            "当然，有时您可能需要将子组件限制为几种不同的组件。在这些情况下，您必须更深入地了解 \
+             Yew。"
+        ],
+        p![
+            "这里使用 ",
+            link!["https://github.com/JelteF/derive_more", "derive_more",],
+            " 来提供更好的人机工程学。如果您不想使用它，您可以为每个变体手动实现 ",
             code("From"),
-            text("。"),
+            "。",
         ],
         code_block(
             "rust",
@@ -260,8 +254,8 @@ impl Component for List {
     }
 }"#,
         ),
-        h3![text("可选类型的子组件")],
-        p![text("您还可以具有特定类型的单个可选子组件：")],
+        h3!["可选类型的子组件"],
+        p!["您还可以具有特定类型的单个可选子组件："],
         code_block(
             "rust",
             r#"use yew::{
@@ -330,15 +324,13 @@ pub fn render_page(with_sidebar: bool) -> Html {
     }
 }"#,
         ),
-        h2![text("进一步阅读")],
+        h2!["进一步阅读"],
         ul![li![
-            text(
-                "有关此模式的真实示例，请查阅 yew-router 的源代码。有关更高级的示例，请查看 yew \
-                 存储库中的",
-            ),
+            "有关此模式的真实示例，请查阅 yew-router 的源代码。有关更高级的示例，请查看 yew \
+             存储库中的",
             link![
                 "https://github.com/yewstack/yew/tree/master/examples/nested_list",
-                text("相关示例清单"),
+                "相关示例清单",
             ],
         ]],
     ])

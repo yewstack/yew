@@ -3,7 +3,7 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("#[component]"),
-            text(" 屬性也適用於用於建立泛型元件的泛型函數。"),
+            " 屬性也適用於用於建立泛型元件的泛型函數。",
         ],
         code_block(
             "rust",

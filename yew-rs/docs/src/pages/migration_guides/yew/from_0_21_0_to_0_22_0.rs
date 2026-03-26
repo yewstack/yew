@@ -1,26 +1,26 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("MSRV raised to 1.84.0")],
+        h2!["MSRV raised to 1.84.0"],
         p![
-            text("The minimum supported Rust version is now "),
-            bold![text("1.84.0")],
-            text(". Update your toolchain:"),
+            "The minimum supported Rust version is now ",
+            bold!["1.84.0"],
+            ". Update your toolchain:",
         ],
         code_block("bash", "rustup update stable"),
         h2![
             code("#[function_component]"),
-            text(" renamed to "),
+            " renamed to ",
             code("#[component]"),
         ],
         p![
-            text("The "),
+            "The ",
             code("#[function_component]"),
-            text(" attribute has been renamed to "),
+            " attribute has been renamed to ",
             code("#[component]"),
-            text(" for brevity. The old name is deprecated but still works."),
+            " for brevity. The old name is deprecated but still works.",
         ],
-        h3![text("Automated refactor")],
+        h3!["Automated refactor"],
         code_block(
             "bash",
             r##"# Using sed (simple but also replaces in comments/strings)
@@ -35,10 +35,10 @@ ast-grep run -p '#[function_component]' -r '#[component]' -l rust --update-all .
         admonition![
             AdmonitionType::Note,
             None,
-            p![text(
+            p![
                 "The sed commands will also replace occurrences in comments and strings. Use \
-                 ast-grep for more precise refactoring.",
-            )],
+                 ast-grep for more precise refactoring."
+            ],
         ],
         tabs(
             "before",
@@ -77,37 +77,29 @@ fn AnotherComponent() -> Html {
                 ),
             ],
         ),
-        h2![code("class=(...)"), text(" syntax removed")],
+        h2![code("class=(...)"), " syntax removed"],
         p![
-            text("The deprecated "),
+            "The deprecated ",
             code("class=(expr)"),
-            text(" syntax has been removed. Use "),
+            " syntax has been removed. Use ",
             code("class={classes!(...)}"),
-            text(" instead."),
+            " instead.",
         ],
-        h3![text("Finding occurrences")],
+        h3!["Finding occurrences"],
         code_block(
             "bash",
             r##"# Find all files using the old class=(...) syntax
 grep -rn "class=(" --include="*.rs" ."##,
         ),
-        h3![text("Manual refactor")],
+        h3!["Manual refactor"],
         p![
-            text("The transformation is straightforward: wrap the tuple contents with "),
+            "The transformation is straightforward: wrap the tuple contents with ",
             code("classes!()"),
-            text(" and change parentheses to braces:"),
+            " and change parentheses to braces:",
         ],
         ul![
-            li![
-                code("class=(a, b)"),
-                text(" → "),
-                code("class={classes!(a, b)}"),
-            ],
-            li![
-                code("class=(expr)"),
-                text(" → "),
-                code("class={classes!(expr)}"),
-            ],
+            li![code("class=(a, b)"), " → ", code("class={classes!(a, b)}"),],
+            li![code("class=(expr)"), " → ", code("class={classes!(expr)}"),],
         ],
         tabs(
             "before",
@@ -134,19 +126,19 @@ grep -rn "class=(" --include="*.rs" ."##,
                 ),
             ],
         ),
-        h2![code("ToHtml"), text(" trait removed")],
+        h2![code("ToHtml"), " trait removed"],
         p![
-            text("The "),
+            "The ",
             code("ToHtml"),
-            text(" trait has been removed. Use "),
+            " trait has been removed. Use ",
             code("IntoPropValue"),
-            text(" for custom type conversions."),
+            " for custom type conversions.",
         ],
-        h2![text("For-loops in "), code("html!"), text(" macro")],
+        h2!["For-loops in ", code("html!"), " macro"],
         p![
-            text("You can now use for-loops directly in the "),
+            "You can now use for-loops directly in the ",
             code("html!"),
-            text(" macro. This is optional but provides cleaner syntax:"),
+            " macro. This is optional but provides cleaner syntax:",
         ],
         tabs(
             "before",
@@ -181,14 +173,14 @@ grep -rn "class=(" --include="*.rs" ."##,
         ),
         h2![
             code("use_effect_with"),
-            text(" no longer requires "),
+            " no longer requires ",
             code("|| ()"),
-            text(" return"),
+            " return",
         ],
         p![
-            text("Effect hooks no longer require returning "),
+            "Effect hooks no longer require returning ",
             code("|| ()"),
-            text(" when there's no cleanup:"),
+            " when there's no cleanup:",
         ],
         tabs(
             "before",

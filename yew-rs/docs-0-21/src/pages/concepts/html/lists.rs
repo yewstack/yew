@@ -2,18 +2,13 @@ crate::doc_page!(
     "Lists",
     "/docs/concepts/html/lists",
     Content::new(vec![
-        h2![text("Iterators")],
-        p![text(
-            "Yew supports two different syntaxes for building HTML from an iterator."
-        )],
-        h3![text("Syntax type 1")],
+        h2!["Iterators"],
+        p!["Yew supports two different syntaxes for building HTML from an iterator."],
+        h3!["Syntax type 1"],
         p![
-            text("The first is to call "),
+            "The first is to call ",
             code("collect::<Html>()"),
-            text(
-                " on the final transform in your iterator, which returns a list that Yew can \
-                 display."
-            ),
+            " on the final transform in your iterator, which returns a list that Yew can display.",
         ],
         code_block(
             "rust",
@@ -27,14 +22,12 @@ html! {
     </ul>
 };"#
         ),
-        h3![text("Syntax type 2")],
+        h3!["Syntax type 2"],
         p![
-            text("The alternative is to use the "),
+            "The alternative is to use the ",
             code("for"),
-            text(
-                " keyword, which is not native Rust syntax and instead is used by the HTML macro \
-                 to output the needed code to display the iterator."
-            ),
+            " keyword, which is not native Rust syntax and instead is used by the HTML macro to \
+             output the needed code to display the iterator.",
         ],
         code_block(
             "rust",
@@ -48,38 +41,34 @@ html! {
     </ul>
 };"#
         ),
-        h2![text("Keyed lists")],
+        h2!["Keyed lists"],
         p![
-            text("A keyed list is an optimized list that has keys on "),
-            bold![text("all")],
-            text(" children. "),
+            "A keyed list is an optimized list that has keys on ",
+            bold!["all"],
+            " children. ",
             code("key"),
-            text(
-                " is a special prop provided by Yew that gives an HTML element or component a \
-                 unique identifier that is used for optimization purposes inside Yew."
-            ),
+            " is a special prop provided by Yew that gives an HTML element or component a unique \
+             identifier that is used for optimization purposes inside Yew.",
         ],
         admonition(
             AdmonitionType::Caution,
             None,
             vec![p![
-                text(
-                    "Key has to be unique only in each list, in contrast to the global uniqueness \
-                     of HTML "
-                ),
+                "Key has to be unique only in each list, in contrast to the global uniqueness of \
+                 HTML ",
                 code("id"),
-                text("s. It must not depend on the order of the list."),
+                "s. It must not depend on the order of the list.",
             ]]
         ),
-        p![text("It is always recommended to add keys to lists.")],
+        p!["It is always recommended to add keys to lists."],
         p![
-            text("Keys can be added by passing a unique "),
+            "Keys can be added by passing a unique ",
             code("String"),
-            text(", "),
+            ", ",
             code("str"),
-            text(" or integer to the special "),
+            " or integer to the special ",
             code("key"),
-            text(" prop:"),
+            " prop:",
         ],
         code_block(
             "rust",
@@ -98,54 +87,50 @@ html! {
 };
 "#
         ),
-        h3![text("Performance increases")],
+        h3!["Performance increases"],
         p![
-            text("We have "),
+            "We have ",
             link!(
                 "https://github.com/yewstack/yew/tree/master/examples/keyed_list",
-                text("Keyed list")
+                "Keyed list"
             ),
-            text(
-                " example that lets you test the performance improvements, but here is a rough \
-                 rundown:"
-            ),
+            " example that lets you test the performance improvements, but here is a rough \
+             rundown:",
         ],
         ol![
             li![
-                text("Go to "),
+                "Go to ",
                 link!(
                     "https://github.com/yewstack/yew/tree/master/examples/keyed_list",
-                    text("Keyed list")
+                    "Keyed list"
                 ),
-                text(" hosted demo"),
+                " hosted demo",
             ],
-            li![text("Add 500 elements.")],
-            li![text("Disable keys.")],
-            li![text("Reverse the list.")],
-            li![text(
+            li!["Add 500 elements."],
+            li!["Disable keys."],
+            li!["Reverse the list."],
+            li![
                 "Look at \"The last rendering took Xms\" (At the time of writing this it was \
                  ~60ms)"
-            )],
-            li![text("Enable keys.")],
-            li![text("Reverse the list.")],
-            li![text(
+            ],
+            li!["Enable keys."],
+            li!["Reverse the list."],
+            li![
                 "Look at \"The last rendering took Xms\" (At the time of writing this it was \
                  ~30ms)"
-            )],
+            ],
         ],
-        p![text(
-            "So just at the time of writing this, for 500 components it is a 2x increase of speed."
-        )],
-        h3![text("Detailed explanation")],
-        p![text(
+        p!["So just at the time of writing this, for 500 components it is a 2x increase of speed."],
+        h3!["Detailed explanation"],
+        p![
             "Usually, you just need a key on every list item when you iterate and the order of \
              data can change. It's used to speed up the reconciliation process when re-rendering \
              the list."
-        )],
+        ],
         p![
-            text("Without keys, assume you iterate through "),
+            "Without keys, assume you iterate through ",
             code("[\"bob\", \"sam\", \"rob\"]"),
-            text(", ending up with the HTML:"),
+            ", ending up with the HTML:",
         ],
         code_block(
             "html",
@@ -154,43 +139,36 @@ html! {
 <div id="rob">My name is rob</div>"#
         ),
         p![
-            text("Then on the next render, if your list changed to "),
+            "Then on the next render, if your list changed to ",
             code("[\"bob\", \"rob\"]"),
-            text(
-                ", yew could delete the element with id=\"rob\" and update id=\"sam\" to be \
-                 id=\"rob\""
-            ),
+            ", yew could delete the element with id=\"rob\" and update id=\"sam\" to be id=\"rob\"",
         ],
         p![
-            text(
-                "If you had added a key to each element, the initial HTML would be the same, but \
-                 after the render with the modified list, "
-            ),
+            "If you had added a key to each element, the initial HTML would be the same, but \
+             after the render with the modified list, ",
             code("[\"bob\", \"rob\"]"),
-            text(
-                ", yew would just delete the second HTML element and leave the rest untouched \
-                 since it can use the keys to associate them."
-            ),
+            ", yew would just delete the second HTML element and leave the rest untouched since \
+             it can use the keys to associate them.",
         ],
-        p![text(
+        p![
             "If you ever encounter a bug/\"feature\" where you switch from one component to \
              another but both have a div as the highest rendered element. Yew reuses the rendered \
              HTML div in those cases as an optimization. If you need that div to be recreated \
              instead of reused, then you can add different keys and they will not be reused."
-        )],
-        h2![text("Further reading")],
+        ],
+        h2!["Further reading"],
         ul![
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/todomvc",
-                text("TodoMVC")
+                "TodoMVC"
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/keyed_list",
-                text("Keyed list")
+                "Keyed list"
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/router",
-                text("Router")
+                "Router"
             )],
         ],
     ])

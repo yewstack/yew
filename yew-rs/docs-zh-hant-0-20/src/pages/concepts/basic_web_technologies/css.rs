@@ -3,22 +3,20 @@ crate::doc_page!(
     "/zh-Hant/docs/concepts/basic-web-technologies/css",
     Content::new(vec![
         p![
-            text(
-                "Yew does not natively provide a css in rust solution, but helps with styling by \
-                 providing programmatic ways to interact with the html "
-            ),
+            "Yew does not natively provide a css in rust solution, but helps with styling by \
+             providing programmatic ways to interact with the html ",
             code("class"),
-            text(" attribute."),
+            " attribute.",
         ],
-        h2![text("Classes")],
+        h2!["Classes"],
         p![
-            text("The "),
+            "The ",
             code("classes!"),
-            text(" macro and associated "),
+            " macro and associated ",
             code("Classes"),
-            text(" struct simplify the use of HTML classes:"),
+            " struct simplify the use of HTML classes:",
         ],
-        h3![text("Literal")],
+        h3!["Literal"],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -27,7 +25,7 @@ html! {
 <div class={classes!(\"container\")}></div>
 };"
         ),
-        h3![text("Multiple")],
+        h3!["Multiple"],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -36,7 +34,7 @@ html! {
 <div class={classes!(\"class-1\", \"class-2\")}></div>
 };"
         ),
-        h3![text("String")],
+        h3!["String"],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -45,7 +43,7 @@ html! {
 <div class={classes!(String::from(\"class-1 class-2\"))}></div>
 };"
         ),
-        h3![text("Optional")],
+        h3!["Optional"],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -54,7 +52,7 @@ html! {
 <div class={classes!(Some(\"class\"))} />
 };"
         ),
-        h3![text("Vector")],
+        h3!["Vector"],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -63,7 +61,7 @@ html! {
 <div class={classes!(vec![\"class-1\", \"class-2\"])}></div>
 };"
         ),
-        h3![text("Slice")],
+        h3!["Slice"],
         code_block(
             "rust",
             "use yew::{classes, html};
@@ -73,18 +71,15 @@ html! {
 };"
         ),
         p![
-            text("We will expand upon this concept in "),
-            link!["/zh-Hant/docs/more/css", text("more CSS")],
-            text("."),
+            "We will expand upon this concept in ",
+            link!["/zh-Hant/docs/more/css", "more CSS"],
+            ".",
         ],
-        h2![text("Inline Styles")],
+        h2!["Inline Styles"],
         p![
-            text(
-                "Currently Yew does not provide any special help with inline styles specified via \
-                 the "
-            ),
+            "Currently Yew does not provide any special help with inline styles specified via the ",
             code("styles"),
-            text(" attribute, but you can use it like any other html attribute:"),
+            " attribute, but you can use it like any other html attribute:",
         ],
         code_block(
             "rust",
@@ -95,9 +90,9 @@ html! {
 };"
         ),
         p![
-            text("We will expand upon this concept in "),
-            link!["/zh-Hant/docs/more/css", text("more CSS")],
-            text("."),
+            "We will expand upon this concept in ",
+            link!["/zh-Hant/docs/more/css", "more CSS"],
+            ".",
         ],
     ])
 );

@@ -1,20 +1,20 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("パニック (Panics)")],
-        p![text("Yew はブラウザのコンソールにパニックログを自動的に出力します。")],
-        h2![text("コンソールログ")],
+        h2!["パニック (Panics)"],
+        p!["Yew はブラウザのコンソールにパニックログを自動的に出力します。"],
+        h2!["コンソールログ"],
         p![
-            text("JavaScript では、"),
+            "JavaScript では、",
             code("console.log()"),
-            text(" を使用してブラウザのコンソールに出力します。以下は Yew のいくつかのオプションです。"),
+            " を使用してブラウザのコンソールに出力します。以下は Yew のいくつかのオプションです。",
         ],
         h3![link!("https://crates.io/crates/wasm-logger", code("wasm-logger"))],
         p![
             code("wasm-logger"),
-            text(" クレートは "),
-            link!("https://crates.io/crates/log", text("log")),
-            text(" クレートと統合されており、ログレベル、ソース行、ファイル名をブラウザのコンソールに送信します。"),
+            " クレートは ",
+            link!("https://crates.io/crates/log", "log"),
+            " クレートと統合されており、ログレベル、ソース行、ファイル名をブラウザのコンソールに送信します。",
         ],
         code_block("rust", r#"use log::info;
 use wasm_bindgen::JsValue;
@@ -27,13 +27,13 @@ fn main() {
 }"#),
         h3![link!("https://crates.io/crates/gloo-console", code("gloo-console"))],
         p![
-            text("このクレートは Gloo の一部で、ブラウザ API の Rust ラッパーを提供します。"),
+            "このクレートは Gloo の一部で、ブラウザ API の Rust ラッパーを提供します。",
             code("log!"),
-            text(" マクロは "),
+            " マクロは ",
             code("JsValue"),
-            text(" を直接受け入れることができ、"),
+            " を直接受け入れることができ、",
             code("wasm_logger"),
-            text(" よりも使いやすいです。"),
+            " よりも使いやすいです。",
         ],
         code_block("rust", r#"use gloo_console::log;
 use wasm_bindgen::JsValue;
@@ -45,9 +45,9 @@ fn main() {
         h3![link!("https://crates.io/crates/tracing-web", code("tracing-web"))],
         p![
             code("tracing-web"),
-            text(" は "),
-            link!("https://crates.io/crates/tracing-subscriber", text("tracing-subscriber")),
-            text(" と一緒に使用でき、メッセージをブラウザのコンソールに出力します。"),
+            " は ",
+            link!("https://crates.io/crates/tracing-subscriber", "tracing-subscriber"),
+            " と一緒に使用でき、メッセージをブラウザのコンソールに出力します。",
         ],
         code_block("rust", r#"use tracing_subscriber::{
     fmt::{
@@ -73,55 +73,49 @@ fn main() {
     let object = JsValue::from("world");
     tracing::info!("Hello {}", object.as_string().unwrap());
 }"#),
-        h2![text("コンポーネントライフサイクルのデバッグ")],
+        h2!["コンポーネントライフサイクルのデバッグ"],
         p![
-            link!("https://crates.io/crates/tracing", text("tracing")),
-            text(" は、コンポーネントのライフサイクルに関連するイベント情報を収集するために使用できます。"),
+            link!("https://crates.io/crates/tracing", "tracing"),
+            " は、コンポーネントのライフサイクルに関連するイベント情報を収集するために使用できます。",
             code("tracing"),
-            text(" には "),
+            " には ",
             code("log"),
-            text(" サポートの機能フラグもあり、"),
+            " サポートの機能フラグもあり、",
             code("wasm-logger"),
-            text(" とうまく統合できます。"),
+            " とうまく統合できます。",
         ],
         p![
-            link!("https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters", text("コンパイル時フィルタ")),
-            text(" は、詳細度を調整したりログ記録を無効にしたりするために使用できます。これにより、より小さな Wasm ファイルが生成されるはずです。"),
+            link!("https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters", "コンパイル時フィルタ"),
+            " は、詳細度を調整したりログ記録を無効にしたりするために使用できます。これにより、より小さな Wasm ファイルが生成されるはずです。",
         ],
-        h2![text("ソースマップ (Source Maps)")],
+        h2!["ソースマップ (Source Maps)"],
         p![
-            link!("https://developer.chrome.com/blog/wasm-debugging-2019/#enter-dwarf", text("ソースマップ")),
-            text(" をサポートするいくつかの方法がありますが、いくつかの設定が必要です。"),
+            link!("https://developer.chrome.com/blog/wasm-debugging-2019/#enter-dwarf", "ソースマップ"),
+            " をサポートするいくつかの方法がありますが、いくつかの設定が必要です。",
         ],
-        h2![text("過去の記事")],
-        p![text("以下は、Rust における WebAssembly デバッグの現状に関する過去の記事です。興味深い読み物かもしれません。")],
+        h2!["過去の記事"],
+        p!["以下は、Rust における WebAssembly デバッグの現状に関する過去の記事です。興味深い読み物かもしれません。"],
         p![
-            text("[2019 年 12 月] "),
-            link!("https://developers.google.com/web/updates/2019/12/webassembly#the_future", text("Chrome DevTools 更新")),
+            "[2019 年 12 月] ",
+            link!("https://developers.google.com/web/updates/2019/12/webassembly#the_future", "Chrome DevTools 更新"),
         ],
-        blockquote![p![text(
-            "これらの作業にはまだ多くのことが残されています。例えば、ツールの面では、\
+        blockquote![p!["これらの作業にはまだ多くのことが残されています。例えば、ツールの面では、\
              Emscripten（Binaryen）と wasm-pack（wasm-bindgen）は、\
-             それらが実行する変換に対して DWARF 情報を更新することをまだサポートしていません。",
-        )]],
+             それらが実行する変換に対して DWARF 情報を更新することをまだサポートしていません。"]],
         p![
-            text("[2020 年] "),
-            link!("https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger", text("Rust Wasm デバッグガイド")),
+            "[2020 年] ",
+            link!("https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger", "Rust Wasm デバッグガイド"),
         ],
-        blockquote![p![text(
-            "残念ながら、WebAssembly のデバッグ機能はまだ未成熟です。ほとんどの Unix システムでは、\
+        blockquote![p!["残念ながら、WebAssembly のデバッグ機能はまだ未成熟です。ほとんどの Unix システムでは、\
              DWARF が実行中のプログラムのソースレベルの検査に必要な情報をエンコードするために使用されますが、\
              Windows では同様の情報をエンコードする代替フォーマットがあります。しかし、現在のところ、\
-             WebAssembly には対応するフォーマットがありません。",
-        )]],
+             WebAssembly には対応するフォーマットがありません。"]],
         p![
-            text("[2019 年] "),
-            link!("https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging", text("Rust Wasm ロードマップ")),
+            "[2019 年] ",
+            link!("https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging", "Rust Wasm ロードマップ"),
         ],
-        blockquote![p![text(
-            "デバッグは難しいです。なぜなら、多くの状況がこの作業グループの管理下にないからです。\
-             これは、WebAssembly の標準化機関やブラウザ開発者ツールを実装する人々に依存しています。",
-        )]],
+        blockquote![p!["デバッグは難しいです。なぜなら、多くの状況がこの作業グループの管理下にないからです。\
+             これは、WebAssembly の標準化機関やブラウザ開発者ツールを実装する人々に依存しています。"]],
     ])
 }
 

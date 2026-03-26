@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("基礎")],
+        h2!["基礎"],
         p![
-            text("元件可以在 "),
+            "元件可以在 ",
             code("html!"),
-            text(" 巨集中使用："),
+            " 巨集中使用：",
         ],
         code_block(
             "rust",
@@ -53,13 +53,13 @@ html!{
     </>
 };"#,
         ),
-        h2![text("嵌套")],
+        h2!["嵌套"],
         p![
-            text("如果組件在其 "),
+            "如果組件在其 ",
             code("Properties"),
-            text(" 中有一個 "),
+            " 中有一個 ",
             code("children"),
-            text(" 字段，它可以接受子組件/元素"),
+            " 字段，它可以接受子組件/元素",
         ],
         code_block_title(
             "rust",
@@ -90,18 +90,18 @@ html! {
         ),
         p![
             code("html!"),
-            text(" 巨集允許您使用"),
+            " 巨集允許您使用",
             code("..props"),
-            text(" 語法傳遞一個基本表達式，而不是單獨指定每個屬性，類似於Rust 的"),
+            " 語法傳遞一個基本表達式，而不是單獨指定每個屬性，類似於Rust 的",
             link!(
                 "https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax",
-                text("函數式更新語法"),
+                "函數式更新語法",
             ),
-            text("。 這個基本表達式必須出現在傳遞任何單獨的 props 之後。 當傳遞一個帶有 "),
+            "。 這個基本表達式必須出現在傳遞任何單獨的 props 之後。 當傳遞一個帶有 ",
             code("children"),
-            text(" 欄位的基本 props 表達式時，"),
+            " 欄位的基本 props 表達式時，",
             code("html!"),
-            text(" 巨集中傳遞的子元素將覆蓋已經存在於 props 中的子元素。"),
+            " 巨集中傳遞的子元素將覆蓋已經存在於 props 中的子元素。",
         ],
         code_block(
             "rust",
@@ -134,15 +134,15 @@ html! {
     </Container>
 };"#,
         ),
-        h2![text("相關範例")],
+        h2!["相關範例"],
         ul![
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/function_todomvc",
-                text("函數化 Todo MVC"),
+                "函數化 Todo MVC",
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/master/examples/function_router",
-                text("函數化路由"),
+                "函數化路由",
             )],
         ],
     ])

@@ -2,31 +2,29 @@ crate::doc_page!(
     "Debugging",
     "/ja/docs/more/debugging",
     Content::new(vec![
-        h2![text("パニック")],
+        h2!["パニック"],
         p![
-            text("Rustシンボルで良いスタックトレースをするには"),
+            "Rustシンボルで良いスタックトレースをするには",
             link!(
                 "https://github.com/rustwasm/console_error_panic_hook",
                 code("console_error_panic")
             ),
-            text("クレートを使用してください。\
-                 注意として、"),
+            "クレートを使用してください。\
+                 注意として、",
             code("cargo-web"),
-            text("でビルドされたものとは互換性がありません。"),
+            "でビルドされたものとは互換性がありません。",
         ],
-        h2![text("コンソールでのログ")],
-        p![text(
-            "一般的に、WasmのWebアプリはブラウザのAPIと連携することができ、\
-             console.logのAPIも例外ではありません。いつくかの選択肢があります:"
-        )],
+        h2!["コンソールでのログ"],
+        p!["一般的に、WasmのWebアプリはブラウザのAPIと連携することができ、\
+             console.logのAPIも例外ではありません。いつくかの選択肢があります:"],
         h3![link!(
             "https://crates.io/crates/wasm-logger",
             code("wasm-logger")
         )],
         p![
-            text("このクレートはRustの"),
+            "このクレートはRustの",
             code("log"),
-            text("クレートと親和性があります。"),
+            "クレートと親和性があります。",
         ],
         code_block(
             "rust",
@@ -37,51 +35,45 @@ crate::doc_page!(
             code("ConsoleService")
         )],
         p![
-            text("このサービスはYewに含まれており、"),
+            "このサービスはYewに含まれており、",
             code("\"services\""),
-            text("の機能が有効化されている場合は利用可能です。"),
+            "の機能が有効化されている場合は利用可能です。",
         ],
         code_block(
             "rust",
             "// 使用方法\nConsoleService::info(format!(\"Update: {:?}\", msg).as_ref());"
         ),
-        h2![text("ソースマップ")],
-        p![text(
-            "今のところはRust/WasmのWebアプリにはソースマップへの第一級のサポートがありません。\
-             もちろん、これは変更される可能性があります。これが当てはまらない場合、または進捗が見られる場合は、変更を提案してください！"
-        )],
-        h3![text("最新情報")],
+        h2!["ソースマップ"],
+        p!["今のところはRust/WasmのWebアプリにはソースマップへの第一級のサポートがありません。\
+             もちろん、これは変更される可能性があります。これが当てはまらない場合、または進捗が見られる場合は、変更を提案してください！"],
+        h3!["最新情報"],
         p![
-            text("[2019年12月] "),
+            "[2019年12月] ",
             link!(
                 "https://developers.google.com/web/updates/2019/12/webassembly#the_future",
-                text("Chrome DevTools update")
+                "Chrome DevTools update"
             ),
         ],
-        blockquote![p![text(
-            "やらなければいけないことがまだたくさんあります。例えばツール側ではEmscripten（Binaryen）とwasm-pack（wasm-bindgen）がそれらが実行する変換に関するDWARF情報の更新をまだサポートしていません。"
-        )]],
+        blockquote![p!["やらなければいけないことがまだたくさんあります。例えばツール側ではEmscripten（Binaryen）とwasm-pack（wasm-bindgen）がそれらが実行する変換に関するDWARF情報の更新をまだサポートしていません。"]],
         p![
-            text("[2020] "),
+            "[2020] ",
             link!(
                 "https://rustwasm.github.io/book/reference/debugging.html#using-a-debugger",
-                text("Rust Wasmデバッグガイド")
+                "Rust Wasmデバッグガイド"
             ),
         ],
         blockquote![p![
-            text("残念なことに、WebAssemblyのデバッグの物語はまだ未成熟です。ほとんどのUnixのシステムでは"),
-            link!("http://dwarfstd.org/", text("DWARF")),
-            text("は実行中のプログラムをソースレベルで検査するためにデバッガに必要な情報をエンコードするために使用されます。Windowsには同様の情報をエンコードする代替形式があります。現在、WebAssemblyに相当するものはありません。"),
+            "残念なことに、WebAssemblyのデバッグの物語はまだ未成熟です。ほとんどのUnixのシステムでは",
+            link!("http://dwarfstd.org/", "DWARF"),
+            "は実行中のプログラムをソースレベルで検査するためにデバッガに必要な情報をエンコードするために使用されます。Windowsには同様の情報をエンコードする代替形式があります。現在、WebAssemblyに相当するものはありません。",
         ]],
         p![
-            text("[2019] "),
+            "[2019] ",
             link!(
                 "https://rustwasm.github.io/rfcs/007-2019-roadmap.html#debugging",
-                text("Rust Wasmロードマップ")
+                "Rust Wasmロードマップ"
             ),
         ],
-        blockquote![p![text(
-            "デバッグはトリッキーです。なぜなら、多くの話はこの活動チームの手の届かないところにあり、WebAssemblyの標準化団体とブラウザ開発者ツールを実装している人たちの両方に依存しているからです。"
-        )]],
+        blockquote![p!["デバッグはトリッキーです。なぜなら、多くの話はこの活動チームの手の届かないところにあり、WebAssemblyの標準化団体とブラウザ開発者ツールを実装している人たちの両方に依存しているからです。"]],
     ])
 );

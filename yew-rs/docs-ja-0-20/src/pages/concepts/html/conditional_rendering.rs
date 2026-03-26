@@ -2,13 +2,13 @@ crate::doc_page!(
     "Conditional Rendering",
     "/ja/docs/concepts/html/conditional-rendering",
     Content::new(vec![
-        h2![text("If blocks")],
+        h2!["If blocks"],
         p![
-            text("To conditionally render some markup, we wrap it in an "),
+            "To conditionally render some markup, we wrap it in an ",
             code("if"),
-            text(" block:")
+            " block:"
         ],
-        p![code("if"), text(":")],
+        p![code("if"), ":"],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -19,7 +19,7 @@ if true {
 }
 };"#
         ),
-        p![code("if - else"), text(":")],
+        p![code("if - else"), ":"],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -33,7 +33,7 @@ if some_condition {
 }
 };"#
         ),
-        p![code("if let"), text(":")],
+        p![code("if let"), ":"],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -45,7 +45,7 @@ if let Some(text) = some_text {
 }
 };"#
         ),
-        p![code("if let else"), text(":")],
+        p![code("if let else"), ":"],
         code_block(
             "rust",
             r#"use yew::prelude::*;

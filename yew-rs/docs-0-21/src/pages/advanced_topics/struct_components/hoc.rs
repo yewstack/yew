@@ -2,24 +2,22 @@ crate::doc_page!(
     "Higher Order Components",
     "/docs/advanced-topics/struct-components/hoc",
     Content::new(vec![
-        p![text(
+        p![
             "There are several cases where Struct components do not directly support a feature \
              (ex. Suspense) or require a lot of boilerplate code to use the features (ex. \
-             Context)."
-        ),],
-        p![text(
+             Context).",
+        ],
+        p![
             "In those cases, it is recommended to create function components that are \
-             higher-order components."
-        ),],
-        h2![text("Higher Order Components Definition")],
-        p![text(
+             higher-order components.",
+        ],
+        h2!["Higher Order Components Definition"],
+        p![
             "Higher Order Components are components that do not add any new HTML and only wrap \
-             some other components to provide extra functionality."
-        ),],
-        h3![text("Example")],
-        p![text(
-            "Hook into Context and pass it down to a struct component"
-        )],
+             some other components to provide extra functionality.",
+        ],
+        h3!["Example"],
+        p!["Hook into Context and pass it down to a struct component"],
         code_block(
             "rust",
             r##"use yew::prelude::*;

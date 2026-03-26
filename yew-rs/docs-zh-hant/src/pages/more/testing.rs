@@ -4,42 +4,39 @@ pub fn page_content() -> yew_site_lib::Content {
         admonition!(
             AdmonitionType::Info,
             None,
-            p![text("我們正在努力讓測試組件變得更容易，但目前仍在進行中。",)],
+            p!["我們正在努力讓測試組件變得更容易，但目前仍在進行中。"],
             p![
-                text("在 GitHub 倉庫中可以找到對 "),
-                link!(
-                    "https://github.com/yewstack/yew/issues/1413",
-                    text("淺渲染"),
-                ),
-                text(" 的支援。"),
+                "在 GitHub 倉庫中可以找到對 ",
+                link!("https://github.com/yewstack/yew/issues/1413", "淺渲染",),
+                " 的支援。",
             ],
         ),
-        h2![text("快照測試")],
+        h2!["快照測試"],
         p![
-            text("Yew 提供了 "),
+            "Yew 提供了 ",
             code("yew::tests::layout_tests"),
-            text(" 模組來方便元件的快照測試。"),
+            " 模組來方便元件的快照測試。",
         ],
         admonition!(
             AdmonitionType::Important,
             Some("改進文檔"),
-            p![text("我們需要幫助，以改進快照測試的文件。")],
+            p!["我們需要幫助，以改進快照測試的文件。"],
         ),
-        h2![text("wasm_bindgen_test")],
+        h2!["wasm_bindgen_test"],
         p![
-            text("Rust/WASM 工作小組維護了一個稱為 "),
+            "Rust/WASM 工作小組維護了一個稱為 ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/wasm-bindgen-test/index.html",
                 code("wasm_bindgen_test"),
             ),
-            text(" 的 crate， 它允許你以類似於內建的 "),
+            " 的 crate， 它允許你以類似於內建的 ",
             code("#[test]"),
-            text(" 過程巨集的方式在瀏覽器中執行測試。 有關此模組的更多信息，請參閱 "),
+            " 過程巨集的方式在瀏覽器中執行測試。 有關此模組的更多信息，請參閱 ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/wasm-bindgen-test/index.html",
-                text("Rust Wasm 工作組的文檔"),
+                "Rust Wasm 工作組的文檔",
             ),
-            text("。"),
+            "。",
         ],
     ])
 }

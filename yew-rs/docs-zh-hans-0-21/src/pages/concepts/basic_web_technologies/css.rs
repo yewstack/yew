@@ -2,39 +2,36 @@ crate::doc_page!(
     "CSS with classes!",
     "/zh-Hans/docs/concepts/basic-web-technologies/css",
     Content::new(vec![
-        p![code("class"), text(" attribute.")],
-        h2![text("Classes")],
+        p![code("class"), " attribute."],
+        h2!["Classes"],
         p![
-            text("The "),
+            "The ",
             code("classes!"),
-            text(" macro and associated "),
+            " macro and associated ",
             code("Classes"),
-            text(" struct simplify the use of HTML classes:")
+            " struct simplify the use of HTML classes:"
         ],
-        h3![text("Literal")],
-        h3![text("Multiple")],
-        h3![text("String")],
-        h3![text("Optional")],
-        h3![text("Vector")],
-        h3![text("Slice")],
+        h3!["Literal"],
+        h3!["Multiple"],
+        h3!["String"],
+        h3!["Optional"],
+        h3!["Vector"],
+        h3!["Slice"],
         p![
-            text("We will expand upon this concept in "),
-            link!("/docs/0.21/more/css", text("more CSS")),
-            text(".")
+            "We will expand upon this concept in ",
+            link!("/docs/0.21/more/css", "more CSS"),
+            "."
         ],
-        h2![text("Inline Styles")],
+        h2!["Inline Styles"],
         p![
-            text(
-                "Currently Yew does not provide any special help with inline styles specified via \
-                 the "
-            ),
+            "Currently Yew does not provide any special help with inline styles specified via the ",
             code("styles"),
-            text(" attribute, but you can use it like any other HTML attribute:")
+            " attribute, but you can use it like any other HTML attribute:"
         ],
         p![
-            text("We will expand upon this concept in "),
-            link!("/docs/0.21/more/css", text("more CSS")),
-            text(".")
+            "We will expand upon this concept in ",
+            link!("/docs/0.21/more/css", "more CSS"),
+            "."
         ]
     ])
 );

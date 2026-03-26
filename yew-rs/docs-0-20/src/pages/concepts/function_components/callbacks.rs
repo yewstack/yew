@@ -3,20 +3,18 @@ crate::doc_page!(
     "/docs/concepts/function-components/callbacks",
     Content::new(vec![
         p![
-            text(
-                "Callbacks are used to asynchronously communicate upwards the components tree and \
-                 with other things like agents or the DOM during event handling. Internally their \
-                 type is just an "
-            ),
+            "Callbacks are used to asynchronously communicate upwards the components tree and \
+             with other things like agents or the DOM during event handling. Internally their \
+             type is just an ",
             code("Fn"),
-            text(" wrapped in "),
+            " wrapped in ",
             code("Rc"),
-            text(" to allow them to be cheaply cloned."),
+            " to allow them to be cheaply cloned.",
         ],
         p![
-            text("They have an "),
+            "They have an ",
             code("emit"),
-            text(" function if you want to call them manually."),
+            " function if you want to call them manually.",
         ],
         code_block(
             "rust",
@@ -29,10 +27,8 @@ let cb: Callback<String, String> = Callback::from(move |name: String| {
 let result = cb.emit(String::from("Bob")); // call the callback
 // web_sys::console::log_1(&result.into()); // if uncommented will print "Bye Bob""#
         ),
-        h2![text("Passing callbacks as props")],
-        p![text(
-            "A common pattern in yew is to create a callback and pass it down as a prop."
-        )],
+        h2!["Passing callbacks as props"],
+        p!["A common pattern in yew is to create a callback and pass it down as a prop."],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html, Properties, Callback};
@@ -62,12 +58,12 @@ fn App() -> Html {
 }
 "#
         ),
-        h2![text("DOM Events and Callbacks")],
-        p![text("Callbacks are also used to hook into DOM events.")],
-        p![text(
+        h2!["DOM Events and Callbacks"],
+        p!["Callbacks are also used to hook into DOM events."],
+        p![
             "For example here we define a callback that will be called when the user clicks the \
              button:"
-        )],
+        ],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html, Properties, Callback};

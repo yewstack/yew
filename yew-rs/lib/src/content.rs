@@ -170,47 +170,47 @@ pub enum Block {
 }
 
 #[macro_export]
-macro_rules! bold { ($($e:expr),* $(,)?) => { $crate::content::bold(vec![$($e),*]) }; }
+macro_rules! bold { ($($e:expr),* $(,)?) => { $crate::content::bold(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! italic { ($($e:expr),* $(,)?) => { $crate::content::italic(vec![$($e),*]) }; }
+macro_rules! italic { ($($e:expr),* $(,)?) => { $crate::content::italic(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! sup { ($($e:expr),* $(,)?) => { $crate::content::sup(vec![$($e),*]) }; }
+macro_rules! sup { ($($e:expr),* $(,)?) => { $crate::content::sup(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! link { ($href:expr, $($e:expr),* $(,)?) => { $crate::content::link($href, vec![$($e),*]) }; }
+macro_rules! link { ($href:expr, $($e:expr),* $(,)?) => { $crate::content::link($href, vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h1 { ($($e:expr),* $(,)?) => { $crate::content::h1(vec![$($e),*]) }; }
+macro_rules! h1 { ($($e:expr),* $(,)?) => { $crate::content::h1(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h2 { ($($e:expr),* $(,)?) => { $crate::content::h2(vec![$($e),*]) }; }
+macro_rules! h2 { ($($e:expr),* $(,)?) => { $crate::content::h2(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h3 { ($($e:expr),* $(,)?) => { $crate::content::h3(vec![$($e),*]) }; }
+macro_rules! h3 { ($($e:expr),* $(,)?) => { $crate::content::h3(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h4 { ($($e:expr),* $(,)?) => { $crate::content::h4(vec![$($e),*]) }; }
+macro_rules! h4 { ($($e:expr),* $(,)?) => { $crate::content::h4(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h5 { ($($e:expr),* $(,)?) => { $crate::content::h5(vec![$($e),*]) }; }
+macro_rules! h5 { ($($e:expr),* $(,)?) => { $crate::content::h5(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h2_id { ($id:expr, $($e:expr),* $(,)?) => { $crate::content::h2_id($id, vec![$($e),*]) }; }
+macro_rules! h2_id { ($id:expr, $($e:expr),* $(,)?) => { $crate::content::h2_id($id, vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h3_id { ($id:expr, $($e:expr),* $(,)?) => { $crate::content::h3_id($id, vec![$($e),*]) }; }
+macro_rules! h3_id { ($id:expr, $($e:expr),* $(,)?) => { $crate::content::h3_id($id, vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! h4_id { ($id:expr, $($e:expr),* $(,)?) => { $crate::content::h4_id($id, vec![$($e),*]) }; }
+macro_rules! h4_id { ($id:expr, $($e:expr),* $(,)?) => { $crate::content::h4_id($id, vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! p { ($($e:expr),* $(,)?) => { $crate::content::p(vec![$($e),*]) }; }
+macro_rules! p { ($($e:expr),* $(,)?) => { $crate::content::p(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! li { ($($e:expr),* $(,)?) => { $crate::content::li(vec![$($e),*]) }; }
+macro_rules! li { ($($e:expr),* $(,)?) => { $crate::content::li(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! li_blocks { ($($e:expr),* $(,)?) => { $crate::content::li_blocks(vec![$($e),*]) }; }
+macro_rules! li_blocks { ($($e:expr),* $(,)?) => { $crate::content::li_blocks(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! ul { ($($e:expr),* $(,)?) => { $crate::content::ul(vec![$($e),*]) }; }
+macro_rules! ul { ($($e:expr),* $(,)?) => { $crate::content::ul(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! ol { ($($e:expr),* $(,)?) => { $crate::content::ol(vec![$($e),*]) }; }
+macro_rules! ol { ($($e:expr),* $(,)?) => { $crate::content::ol(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! blockquote { ($($e:expr),* $(,)?) => { $crate::content::blockquote(vec![$($e),*]) }; }
+macro_rules! blockquote { ($($e:expr),* $(,)?) => { $crate::content::blockquote(vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! admonition { ($kind:expr, $title:expr, $($e:expr),* $(,)?) => { $crate::content::admonition($kind, $title, vec![$($e),*]) }; }
+macro_rules! admonition { ($kind:expr, $title:expr, $($e:expr),* $(,)?) => { $crate::content::admonition($kind, $title, vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! tabs { ($default:expr, $($e:expr),* $(,)?) => { $crate::content::tabs($default, vec![$($e),*]) }; }
+macro_rules! tabs { ($default:expr, $($e:expr),* $(,)?) => { $crate::content::tabs($default, vec![$($e.into()),*]) }; }
 #[macro_export]
-macro_rules! tab { ($value:expr, $label:expr, $($e:expr),* $(,)?) => { $crate::content::tab($value, $label, vec![$($e),*]) }; }
+macro_rules! tab { ($value:expr, $label:expr, $($e:expr),* $(,)?) => { $crate::content::tab($value, $label, vec![$($e.into()),*]) }; }
 
 #[doc(hidden)]
 pub use crate::{
@@ -218,9 +218,12 @@ pub use crate::{
     link, ol, p, sup, tab, tabs, ul,
 };
 
-pub fn text(s: impl Into<AttrValue>) -> Inline {
-    Inline::Text(s.into())
+impl From<&'static str> for Inline {
+    fn from(s: &'static str) -> Self {
+        Inline::Text(s.into())
+    }
 }
+
 pub fn code(s: impl Into<AttrValue>) -> Inline {
     Inline::Code(s.into())
 }

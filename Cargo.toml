@@ -5,7 +5,7 @@ members = [
     "examples/*",
     "yew-rs/*",
 ]
-exclude = ["examples/.cargo", "yew-rs/website"]
+exclude = ["examples/.cargo"]
 default-members = [
     "packages/*",
 ]

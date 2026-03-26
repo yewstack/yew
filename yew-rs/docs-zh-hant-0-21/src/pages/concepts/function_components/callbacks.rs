@@ -3,19 +3,17 @@ crate::doc_page!(
     "/zh-Hant/docs/concepts/function-components/callbacks",
     Content::new(vec![
         p![
-            text(
-                "回調函數用於在元件樹中向上傳遞訊息，以及在事件處理期間與其他元件（如代理或 \
-                 DOM）進行通訊。在內部，回調函數的類型只是一個 "
-            ),
+            "回調函數用於在元件樹中向上傳遞訊息，以及在事件處理期間與其他元件（如代理或 \
+             DOM）進行通訊。在內部，回調函數的類型只是一個 ",
             code("Fn"),
-            text("，並且被包裝在 "),
+            "，並且被包裝在 ",
             code("Rc"),
-            text(" 中，以便它們可以被廉價地複製。"),
+            " 中，以便它們可以被廉價地複製。",
         ],
         p![
-            text("如果您想手動呼叫回調函數，可以使用 "),
+            "如果您想手動呼叫回調函數，可以使用 ",
             code("emit"),
-            text(" 函數。"),
+            " 函數。",
         ],
         code_block(
             "rust",
@@ -28,10 +26,8 @@ let cb: Callback<String, String> = Callback::from(move |name: String| {
 let result = cb.emit(String::from("Bob"));  // 呼叫回調函數
 // web_sys::console::log_1(&result.into()); // 若取消註釋，將列印 "Bye Bob""#,
         ),
-        h2![text("將回呼函數當作屬性傳遞")],
-        p![text(
-            "在 yew 中的一個常見模式是建立一個回呼函數，並將其作為屬性傳遞給子元件。",
-        )],
+        h2!["將回呼函數當作屬性傳遞"],
+        p!["在 yew 中的一個常見模式是建立一個回呼函數，並將其作為屬性傳遞給子元件。"],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties, Callback};
@@ -61,11 +57,9 @@ fn App() -> Html {
 }
 "#,
         ),
-        h2![text("DOM 事件和回呼函數")],
-        p![text("回調函數也用於連接到 DOM 事件。")],
-        p![text(
-            "例如，這裡我們定義了一個回呼函數，當使用者點擊按鈕時將會呼叫：",
-        )],
+        h2!["DOM 事件和回呼函數"],
+        p!["回調函數也用於連接到 DOM 事件。"],
+        p!["例如，這裡我們定義了一個回呼函數，當使用者點擊按鈕時將會呼叫："],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties, Callback};

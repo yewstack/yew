@@ -2,18 +2,14 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/elements",
     Content::new(vec![
-        h1(vec![text("元素")]),
-        h2![text("标签结构")],
+        h1!["元素"],
+        h2!["标签结构"],
         p![
-            text(
-                "元素标签必须是自闭合\\
-                 u{7684} "
-            ),
+            "元素标签必须是自闭合\\
+                 u{7684} ",
             code("<... />"),
-            text(
-                "，或是每个标签都有一\\
-                 u{4e2a}对应的闭合标签。"
-            ),
+            "，或是每个标签都有一\\
+                 u{4e2a}对应的闭合标签。",
         ],
         code_block(
             "rust",
@@ -68,18 +64,16 @@ html! {
             AdmonitionType::Note,
             None,
             p![
-                text(
-                    "为方便起见，一些 _通常_ 需要闭合标签的元素\\
-                     u{662f}被"
-                ),
-                bold![text("允许")],
-                text("自闭合的。例如，"),
+                "为方便起见，一些 _通常_ 需要闭合标签的元素\\
+                     u{662f}被",
+                bold!["允许"],
+                "自闭合的。例如，",
                 code("html! { <div class=\"placeholder\" /> }"),
-                text(" 这样写是有效的。"),
+                " 这样写是有效的。",
             ],
         ],
-        h2![text("Children")],
-        p![text("轻松创建复杂的嵌套 HTML 和 SVG 布局：")],
+        h2!["Children"],
+        p!["轻松创建复杂的嵌套 HTML 和 SVG 布局："],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -93,11 +87,9 @@ html! {
 };"#
         ),
         code_block("rust", r##"<div>This div is NOT hidden.</div>"##),
-        h2![text("Classes")],
-        p![text(
-            "有许多方便的选项可用\\
-             u{4e8e}元素指定 classes："
-        )],
+        h2!["Classes"],
+        p!["有许多方便的选项可用\\
+             u{4e8e}元素指定 classes："],
         code_block(
             "rust",
             r#"use yew::{html, virtual_dom::AttrValue};
@@ -152,18 +144,14 @@ html! {
   <div class={vec!["class-1", "class-2"]}></div>
 }"#
         ),
-        h2![text("监听器")],
+        h2!["监听器"],
         p![
-            text(
-                "监听器属性需要传递一\\
-                 u{4e2a}由闭包包裹的 "
-            ),
+            "监听器属性需要传递一\\
+                 u{4e2a}由闭包包裹的 ",
             code("Callback"),
-            text(
-                "。创建回调的方式取决\\
+            "。创建回调的方式取决\\
                  u{4e8e}你希望你的应用程序\\
-                 u{5982}何响应监听器事件："
-            ),
+                 u{5982}何响应监听器事件：",
         ],
         code_block(
             "rust",

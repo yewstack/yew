@@ -1,34 +1,34 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("字面量")],
+        h2!["字面量"],
         p![
-            text("如果表达式解析为实现了 "),
+            "如果表达式解析为实现了 ",
             code("Display"),
-            text(" 的类型，它们将被转换为字符串并插入到 DOM 中作为 "),
+            " 的类型，它们将被转换为字符串并插入到 DOM 中作为 ",
             link!(
                 "https://developer.mozilla.org/en-US/docs/Web/API/Text",
-                text("Text")
+                "Text"
             ),
-            text(" 节点。"),
+            " 节点。",
         ],
         admonition![
             AdmonitionType::Note,
             None,
             p![
-                text("字符串字面量创建 "),
+                "字符串字面量创建 ",
                 code("Text"),
-                text(" 节点，浏览器将其视为字符串。因此，即使表达式包含 "),
+                " 节点，浏览器将其视为字符串。因此，即使表达式包含 ",
                 code("<script>"),
-                text(" 标签，您也不会遇到 XSS 等安全问题，除非您将表达式包装在 "),
+                " 标签，您也不会遇到 XSS 等安全问题，除非您将表达式包装在 ",
                 code("<script>"),
-                text(" 块中。"),
+                " 块中。",
             ],
         ],
         p![
-            text("所有显示文本都必须用 "),
+            "所有显示文本都必须用 ",
             code("{}"),
-            text(" 块括起来，因为文本被视为表达式。这是 Yew 与普通 HTML 语法最大的偏差。"),
+            " 块括起来，因为文本被视为表达式。这是 Yew 与普通 HTML 语法最大的偏差。",
         ],
         code_block(
             "rust",
@@ -43,11 +43,11 @@ html!{
     </>
 };"#,
         ),
-        h2![text("表达式")],
+        h2!["表达式"],
         p![
-            text("您可以使用 "),
+            "您可以使用 ",
             code("{}"),
-            text(" 块在 HTML 中插入表达式，只要它们解析为 "),
+            " 块在 HTML 中插入表达式，只要它们解析为 ",
             code("Html"),
         ],
         code_block(
@@ -70,9 +70,7 @@ html! {
   </div>
 };"#,
         ),
-        p![text(
-            "通常将这些表达式提取到函数或闭包中以优化可读性是有意义的：",
-        )],
+        p!["通常将这些表达式提取到函数或闭包中以优化可读性是有意义的："],
         code_block(
             "rust",
             r#"use yew::prelude::*;

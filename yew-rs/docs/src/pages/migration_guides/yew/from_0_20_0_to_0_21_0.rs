@@ -2,36 +2,34 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         h2![
-            text("Dependencies as first hook argument and "),
+            "Dependencies as first hook argument and ",
             code("use_effect_with"),
         ],
         ul![
             li![
-                text("Replace "),
+                "Replace ",
                 code("use_effect_with_deps"),
-                text(" with new "),
+                " with new ",
                 code("use_effect_with"),
             ],
             li![
                 code("use_effect_with"),
-                text(", "),
+                ", ",
                 code("use_callback"),
-                text(", "),
+                ", ",
                 code("use_memo"),
-                text(" now take dependencies as their first argument"),
+                " now take dependencies as their first argument",
             ],
         ],
-        h3![text("Automated refactor")],
+        h3!["Automated refactor"],
         p![
-            text("With the help of "),
+            "With the help of ",
             link![
                 "https://ast-grep.github.io/guide/quick-start.html",
-                text("https://ast-grep.github.io"),
+                "https://ast-grep.github.io",
             ],
         ],
-        p![text(
-            "Here are commands that can do the refactoring for you.",
-        )],
+        p!["Here are commands that can do the refactoring for you."],
         code_block(
             "bash",
             r#"sg --pattern 'use_effect_with_deps($CALLBACK,$$$DEPENDENCIES)' --rewrite 'use_effect_with($$$DEPENDENCIES, $CALLBACK)' -l rs -i
@@ -52,10 +50,8 @@ sg --pattern 'use_transitive_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_
 sg --pattern 'use_prepared_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_prepared_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i
 sg --pattern 'use_prepared_state!($DEPENDENCIES,,$$$CALLBACK)' --rewrite 'use_prepared_state!($DEPENDENCIES,$$$CALLBACK)' -l rs -i"#,
         ),
-        h3![text("Reasoning")],
-        p![text(
-            "This will enable more ergonomic use of hooks, consider:",
-        )],
+        h3!["Reasoning"],
+        p!["This will enable more ergonomic use of hooks, consider:"],
         tabs(
             "before",
             vec![

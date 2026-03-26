@@ -2,49 +2,45 @@ crate::doc_page!(
     "Classes",
     "/docs/concepts/html/classes",
     Content::new(vec![
-        h2![text("Classes")],
+        h2!["Classes"],
         p![
-            text("The struct "),
+            "The struct ",
             code("Classes"),
-            text(" can be used to deal with HTML classes."),
+            " can be used to deal with HTML classes.",
         ],
         p![
-            text("When pushing a string to the set, "),
+            "When pushing a string to the set, ",
             code("Classes"),
-            text(
-                " ensures that there is one element for every class even if a single string might \
-                 contain multiple classes."
-            ),
+            " ensures that there is one element for every class even if a single string might \
+             contain multiple classes.",
         ],
         p![
             code("Classes"),
-            text(" can also be merged by using "),
+            " can also be merged by using ",
             code("Extend"),
-            text(" (i.e. "),
+            " (i.e. ",
             code("classes1.extend(classes2)"),
-            text(") or "),
+            ") or ",
             code("push()"),
-            text(" (i.e. "),
+            " (i.e. ",
             code("classes1.push(classes2)"),
-            text("). Any type that implements "),
+            "). Any type that implements ",
             code("Into<Classes>"),
-            text(" can be pushed onto an existing "),
+            " can be pushed onto an existing ",
             code("Classes"),
-            text("."),
+            ".",
         ],
         p![
-            text("The macro "),
+            "The macro ",
             code("classes!"),
-            text(" is a convenient macro that creates one single "),
+            " is a convenient macro that creates one single ",
             code("Classes"),
-            text(
-                ". Its input accepts a comma-separated list of expressions. The only requirement \
-                 is that every expression implements "
-            ),
+            ". Its input accepts a comma-separated list of expressions. The only requirement is \
+             that every expression implements ",
             code("Into<Classes>"),
-            text("."),
+            ".",
         ],
-        p![text("Literal:")],
+        p!["Literal:"],
         code_block(
             "rust",
             r#"use yew::{classes, html};
@@ -53,7 +49,7 @@ html! {
     <div class={classes!("container")}></div>
 };"#
         ),
-        p![text("Multiple:")],
+        p!["Multiple:"],
         code_block(
             "rust",
             r#"use yew::{classes, html};
@@ -62,7 +58,7 @@ html! {
   <div class={classes!("class-1", "class-2")}></div>
 };"#
         ),
-        p![text("String:")],
+        p!["String:"],
         code_block(
             "rust",
             r#"use yew::{classes, html};
@@ -73,7 +69,7 @@ html! {
   <div class={classes!(my_classes)}></div>
 };"#
         ),
-        p![text("Optional:")],
+        p!["Optional:"],
         code_block(
             "rust",
             r#"use yew::{classes, html};
@@ -82,7 +78,7 @@ html! {
   <div class={classes!(Some("class"))} />
 };"#
         ),
-        p![text("Vector:")],
+        p!["Vector:"],
         code_block(
             "rust",
             r#"use yew::{classes, html};
@@ -91,7 +87,7 @@ html! {
   <div class={classes!(vec!["class-1", "class-2"])}></div>
 };"#
         ),
-        p![text("Array:")],
+        p!["Array:"],
         code_block(
             "rust",
             r#"use yew::{classes, html};
@@ -100,7 +96,7 @@ html! {
   <div class={classes!(["class-1", "class-2"])}></div>
 };"#
         ),
-        h2![text("Components that accept classes")],
+        h2!["Components that accept classes"],
         code_block(
             "rust",
             r#"use yew::prelude::*;

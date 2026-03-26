@@ -3,12 +3,10 @@ crate::doc_page!(
     "/zh-Hant/docs/concepts/html/fragments",
     Content::new(vec![
         p![
-            text("The "),
+            "The ",
             code("html!"),
-            text(
-                " macro always requires a single root node. In order to get around this \
-                 restriction, you can use an \"empty tag\" (these are also called \"fragments\")."
-            ),
+            " macro always requires a single root node. In order to get around this restriction, \
+             you can use an \"empty tag\" (these are also called \"fragments\").",
         ],
         tabs![
             "Valid",

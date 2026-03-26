@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("If 區塊")],
+        h2!["If 區塊"],
         p![
-            text("要有條件地渲染一些標記，我們將其包裝在 "),
+            "要有條件地渲染一些標記，我們將其包裝在 ",
             code("if"),
-            text(" 區塊中："),
+            " 區塊中：",
         ],
         tabs![
             "if",

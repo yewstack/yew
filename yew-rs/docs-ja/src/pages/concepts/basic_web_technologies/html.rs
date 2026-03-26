@@ -3,10 +3,8 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("html!"),
-            text(
-                " マクロを使用して、HTML に似た式を記述できます。Yew はバックグラウンドでそれを \
-                 DOM を表現する Rust コードに変換します。",
-            ),
+            " マクロを使用して、HTML に似た式を記述できます。Yew はバックグラウンドでそれを DOM \
+             を表現する Rust コードに変換します。",
         ],
         code_block(
             "rust",
@@ -16,10 +14,10 @@ let my_header: Html = html! {
     <img src=\"img_girl.jpg\" alt=\"Girl in a jacket\" width=\"500\" height=\"600\" />
 };",
         ),
-        p![text(
+        p![
             "フォーマットされた式と同様に、波括弧を使用して周囲のコンテキストの値を HTML \
-             に埋め込むことができます：",
-        )],
+             に埋め込むことができます："
+        ],
         code_block(
             "rust",
             "use yew::prelude::*;
@@ -40,16 +38,12 @@ let combined_html: Html = html! {
         ),
         p![
             code("html!"),
-            text(
-                " を使用する際の重要なルールの 1 つは、1 \
-                 つのラッピングノードしか返せないということです。\
-                 複数の要素のリストをレンダリングするために、",
-            ),
+            " を使用する際の重要なルールの 1 つは、1 \
+             つのラッピングノードしか返せないということです。\
+             複数の要素のリストをレンダリングするために、",
             code("html!"),
-            text(
-                " は空のタグ（フラグメント）の使用を許可しています。空のタグは名前のないタグで、\
-                 それ自体は HTML 要素を生成しません。",
-            ),
+            " は空のタグ（フラグメント）の使用を許可しています。空のタグは名前のないタグで、\
+             それ自体は HTML 要素を生成しません。",
         ],
         tabs(
             "Invalid",
@@ -89,9 +83,9 @@ html! {
             ],
         ),
         p![
-            text("詳細については、"),
-            link!("/ja/docs/concepts/html", text("HTML の詳細")),
-            text("を参照してください。"),
+            "詳細については、",
+            link!("/ja/docs/concepts/html", "HTML の詳細"),
+            "を参照してください。",
         ],
     ])
 }

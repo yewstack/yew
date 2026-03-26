@@ -2,49 +2,45 @@ crate::doc_page!(
     "函数式组件",
     "/zh-Hans/docs/concepts/function-components",
     Content::new(vec![
-        p![text("Let's revisit this previous statement:")],
-        p![text(
+        p!["Let's revisit this previous statement:"],
+        p![
             "> Yew centrally operates on the idea of keeping everything that a reusable piece of \
              > UI may need in one place - rust files."
-        )],
-        p![text(
+        ],
+        p![
             "We will refine this statement, by introducing the concept that will define the logic \
              and presentation behavior of an application: \"components\"."
-        )],
-        h2![text("What are Components?")],
-        p![text("Components are the building blocks of Yew.")],
-        p![text("They:")],
-        ul![
-            li![text("Take arguments in form of "), link!("", text("Props"))],
-            li![text("Can have their own state")],
-            li![text("Compute pieces of HTML visible to the user (DOM)")]
         ],
-        h2![text("Two flavors of Yew Components")],
-        p![text(
+        h2!["What are Components?"],
+        p!["Components are the building blocks of Yew."],
+        p!["They:"],
+        ul![
+            li!["Take arguments in form of ", link!("", "Props")],
+            li!["Can have their own state"],
+            li!["Compute pieces of HTML visible to the user (DOM)"]
+        ],
+        h2!["Two flavors of Yew Components"],
+        p![
             "You are currently reading about function components - the recommended way to write \
              components when starting with Yew and when writing simple presentation logic."
-        )],
+        ],
         p![
-            text("There is a more advanced, but less accessible, way to write components - "),
+            "There is a more advanced, but less accessible, way to write components - ",
             link!(
                 "advanced-topics/struct-components/introduction.mdx",
-                text("Struct components")
+                "Struct components"
             ),
-            text(
-                ". They allow very detailed control, though you will not need that level of \
-                 detail most of the time."
-            )
+            ". They allow very detailed control, though you will not need that level of detail \
+             most of the time."
         ],
-        h2![text("Creating function components")],
+        h2!["Creating function components"],
         p![
-            text("To create a function component add the "),
+            "To create a function component add the ",
             code("#[function_component]"),
-            text(
-                " attribute to a function. By convention, the function is named in PascalCase, \
-                 like all components, to contrast its use to normal html elements inside the "
-            ),
+            " attribute to a function. By convention, the function is named in PascalCase, like \
+             all components, to contrast its use to normal html elements inside the ",
             code("html!"),
-            text(" macro.")
+            " macro."
         ],
         code_block(
             "rust",
@@ -61,15 +57,13 @@ fn App() -> Html {
     html! { <HelloWorld /> }
 }"#
         ),
-        h2![text("What happens to components")],
+        h2!["What happens to components"],
         p![
-            text(
-                "When rendering, Yew will build a virtual tree of these components. It will call \
-                 the view function of each (function) component to compute a virtual version \
-                 (VDOM) of the DOM that you as the library user see as the "
-            ),
+            "When rendering, Yew will build a virtual tree of these components. It will call the \
+             view function of each (function) component to compute a virtual version (VDOM) of \
+             the DOM that you as the library user see as the ",
             code("Html"),
-            text(" type. For the previous example, this would look like this:")
+            " type. For the previous example, this would look like this:"
         ],
         code_block(
             "xhtml",
@@ -80,23 +74,21 @@ fn App() -> Html {
 </App>"#
         ),
         p![
-            text(
-                "When an update is necessary, Yew will again call the view function and reconcile \
-                 the new virtual DOM with its previous version and only propagate the \
-                 new/changed/necessary parts to the actual DOM. This is what we call "
-            ),
-            bold![text("rendering")],
-            text(".")
+            "When an update is necessary, Yew will again call the view function and reconcile the \
+             new virtual DOM with its previous version and only propagate the \
+             new/changed/necessary parts to the actual DOM. This is what we call ",
+            bold!["rendering"],
+            "."
         ],
         admonition!(
             AdmonitionType::Note,
             None,
             p![
-                text("Behind the scenes, "),
+                "Behind the scenes, ",
                 code("Html"),
-                text(" is just an alias for "),
+                " is just an alias for ",
                 code("VNode"),
-                text(" - a virtual node.")
+                " - a virtual node."
             ]
         )
     ])

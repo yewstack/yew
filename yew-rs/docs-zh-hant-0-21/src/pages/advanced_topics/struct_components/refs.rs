@@ -4,22 +4,22 @@ crate::doc_page!(
     Content::new(vec![
         p![
             code("ref"),
-            text(" 關鍵字可以在任何 HTML 元素或元件中使用，以取得附加到該元素的 DOM "),
+            " 關鍵字可以在任何 HTML 元素或元件中使用，以取得附加到該元素的 DOM ",
             code("Element"),
-            text("。這可以用於在 "),
+            "。這可以用於在 ",
             code("view"),
-            text(" 生命週期方法之外對 DOM 進行更改。"),
+            " 生命週期方法之外對 DOM 進行更改。",
         ],
         p![
-            text("這對於獲取 canvas 元素或滾動到頁面的不同部分很有用。例如，在元件的 "),
+            "這對於獲取 canvas 元素或滾動到頁面的不同部分很有用。例如，在元件的 ",
             code("rendered"),
-            text(" 方法中使用 "),
+            " 方法中使用 ",
             code("NodeRef"),
-            text(" 允許您在從 "),
+            " 允許您在從 ",
             code("view"),
-            text(" 渲染後對 canvas 元素進行繪製呼叫。"),
+            " 渲染後對 canvas 元素進行繪製呼叫。",
         ],
-        p![text("文法如下：")],
+        p!["文法如下："],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -57,10 +57,10 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2![text("相關範例")],
+        h2!["相關範例"],
         ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            text("節點引用"),
+            "節點引用",
         )]],
     ])
 );

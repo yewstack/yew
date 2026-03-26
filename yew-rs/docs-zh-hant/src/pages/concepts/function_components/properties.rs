@@ -4,44 +4,40 @@ pub fn page_content() -> yew_site_lib::Content {
         admonition!(
             AdmonitionType::Note,
             None,
-            p![text("屬性 (Properties) 通常被簡寫為 \"Props\"。")],
+            p!["屬性 (Properties) 通常被簡寫為 \"Props\"。"],
         ),
-        p![text(
-            "屬性 (Properties) 是元件的參數，Yew 可以監視這些參數。",
-        )],
+        p!["屬性 (Properties) 是元件的參數，Yew 可以監視這些參數。"],
         p![
-            text("在元件的屬性中使用一個類型之前，它必須實作 "),
+            "在元件的屬性中使用一個類型之前，它必須實作 ",
             code("Properties"),
-            text(" trait。"),
+            " trait。",
         ],
-        h2![text("響應性")],
-        p![text(
-            "在重新渲染時，Yew 在協調虛擬 DOM \
-             時檢查屬性是否已更改，以了解是否需要重新渲染巢狀元件。這樣，Yew \
-             可以被認為是一個非常具有響應性的框架，因為來自父組件的變更總是會向下傳播，\
-             視圖永遠不會與來自屬性/狀態的資料不同步。",
-        )],
+        h2!["響應性"],
+        p!["在重新渲染時，Yew 在協調虛擬 DOM \
+            時檢查屬性是否已更改，以了解是否需要重新渲染巢狀元件。這樣，Yew \
+            可以被認為是一個非常具有響應性的框架，因為來自父組件的變更總是會向下傳播，\
+            視圖永遠不會與來自屬性/狀態的資料不同步。"],
         admonition!(
             AdmonitionType::Tip,
             None,
             p![
-                text("如果您尚未完成 "),
-                link!("/zh-Hant/docs/tutorial", text("教學")),
-                text("，請嘗試並自行測試這種回應性！"),
+                "如果您尚未完成 ",
+                link!("/zh-Hant/docs/tutorial", "教學"),
+                "，請嘗試並自行測試這種回應性！",
             ],
         ),
-        h2![text("派生宏")],
+        h2!["派生宏"],
         p![
-            text("Yew 提供了一個衍生宏，可以輕鬆地在結構體上實作 "),
+            "Yew 提供了一個衍生宏，可以輕鬆地在結構體上實作 ",
             code("Properties"),
-            text(" trait。"),
+            " trait。",
         ],
         p![
-            text("您衍生 "),
+            "您衍生 ",
             code("Properties"),
-            text(" 的型別也必須實作 "),
+            " 的型別也必須實作 ",
             code("PartialEq"),
-            text("，以便 Yew 可以進行資料比較。"),
+            "，以便 Yew 可以進行資料比較。",
         ],
         code_block(
             "rust",
@@ -52,13 +48,13 @@ pub struct Props {
     pub is_loading: bool,
 }"#,
         ),
-        h2![text("在函數元件中使用")],
+        h2!["在函數元件中使用"],
         p![
-            text("屬性 "),
+            "屬性 ",
             code("#[component]"),
-            text(" 允許在函式參數中選擇性地接收 Props。要提供它們，可以透過 "),
+            " 允許在函式參數中選擇性地接收 Props。要提供它們，可以透過 ",
             code("html!"),
-            text(" 巨集中的屬性進行賦值。"),
+            " 巨集中的屬性進行賦值。",
         ],
         tabs!(
             "with-props",
@@ -106,23 +102,19 @@ fn App() -> Html {
                 ),
             ),
         ),
-        h2![text("派生巨集欄位屬性")],
+        h2!["派生巨集欄位屬性"],
         p![
-            text("在派生 "),
+            "在派生 ",
             code("Properties"),
-            text(" 時，預設情況下所有欄位都是必要的。"),
+            " 時，預設情況下所有欄位都是必要的。",
         ],
-        p![text(
-            "以下屬性可讓您為屬性提供預設值，當父元件沒有設定它們時將使用這些預設值。",
-        )],
+        p!["以下屬性可讓您為屬性提供預設值，當父元件沒有設定它們時將使用這些預設值。"],
         admonition!(
             AdmonitionType::Tip,
             None,
-            p![text(
-                "屬性在 Rustdoc \
-                 產生的文檔中是不可見的。您的屬性的文檔字串應該提到一個屬性是否是可選的，\
-                 以及它是否有一個特殊的預設值。",
-            )],
+            p!["屬性在 Rustdoc \
+                產生的文檔中是不可見的。您的屬性的文檔字串應該提到一個屬性是否是可選的，\
+                以及它是否有一個特殊的預設值。"],
         ),
         tabs!(
             "prop_or_default",
@@ -130,9 +122,9 @@ fn App() -> Html {
                 "prop_or_default",
                 "#[prop_or_default]",
                 p![
-                    text("使用 "),
+                    "使用 ",
                     code("Default"),
-                    text(" trait 的欄位類型的預設值初始化屬性值。"),
+                    " trait 的欄位類型的預設值初始化屬性值。",
                 ],
                 code_block(
                     "rust",
@@ -169,15 +161,15 @@ fn Case2() -> Html {
                 "prop_or_value",
                 "#[prop_or(value)]",
                 p![
-                    text("使用 "),
+                    "使用 ",
                     code("value"),
-                    text(" 來初始化屬性值。 "),
+                    " 來初始化屬性值。 ",
                     code("value"),
-                    text(" 可以是傳回欄位類型的任何表達式。例如，要將布林屬性預設為 "),
+                    " 可以是傳回欄位類型的任何表達式。例如，要將布林屬性預設為 ",
                     code("true"),
-                    text("，請使用屬性 "),
+                    "，請使用屬性 ",
                     code("#[prop_or(true)]"),
-                    text("。當屬性被建構時，表達式會被評估，且沒有給出明確的值。"),
+                    "。當屬性被建構時，表達式會被評估，且沒有給出明確的值。",
                 ],
                 code_block(
                     "rust",
@@ -216,18 +208,16 @@ fn Case2() -> Html {
                 "prop_or_else_function",
                 "#[prop_or_else(function)]",
                 p![
-                    text("呼叫 "),
+                    "呼叫 ",
                     code("function"),
-                    text(" 來初始化屬性值。 "),
+                    " 來初始化屬性值。 ",
                     code("function"),
-                    text(" 應該有 "),
+                    " 應該有 ",
                     code("FnMut() -> T"),
-                    text(" 簽名，其中 "),
+                    " 簽名，其中 ",
                     code("T"),
-                    text(
-                        " 是欄位類型。當沒有為該屬性給出明確的值時，將呼叫該函數。\
-                         這個函數在屬性被建構時被呼叫。",
-                    ),
+                    " 是欄位類型。當沒有為該屬性給出明確的值時，將呼叫該函數。\
+                     這個函數在屬性被建構時被呼叫。",
                 ],
                 code_block(
                     "rust",
@@ -267,37 +257,33 @@ fn Case2() -> Html {
                 ),
             ),
         ),
-        h2![text("使用 Properties 的效能開銷")],
-        p![text(
-            "內部屬性是以引用計數的智慧型指標傳遞的。\
-             這意味著只有一個共享指標被傳遞到元件樹中的屬性，這樣就能節約克隆整個屬性的高昂成本。",
-        )],
+        h2!["使用 Properties 的效能開銷"],
+        p!["內部屬性是以引用計數的智慧型指標傳遞的。\
+            這意味著只有一個共享指標被傳遞到元件樹中的屬性，這樣就能節約克隆整個屬性的高昂成本。"],
         admonition!(
             AdmonitionType::Tip,
             None,
             p![
                 code("AttrValue"),
-                text(
-                    " 是我們用於屬性值的自訂類型，這樣就不用將它們定義為 String \
-                     或其他類似克隆成本高昂的類型了。",
-                ),
+                " 是我們用於屬性值的自訂類型，這樣就不用將它們定義為 String \
+                 或其他類似克隆成本高昂的類型了。",
             ],
         ),
-        h2![text("Props 巨集")],
+        h2!["Props 巨集"],
         p![
             code("yew::props!"),
-            text(" 巨集允許您以與 "),
+            " 巨集允許您以與 ",
             code("html!"),
-            text(" 巨集相同的方式建立屬性。"),
+            " 巨集相同的方式建立屬性。",
         ],
         p![
-            text("這個巨集使用與結構表達式相同的語法，只是您不能使用屬性或基本表達式 ("),
+            "這個巨集使用與結構表達式相同的語法，只是您不能使用屬性或基本表達式 (",
             code("Foo { ..base }"),
-            text(")。類型路徑可以直接指向屬性 ("),
+            ")。類型路徑可以直接指向屬性 (",
             code("path::to::Props"),
-            text(")，也可以指向元件的關聯屬性 ("),
+            ")，也可以指向元件的關聯屬性 (",
             code("MyComp::Properties"),
-            text(")。"),
+            ")。",
         ],
         code_block(
             "rust",
@@ -330,15 +316,15 @@ fn App() -> Html {
     html! { <Hello ..pre_made_props /> }
 }"#,
         ),
-        h2![text("自動產生屬性 (yew-autoprops)")],
+        h2!["自動產生屬性 (yew-autoprops)"],
         p![
-            text("為了簡化您的開發流程，您也可以使用巨集 "),
+            "為了簡化您的開發流程，您也可以使用巨集 ",
             code("#[autoprops]"),
-            text("（來自 "),
+            "（來自 ",
             code("yew-autoprops"),
-            text(" 套件）自動產生 "),
+            " 套件）自動產生 ",
             code("Properties"),
-            text(" 結構體。"),
+            " 結構體。",
         ],
         code_block(
             "rust",
@@ -367,8 +353,8 @@ fn Greetings(
 //
 // `is_loading` 將作為值傳遞給元件，而 `message` 和 `name` 將使用引用，因為定義中有一個前導的 `&`。"#,
         ),
-        h2![text("評估順序")],
-        p![text("屬性依照指定的順序進行評估，如下例所示：")],
+        h2!["評估順序"],
+        p!["屬性依照指定的順序進行評估，如下例所示："],
         code_block(
             "rust",
             r#"#[derive(yew::Properties, PartialEq)]
@@ -383,98 +369,83 @@ fn main() {
     assert_eq!(props.last, 3);
 }"#,
         ),
-        h2![text("反模式")],
-        p![text(
-            "雖然幾乎任何 Rust 類型都可以作為屬性傳遞，但有一些反模式應該避免。這些包括但不限於：",
-        )],
+        h2!["反模式"],
+        p!["雖然幾乎任何 Rust 類型都可以作為屬性傳遞，但有一些反模式應該避免。這些包括但不限於："],
         ol![
             li![
-                text("使用 "),
+                "使用 ",
                 code("String"),
-                text(" 類型而不是 "),
+                " 類型而不是 ",
                 code("AttrValue"),
-                text("。 "),
+                "。 ",
                 br(),
-                bold![text("為什麼不好？ ")],
+                bold!["為什麼不好？ "],
                 code("String"),
-                text(" 克隆成本高。當屬性值與鉤子和回調一起使用時，通常需要克隆。 "),
+                " 克隆成本高。當屬性值與鉤子和回調一起使用時，通常需要克隆。 ",
                 code("AttrValue"),
-                text(" 是一個引用計數的字串 ("),
+                " 是一個引用計數的字串 (",
                 code("Rc<str>"),
-                text(") 或一個 "),
+                ") 或一個 ",
                 code("&'static str"),
-                text("，因此非常便宜克隆。 "),
+                "，因此非常便宜克隆。 ",
                 br(),
-                bold![text("注意")],
-                text("："),
+                bold!["注意"],
+                "：",
                 code("AttrValue"),
-                text(" 在內部是來自 "),
-                link!(
-                    "https://crates.io/crates/implicit-clone",
-                    text("implicit-clone"),
-                ),
-                text(" 的 "),
+                " 在內部是來自 ",
+                link!("https://crates.io/crates/implicit-clone", "implicit-clone",),
+                " 的 ",
                 code("IString"),
-                text("。查看該包以了解更多資訊。"),
+                "。查看該包以了解更多資訊。",
             ],
             li![
-                text("使用內部可變性。 "),
+                "使用內部可變性。 ",
                 br(),
-                bold![text("為什麼不好？ ")],
-                text("內部可變性（例如 "),
+                bold!["為什麼不好？ "],
+                "內部可變性（例如 ",
                 code("RefCell"),
-                text("、"),
+                "、",
                 code("Mutex"),
-                text(
-                    " 等）應該 _通常_ 避免使用。它可能會導致重新渲染問題（Yew \
-                     不知道狀態何時發生了變化），因此您可能需要手動強制重新渲染。\
-                     就像所有事物一樣，它有其用武之地。請謹慎使用。",
-                ),
+                " 等）應該 _通常_ 避免使用。它可能會導致重新渲染問題（Yew \
+                 不知道狀態何時發生了變化），因此您可能需要手動強制重新渲染。就像所有事物一樣，\
+                 它有其用武之地。請謹慎使用。",
             ],
             li![
-                text("使用 "),
+                "使用 ",
                 code("Vec<T>"),
-                text(" 型別而不是 "),
+                " 型別而不是 ",
                 code("IArray<T>"),
-                text("。 "),
+                "。 ",
                 br(),
-                bold![text("為什麼不好？ ")],
+                bold!["為什麼不好？ "],
                 code("Vec<T>"),
-                text("，就像 "),
+                "，就像 ",
                 code("String"),
-                text(" 一樣，克隆成本也很高。 "),
+                " 一樣，克隆成本也很高。 ",
                 code("IArray<T>"),
-                text(" 是一個引用計數的切片 ("),
+                " 是一個引用計數的切片 (",
                 code("Rc<[T]>"),
-                text(") 或一個 "),
+                ") 或一個 ",
                 code("&'static [T]"),
-                text("，因此非常便宜克隆。 "),
+                "，因此非常便宜克隆。 ",
                 br(),
-                bold![text("注意")],
-                text("："),
+                bold!["注意"],
+                "：",
                 code("IArray"),
-                text(" 可以從 "),
-                link!(
-                    "https://crates.io/crates/implicit-clone",
-                    text("implicit-clone"),
-                ),
-                text(" 匯入。查看該包以了解更多資訊。"),
+                " 可以從 ",
+                link!("https://crates.io/crates/implicit-clone", "implicit-clone",),
+                " 匯入。查看該包以了解更多資訊。",
             ],
-            li![text(
+            li![
                 "您發覺可能的新內容。您是否遇到了一個希望早點了解清楚的邊緣情況？\
-                 請隨時建立一個問題或向本文檔提供修復的 PR。",
-            )],
+                 請隨時建立一個問題或向本文檔提供修復的 PR。"
+            ],
         ],
-        h2![text("yew-autoprops")],
+        h2!["yew-autoprops"],
         p![
-            link!(
-                "https://crates.io/crates/yew-autoprops",
-                text("yew-autoprops"),
-            ),
-            text(
-                " 是一個實驗性包，可讓您根據函數的參數動態建立 Props \
-                 結構體。如果屬性結構體永遠不會被重複使用，這可能會很有用。",
-            ),
+            link!("https://crates.io/crates/yew-autoprops", "yew-autoprops",),
+            " 是一個實驗性包，可讓您根據函數的參數動態建立 Props \
+             結構體。如果屬性結構體永遠不會被重複使用，這可能會很有用。",
         ],
     ])
 }

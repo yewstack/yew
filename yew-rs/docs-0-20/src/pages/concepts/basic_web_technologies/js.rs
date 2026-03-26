@@ -2,57 +2,52 @@ crate::doc_page!(
     "JS with RS",
     "/docs/concepts/basic-web-technologies/js",
     Content::new(vec![
-        blockquote![p![text(
-            "Yew centrally operates on the idea of keeping everything that a reusable piece of UI \
-             may need in one place - rust files, while also keeping the underlying technology \
-             accessible where necessary."
-        )]],
-        p![text(
+        blockquote![p!["Yew centrally operates on the idea of keeping \
+                        everything that a reusable piece of UI may need in \
+                        one place - rust files, while also keeping the \
+                        underlying technology accessible where necessary."]],
+        p![
             "As of today, WebAssembly is not feature-complete for DOM interactions. This means \
              even in Yew we sometimes rely on calling Javascript. What follows is an overview of \
              the involved libraries."
-        )],
-        h2![text("wasm-bindgen")],
+        ],
+        h2!["wasm-bindgen"],
         p![
             link!(
                 "https://github.com/rustwasm/wasm-bindgen",
                 code("wasm-bindgen")
             ),
-            text(
-                " is a library and tool that enables calls to javascript from rust and back to \
-                 rust from javascript."
-            ),
+            " is a library and tool that enables calls to javascript from rust and back to rust \
+             from javascript.",
         ],
         p![
-            text("We highly recommend you take a look at their "),
+            "We highly recommend you take a look at their ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/",
-                text("documentation")
+                "documentation"
             ),
-            text(" and our "),
+            " and our ",
             link!(
                 "/docs/concepts/basic-web-technologies/wasm-bindgen",
-                text("quick guide")
+                "quick guide"
             ),
-            text("."),
+            ".",
         ],
-        h2![text("web-sys")],
+        h2!["web-sys"],
         p![
-            text("The "),
+            "The ",
             link!(
                 "https://crates.io/crates/web-sys",
                 code("web-sys"),
-                text(" crate")
+                " crate"
             ),
-            text(
-                " provides bindings for Web APIs and allows us to write Javascript code in a \
-                 rustyfied and safe way."
-            ),
+            " provides bindings for Web APIs and allows us to write Javascript code in a \
+             rustyfied and safe way.",
         ],
-        p![text("Example:")],
-        h3![text("JS")],
+        p!["Example:"],
+        h3!["JS"],
         code_block("js", "let document = window.document"),
-        h3![text("RS")],
+        h3!["RS"],
         code_block(
             "rust",
             "use wasm_bindgen::UnwrapThrowExt;
@@ -64,17 +59,17 @@ let document = window()
 .expect_throw(\"document is undefined\");"
         ),
         p![
-            text("Once again we highly recommend you take a look at their "),
+            "Once again we highly recommend you take a look at their ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/",
-                text("documentation")
+                "documentation"
             ),
-            text(" and our "),
+            " and our ",
             link!(
                 "/docs/concepts/basic-web-technologies/web-sys",
-                text("quick guide")
+                "quick guide"
             ),
-            text("."),
+            ".",
         ],
     ])
 );

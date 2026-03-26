@@ -2,43 +2,37 @@ crate::doc_page!(
     "Literals and Expressions",
     "/docs/concepts/html/literals-and-expressions",
     Content::new(vec![
-        h2![text("Literals")],
+        h2!["Literals"],
         p![
-            text("If expressions resolve to types that implement "),
+            "If expressions resolve to types that implement ",
             code("Display"),
-            text(", they will be converted to strings and inserted into the DOM as a "),
+            ", they will be converted to strings and inserted into the DOM as a ",
             link![
                 "https://developer.mozilla.org/en-US/docs/Web/API/Text",
-                text("Text"),
+                "Text",
             ],
-            text(" node."),
+            " node.",
         ],
         admonition![
             AdmonitionType::Note,
             None,
             p![
-                text("String literals create "),
+                "String literals create ",
                 code("Text"),
-                text(
-                    " nodes, which are treated as strings by the browser. Hence, even if the \
-                     expression contains a "
-                ),
+                " nodes, which are treated as strings by the browser. Hence, even if the \
+                 expression contains a ",
                 code("<script>"),
-                text(
-                    " tag you can't fall for XSS and such security issues, unless of course you \
-                     wrap the expression in a "
-                ),
+                " tag you can't fall for XSS and such security issues, unless of course you wrap \
+                 the expression in a ",
                 code("<script>"),
-                text(" block."),
+                " block.",
             ],
         ],
         p![
-            text("All display text must be enclosed by "),
+            "All display text must be enclosed by ",
             code("{}"),
-            text(
-                " blocks because text is handled as an expression. This is the largest deviation \
-                 from normal HTML syntax that Yew makes."
-            ),
+            " blocks because text is handled as an expression. This is the largest deviation from \
+             normal HTML syntax that Yew makes.",
         ],
         code_block(
             "rust",
@@ -53,11 +47,11 @@ html!{
 </>
 };"#
         ),
-        h2![text("Expressions")],
+        h2!["Expressions"],
         p![
-            text("You can insert expressions in your HTML using "),
+            "You can insert expressions in your HTML using ",
             code("{}"),
-            text(" blocks, as long as they resolve to "),
+            " blocks, as long as they resolve to ",
             code("Html"),
         ],
         code_block(
@@ -80,10 +74,10 @@ html! {}
 </div>
 };"#
         ),
-        p![text(
+        p![
             "It often makes sense to extract these expressions into functions or closures to \
              optimize for readability:"
-        )],
+        ],
         code_block(
             "rust",
             r#"use yew::prelude::*;

@@ -3,37 +3,32 @@ crate::doc_page!(
     "/ja/docs/getting-started/examples",
     Content::new(vec![
         p![
-            text("Yewのリポジトリは"),
-            link!(
-                "https://github.com/yewstack/yew/tree/v0.17/examples",
-                text("例")
-            ),
-            text(
-                "がたくさんあります（メンテナンス状況は様々）。\
-                 様々なフレームワークの機能の使い方を知るのにはそれらの例に取り組むのを勧めます。\
-                 プルリクエストやIssueはウェルカムです。"
-            ),
+            "Yewのリポジトリは",
+            link!("https://github.com/yewstack/yew/tree/v0.17/examples", "例"),
+            "がたくさんあります（メンテナンス状況は様々）。\
+             様々なフレームワークの機能の使い方を知るのにはそれらの例に取り組むのを勧めます。\
+             プルリクエストやIssueはウェルカムです。",
         ],
         ul![
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.17/examples/todomvc",
-                bold![text("Todoアプリ")]
+                bold!["Todoアプリ"]
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.17/examples/custom_components",
-                bold![text("カスタムコンポーネント")]
+                bold!["カスタムコンポーネント"]
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.17/examples/multi_thread",
-                bold![text("マルチスレッド（エージェント）")]
+                bold!["マルチスレッド（エージェント）"]
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.17/examples/timer",
-                bold![text("タイマーサービス")]
+                bold!["タイマーサービス"]
             )],
             li![link!(
                 "https://github.com/yewstack/yew/tree/v0.16.0/examples/nested_list",
-                bold![text("ネストしたコンポーネント")]
+                bold!["ネストしたコンポーネント"]
             )],
         ],
     ])

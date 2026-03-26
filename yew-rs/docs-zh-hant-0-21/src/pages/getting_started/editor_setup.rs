@@ -5,26 +5,22 @@ crate::doc_page!(
         admonition!(
             AdmonitionType::Important,
             Some("改進文檔"),
-            p![text(
-                "有在使用不同的編輯器？如有推薦，請隨意新增您選擇的編輯器的說明。"
-            )],
+            p!["有在使用不同的編輯器？如有推薦，請隨意新增您選擇的編輯器的說明。"],
         ),
-        h2![text("為建立元件新增模板")],
-        h3![text("JetBrains IDEs")],
+        h2!["為建立元件新增模板"],
+        h3!["JetBrains IDEs"],
         ol![
-            li![text(
-                "從導覽列依序點擊 File | Settings | Editor | Live Templates."
-            )],
-            li![text("選擇 Rust 並點選 + 圖示新增新的 Live Template。")],
-            li![text("根據需要給它一個的名稱和描述。")],
-            li![text("將以下程式碼片段貼到範本文字部分。")],
-            li![text("在右下角更改適用性，選擇 Rust > Item > Module")],
+            li!["從導覽列依序點擊 File | Settings | Editor | Live Templates."],
+            li!["選擇 Rust 並點選 + 圖示新增新的 Live Template。"],
+            li!["根據需要給它一個的名稱和描述。"],
+            li!["將以下程式碼片段貼到範本文字部分。"],
+            li!["在右下角更改適用性，選擇 Rust > Item > Module"],
         ],
-        p![text("對於函數式元件，使用以下模板。")],
+        p!["對於函數式元件，使用以下模板。"],
         ul![li![
-            text("(可選) 點選編輯變量，並給 "),
+            "(可選) 點選編輯變量，並給 ",
             code("tag"),
-            text(" 一個合理的預設值，例如 \"div\"，用雙引號。"),
+            " 一個合理的預設值，例如 \"div\"，用雙引號。",
         ]],
         code_block_ignore(
             "rust",
@@ -39,7 +35,7 @@ pub fn $Name$(props: &$Name$Props) -> Html {
     }
 }"#,
         ),
-        p![text("對於結構體組件，可以使用以下更複雜的模板。")],
+        p!["對於結構體組件，可以使用以下更複雜的模板。"],
         code_block_ignore(
             "rust",
             r#"struct $NAME$;
@@ -62,11 +58,11 @@ impl Component for $NAME$ {
     }
 }"#,
         ),
-        h3![text("VS Code")],
+        h3!["VS Code"],
         ol![
-            li![text("從導覽列依序點選 File > Preferences > User Snippets.")],
-            li![text("選擇 Rust 作為設定語言。")],
-            li![text("在 JSON 檔案中加入以下程式碼片段：")],
+            li!["從導覽列依序點選 File > Preferences > User Snippets."],
+            li!["選擇 Rust 作為設定語言。"],
+            li!["在 JSON 檔案中加入以下程式碼片段："],
         ],
         code_block(
             "json",
@@ -114,34 +110,34 @@ impl Component for $NAME$ {
     }
 }"##,
         ),
-        h2![text("支援 "), code("html!"), text(" 宏")],
-        h3![text("JetBrains IDEs")],
-        p![text("Contribution Welcome!")],
-        h3![text("VS Code")],
-        h4![text("Rust-Yew 擴展")],
+        h2!["支援 ", code("html!"), " 宏"],
+        h3!["JetBrains IDEs"],
+        p!["Contribution Welcome!"],
+        h3!["VS Code"],
+        h4!["Rust-Yew 擴展"],
         blockquote![p![
-            text("這是一個"),
-            bold![text("正在進行中")],
-            text("的，"),
-            bold![text("由社區維護")],
-            text("的項目！ "),
+            "這是一個",
+            bold!["正在進行中"],
+            "的，",
+            bold!["由社區維護"],
+            "的項目！ ",
             link!(
                 "https://github.com/TechTheAwesome/code-yew-server",
-                text("請查看詳細信息，並將相關的 bug 報告/問題/疑問直接發送到擴展的存儲庫"),
+                "請查看詳細信息，並將相關的 bug 報告/問題/疑問直接發送到擴展的存儲庫",
             ),
         ]],
         p![
-            text("Rust-Yew 擴充 "),
+            "Rust-Yew 擴充 ",
             link!(
                 "https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew",
-                text("可在 VSC Marketplace 上找到"),
+                "可在 VSC Marketplace 上找到",
             ),
-            text("，提供語法高亮、重新命名、懸停等功能。"),
+            "，提供語法高亮、重新命名、懸停等功能。",
         ],
         p![
-            text("Emmet 支援應該可以直接使用，如果不能，請回退到編輯 "),
+            "Emmet 支援應該可以直接使用，如果不能，請回退到編輯 ",
             code("settings.json"),
-            text(" 檔案："),
+            " 檔案：",
         ],
         code_block(
             "json",
@@ -149,16 +145,16 @@ impl Component for $NAME$ {
     "rust": "html",
 }"#,
         ),
-        h3![text("Neovim")],
-        h4![text("Lazyvim")],
+        h3!["Neovim"],
+        h4!["Lazyvim"],
         blockquote![p![
-            text("下面的配置適用於"),
-            link!("https://www.lazyvim.org", text("LazyVim")),
-            text(" 配置和lazy.vim 插件，請在"),
+            "下面的配置適用於",
+            link!("https://www.lazyvim.org", "LazyVim"),
+            " 配置和lazy.vim 插件，請在",
             code("lua/plugins/nvim-lspconfig.lua"),
-            text(" 中建立一個檔案（或更新您的"),
+            " 中建立一個檔案（或更新您的",
             code("lspconfig"),
-            text("）："),
+            "）：",
         ]],
         code_block(
             "json",

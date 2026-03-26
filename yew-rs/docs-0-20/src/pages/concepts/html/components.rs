@@ -1,10 +1,10 @@
 crate::doc_page!("Components", "/docs/concepts/html/components",
     Content::new(vec![
-        h2![text("Basic")],
+        h2!["Basic"],
         p![
-            text("Components can be used in the "),
+            "Components can be used in the ",
             code("html!"),
-            text(" macro:"),
+            " macro:",
         ],
         code_block("rust", r#"use yew::prelude::*;
 
@@ -49,13 +49,13 @@ html!{
 <MyComponentWithProps user_last_name="Elm" ..props />
 </>
 };"#),
-        h2![text("Nested")],
+        h2!["Nested"],
         p![
-            text("Components can be passed children if they have a "),
+            "Components can be passed children if they have a ",
             code("children"),
-            text(" field in their "),
+            " field in their ",
             code("Properties"),
-            text("."),
+            ".",
         ],
         code_block_title("rust", "parent.rs", r#"use yew::prelude::*;
 
@@ -81,19 +81,19 @@ html! {
 </Container>
 };"#),
         p![
-            text("The "),
+            "The ",
             code("html!"),
-            text(" macro allows you to pass a base expression with the "),
+            " macro allows you to pass a base expression with the ",
             code("..props"),
-            text(" syntax instead of specifying each property individually, \
-              similar to Rust's "),
-            link!["https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax", text("Functional Update Syntax")],
-            text(". This base expression must occur after any individual props are passed. \
-              When passing a base props expression with a "),
+            " syntax instead of specifying each property individually, \
+              similar to Rust's ",
+            link!["https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax", "Functional Update Syntax"],
+            ". This base expression must occur after any individual props are passed. \
+              When passing a base props expression with a ",
             code("children"),
-            text(" field, the children passed in the "),
+            " field, the children passed in the ",
             code("html!"),
-            text(" macro overwrite the ones already present in the props."),
+            " macro overwrite the ones already present in the props.",
         ],
         code_block("rust", r#"use yew::prelude::*;
 
@@ -123,18 +123,18 @@ html! {
 <span>{ "I am a child, as you can see" }</span>
 </Container>
 };"#),
-        h2![text("Nested Children with Props")],
+        h2!["Nested Children with Props"],
         p![
-            text("Nested component properties can be accessed and mutated if the containing component types its children. \
-              In the following example, the "),
+            "Nested component properties can be accessed and mutated if the containing component types its children. \
+              In the following example, the ",
             code("List"),
-            text(" component can wrap "),
+            " component can wrap ",
             code("ListItem"),
-            text(" components. For a real world example of this pattern, check out the "),
+            " components. For a real world example of this pattern, check out the ",
             code("yew-router"),
-            text(" source code. For a more advanced example, check out the "),
+            " source code. For a more advanced example, check out the ",
             code("nested-list"),
-            text(" example in the main yew repository."),
+            " example in the main yew repository.",
         ],
         code_block("rust", r#"use std::rc::Rc;
 use yew::prelude::*;
@@ -176,10 +176,10 @@ html! {
 <ListItem value="c" />
 </List>
 };"#),
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![
-            li![link!["https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/function_todomvc", text("Function Todo MVC")]],
-            li![link!["https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/function_router", text("Function Router")]],
+            li![link!["https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/function_todomvc", "Function Todo MVC"]],
+            li![link!["https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/function_router", "Function Router"]],
         ],
     ])
 );

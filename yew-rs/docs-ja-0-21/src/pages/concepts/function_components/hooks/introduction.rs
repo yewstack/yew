@@ -2,56 +2,46 @@ crate::doc_page!(
     "Hooks",
     "/ja/docs/concepts/function-components/hooks",
     Content::new(vec![
-        h2![text("Hooks")],
-        p![text(
-            "Hooks are functions that let you store state and perform side effects."
-        )],
+        h2!["Hooks"],
+        p!["Hooks are functions that let you store state and perform side effects."],
         p![
-            text(
-                "Yew comes with a few pre-defined hooks. You can also create your own or discover \
-                 many "
-            ),
-            link!("/community/awesome#hooks", text("community-made hooks")),
-            text("."),
+            "Yew comes with a few pre-defined hooks. You can also create your own or discover \
+             many ",
+            link!("/community/awesome#hooks", "community-made hooks"),
+            ".",
         ],
-        h2![text("Rules of hooks")],
+        h2!["Rules of hooks"],
         ol![
             li![
-                text("A hook function name always has to start with "),
+                "A hook function name always has to start with ",
                 code("use_"),
             ],
             li_blocks![
-                p![text("Hooks can only be used in the following locations:")],
+                p!["Hooks can only be used in the following locations:"],
                 ul![
-                    li![text("Top-level of a function/hook.")],
-                    li![text(
-                        "Blocks inside a function/hook, given it is not already branched."
-                    )],
+                    li!["Top-level of a function/hook."],
+                    li!["Blocks inside a function/hook, given it is not already branched."],
                     li![
-                        text("In the condition of a top-level "),
+                        "In the condition of a top-level ",
                         code("if"),
-                        text(" expression inside a function/hook."),
+                        " expression inside a function/hook.",
                     ],
                     li![
-                        text("In the scrutinee of a top-level "),
+                        "In the scrutinee of a top-level ",
                         code("match"),
-                        text(" expression inside a function/hook."),
+                        " expression inside a function/hook.",
                     ],
                 ],
             ],
             li![
-                text(
-                    "Hooks must be called in the same order for every render. Returning early is \
-                     only allowed when using "
-                ),
-                link!("/ja/docs/concepts/suspense", text("Suspense")),
+                "Hooks must be called in the same order for every render. Returning early is only \
+                 allowed when using ",
+                link!("/ja/docs/concepts/suspense", "Suspense"),
             ],
         ],
-        p![text(
-            "These rules are enforced by either compile-time or run-time errors."
-        )],
-        h3![text("Pre-defined Hooks")],
-        p![text("Yew comes with the following predefined Hooks:")],
+        p!["These rules are enforced by either compile-time or run-time errors."],
+        h3!["Pre-defined Hooks"],
+        p!["Yew comes with the following predefined Hooks:"],
         ul![
             li![code("use_state")],
             li![code("use_state_eq")],
@@ -67,32 +57,27 @@ crate::doc_page!(
             li![code("use_force_update")],
         ],
         p![
-            text("The documentation for these hooks can be found in the "),
+            "The documentation for these hooks can be found in the ",
             link!(
                 "https://yew-rs-api.web.app/next/yew/functional/",
-                text("Yew API docs")
+                "Yew API docs"
             ),
         ],
-        h3![text("Custom Hooks")],
+        h3!["Custom Hooks"],
         p![
-            text(
-                "There are cases where you want to define your own Hooks to encapsulate \
-                 potentially stateful logic from a component into reusable functions. See the "
-            ),
+            "There are cases where you want to define your own Hooks to encapsulate potentially \
+             stateful logic from a component into reusable functions. See the ",
             link!(
                 "/ja/docs/concepts/function-components/hooks/custom-hooks#defining-custom-hooks",
-                text("Defining custom hooks")
+                "Defining custom hooks"
             ),
-            text(" section for more information."),
+            " section for more information.",
         ],
-        h2![text("Further reading")],
+        h2!["Further reading"],
         ul![li![
-            text("The React documentation has a section on "),
-            link!(
-                "https://reactjs.org/docs/hooks-intro.html",
-                text("React hooks")
-            ),
-            text(". These are not the same as Yew's hooks, but the underlying concept is similar."),
+            "The React documentation has a section on ",
+            link!("https://reactjs.org/docs/hooks-intro.html", "React hooks"),
+            ". These are not the same as Yew's hooks, but the underlying concept is similar.",
         ]],
     ])
 );

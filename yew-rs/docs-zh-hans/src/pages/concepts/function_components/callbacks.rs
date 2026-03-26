@@ -2,19 +2,17 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         p![
-            text(
-                "回调函数用于在组件树中向上传递信息，以及在事件处理期间与其他组件（如代理或 \
-                 DOM）进行通信。在内部，回调函数的类型只是一个 ",
-            ),
+            "回调函数用于在组件树中向上传递信息，以及在事件处理期间与其他组件（如代理或 \
+             DOM）进行通信。在内部，回调函数的类型只是一个 ",
             code("Fn"),
-            text("，并且被包装在 "),
+            "，并且被包装在 ",
             code("Rc"),
-            text(" 中，以便它们可以被廉价地克隆。"),
+            " 中，以便它们可以被廉价地克隆。",
         ],
         p![
-            text("如果您想手动调用回调函数，可以使用 "),
+            "如果您想手动调用回调函数，可以使用 ",
             code("emit"),
-            text(" 函数。"),
+            " 函数。",
         ],
         code_block(
             "rust",
@@ -27,10 +25,8 @@ let cb: Callback<String, String> = Callback::from(move |name: String| {
 let result = cb.emit(String::from("Bob"));  // 调用回调函数
 // web_sys::console::log_1(&result.into()); // 如果取消注释，将打印 "Bye Bob""#,
         ),
-        h2![text("将回调函数作为属性传递")],
-        p![text(
-            "在 yew 中的一个常见模式是创建一个回调函数，并将其作为属性传递给子组件。",
-        )],
+        h2!["将回调函数作为属性传递"],
+        p!["在 yew 中的一个常见模式是创建一个回调函数，并将其作为属性传递给子组件。"],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties, Callback};
@@ -59,11 +55,9 @@ fn App() -> Html {
     html! { <HelloWorld {on_name_entry} /> }
 }"#,
         ),
-        h2![text("DOM 事件和回调函数")],
-        p![text("回调函数也用于连接到 DOM 事件。")],
-        p![text(
-            "例如，这里我们定义了一个回调函数，当用户点击按钮时将会调用：",
-        )],
+        h2!["DOM 事件和回调函数"],
+        p!["回调函数也用于连接到 DOM 事件。"],
+        p!["例如，这里我们定义了一个回调函数，当用户点击按钮时将会调用："],
         code_block(
             "rust",
             r#"use yew::{component, html, Html, Properties, Callback};

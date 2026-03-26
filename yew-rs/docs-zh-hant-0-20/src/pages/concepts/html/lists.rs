@@ -2,13 +2,11 @@ crate::doc_page!(
     "Lists",
     "/zh-Hant/docs/concepts/html/lists",
     Content::new(vec![
-        h2![text("Fragments")],
+        h2!["Fragments"],
         p![
             code("html!"),
-            text(
-                " 巨集裡必須只有一個根結點。為了可以繞過這個限制，將兩個以上的結點，\
-                 用空的標籤包裹起來，是合法的：",
-            ),
+            " 巨集裡必須只有一個根結點。為了可以繞過這個限制，將兩個以上的結點，\
+             用空的標籤包裹起來，是合法的：",
         ],
         tabs![
             "Valid",
@@ -30,8 +28,8 @@ crate::doc_page!(
                 ),
             ],
         ],
-        h2![text("Iterators")],
-        p![text("Yew 支援兩種不同的方式，從 iterator 建構 html：",)],
+        h2!["Iterators"],
+        p!["Yew 支援兩種不同的方式，從 iterator 建構 html："],
         tabs![
             "Syntax Type 1",
             tab![

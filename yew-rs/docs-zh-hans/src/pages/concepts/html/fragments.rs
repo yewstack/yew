@@ -3,8 +3,8 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("html!"),
-            text(" 宏总是需要一个根节点。为了绕过这个限制，"),
-            text("您可以使用一个\"空标签\"（也称为\"fragments\"）。"),
+            " 宏总是需要一个根节点。为了绕过这个限制，",
+            "您可以使用一个\"空标签\"（也称为\"fragments\"）。",
         ],
         tabs![
             "Valid",

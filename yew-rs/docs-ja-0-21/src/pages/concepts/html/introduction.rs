@@ -2,24 +2,24 @@ crate::doc_page!("Introduction", "/ja/docs/concepts/html",
     Content::new(vec![
         p![
             code("html!"),
-            text("マクロによって HTML と SVG のコードを宣言的に書くことができます。\
-                  JSX (HTML のようなコードを JavaScript 内部に書くことができる JavaScript の拡張) に似ています。"),
+            "マクロによって HTML と SVG のコードを宣言的に書くことができます。\
+                  JSX (HTML のようなコードを JavaScript 内部に書くことができる JavaScript の拡張) に似ています。",
         ],
-        p![bold![text("重要な注意")]],
+        p![bold!["重要な注意"]],
         ol![
             li![
                 code("html!"),
-                text("マクロはルートの HTML ノードのみ受け付けます ("),
-                link!["/ja/docs/concepts/html/lists", text("フラグメントかイテレータを使う")],
-                text("ことでやり取りできます)"),
+                "マクロはルートの HTML ノードのみ受け付けます (",
+                link!["/ja/docs/concepts/html/lists", "フラグメントかイテレータを使う"],
+                "ことでやり取りできます)",
             ],
             li![
-                text("空の"),
+                "空の",
                 code("html! {}"),
-                text("の呼び出しは可能ですが何もレンダリングしません"),
+                "の呼び出しは可能ですが何もレンダリングしません",
             ],
             li![
-                text("リテラルはクオーテーションがつけられ、ブレースで囲う必要があります: "),
+                "リテラルはクオーテーションがつけられ、ブレースで囲う必要があります: ",
                 code("html! { \"Hello, World\" }"),
             ],
         ],
@@ -28,28 +28,28 @@ crate::doc_page!("Introduction", "/ja/docs/concepts/html",
             None,
             p![
                 code("html!"),
-                text("マクロはコンパイラのデフォルトの再帰の上限に簡単に達してしまいます。\
+                "マクロはコンパイラのデフォルトの再帰の上限に簡単に達してしまいます。\
                       もしコンパイラエラーに遭遇した場合はその値を押し出すといいかもしれません。\
-                      クレートのルート(つまり、"),
+                      クレートのルート(つまり、",
                 code("lib.rs"),
-                text("か"),
+                "か",
                 code("main.rs"),
-                text(")で"),
+                ")で",
                 code("#![recursion_limit=\"1024\"]"),
-                text("のような属性を使えば解決します。"),
+                "のような属性を使えば解決します。",
             ],
             p![
-                text("詳しくは"),
+                "詳しくは",
                 link![
                     "https://doc.rust-lang.org/reference/attributes/limits.html#the-recursion_limit-attribute",
-                    text("公式ドキュメント"),
+                    "公式ドキュメント",
                 ],
-                text("と"),
+                "と",
                 link![
                     "https://stackoverflow.com/questions/27454761/what-is-a-crate-attribute-and-where-do-i-add-it",
-                    text("Stack Overflow の質問"),
+                    "Stack Overflow の質問",
                 ],
-                text("を見てみてください。"),
+                "を見てみてください。",
             ],
         ],
     ])

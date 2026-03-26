@@ -1,19 +1,19 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![code("use_reducer"), text(" 不再在恒等分发时重新渲染")],
+        h2![code("use_reducer"), " 不再在恒等分发时重新渲染"],
         p![
             code("use_reducer"),
-            text(" 现在在 reducer 返回相同的 "),
+            " 现在在 reducer 返回相同的 ",
             code("Rc"),
-            text(" 时（通过指针相等性判断）会跳过重新渲染。之前，每次分发都会触发重新渲染。"),
+            " 时（通过指针相等性判断）会跳过重新渲染。之前，每次分发都会触发重新渲染。",
         ],
         p![
-            text("如果你的 reducer 有一个返回 "),
+            "如果你的 reducer 有一个返回 ",
             code("self"),
-            text(" 不变的代码路径，并且你依赖它来触发重新渲染，请用 "),
+            " 不变的代码路径，并且你依赖它来触发重新渲染，请用 ",
             code("use_force_update"),
-            text(" 替代："),
+            " 替代：",
         ],
         tabs!(
             "before",

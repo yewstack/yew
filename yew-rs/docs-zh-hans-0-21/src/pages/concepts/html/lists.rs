@@ -2,13 +2,11 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/concepts/html/lists",
     Content::new(vec![
-        h1![text("列表")],
-        h2![text("Fragments")],
+        h1!["列表"],
+        h2!["Fragments"],
         p![
             code("html!"),
-            text(
-                " 宏总是要求一个单一的根节点。为了绕开这个限制，把内容包裹在一个空标签内是有效的："
-            )
+            " 宏总是要求一个单一的根节点。为了绕开这个限制，把内容包裹在一个空标签内是有效的："
         ],
         code_block(
             "rust",
@@ -28,8 +26,8 @@ html! {
     <p></p>
 }"#
         ),
-        h2![text("迭代器")],
-        p![text("Yew 支持两种从迭代器构建 html 的语法：")],
+        h2!["迭代器"],
+        p!["Yew 支持两种从迭代器构建 html 的语法："],
         code_block(
             "rust",
             r#"html! {

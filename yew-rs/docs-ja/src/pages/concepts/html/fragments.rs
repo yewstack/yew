@@ -3,10 +3,8 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("html!"),
-            text(
-                " マクロは常にルートノードを必要とします。この制限を回避するために、\
-                 「空のタグ」（または fragments）を使用できます。",
-            ),
+            " マクロは常にルートノードを必要とします。この制限を回避するために、\
+             「空のタグ」（または fragments）を使用できます。",
         ],
         tabs![
             "Valid",

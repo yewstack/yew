@@ -2,102 +2,102 @@ crate::doc_page!(
     "",
     "/zh-Hans/docs/more/roadmap",
     Content::new(vec![
-        h1![text("路线图")],
+        h1!["路线图"],
         h2![code("v1.0.0")],
-        h3![text("规划中的功能")],
+        h3!["规划中的功能"],
         ul![
             li![
-                text("标记 key 的列表项："),
+                "标记 key 的列表项：",
                 link!(
                     "https://github.com/yewstack/yew/issues/479",
-                    text("https://github.com/yewstack/yew/issues/479")
+                    "https://github.com/yewstack/yew/issues/479"
                 )
             ],
             li![
-                text("路由："),
+                "路由：",
                 link!(
                     "https://github.com/yewstack/yew_router",
-                    text("https://github.com/yewstack/yew_router")
+                    "https://github.com/yewstack/yew_router"
                 )
             ]
         ],
-        h3![text("生产环境准备")],
+        h3!["生产环境准备"],
         ul![
-            li![text("浏览器兼容性")],
-            li![text("提高 Yew 框架的测试覆盖率")],
+            li!["浏览器兼容性"],
+            li!["提高 Yew 框架的测试覆盖率"],
             li![
-                text("增加性能基准测试："),
+                "增加性能基准测试：",
                 link!(
                     "https://github.com/yewstack/yew/issues/5",
-                    text("https://github.com/yewstack/yew/issues/5")
+                    "https://github.com/yewstack/yew/issues/5"
                 )
             ]
         ],
-        h3![text("指南")],
+        h3!["指南"],
         ul![
             li![
-                text("最佳实践："),
+                "最佳实践：",
                 link!(
                     "https://yew.rs/optimizations",
-                    text("https://yew.rs/optimizations")
+                    "https://yew.rs/optimizations"
                 )
             ],
-            li![text("端到端教程")],
-            li![text("Futures / 并发")],
-            li![text("CSS / 样式")],
-            li![text("测试")],
-            li![text("状态管理")]
+            li!["端到端教程"],
+            li!["Futures / 并发"],
+            li!["CSS / 样式"],
+            li!["测试"],
+            li!["状态管理"]
         ],
-        h2![text("未来")],
-        h3![text("潜在功能")],
+        h2!["未来"],
+        h3!["潜在功能"],
         ul![
             li![
-                text("服务端渲染："),
+                "服务端渲染：",
                 link!(
                     "https://github.com/yewstack/yew/issues/41",
-                    text("https://github.com/yewstack/yew/issues/41")
+                    "https://github.com/yewstack/yew/issues/41"
                 )
             ],
             li![
-                text("组件库："),
+                "组件库：",
                 link!(
                     "https://github.com/yewstrap/yewstrap",
-                    text("https://github.com/yewstrap/yewstrap")
+                    "https://github.com/yewstrap/yewstrap"
                 )
             ],
             li![
-                text("代码分割："),
+                "代码分割：",
                 link!(
                     "https://github.com/yewstack/yew/issues/599",
-                    text("https://github.com/yewstack/yew/issues/599")
+                    "https://github.com/yewstack/yew/issues/599"
                 )
             ],
             li![
-                text("允许不同的虚拟 DOM 后端："),
+                "允许不同的虚拟 DOM 后端：",
                 link!(
                     "https://github.com/yewstack/yew/issues/482",
-                    text("https://github.com/yewstack/yew/issues/482")
+                    "https://github.com/yewstack/yew/issues/482"
                 )
             ],
             li![
-                text("反思 Services："),
+                "反思 Services：",
                 link!(
                     "https://github.com/yewstack/yew/issues/364",
-                    text("https://github.com/yewstack/yew/issues/364")
+                    "https://github.com/yewstack/yew/issues/364"
                 )
             ],
             li![
-                text("成熟的工具包："),
+                "成熟的工具包：",
                 link!(
                     "https://github.com/yewstack/yewtil",
-                    text("https://github.com/yewstack/yewtil")
+                    "https://github.com/yewstack/yewtil"
                 )
             ],
             li![
-                text("HTML 模板备选方案："),
+                "HTML 模板备选方案：",
                 link!(
                     "https://github.com/yewstack/yew/issues/438",
-                    text("https://github.com/yewstack/yew/issues/438")
+                    "https://github.com/yewstack/yew/issues/438"
                 )
             ]
         ]

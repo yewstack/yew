@@ -2,40 +2,32 @@ crate::doc_page!(
     "Callbacks",
     "/ja/docs/advanced-topics/struct-components/callbacks",
     Content::new(vec![
-        h2![text("Callbacks")],
+        h2!["Callbacks"],
         p![
-            text(
-                "Callbacks are used to communicate with services, agents, and parent components \
-                 within Yew. Internally their type is just "
-            ),
+            "Callbacks are used to communicate with services, agents, and parent components \
+             within Yew. Internally their type is just ",
             code("Fn"),
-            text(" wrapped in "),
+            " wrapped in ",
             code("Rc"),
-            text(" to allow them to be cloned."),
+            " to allow them to be cloned.",
         ],
         p![
-            text("They have an "),
+            "They have an ",
             code("emit"),
-            text(" function that takes their "),
+            " function that takes their ",
             code("<IN>"),
-            text(
-                " type as an argument and converts that to a message expected by its destination. \
-                 If a callback from a parent is provided in props to a child component, the child \
-                 can call "
-            ),
+            " type as an argument and converts that to a message expected by its destination. If \
+             a callback from a parent is provided in props to a child component, the child can \
+             call ",
             code("emit"),
-            text(" on the callback in its "),
+            " on the callback in its ",
             code("update"),
-            text(
-                " lifecycle hook to send a message back to its parent. Closures or Functions \
-                 provided as props inside the "
-            ),
+            " lifecycle hook to send a message back to its parent. Closures or Functions provided \
+             as props inside the ",
             code("html!"),
-            text(" macro are automatically converted to Callbacks."),
+            " macro are automatically converted to Callbacks.",
         ],
-        p![text(
-            "A simple use of a callback might look something like this:"
-        )],
+        p!["A simple use of a callback might look something like this:"],
         code_block(
             "rust",
             r#"use yew::{html, Component, Context, Html};
@@ -66,21 +58,19 @@ impl Component for Comp {
 }"#
         ),
         p![
-            text("The function passed to "),
+            "The function passed to ",
             code("callback"),
-            text(" must always take a parameter. For example, the "),
+            " must always take a parameter. For example, the ",
             code("onclick"),
-            text(" handler requires a function which takes a parameter of type "),
+            " handler requires a function which takes a parameter of type ",
             code("MouseEvent"),
-            text(
-                ". The handler can then decide what kind of message should be sent to the \
-                 component. This message is scheduled for the next update loop unconditionally."
-            ),
+            ". The handler can then decide what kind of message should be sent to the component. \
+             This message is scheduled for the next update loop unconditionally.",
         ],
         p![
-            text("If you need a callback that might not need to cause an update, use "),
+            "If you need a callback that might not need to cause an update, use ",
             code("batch_callback"),
-            text("."),
+            ".",
         ],
         code_block(
             "rust",
@@ -118,15 +108,15 @@ impl Component for Comp {
     }
 }"#
         ),
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![
             li![link![
                 "https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/counter",
-                text("Counter")
+                "Counter"
             ],],
             li![link![
                 "https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/timer",
-                text("Timer")
+                "Timer"
             ],],
         ],
     ])

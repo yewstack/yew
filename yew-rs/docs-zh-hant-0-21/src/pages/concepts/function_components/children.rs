@@ -4,9 +4,9 @@ crate::doc_page!(
     Content::new(vec![
         p![
             code("Children"),
-            text(" 是一種特殊的屬性類型，可讓您接收嵌套的 "),
+            " 是一種特殊的屬性類型，可讓您接收嵌套的 ",
             code("Html"),
-            text("，就像 html 子元素一樣提供。"),
+            "，就像 html 子元素一樣提供。",
         ],
         code_block(
             "rust",

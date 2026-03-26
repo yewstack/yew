@@ -2,13 +2,13 @@ crate::doc_page!(
     "Components",
     "/zh-Hant/docs/concepts/html/components",
     Content::new(vec![
-        h2![text("基本")],
+        h2!["基本"],
         p![
-            text("任何實作 "),
+            "任何實作 ",
             code("Component"),
-            text(" 的型別，都可以在 "),
+            " 的型別，都可以在 ",
             code("html!"),
-            text(" 的巨集中使用："),
+            " 的巨集中使用：",
         ],
         code_block(
             "rust",
@@ -25,13 +25,13 @@ crate::doc_page!(
     </>
 }"#,
         ),
-        h2![text("巢狀")],
+        h2!["巢狀"],
         p![
-            text("只要元件的 "),
+            "只要元件的 ",
             code("Properties"),
-            text(" 中有 "),
+            " 中有 ",
             code("children"),
-            text("，就可以傳遞子結點給元件。"),
+            "，就可以傳遞子結點給元件。",
         ],
         code_block_title(
             "rust",
@@ -67,17 +67,17 @@ impl Component for Container {
     }
 }"#,
         ),
-        h2![text("指定子結點的型別")],
+        h2!["指定子結點的型別"],
         p![
-            text("如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， "),
+            "如果指定了子結點的型別，就可以使用或改變巢狀元件的屬性。下面的範例就是， ",
             code("List"),
-            text(" 元件包裹 "),
+            " 元件包裹 ",
             code("ListItem"),
-            text(" 元件。另一個真實的範例是 "),
+            " 元件。另一個真實的範例是 ",
             code("yew-router"),
-            text(" 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 "),
+            " 的原始碼。還有一個更進階的範例，請參考 Yew GitHub repo 中的 ",
             code("nested-list"),
-            text(" 範例。"),
+            " 範例。",
         ],
         code_block_title(
             "rust",

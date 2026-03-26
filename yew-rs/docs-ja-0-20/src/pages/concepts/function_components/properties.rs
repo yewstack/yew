@@ -5,45 +5,43 @@ crate::doc_page!(
         admonition![
             AdmonitionType::Note,
             None,
-            p![text("Properties are often shortened as \"Props\".")]
+            p!["Properties are often shortened as \"Props\"."]
         ],
-        p![text(
-            "Properties are essentially component arguments that Yew can keep watch on."
-        )],
+        p!["Properties are essentially component arguments that Yew can keep watch on."],
         p![
-            text("A type has to implement the "),
+            "A type has to implement the ",
             code("Properties"),
-            text(" trait before it can be used as the properties of a component."),
+            " trait before it can be used as the properties of a component.",
         ],
-        h2![text("Reactivity")],
-        p![text(
+        h2!["Reactivity"],
+        p![
             "Yew checks if props have changed when reconciling the vdom during rerendering, to \
              know if nested components needs to be rerendered. This way Yew can be considered a \
              very reactive framework as changes from the parent will always be propagated \
              downwards and the view will never be out of sync from the data coming from \
              props/state."
-        )],
+        ],
         admonition![
             AdmonitionType::Tip,
             None,
             p![
-                text("If you have not yet completed the "),
-                link!["/ja/docs/tutorial", text("tutorial")],
-                text(", try it out and test this reactivity yourself!"),
+                "If you have not yet completed the ",
+                link!["/ja/docs/tutorial", "tutorial"],
+                ", try it out and test this reactivity yourself!",
             ]
         ],
-        h2![text("Derive macro")],
+        h2!["Derive macro"],
         p![
-            text("Yew provides a derive macro to easily implement the "),
+            "Yew provides a derive macro to easily implement the ",
             code("Properties"),
-            text(" trait on structs."),
+            " trait on structs.",
         ],
         p![
-            text("Types for which you derive "),
+            "Types for which you derive ",
             code("Properties"),
-            text(" must also implement "),
+            " must also implement ",
             code("PartialEq"),
-            text(" so Yew can do data comparison."),
+            " so Yew can do data comparison.",
         ],
         code_block(
             "rust",
@@ -54,18 +52,16 @@ pub struct Props {
     pub is_loading: bool,
 }"#
         ),
-        h2![text("Use in function components")],
+        h2!["Use in function components"],
         p![
-            text("The attribute "),
+            "The attribute ",
             code("#[function_component]"),
-            text(
-                " allows to optionally receive Props in the function arguments. To supply them, \
-                 they are assigned via attributes in the "
-            ),
+            " allows to optionally receive Props in the function arguments. To supply them, they \
+             are assigned via attributes in the ",
             code("html!"),
-            text(" macro."),
+            " macro.",
         ],
-        h3![text("With Props")],
+        h3!["With Props"],
         code_block(
             "rust",
             r##"use yew::{function_component, html, Html, Properties};
@@ -86,7 +82,7 @@ fn App() -> Html {
     html! {<HelloWorld is_loading={true} />}
 }"##
         ),
-        h3![text("No Props")],
+        h3!["No Props"],
         code_block(
             "rust",
             r#"use yew::{function_component, html, Html};
@@ -107,29 +103,27 @@ fn App() -> Html {
 }
 "#
         ),
-        h2![text("Derive macro field attributes")],
+        h2!["Derive macro field attributes"],
         p![
-            text("When deriving "),
+            "When deriving ",
             code("Properties"),
-            text(
-                " all fields are required by default. The following attributes allow you to give \
-                 your props default values which will be used when parent has not set them."
-            ),
+            " all fields are required by default. The following attributes allow you to give your \
+             props default values which will be used when parent has not set them.",
         ],
         admonition![
             AdmonitionType::Tip,
             None,
-            p![text(
+            p![
                 "Attributes aren't visible in Rustdoc generated documentation. The doc strings of \
                  your properties should mention whether a prop is optional and if it has a \
                  special default value."
-            )]
+            ]
         ],
-        h3![text("#[prop_or_default]")],
+        h3!["#[prop_or_default]"],
         p![
-            text("Initialize the prop value with the default value of the field's type using the "),
+            "Initialize the prop value with the default value of the field's type using the ",
             code("Default"),
-            text(" trait."),
+            " trait.",
         ],
         code_block(
             "rust",
@@ -163,23 +157,19 @@ fn Case2() -> Html {
     html! {<HelloWorld is_loading={true} />}
 }"##
         ),
-        h3![text("#[prop_or(value)]")],
+        h3!["#[prop_or(value)]"],
         p![
-            text("Use "),
+            "Use ",
             code("value"),
-            text(" to initialize the prop value. "),
+            " to initialize the prop value. ",
             code("value"),
-            text(
-                " can be any expression that returns the field's type. For example, to default a \
-                 boolean prop to "
-            ),
+            " can be any expression that returns the field's type. For example, to default a \
+             boolean prop to ",
             code("true"),
-            text(", use the attribute "),
+            ", use the attribute ",
             code("#[prop_or(true)]"),
-            text(
-                ". The expression is evaluated when the properties are constructed and no \
-                 explicit value has been given."
-            ),
+            ". The expression is evaluated when the properties are constructed and no explicit \
+             value has been given.",
         ],
         code_block(
             "rust",
@@ -209,20 +199,18 @@ fn Case2() -> Html {
     html! {<HelloWorld name={"Sam".to_string()} />}
 }"##
         ),
-        h3![text("#[prop_or_else(function)]")],
+        h3!["#[prop_or_else(function)]"],
         p![
-            text("Call "),
+            "Call ",
             code("function"),
-            text(" to initialize the prop value. "),
+            " to initialize the prop value. ",
             code("function"),
-            text(" should have the signature "),
+            " should have the signature ",
             code("FnMut() -> T"),
-            text(" where "),
+            " where ",
             code("T"),
-            text(
-                " is the field type. The function is called when no explicit value has been given \
-                 for that attribute."
-            ),
+            " is the field type. The function is called when no explicit value has been given for \
+             that attribute.",
         ],
         code_block(
             "rust",
@@ -256,43 +244,39 @@ fn Case2() -> Html {
     html! {<HelloWorld name={"Sam".to_string()} />}
 }"##
         ),
-        h2![text("Memory/speed overhead of using Properties")],
-        p![text(
+        h2!["Memory/speed overhead of using Properties"],
+        p![
             "Internally properties are reference counted. This means that only a shared pointer \
              is passed down the component tree for props. It saves us from the cost of having to \
              clone the entire props, which might be expensive."
-        )],
+        ],
         admonition![
             AdmonitionType::Tip,
             None,
             p![
-                text("Make use of "),
+                "Make use of ",
                 code("AttrValue"),
-                text(
-                    " which is our custom type for attribute values instead of defining them as \
-                     String or another similar type."
-                ),
+                " which is our custom type for attribute values instead of defining them as \
+                 String or another similar type.",
             ]
         ],
-        h2![text("Props macro")],
+        h2!["Props macro"],
         p![
-            text("The "),
+            "The ",
             code("yew::props!"),
-            text(" macro allows you to build properties the same way the "),
+            " macro allows you to build properties the same way the ",
             code("html!"),
-            text(" macro does it."),
+            " macro does it.",
         ],
         p![
-            text(
-                "The macro uses the same syntax as a struct expression except that you can't use \
-                 attributes or a base expression ("
-            ),
+            "The macro uses the same syntax as a struct expression except that you can't use \
+             attributes or a base expression (",
             code("Foo {{ ..base }}"),
-            text("). The type path can either point to the props directly ("),
+            "). The type path can either point to the props directly (",
             code("path::to::Props"),
-            text(") or the associated properties of a component ("),
+            ") or the associated properties of a component (",
             code("MyComp::Properties"),
-            text(")."),
+            ").",
         ],
         code_block(
             "rust",
@@ -319,11 +303,11 @@ fn App() -> Html {
     html! {<HelloWorld ..pre_made_props />}
 }"##
         ),
-        h2![text("Evaluation Order")],
-        p![text(
+        h2!["Evaluation Order"],
+        p![
             "Props are evaluated in the order they're specified, as shown by the following \
              example:"
-        )],
+        ],
         code_block(
             "rust",
             r#"#[derive(yew::Properties, PartialEq)]
@@ -338,69 +322,60 @@ fn main() {
     assert_eq!(props.last, 3);
 }"#
         ),
-        h2![text("Anti Patterns")],
-        p![text(
+        h2!["Anti Patterns"],
+        p![
             "While almost any Rust type can be passed as properties, there are some anti-patterns \
              that should be avoided. These include, but are not limited to:"
-        )],
+        ],
         ol![
             li_blocks![
                 p![
-                    text("Using "),
+                    "Using ",
                     code("String"),
-                    text(" type instead of "),
+                    " type instead of ",
                     code("AttrValue"),
-                    text("."),
+                    ".",
                 ],
                 p![
-                    bold![text("Why is this bad?")],
-                    text(" "),
+                    bold!["Why is this bad?"],
+                    " ",
                     code("String"),
-                    text(
-                        " can be expensive to clone. Cloning is often needed when the prop value \
-                         is used with hooks and callbacks. "
-                    ),
+                    " can be expensive to clone. Cloning is often needed when the prop value is \
+                     used with hooks and callbacks. ",
                     code("AttrValue"),
-                    text(" is either a reference-counted string ("),
+                    " is either a reference-counted string (",
                     code("Rc<str>"),
-                    text(") or a "),
+                    ") or a ",
                     code("&'static str"),
-                    text(", thus very cheap to clone."),
+                    ", thus very cheap to clone.",
                 ],
                 p![
-                    bold![text("Note")],
-                    text(": "),
+                    bold!["Note"],
+                    ": ",
                     code("AttrValue"),
-                    text(" internally is "),
+                    " internally is ",
                     code("IString"),
-                    text(" from "),
-                    link![
-                        "https://crates.io/crates/implicit-clone",
-                        text("implicit-clone")
-                    ],
-                    text(". See that crate to learn more."),
+                    " from ",
+                    link!["https://crates.io/crates/implicit-clone", "implicit-clone"],
+                    ". See that crate to learn more.",
                 ],
             ],
             li_blocks![
-                p![text("Using interior mutability.")],
+                p!["Using interior mutability."],
                 p![
-                    bold![text("Why is this bad?")],
-                    text(" Interior mutability (such as with "),
+                    bold!["Why is this bad?"],
+                    " Interior mutability (such as with ",
                     code("RefCell"),
-                    text(", "),
+                    ", ",
                     code("Mutex"),
-                    text(
-                        ", etc.) should generally be avoided. It can cause problems with \
-                         re-renders (Yew doesn't know when state has changed) so you may have to \
-                         manually force a render. Like all things, it has its place. Use it with \
-                         caution."
-                    ),
+                    ", etc.) should generally be avoided. It can cause problems with re-renders \
+                     (Yew doesn't know when state has changed) so you may have to manually force \
+                     a render. Like all things, it has its place. Use it with caution.",
                 ],
             ],
-            li_blocks![p![text(
-                "You tell us. Did you run into an edge-case you wish you knew about earlier? Feel \
-                 free to create an issue or PR a fix to this documentation."
-            )]],
+            li_blocks![p!["You tell us. Did you run into an edge-case you wish \
+                           you knew about earlier? Feel free to create an issue \
+                           or PR a fix to this documentation."]],
         ],
     ])
 );

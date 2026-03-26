@@ -3,9 +3,11 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("#[component]"),
-            text(" 属性は、ジェネリックコンポーネントを作成するためのジェネリック関数にも適用されます。"),
+            " 属性は、ジェネリックコンポーネントを作成するためのジェネリック関数にも適用されます。",
         ],
-        code_block("rust", r#"use std::fmt::Display;
+        code_block(
+            "rust",
+            r#"use std::fmt::Display;
 use yew::{component, html, Properties, Html};
 
 #[derive(Properties, PartialEq)]
@@ -36,7 +38,8 @@ html! {
 // または
 html! {
     <MyGenericComponent<String> data={"foo".to_string()} />
-};"#),
+};"#,
+        ),
     ])
 }
 

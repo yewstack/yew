@@ -6,40 +6,36 @@ crate::doc_page!(
             AdmonitionType::Caution,
             None,
             p![
-                text("Inspecting and manipulating "),
+                "Inspecting and manipulating ",
                 code("Children"),
-                text(
-                    " can often result in surprising and hard-to-explain behaviours in your \
-                     application. This can lead to edge cases and often does not yield expected \
-                     result."
-                ),
+                " can often result in surprising and hard-to-explain behaviours in your \
+                 application. This can lead to edge cases and often does not yield expected \
+                 result.",
             ],
             p![
-                text("You should consider other approaches if you are trying to manipulate "),
+                "You should consider other approaches if you are trying to manipulate ",
                 code("Children"),
-                text("."),
+                ".",
             ],
             p![
-                text("Yew supports using "),
+                "Yew supports using ",
                 code("Html"),
-                text(" as the type of the children prop. You should use "),
+                " as the type of the children prop. You should use ",
                 code("Html"),
-                text(" as children if you do not need "),
+                " as children if you do not need ",
                 code("Children"),
-                text(" or "),
+                " or ",
                 code("ChildrenRenderer"),
-                text(". It doesn't have the drawbacks of "),
+                ". It doesn't have the drawbacks of ",
                 code("Children"),
-                text(" and has a lower performance overhead."),
+                " and has a lower performance overhead.",
             ],
         ],
-        h2![text("General usage")],
+        h2!["General usage"],
         p![
-            italic![text("Most of the time,")],
-            text(
-                " when allowing a component to have children, you don't care what type of \
-                 children the component has. In such cases, the below example will suffice."
-            ),
+            italic!["Most of the time,"],
+            " when allowing a component to have children, you don't care what type of children \
+             the component has. In such cases, the below example will suffice.",
         ],
         code_block(
             "rust",
@@ -70,15 +66,13 @@ impl Component for List {
     }
 }"#
         ),
-        h2![text("Advanced usage")],
-        h3![text("Typed children")],
+        h2!["Advanced usage"],
+        h3!["Typed children"],
         p![
-            text(
-                "In cases where you want one type of component to be passed as children to your \
-                 component, you can use "
-            ),
+            "In cases where you want one type of component to be passed as children to your \
+             component, you can use ",
             code("yew::html::ChildrenWithProps<T>"),
-            text("."),
+            ".",
         ],
         code_block(
             "rust",
@@ -126,11 +120,11 @@ impl Component for List {
     }
 }"#
         ),
-        h2![text("Nested Children with Props")],
-        p![text(
+        h2!["Nested Children with Props"],
+        p![
             "Nested component properties can be accessed and mutated if the containing component \
-             types its children."
-        ),],
+             types its children.",
+        ],
         code_block(
             "rust",
             r#"use std::rc::Rc;
@@ -174,20 +168,18 @@ html! {
     </List>
 };"#
         ),
-        h3![text("Enum typed children")],
-        p![text(
-            "Of course, sometimes you might need to restrict the children to a few different \
-             components. In these cases, you have to get a little more hands-on with Yew."
-        ),],
+        h3!["Enum typed children"],
         p![
-            text("The "),
-            link!("https://github.com/JelteF/derive_more", text("derive_more")),
-            text(
-                " crate is used here for better ergonomics. If you don't want to use it, you can \
-                 manually implement "
-            ),
+            "Of course, sometimes you might need to restrict the children to a few different \
+             components. In these cases, you have to get a little more hands-on with Yew.",
+        ],
+        p![
+            "The ",
+            link!("https://github.com/JelteF/derive_more", "derive_more"),
+            " crate is used here for better ergonomics. If you don't want to use it, you can \
+             manually implement ",
             code("From"),
-            text(" for each variant."),
+            " for each variant.",
         ],
         code_block(
             "rust",
@@ -272,10 +264,8 @@ impl Component for List {
     }
 }"#
         ),
-        h3![text("Optional typed child")],
-        p![text(
-            "You can also have a single optional child component of a specific type too:"
-        ),],
+        h3!["Optional typed child"],
+        p!["You can also have a single optional child component of a specific type too:",],
         code_block(
             "rust",
             r#"use yew::{
@@ -344,17 +334,15 @@ pub fn render_page(with_sidebar: bool) -> Html {
     }
 }"#
         ),
-        h2![text("Further Reading")],
+        h2!["Further Reading"],
         ul![li![
-            text(
-                "For a real-world example of this pattern, check out the yew-router source code. \
-                 For a more advanced example, check out the "
-            ),
+            "For a real-world example of this pattern, check out the yew-router source code. For \
+             a more advanced example, check out the ",
             link!(
                 "https://github.com/yewstack/yew/tree/master/examples/nested_list",
-                text("nested-list example")
+                "nested-list example"
             ),
-            text(" in the main yew repository."),
+            " in the main yew repository.",
         ],],
     ])
 );

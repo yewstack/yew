@@ -2,11 +2,11 @@ crate::doc_page!(
     "條件渲染",
     "/zh-Hant/docs/concepts/html/conditional-rendering",
     Content::new(vec![
-        h2![text("If 區塊")],
+        h2!["If 區塊"],
         p![
-            text("要有條件地渲染一些標記，我們將其包裝在 "),
+            "要有條件地渲染一些標記，我們將其包裝在 ",
             code("if"),
-            text(" 區塊中："),
+            " 區塊中：",
         ],
         tabs![
             "if",

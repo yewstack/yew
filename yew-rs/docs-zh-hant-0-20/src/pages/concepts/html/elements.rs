@@ -2,11 +2,11 @@ crate::doc_page!(
     "Elements",
     "/zh-Hant/docs/concepts/html/elements",
     Content::new(vec![
-        h2![text("標籤結構")],
+        h2!["標籤結構"],
         p![
-            text("元件標籤都必須要是自封閉的標籤 "),
+            "元件標籤都必須要是自封閉的標籤 ",
             code("<... />"),
-            text(" 或是跟開啟標籤對應的關閉標籤。"),
+            " 或是跟開啟標籤對應的關閉標籤。",
         ],
         tabs!(
             "Open - Close",
@@ -45,18 +45,16 @@ crate::doc_page!(
             AdmonitionType::Note,
             None,
             p![
-                text(
-                    "為了方便起見，通常\\
+                "為了方便起見，通常\\
                      u{9700}要關閉標籤的元件\\
                      u{FF0C}也都可以用自封閉\\
-                     u{6A19}籤表示。例如，寫 "
-                ),
+                     u{6A19}籤表示。例如，寫 ",
                 code("html! { <div class=\"placeholder\" /> }"),
-                text(" 是合法的。"),
+                " 是合法的。",
             ],
         ),
-        h2![text("子結點")],
-        p![text("輕鬆寫出複雜巢狀的 HTML 與 SVG 架構：")],
+        h2!["子結點"],
+        p!["輕鬆寫出複雜巢狀的 HTML 與 SVG 架構："],
         tabs!(
             "HTML",
             tab!(
@@ -107,11 +105,9 @@ crate::doc_page!(
                 ),
             ),
         ),
-        h2![text("Classes")],
-        p![text(
-            "你很多方便的選項可以\\
-             u{5BEB}元件裡的 class："
-        )],
+        h2!["Classes"],
+        p!["你很多方便的選項可以\\
+             u{5BEB}元件裡的 class："],
         tabs!(
             "Literal",
             tab!(
@@ -157,18 +153,14 @@ crate::doc_page!(
                 ),
             ),
         ),
-        h2![text("監聽")],
+        h2!["監聽"],
         p![
-            text(
-                "監聽器的屬性必須要傳\\
-                 u{5165}一個 "
-            ),
+            "監聽器的屬性必須要傳\\
+                 u{5165}一個 ",
             code("Callback"),
-            text(
-                " ，他封裝了閉包。callback 的內容取決於，當觸發\\
+            " ，他封裝了閉包。callback 的內容取決於，當觸發\\
                  u{76E3}聽事件時，你希望應\\
                  u{7528}程式有什麼反應：",
-            ),
         ],
         tabs!(
             "Component Handler",

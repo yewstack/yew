@@ -1,9 +1,9 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![p![
-        text("沒有破壞性變更。在 "),
+        "沒有破壞性變更。在 ",
         code("Cargo.toml"),
-        text(" 中將 yew-agent 更新到 0.5.0。"),
+        " 中將 yew-agent 更新到 0.5.0。",
     ]])
 }
 

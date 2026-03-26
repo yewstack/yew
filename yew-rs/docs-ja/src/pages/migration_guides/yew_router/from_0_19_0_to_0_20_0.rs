@@ -1,9 +1,9 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![p![
-        text("破壊的変更はありません。"),
+        "破壊的変更はありません。",
         code("Cargo.toml"),
-        text(" で yew-router を 0.20.0 に更新してください。"),
+        " で yew-router を 0.20.0 に更新してください。",
     ]])
 }
 

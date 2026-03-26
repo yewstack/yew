@@ -7,69 +7,62 @@ pub fn page_content_versioned(version: Option<&str>) -> yew_site_lib::Content {
             .to_string(),
     };
     Content::new(vec![
-        p![text(
+        p![
             "Once you have the environment ready, you can either choose to use a starter template \
              that contains the boilerplate needed for a basic Yew app or manually set up a small \
-             project.",
-        )],
-        h2![text("Using a starter template")],
+             project."
+        ],
+        h2!["Using a starter template"],
         p![
-            text("Install "),
+            "Install ",
             link!(
                 "https://github.com/cargo-generate/cargo-generate",
                 code("cargo-generate"),
             ),
-            text(" by following their installation instructions then take the following steps:"),
+            " by following their installation instructions then take the following steps:",
         ],
-        h3![text("Checkout and customize project")],
+        h3!["Checkout and customize project"],
         code_block(
             "shell",
             "cargo generate yewstack/yew-trunk-minimal-template",
         ),
-        h3![text("Run project")],
+        h3!["Run project"],
         code_block("shell", "trunk serve"),
         admonition!(
             AdmonitionType::Note,
             None,
             p![
-                text("Trunk "),
-                link!(
-                    "https://github.com/trunk-rs/trunk/issues/852",
-                    text("has a bug"),
-                ),
-                text(" on windows when "),
+                "Trunk ",
+                link!("https://github.com/trunk-rs/trunk/issues/852", "has a bug",),
+                " on windows when ",
                 code("trunk serve"),
-                text(" command fails. To workaround the issue you can run "),
+                " command fails. To workaround the issue you can run ",
                 code("trunk build"),
-                text(" before running "),
+                " before running ",
                 code("trunk serve"),
-                text("."),
+                ".",
             ],
         ),
-        h2![text("Setting up the application manually")],
-        h3![text("Create Project")],
-        p![text("To get started, create a new cargo project.")],
+        h2!["Setting up the application manually"],
+        h3!["Create Project"],
+        p!["To get started, create a new cargo project."],
         code_block("bash", "cargo new yew-app"),
-        p![text("Open the newly created directory.")],
+        p!["Open the newly created directory."],
         code_block("bash", "cd yew-app"),
-        h3![text("Run a hello world example")],
+        h3!["Run a hello world example"],
         p![
-            text("To verify the Rust environment is set up, run the initial project using "),
+            "To verify the Rust environment is set up, run the initial project using ",
             code("cargo run"),
-            text(". You should see a \"Hello World!\" message."),
+            ". You should see a \"Hello World!\" message.",
         ],
         code_block("bash", "cargo run\n# output: Hello World!"),
-        h3![text("Setting up the project as a Yew web application",)],
-        p![text(
-            "To convert this simple command line application to a basic Yew web application, a \
-             few changes are needed.",
-        )],
-        h4![text("Update Cargo.toml")],
+        h3!["Setting up the project as a Yew web application"],
         p![
-            text("Add "),
-            code("yew"),
-            text(" to the list of dependencies."),
+            "To convert this simple command line application to a basic Yew web application, a \
+             few changes are needed."
         ],
+        h4!["Update Cargo.toml"],
+        p!["Add ", code("yew"), " to the list of dependencies.",],
         code_block_title(
             "toml",
             "Cargo.toml",
@@ -82,63 +75,53 @@ pub fn page_content_versioned(version: Option<&str>) -> yew_site_lib::Content {
             AdmonitionType::Info,
             None,
             p![
-                text("You only need the feature "),
+                "You only need the feature ",
                 code("csr"),
-                text(" if you are building an application. It will enable the "),
+                " if you are building an application. It will enable the ",
                 code("Renderer"),
-                text(" and all client-side rendering-related code."),
+                " and all client-side rendering-related code.",
             ],
-            p![text(
-                "If you are making a library, do not enable this feature as it will pull in \
-                 client-side rendering logic into the server-side rendering bundle.",
-            )],
             p![
-                text(
-                    "If you need the Renderer for testing or examples, you should enable it in \
-                     the ",
-                ),
+                "If you are making a library, do not enable this feature as it will pull in \
+                 client-side rendering logic into the server-side rendering bundle."
+            ],
+            p![
+                "If you need the Renderer for testing or examples, you should enable it in the ",
                 code("dev-dependencies"),
-                text(" instead."),
+                " instead.",
             ],
         ),
-        h4![text("Update main.rs")],
+        h4!["Update main.rs"],
         p![
-            text("We need to generate a template that sets up a root Component called "),
+            "We need to generate a template that sets up a root Component called ",
             code("App"),
-            text(
-                " which renders a button that updates its value when clicked. Replace the \
-                 contents of ",
-            ),
+            " which renders a button that updates its value when clicked. Replace the contents of ",
             code("src/main.rs"),
-            text(" with the following code."),
+            " with the following code.",
         ],
         admonition!(
             AdmonitionType::Note,
             None,
             p![
-                text("The call to "),
+                "The call to ",
                 code("yew::Renderer::<App>::new().render()"),
-                text(" inside the "),
+                " inside the ",
                 code("main"),
-                text(" function starts your application and mounts it to the page's "),
+                " function starts your application and mounts it to the page's ",
                 code("<body>"),
-                text(
-                    " tag. If you would like to start your application with any dynamic \
-                     properties, you can instead use ",
-                ),
+                " tag. If you would like to start your application with any dynamic properties, \
+                 you can instead use ",
                 code("yew::Renderer::<App>::with_props(..).render()"),
-                text(
-                    ". If you would like to mount your application to a specific element rather \
-                     than the ",
-                ),
+                ". If you would like to mount your application to a specific element rather than \
+                 the ",
                 code("<body>"),
-                text(" tag, use "),
+                " tag, use ",
                 code("yew::Renderer::<App>::with_root(element).render()"),
-                text(" where "),
+                " where ",
                 code("element"),
-                text(" is a "),
+                " is a ",
                 code("web_sys::Element"),
-                text("."),
+                ".",
             ],
         ),
         code_block_title_no_run(
@@ -169,11 +152,11 @@ fn main() {
     yew::Renderer::<App>::new().render();
 }"#,
         ),
-        h4![text("Create index.html")],
+        h4!["Create index.html"],
         p![
-            text("Finally, add an "),
+            "Finally, add an ",
             code("index.html"),
-            text(" file in the root directory of your app."),
+            " file in the root directory of your app.",
         ],
         code_block_title(
             "html",
@@ -187,27 +170,23 @@ fn main() {
     <body></body>
 </html>"#,
         ),
-        h2![text("View your web application")],
-        p![text(
-            "Run the following command to build and serve the application locally.",
-        )],
+        h2!["View your web application"],
+        p!["Run the following command to build and serve the application locally."],
         code_block("bash", "trunk serve"),
         admonition!(
             AdmonitionType::Info,
             None,
             p![
-                text("Add option '--open' to open your default browser "),
+                "Add option '--open' to open your default browser ",
                 code("trunk serve --open"),
-                text("."),
+                ".",
             ],
         ),
         p![
-            text(
-                "Trunk will rebuild your application if you modify any of its source code files. \
-                 By default server will be listening at address '127.0.0.1' and port '8080' => ",
-            ),
-            link!("http://127.0.0.1:8080", text("http://localhost:8080")),
-            text(". To change it, create the following file and edit as needed:"),
+            "Trunk will rebuild your application if you modify any of its source code files. By \
+             default server will be listening at address '127.0.0.1' and port '8080' => ",
+            link!("http://127.0.0.1:8080", "http://localhost:8080"),
+            ". To change it, create the following file and edit as needed:",
         ],
         code_block_title(
             "toml",
@@ -220,15 +199,15 @@ address = "127.0.0.1"
 # The port to serve on.
 port = 8000"#,
         ),
-        h2![text("Congratulations")],
-        p![text(
-            "You have now successfully set up your Yew development environment, and built your \
-             first web application.",
-        )],
+        h2!["Congratulations"],
         p![
-            text("Experiment with this application and review the "),
-            link!("/docs/getting-started/examples", text("examples")),
-            text(" to further your learning."),
+            "You have now successfully set up your Yew development environment, and built your \
+             first web application."
+        ],
+        p![
+            "Experiment with this application and review the ",
+            link!("/docs/getting-started/examples", "examples"),
+            " to further your learning.",
         ],
     ])
 }

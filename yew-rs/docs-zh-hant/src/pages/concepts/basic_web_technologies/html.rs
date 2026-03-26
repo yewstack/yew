@@ -2,9 +2,9 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         p![
-            text("你可以使用 "),
+            "你可以使用 ",
             code("html!"),
-            text(" 巨集來寫類似 HTML 的表達式。 Yew 會在背景轉換為表達 DOM 的 Rust 程式碼。"),
+            " 巨集來寫類似 HTML 的表達式。 Yew 會在背景轉換為表達 DOM 的 Rust 程式碼。",
         ],
         code_block(
             "rust",
@@ -14,9 +14,7 @@ let my_header: Html = html! {
     <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />
 };"#,
         ),
-        p![text(
-            "類似於格式化表達式，您可以透過使用花括號將周圍上下文的值嵌入 HTML 中：",
-        )],
+        p!["類似於格式化表達式，您可以透過使用花括號將周圍上下文的值嵌入 HTML 中："],
         code_block(
             "rust",
             r#"use yew::prelude::*;
@@ -36,14 +34,11 @@ let combined_html: Html = html! {
 };"#,
         ),
         p![
-            text("使用 "),
+            "使用 ",
             code("html!"),
-            text(" 有一個重要的規則 - 您只能傳回一個包裝節點。為了渲染多個元素的列表，"),
+            " 有一個重要的規則 - 您只能傳回一個包裝節點。為了渲染多個元素的列表，",
             code("html!"),
-            text(
-                " 允許使用空標籤（Fragments）。空標籤是沒有名稱的標籤，它們本身不會產生 HTML \
-                 元素。",
-            ),
+            " 允許使用空標籤（Fragments）。空標籤是沒有名稱的標籤，它們本身不會產生 HTML 元素。",
         ],
         tabs!(
             "Invalid",
@@ -81,12 +76,9 @@ html! {
             ),
         ),
         p![
-            text("更多關於 Yew 和 HTML 的內容請參考"),
-            link!(
-                "/zh-Hant/docs/concepts/html/introduction",
-                text("更多 HTML")
-            ),
-            text("。"),
+            "更多關於 Yew 和 HTML 的內容請參考",
+            link!("/zh-Hant/docs/concepts/html/introduction", "更多 HTML"),
+            "。",
         ],
     ])
 }

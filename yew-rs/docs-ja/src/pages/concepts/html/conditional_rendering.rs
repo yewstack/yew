@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("If ブロック")],
+        h2!["If ブロック"],
         p![
-            text("条件付きでマークアップをレンダリングするには、それを "),
+            "条件付きでマークアップをレンダリングするには、それを ",
             code("if"),
-            text(" ブロックでラップします："),
+            " ブロックでラップします：",
         ],
         tabs![
             "if",

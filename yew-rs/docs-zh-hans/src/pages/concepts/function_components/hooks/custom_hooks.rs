@@ -1,14 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("定义自定义 Hooks")],
-        p![text(
-            "组件的有状态逻辑可以通过创建自定义 Hooks 来提取为可重用的函数。",
-        )],
+        h2!["定义自定义 Hooks"],
+        p!["组件的有状态逻辑可以通过创建自定义 Hooks 来提取为可重用的函数。"],
         p![
-            text("假设我们希望创建一个事件监听器，监听 "),
+            "假设我们希望创建一个事件监听器，监听 ",
             code("window"),
-            text(" 对象上的事件。"),
+            " 对象上的事件。",
         ],
         code_block(
             "rust",
@@ -34,21 +32,19 @@ pub fn show_storage_changed() -> Html {
     html! { <div>{"Storage Event Fired: "}{*state_storage_changed}</div> }
 }"#,
         ),
-        p![text(
-            "这段代码有一个问题：逻辑无法被另一个组件重用。如果我们构建另一个监听不同事件的组件，\
-             而不是复制代码，我们可以将逻辑移入自定义 hook。",
-        )],
         p![
-            text("我们将首先创建一个名为 "),
+            "这段代码有一个问题：逻辑无法被另一个组件重用。如果我们构建另一个监听不同事件的组件，\
+             而不是复制代码，我们可以将逻辑移入自定义 hook。"
+        ],
+        p![
+            "我们将首先创建一个名为 ",
             code("use_event"),
-            text(" 的新函数。"),
+            " 的新函数。",
             code("use_"),
-            text(
-                " 前缀表示函数是一个 hook。此函数将接受一个事件目标、一个事件类型和一个回调。所有 \
-                 hook 必须在其函数定义上标记为 ",
-            ),
+            " 前缀表示函数是一个 hook。此函数将接受一个事件目标、一个事件类型和一个回调。所有 \
+             hook 必须在其函数定义上标记为 ",
             code("#[hook]"),
-            text("。"),
+            "。",
         ],
         code_block(
             "rust",
@@ -67,9 +63,9 @@ where
 }"#,
         ),
         p![
-            text("这个简单的 hook 可以通过组合内置 hook 创建。在本例中，我们将使用 "),
+            "这个简单的 hook 可以通过组合内置 hook 创建。在本例中，我们将使用 ",
             code("use_effect_with"),
-            text(" hook，因此当 hook 参数发生变化时，可以重新创建事件监听器。"),
+            " hook，因此当 hook 参数发生变化时，可以重新创建事件监听器。",
         ],
         code_block(
             "rust",
@@ -118,16 +114,16 @@ where
     );
 }"#,
         ),
-        p![text(
-            "尽管这种方法在几乎所有情况下都有效，但它无法用于编写像我们已经使用的预定义 hook \
-             那样的基本 hook。",
-        )],
         p![
-            text("查看 "),
-            link!("https://docs.rs/yew", text("docs.rs")),
-            text(" 上的文档以及 "),
+            "尽管这种方法在几乎所有情况下都有效，但它无法用于编写像我们已经使用的预定义 hook \
+             那样的基本 hook。"
+        ],
+        p![
+            "查看 ",
+            link!("https://docs.rs/yew", "docs.rs"),
+            " 上的文档以及 ",
             code("hooks"),
-            text(" 目录，查看预定义 hook 的实现。"),
+            " 目录，查看预定义 hook 的实现。",
         ],
     ])
 }

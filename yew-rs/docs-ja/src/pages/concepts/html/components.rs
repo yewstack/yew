@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("基本")],
+        h2!["基本"],
         p![
-            text("コンポーネントは "),
+            "コンポーネントは ",
             code("html!"),
-            text(" マクロで使用できます："),
+            " マクロで使用できます：",
         ],
         code_block("rust", r#"use yew::prelude::*;
 
@@ -50,13 +50,13 @@ html!{
         <MyComponentWithProps user_last_name="Elm" ..props />
     </>
 };"#),
-        h2![text("ネスト")],
+        h2!["ネスト"],
         p![
-            text("コンポーネントの "),
+            "コンポーネントの ",
             code("Properties"),
-            text(" に "),
+            " に ",
             code("children"),
-            text(" フィールドがある場合、子コンポーネント/要素を受け入れることができます。"),
+            " フィールドがある場合、子コンポーネント/要素を受け入れることができます。",
         ],
         code_block_title("rust", "parent.rs", r#"use yew::prelude::*;
 
@@ -83,15 +83,15 @@ html! {
 };"#),
         p![
             code("html!"),
-            text(" マクロは、各プロパティを個別に指定するのではなく、基本式を "),
+            " マクロは、各プロパティを個別に指定するのではなく、基本式を ",
             code("..props"),
-            text(" 構文で渡すことを可能にします。これは Rust の"),
-            link!["https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax", text("関数的更新構文")],
-            text("に似ています。この基本式は、個別のプロパティを渡した後に現れる必要があります。"),
+            " 構文で渡すことを可能にします。これは Rust の",
+            link!["https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax", "関数的更新構文"],
+            "に似ています。この基本式は、個別のプロパティを渡した後に現れる必要があります。",
             code("children"),
-            text(" フィールドを持つ基本 props 式を渡す場合、"),
+            " フィールドを持つ基本 props 式を渡す場合、",
             code("html!"),
-            text(" マクロ内で渡された子要素は、props 内に既に存在する子要素を上書きします。"),
+            " マクロ内で渡された子要素は、props 内に既に存在する子要素を上書きします。",
         ],
         code_block("rust", r#"use yew::prelude::*;
 
@@ -121,10 +121,10 @@ html! {
         <span>{ "I am a child, as you can see" }</span>
     </Container>
 };"#),
-        h2![text("参考例")],
+        h2!["参考例"],
         ul![
-            li![link!["https://github.com/yewstack/yew/tree/master/examples/function_todomvc", text("関数型 Todo MVC")]],
-            li![link!["https://github.com/yewstack/yew/tree/master/examples/function_router", text("関数型ルーティング")]],
+            li![link!["https://github.com/yewstack/yew/tree/master/examples/function_todomvc", "関数型 Todo MVC"]],
+            li![link!["https://github.com/yewstack/yew/tree/master/examples/function_router", "関数型ルーティング"]],
         ],
     ])
 }

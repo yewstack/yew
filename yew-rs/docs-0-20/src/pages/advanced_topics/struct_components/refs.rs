@@ -3,33 +3,27 @@ crate::doc_page!(
     "/docs/advanced-topics/struct-components/refs",
     Content::new(vec![
         p![
-            text("The "),
+            "The ",
             code("ref"),
-            text(" keyword can be used inside of any HTML element or component to get the DOM "),
+            " keyword can be used inside of any HTML element or component to get the DOM ",
             code("Element"),
-            text(
-                " that the item is attached to. This can be used to make changes to the DOM \
-                 outside of the "
-            ),
+            " that the item is attached to. This can be used to make changes to the DOM outside \
+             of the ",
             code("view"),
-            text(" lifecycle method."),
+            " lifecycle method.",
         ],
         p![
-            text(
-                "This is useful for getting ahold of canvas elements, or scrolling to different \
-                 sections of a page. For example, using a "
-            ),
+            "This is useful for getting ahold of canvas elements, or scrolling to different \
+             sections of a page. For example, using a ",
             code("NodeRef"),
-            text(" in a component's "),
+            " in a component's ",
             code("rendered"),
-            text(
-                " method allows you to make draw calls to a canvas element after it has been \
-                 rendered from "
-            ),
+            " method allows you to make draw calls to a canvas element after it has been rendered \
+             from ",
             code("view"),
-            text("."),
+            ".",
         ],
-        p![text("The syntax is:")],
+        p!["The syntax is:"],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -67,10 +61,10 @@ impl Component for Comp {
     }
 }"#
         ),
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![li![link![
             "https://github.com/yewstack/yew/tree/yew-v0.20.0/examples/node_refs",
-            text("Node Refs")
+            "Node Refs"
         ],],],
     ])
 );

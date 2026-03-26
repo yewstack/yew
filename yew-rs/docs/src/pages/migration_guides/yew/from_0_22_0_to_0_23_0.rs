@@ -3,23 +3,21 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         h2![
             code("use_reducer"),
-            text(" no longer re-renders on identity dispatches"),
+            " no longer re-renders on identity dispatches",
         ],
         p![
             code("use_reducer"),
-            text(" now skips re-rendering when the reducer returns the same "),
+            " now skips re-rendering when the reducer returns the same ",
             code("Rc"),
-            text(
-                " (checked by pointer equality). Previously, every dispatch triggered a re-render \
-                 regardless.",
-            ),
+            " (checked by pointer equality). Previously, every dispatch triggered a re-render \
+             regardless.",
         ],
         p![
-            text("If your reducer has a code path that returns "),
+            "If your reducer has a code path that returns ",
             code("self"),
-            text(" unchanged and you relied on that causing a re-render, replace it with "),
+            " unchanged and you relied on that causing a re-render, replace it with ",
             code("use_force_update"),
-            text(":"),
+            ":",
         ],
         tabs(
             "before",

@@ -2,37 +2,32 @@ crate::doc_page!(
     "CSS",
     "/ja/docs/more/css",
     Content::new(vec![
-        p![text("<TODO>")],
+        p!["<TODO>"],
         p![
-            text("統合的なCSSサポートについての提案はこちらにあります: "),
+            "統合的なCSSサポートについての提案はこちらにあります: ",
             link!(
                 "https://github.com/yewstack/yew/issues/533",
-                text("https://github.com/yewstack/yew/issues/533")
+                "https://github.com/yewstack/yew/issues/533"
             ),
         ],
-        h2![text("スタイルフレームワーク:")],
-        p![text(
-            "今のところ、コミュニティメンバーは以下のスタイルフレームワークを開発しています。"
-        )],
+        h2!["スタイルフレームワーク:"],
+        p!["今のところ、コミュニティメンバーは以下のスタイルフレームワークを開発しています。"],
         ul![
             li![
-                link!("https://github.com/spielrs/yew_styles", text("yew_styles")),
-                text(" - JavaScriptに依存しないYewのスタイルフレームワーク"),
+                link!("https://github.com/spielrs/yew_styles", "yew_styles"),
+                " - JavaScriptに依存しないYewのスタイルフレームワーク",
             ],
             li![
-                link!("https://github.com/Follpvosten/yew-mdc", text("yew-mdc")),
-                text(" - マテリアルデザインのコンポーネント"),
+                link!("https://github.com/Follpvosten/yew-mdc", "yew-mdc"),
+                " - マテリアルデザインのコンポーネント",
             ],
             li![
-                link!(
-                    "https://github.com/AlephAlpha/muicss-yew",
-                    text("muicss-yew")
-                ),
-                text(" - MUIのCSSコンポーネント"),
+                link!("https://github.com/AlephAlpha/muicss-yew", "muicss-yew"),
+                " - MUIのCSSコンポーネント",
             ],
             li![
-                link!("https://github.com/yewstack/yewtify", text("Yewtify")),
-                text(" - YewでVuetifyフレームワークで提供されている機能の実装"),
+                link!("https://github.com/yewstack/yewtify", "Yewtify"),
+                " - YewでVuetifyフレームワークで提供されている機能の実装",
             ],
         ],
     ])

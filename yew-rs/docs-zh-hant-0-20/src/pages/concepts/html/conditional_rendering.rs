@@ -2,11 +2,11 @@ crate::doc_page!(
     "Conditional Rendering",
     "/zh-Hant/docs/concepts/html/conditional-rendering",
     Content::new(vec![
-        h2![text("If blocks")],
+        h2!["If blocks"],
         p![
-            text("To conditionally render some markup, we wrap it in an "),
+            "To conditionally render some markup, we wrap it in an ",
             code("if"),
-            text(" block:"),
+            " block:",
         ],
         tabs![
             "if",

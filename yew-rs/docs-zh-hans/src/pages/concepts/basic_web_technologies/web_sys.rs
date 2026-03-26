@@ -4,49 +4,39 @@ pub fn page_content() -> yew_site_lib::Content {
         p![
             link!(
                 "https://crates.io/crates/web-sys",
-                text("web-sys crate"),
+                "web-sys crate",
             ),
-            text(
-                " 为 Web API 提供绑定。这是从浏览器 WebIDL \
+            " 为 Web API 提供绑定。这是从浏览器 WebIDL \
                  生成的，这就是为什么有些名称如此之长，有些类型如此模糊的原因。",
-            ),
         ],
-        h2![text("`web-sys` 中的特性 (features)")],
+        h2!["`web-sys` 中的特性 (features)"],
         p![
             code("web-sys"),
-            text(
-                " crate 中启用了所有特性可能会给 Wasm \
+            " crate 中启用了所有特性可能会给 Wasm \
                  应用程序增加很多冗余。为了解决这个问题，大多数类型都是通过启用 features \
                  进行控制的，这样你只需要包含你的应用程序所需的类型。Yew 启用了 ",
-            ),
             code("web-sys"),
-            text(
-                " 的几个特性，并在其公共 API 中公开了一些类型。你通常需要自行将 ",
-            ),
+            " 的几个特性，并在其公共 API 中公开了一些类型。你通常需要自行将 ",
             code("web-sys"),
-            text(" 添加为依赖项。"),
+            " 添加为依赖项。",
         ],
-        h2![text("`web-sys` 中的继承")],
+        h2!["`web-sys` 中的继承"],
         p![
-            text("在"),
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance", text("模拟继承")),
-            text(
-                "部分，你可以了解到 Rust 通常提供了一种模拟 JavaScript 中继承的方法。这在 ",
-            ),
+            "在",
+            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance", "模拟继承"),
+            "部分，你可以了解到 Rust 通常提供了一种模拟 JavaScript 中继承的方法。这在 ",
             code("web-sys"),
-            text(
-                " 中非常重要，因为了解一个类型上有哪些方法意味着了解它的继承。",
-            ),
+            " 中非常重要，因为了解一个类型上有哪些方法意味着了解它的继承。",
         ],
         p![
-            text("这一部分将查看一个特定的元素，并使用 Rust 调用 "),
+            "这一部分将查看一个特定的元素，并使用 Rust 调用 ",
             link!(
                 "https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref",
-                text("Deref::deref"),
+                "Deref::deref",
             ),
-            text(" 列出其继承，直到该值为 "),
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue", text("JsValue")),
-            text("。"),
+            " 列出其继承，直到该值为 ",
+            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue", "JsValue"),
+            "。",
         ],
         code_block(
             "rust",
@@ -92,65 +82,65 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
 }"#,
         ),
         p![
-            text("_"),
+            "_",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/web-sys/inheritance.html",
-                text("wasm-bindgen 指引中的 web-sys 继承"),
+                "wasm-bindgen 指引中的 web-sys 继承",
             ),
-            text("_"),
+            "_",
         ],
-        h2![text("`NodeRef` 中的 `Node`")],
+        h2!["`NodeRef` 中的 `Node`"],
         p![
-            text("Yew 使用 "),
+            "Yew 使用 ",
             link!(
                 "/zh-Hans/docs/concepts/function-components/node-refs",
-                text("NodeRef"),
+                "NodeRef",
             ),
-            text(" 来提供一种方式来保留由 "),
+            " 来提供一种方式来保留由 ",
             link!(
                 "/zh-Hans/docs/concepts/html",
-                text("html!"),
+                "html!",
             ),
-            text(" 宏创建的 "),
+            " 宏创建的 ",
             code("Node"),
-            text(" 的引用。"),
+            " 的引用。",
             code("NodeRef"),
-            text(" 中的 "),
+            " 中的 ",
             code("Node"),
-            text(" 指的是 "),
+            " 指的是 ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Node.html",
-                text("web_sys::Node"),
+                "web_sys::Node",
             ),
-            text("。"),
+            "。",
             code("NodeRef::get"),
-            text(" 方法将返回一个 "),
+            " 方法将返回一个 ",
             code("Option<Node>"),
-            text(" 值，但是，在 Yew 中，大多数情况下，您希望将此值转换为特定元素，以便使用其特定方法。如果存在，可以使用 "),
-            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jscast", text("JsCast")),
-            text(" 对 "),
+            " 值，但是，在 Yew 中，大多数情况下，您希望将此值转换为特定元素，以便使用其特定方法。如果存在，可以使用 ",
+            link!("/zh-Hans/docs/concepts/basic-web-technologies/wasm-bindgen#jscast", "JsCast"),
+            " 对 ",
             code("Node"),
-            text(" 值进行转换，但是 Yew 提供了 "),
+            " 值进行转换，但是 Yew 提供了 ",
             code("NodeRef::cast"),
-            text(" 方法来执行此转换，以方便使用，因此您不一定需要为 "),
+            " 方法来执行此转换，以方便使用，因此您不一定需要为 ",
             code("JsCast"),
-            text(" 特性包含 "),
+            " 特性包含 ",
             code("wasm-bindgen"),
-            text(" 依赖项。"),
+            " 依赖项。",
         ],
         p![
-            text("下面的两个代码块本质上是相同的，第一个使用 "),
+            "下面的两个代码块本质上是相同的，第一个使用 ",
             code("NodeRef::cast"),
-            text("，第二个使用 "),
+            "，第二个使用 ",
             link!(
                 "https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into",
-                text("JsCast::dyn_into"),
+                "JsCast::dyn_into",
             ),
-            text(" 在 "),
+            " 在 ",
             code("NodeRef::get"),
-            text(" 返回的 "),
+            " 返回的 ",
             code("web_sys::Node"),
-            text(" 上。"),
+            " 上。",
         ],
         tabs![
             "Using NodeRef::cast",
@@ -188,13 +178,13 @@ fn with_jscast(node_ref: NodeRef) {
                 ),
             ],
         ],
-        h2![text("JavaScript 重构为 Rust 的示例")],
+        h2!["JavaScript 重构为 Rust 的示例"],
         p![
-            text("这一节展示了如何将与 Web API 交互的 JavaScript 代码示例重写为 Rust 中的 "),
+            "这一节展示了如何将与 Web API 交互的 JavaScript 代码示例重写为 Rust 中的 ",
             code("web-sys"),
-            text("。"),
+            "。",
         ],
-        h3![text("JavaScript 示例")],
+        h3!["JavaScript 示例"],
         code_block(
             "js",
             r#"document.getElementById('mousemoveme').onmousemove = (e) => {
@@ -205,11 +195,11 @@ fn with_jscast(node_ref: NodeRef) {
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }"#,
         ),
-        h3![text("用 `web-sys` 重写的示例")],
+        h3!["用 `web-sys` 重写的示例"],
         p![
-            text("仅使用 "),
+            "仅使用 ",
             code("web-sys"),
-            text("，上面的 JavaScript 示例可以这样实现："),
+            "，上面的 JavaScript 示例可以这样实现：",
         ],
         code_block_title(
             "toml",
@@ -255,23 +245,23 @@ Document::new()
 // 我们现在需要保存 `mousemove` 闭包，以便在事件触发时闭包仍然在内存中。"#,
         ),
         p![
-            text("这个版本更加冗长，但你可能会注意到其中的一部分是由于失败类型提醒我们，一些函数调用有必须保持的不变量，否则将在 Rust 中引发 panic。另一个冗长的部分是调用 "),
+            "这个版本更加冗长，但你可能会注意到其中的一部分是由于失败类型提醒我们，一些函数调用有必须保持的不变量，否则将在 Rust 中引发 panic。另一个冗长的部分是调用 ",
             code("JsCast"),
-            text(" 来将不同类型转换为特定类型，以便调用其特定方法。"),
+            " 来将不同类型转换为特定类型，以便调用其特定方法。",
         ],
-        h3![text("用 Yew 重写的示例")],
+        h3!["用 Yew 重写的示例"],
         p![
-            text("在 Yew 中，您将主要创建 "),
+            "在 Yew 中，您将主要创建 ",
             link!(
                 "/zh-Hans/docs/concepts/function-components/callbacks",
-                text("Callback"),
+                "Callback",
             ),
-            text(" 以在 "),
+            " 以在 ",
             link!(
                 "/zh-Hans/docs/concepts/html",
-                text("html!"),
+                "html!",
             ),
-            text(" 宏中使用，因此示例将使用这种方法，而不是完全复制上面的方法："),
+            " 宏中使用，因此示例将使用这种方法，而不是完全复制上面的方法：",
         ],
         code_block_title(
             "toml",
@@ -307,24 +297,22 @@ html! {
     <div id="mousemoveme" {onmousemove}></div>
 };"#,
         ),
-        h2![text("补充依赖库")],
+        h2!["补充依赖库"],
         p![
             code("web-sys"),
-            text(
-                " 是 Web API 的原始绑定，因此在 Rust \
+            " 是 Web API 的原始绑定，因此在 Rust \
                  中会有一些痛苦，因为它并不是为 Rust \
                  或甚至强类型系统设计的，这就是社区 crate 提供了对 ",
-            ),
             code("web-sys"),
-            text(" 的抽象，以提供更符合 Rust 习惯的 API。"),
+            " 的抽象，以提供更符合 Rust 习惯的 API。",
         ],
         p![
-            text("_"),
+            "_",
             link!(
                 "/community/external-libs",
-                text("补充依赖库清单"),
+                "补充依赖库清单",
             ),
-            text("_"),
+            "_",
         ],
     ])
 }

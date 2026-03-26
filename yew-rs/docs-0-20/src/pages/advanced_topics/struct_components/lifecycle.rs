@@ -3,39 +3,33 @@ crate::doc_page!(
     "/docs/advanced-topics/struct-components/lifecycle",
     Content::new(vec![
         p![
-            text("The "),
+            "The ",
             code("Component"),
-            text(
-                " trait has a number of methods which need to be implemented; Yew will call these \
-                 at different stages in the lifecycle of a component."
-            ),
+            " trait has a number of methods which need to be implemented; Yew will call these at \
+             different stages in the lifecycle of a component.",
         ],
-        h2![text("Lifecycle")],
+        h2!["Lifecycle"],
         admonition![
             AdmonitionType::Note,
             Some("contribute"),
             p![
-                text("Contribute to our docs: "),
+                "Contribute to our docs: ",
                 link![
                     "https://github.com/yewstack/yew/issues/1915",
-                    text("Add a diagram of the component lifecycle")
+                    "Add a diagram of the component lifecycle"
                 ],
             ],
         ],
-        h2![text("Lifecycle Methods")],
-        h3![text("Create")],
+        h2!["Lifecycle Methods"],
+        h3!["Create"],
         p![
-            text(
-                "When a component is created, it receives properties from its parent component \
-                 and is stored within the "
-            ),
+            "When a component is created, it receives properties from its parent component and is \
+             stored within the ",
             code("Context<Self>"),
-            text(" that is passed down to the "),
+            " that is passed down to the ",
             code("create"),
-            text(
-                " method. The properties can be used to initialize the component's state and the \
-                 \"link\" can be used to register callbacks or send messages to the component."
-            ),
+            " method. The properties can be used to initialize the component's state and the \
+             \"link\" can be used to register callbacks or send messages to the component.",
         ],
         code_block(
             "rust",
@@ -63,27 +57,23 @@ impl Component for MyComponent {
     }
 }"#
         ),
-        h3![text("View")],
+        h3!["View"],
         p![
-            text("The "),
+            "The ",
             code("view"),
-            text(
-                " method allows you to describe how a component should be rendered to the DOM. \
-                 Writing HTML-like code using Rust functions can become quite messy, so Yew \
-                 provides a macro called "
-            ),
+            " method allows you to describe how a component should be rendered to the DOM. \
+             Writing HTML-like code using Rust functions can become quite messy, so Yew provides \
+             a macro called ",
             code("html!"),
-            text(
-                " for declaring HTML and SVG nodes (as well as attaching attributes and event \
-                 listeners to them) and a convenient way to render child components. The macro is \
-                 somewhat similar to React's JSX (the differences in programming language aside). \
-                 One difference is that Yew provides a shorthand syntax for properties, similar \
-                 to Svelte, where instead of writing "
-            ),
+            " for declaring HTML and SVG nodes (as well as attaching attributes and event \
+             listeners to them) and a convenient way to render child components. The macro is \
+             somewhat similar to React's JSX (the differences in programming language aside). One \
+             difference is that Yew provides a shorthand syntax for properties, similar to \
+             Svelte, where instead of writing ",
             code("onclick={onclick}"),
-            text(", you can just write "),
+            ", you can just write ",
             code("{onclick}"),
-            text("."),
+            ".",
         ],
         code_block(
             "rust",
@@ -119,27 +109,23 @@ impl Component for MyComponent {
 }"#
         ),
         p![
-            text("For usage details, check out "),
-            link!["/docs/concepts/html", text("the html! guide")],
-            text("."),
+            "For usage details, check out ",
+            link!["/docs/concepts/html", "the html! guide"],
+            ".",
         ],
-        h3![text("Rendered")],
+        h3!["Rendered"],
         p![
-            text("The "),
+            "The ",
             code("rendered"),
-            text(" component lifecycle method is called once "),
+            " component lifecycle method is called once ",
             code("view"),
-            text(
-                " has been called and Yew has rendered the results to the DOM, but before the \
-                 browser refreshes the page. This method is useful when you want to perform \
-                 actions that can only be completed after the component has rendered elements. \
-                 There is also a parameter called "
-            ),
+            " has been called and Yew has rendered the results to the DOM, but before the browser \
+             refreshes the page. This method is useful when you want to perform actions that can \
+             only be completed after the component has rendered elements. There is also a \
+             parameter called ",
             code("first_render"),
-            text(
-                " which can be used to determine whether this function is being called on the \
-                 first render, or instead a subsequent one."
-            ),
+            " which can be used to determine whether this function is being called on the first \
+             render, or instead a subsequent one.",
         ],
         code_block(
             "rust",
@@ -182,27 +168,21 @@ impl Component for MyComponent {
         admonition![
             AdmonitionType::Tip,
             None,
-            p![text(
+            p![
                 "Note that this lifecycle method does not require implementation and will do \
                  nothing by default."
-            )],
+            ],
         ],
-        h3![text("Update")],
+        h3!["Update"],
         p![
-            text(
-                "Communication with components happens primarily through messages which are \
-                 handled by the "
-            ),
+            "Communication with components happens primarily through messages which are handled \
+             by the ",
             code("update"),
-            text(
-                " lifecycle method. This allows the component to update itself based on what the \
-                 message was, and determine if it needs to re-render itself. Messages can be sent \
-                 by event listeners, child components, Agents, Services, or Futures."
-            ),
+            " lifecycle method. This allows the component to update itself based on what the \
+             message was, and determine if it needs to re-render itself. Messages can be sent by \
+             event listeners, child components, Agents, Services, or Futures.",
         ],
-        p![text(
-            "Here is an example of what an implementation of update could look like:"
-        )],
+        p!["Here is an example of what an implementation of update could look like:"],
         code_block(
             "rust",
             r#"use yew::{Component, Context, html, Html};
@@ -251,31 +231,29 @@ impl Component for MyComponent {
 
 }"#
         ),
-        h3![text("Changed")],
-        p![text(
+        h3!["Changed"],
+        p![
             "Components may be re-rendered by their parents. When this happens, they could \
              receive new properties and need to re-render. This design facilitates \
              parent-to-child component communication by just changing the values of a property. \
              There is a default implementation that re-renders the component when props are \
-             changed."
-        ),],
-        h3![text("Destroy")],
-        p![
-            text("After Components are unmounted from the DOM, Yew calls the "),
-            code("destroy"),
-            text(
-                " lifecycle method; this is necessary if you need to undertake operations to \
-                 clean up after earlier actions of a component before it is destroyed. This \
-                 method is optional and does nothing by default."
-            ),
+             changed.",
         ],
-        h3![text("Infinite loops")],
-        p![text(
+        h3!["Destroy"],
+        p![
+            "After Components are unmounted from the DOM, Yew calls the ",
+            code("destroy"),
+            " lifecycle method; this is necessary if you need to undertake operations to clean up \
+             after earlier actions of a component before it is destroyed. This method is optional \
+             and does nothing by default.",
+        ],
+        h3!["Infinite loops"],
+        p![
             "Infinite loops are possible with Yew's lifecycle methods but are only caused when \
              trying to update the same component after every render, when that update also \
-             requests the component to be rendered."
-        ),],
-        p![text("A simple example can be seen below:")],
+             requests the component to be rendered.",
+        ],
+        p!["A simple example can be seen below:"],
         code_block(
             "rust",
             r#"use yew::{Context, Component, Html};
@@ -306,56 +284,54 @@ impl Component for Comp {
     }
 }"#
         ),
-        p![text("Let's run through what happens here:")],
+        p!["Let's run through what happens here:"],
         ol![
             li![
-                text("Component is created using the "),
+                "Component is created using the ",
                 code("create"),
-                text(" function."),
+                " function.",
             ],
             li![
-                text("The "),
+                "The ",
                 code("view"),
-                text(" method is called so Yew knows what to render to the browser DOM."),
+                " method is called so Yew knows what to render to the browser DOM.",
             ],
             li![
-                text("The "),
+                "The ",
                 code("rendered"),
-                text(" method is called, which schedules an update message using the "),
+                " method is called, which schedules an update message using the ",
                 code("Context"),
-                text(" link."),
+                " link.",
             ],
-            li![text("Yew finishes the post-render phase.")],
-            li![text(
-                "Yew checks for scheduled events and sees the update message queue is not empty \
-                 so works through the messages."
-            ),],
+            li!["Yew finishes the post-render phase."],
             li![
-                text("The "),
-                code("update"),
-                text(" method is called which returns "),
-                code("true"),
-                text(" to indicate something has changed and the component needs to re-render."),
+                "Yew checks for scheduled events and sees the update message queue is not empty \
+                 so works through the messages.",
             ],
-            li![text("Jump back to 2.")],
+            li![
+                "The ",
+                code("update"),
+                " method is called which returns ",
+                code("true"),
+                " to indicate something has changed and the component needs to re-render.",
+            ],
+            li!["Jump back to 2."],
         ],
         p![
-            text("You can still schedule updates in the "),
+            "You can still schedule updates in the ",
             code("rendered"),
-            text(
-                " method and it is often useful to do so, but consider how your component will \
-                 terminate this loop when you do."
-            ),
+            " method and it is often useful to do so, but consider how your component will \
+             terminate this loop when you do.",
         ],
-        h2![text("Associated Types")],
+        h2!["Associated Types"],
         p![
-            text("The "),
+            "The ",
             code("Component"),
-            text(" trait has two associated types: "),
+            " trait has two associated types: ",
             code("Message"),
-            text(" and "),
+            " and ",
             code("Properties"),
-            text("."),
+            ".",
         ],
         code_block(
             "rust",
@@ -367,31 +343,27 @@ impl Component for Comp {
 }"#
         ),
         p![
-            text("The "),
+            "The ",
             code("Message"),
-            text(
-                " type is used to send messages to a component after an event has taken place; \
-                 for example, you might want to undertake some action when a user clicks a button \
-                 or scrolls down the page. Because components tend to have to respond to more \
-                 than one event, the "
-            ),
+            " type is used to send messages to a component after an event has taken place; for \
+             example, you might want to undertake some action when a user clicks a button or \
+             scrolls down the page. Because components tend to have to respond to more than one \
+             event, the ",
             code("Message"),
-            text(" type will normally be an enum, where each variant is an event to be handled."),
+            " type will normally be an enum, where each variant is an event to be handled.",
         ],
         p![
-            text("When organizing your codebase, it is sensible to include the definition of the "),
+            "When organizing your codebase, it is sensible to include the definition of the ",
             code("Message"),
-            text(
-                " type in the same module in which your component is defined. You may find it \
-                 helpful to adopt a consistent naming convention for message types. One option \
-                 (though not the only one) is to name the types "
-            ),
+            " type in the same module in which your component is defined. You may find it helpful \
+             to adopt a consistent naming convention for message types. One option (though not \
+             the only one) is to name the types ",
             code("ComponentNameMsg"),
-            text(", e.g. if your component was called "),
+            ", e.g. if your component was called ",
             code("Homepage"),
-            text(" then you might call the type "),
+            " then you might call the type ",
             code("HomepageMsg"),
-            text("."),
+            ".",
         ],
         code_block(
             "rust",
@@ -402,44 +374,37 @@ impl Component for Comp {
         ),
         p![
             code("Properties"),
-            text(
-                " represents the information passed to a component from its parent. This type \
-                 must implement the "
-            ),
+            " represents the information passed to a component from its parent. This type must \
+             implement the ",
             code("Properties"),
-            text(
-                " trait (usually by deriving it) and can specify whether certain properties are \
-                 required or optional. This type is used when creating and updating a component. \
-                 It is common practice to create a struct called "
-            ),
+            " trait (usually by deriving it) and can specify whether certain properties are \
+             required or optional. This type is used when creating and updating a component. It \
+             is common practice to create a struct called ",
             code("Props"),
-            text(" in your component's module and use that as the component's "),
+            " in your component's module and use that as the component's ",
             code("Properties"),
-            text(
-                " type. It is common to shorten \"properties\" to \"props\". Since props are \
-                 handed down from parent components, the root component of your application \
-                 typically has a "
-            ),
+            " type. It is common to shorten \"properties\" to \"props\". Since props are handed \
+             down from parent components, the root component of your application typically has a ",
             code("Properties"),
-            text(" type of "),
+            " type of ",
             code("()"),
-            text(". If you wish to specify properties for your root component, use the "),
+            ". If you wish to specify properties for your root component, use the ",
             code("App::mount_with_props"),
-            text(" method."),
+            " method.",
         ],
         admonition![
             AdmonitionType::Info,
             None,
             p![link![
                 "/docs/advanced-topics/struct-components/properties",
-                text("Learn more about properties")
+                "Learn more about properties"
             ],],
         ],
-        h2![text("Lifecycle Context")],
-        p![text(
+        h2!["Lifecycle Context"],
+        p![
             "All component lifecycle methods take a context object. This object provides a \
              reference to the component's scope, which allows sending messages to a component and \
-             the props passed to the component."
-        ),],
+             the props passed to the component.",
+        ],
     ])
 );

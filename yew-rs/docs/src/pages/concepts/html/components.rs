@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("Basic")],
+        h2!["Basic"],
         p![
-            text("Components can be used in the "),
+            "Components can be used in the ",
             code("html!"),
-            text(" macro:"),
+            " macro:",
         ],
         code_block("rust", r#"use yew::prelude::*;
 
@@ -50,11 +50,11 @@ html!{
         <MyComponentWithProps user_last_name="Elm" ..props />
     </>
 };"#),
-        h2![text("Nested")],
+        h2!["Nested"],
         p![
-            text("Components can accept child components/elements if they have a "),
+            "Components can accept child components/elements if they have a ",
             code("children"),
-            text(" field in their "),
+            " field in their ",
             code("Properties"),
         ],
         code_block_title("rust", "parent.rs", r#"use yew::prelude::*;
@@ -81,19 +81,19 @@ html! {
     </Container>
 };"#),
         p![
-            text("The "),
+            "The ",
             code("html!"),
-            text(" macro allows you to pass a base expression with the "),
+            " macro allows you to pass a base expression with the ",
             code("..props"),
-            text(" syntax instead of specifying each property individually, \
-              similar to Rust's "),
-            link!("https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax", text("Functional Update Syntax")),
-            text(". This base expression must occur after any individual props are passed. \
-              When passing a base props expression with a "),
+            " syntax instead of specifying each property individually, \
+              similar to Rust's ",
+            link!("https://doc.rust-lang.org/stable/reference/expressions/struct-expr.html#functional-update-syntax", "Functional Update Syntax"),
+            ". This base expression must occur after any individual props are passed. \
+              When passing a base props expression with a ",
             code("children"),
-            text(" field, the children passed in the "),
+            " field, the children passed in the ",
             code("html!"),
-            text(" macro overwrite the ones already present in the props."),
+            " macro overwrite the ones already present in the props.",
         ],
         code_block("rust", r#"use yew::prelude::*;
 
@@ -123,10 +123,10 @@ html! {
         <span>{ "I am a child, as you can see" }</span>
     </Container>
 };"#),
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![
-            li![link!("https://github.com/yewstack/yew/tree/master/examples/function_todomvc", text("Function Todo MVC"))],
-            li![link!("https://github.com/yewstack/yew/tree/master/examples/function_router", text("Function Router"))],
+            li![link!("https://github.com/yewstack/yew/tree/master/examples/function_todomvc", "Function Todo MVC")],
+            li![link!("https://github.com/yewstack/yew/tree/master/examples/function_router", "Function Router")],
         ],
     ])
 }

@@ -3,29 +3,24 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("ref"),
-            text(
-                " キーワードは、任意の HTML 要素やコンポーネントに使用して、その要素に付随する \
-                 DOM ",
-            ),
+            " キーワードは、任意の HTML 要素やコンポーネントに使用して、その要素に付随する DOM ",
             code("Element"),
-            text(" を取得できます。これにより、"),
+            " を取得できます。これにより、",
             code("view"),
-            text(" ライフサイクルメソッドの外で DOM を変更することができます。"),
+            " ライフサイクルメソッドの外で DOM を変更することができます。",
         ],
         p![
-            text(
-                "これは、canvas \
-                 要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。例えば、\
-                 コンポーネントの ",
-            ),
+            "これは、canvas \
+             要素を取得したり、ページの異なる部分にスクロールしたりするのに便利です。例えば、\
+             コンポーネントの ",
             code("rendered"),
-            text(" メソッドで "),
+            " メソッドで ",
             code("NodeRef"),
-            text(" を使用すると、"),
+            " を使用すると、",
             code("view"),
-            text(" からレンダリングされた後に canvas 要素に描画呼び出しを行うことができます。"),
+            " からレンダリングされた後に canvas 要素に描画呼び出しを行うことができます。",
         ],
-        p![text("構文は次のとおりです：")],
+        p!["構文は次のとおりです："],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -63,10 +58,10 @@ impl Component for Comp {
     }
 }"#,
         ),
-        h2![text("関連例")],
+        h2!["関連例"],
         ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            text("ノード参照"),
+            "ノード参照",
         )]],
     ])
 }

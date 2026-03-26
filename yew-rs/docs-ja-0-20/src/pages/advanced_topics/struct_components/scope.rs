@@ -2,46 +2,37 @@ crate::doc_page!(
     "Scope",
     "/ja/docs/advanced-topics/struct-components/scope",
     Content::new(vec![
-        h2![text("Component's Scope<_> API")],
+        h2!["Component's Scope<_> API"],
         p![
-            text(
-                "The component \"Scope\" is the mechanism through which components can create \
-                 callbacks and update themselves using messages. We obtain a reference to this by \
-                 calling "
-            ),
+            "The component \"Scope\" is the mechanism through which components can create \
+             callbacks and update themselves using messages. We obtain a reference to this by \
+             calling ",
             code("link()"),
-            text(" on the context object passed to the component."),
+            " on the context object passed to the component.",
         ],
-        h3![text("send_message")],
+        h3!["send_message"],
         p![
-            text("Sends a message to the component. Messages are handled by the "),
+            "Sends a message to the component. Messages are handled by the ",
             code("update"),
-            text(" method which determines whether the component should re-render."),
+            " method which determines whether the component should re-render.",
         ],
-        h3![text("send_message_batch")],
+        h3!["send_message_batch"],
         p![
-            text("Sends multiple messages to the component at the same time. This is similar to "),
+            "Sends multiple messages to the component at the same time. This is similar to ",
             code("send_message"),
-            text(" but if any of the messages cause the "),
+            " but if any of the messages cause the ",
             code("update"),
-            text(" method to return "),
+            " method to return ",
             code("true"),
-            text(
-                ", the component will re-render after all messages in the batch have been \
-                 processed."
-            ),
+            ", the component will re-render after all messages in the batch have been processed.",
         ],
-        p![text(
-            "If the given vector is empty, this function does nothing."
-        )],
-        h3![text("callback")],
+        p!["If the given vector is empty, this function does nothing."],
+        h3!["callback"],
         p![
-            text(
-                "Create a callback that will send a message to the component when it is executed. \
-                 Under the hood, it will call "
-            ),
+            "Create a callback that will send a message to the component when it is executed. \
+             Under the hood, it will call ",
             code("send_message"),
-            text(" with the message returned by the provided closure."),
+            " with the message returned by the provided closure.",
         ],
         code_block(
             "rust",
@@ -83,51 +74,45 @@ impl Component for Comp {
     }
 }"#
         ),
-        h3![text("batch_callback")],
+        h3!["batch_callback"],
         p![
-            text(
-                "Create a callback that will send a batch of messages to the component when it is \
-                 executed. The difference to "
-            ),
+            "Create a callback that will send a batch of messages to the component when it is \
+             executed. The difference to ",
             code("callback"),
-            text(
-                " is that the closure passed to this method doesn't have to return a message. \
-                 Instead, the closure can return either "
-            ),
+            " is that the closure passed to this method doesn't have to return a message. \
+             Instead, the closure can return either ",
             code("Vec<Msg>"),
-            text(" or "),
+            " or ",
             code("Option<Msg>"),
-            text(" where "),
+            " where ",
             code("Msg"),
-            text(" is the component's message type."),
+            " is the component's message type.",
         ],
         p![
             code("Vec<Msg>"),
-            text(" is treated as a batch of messages and uses "),
+            " is treated as a batch of messages and uses ",
             code("send_message_batch"),
-            text(" under the hood."),
+            " under the hood.",
         ],
         p![
             code("Option<Msg>"),
-            text(" calls "),
+            " calls ",
             code("send_message"),
-            text(" if it is "),
+            " if it is ",
             code("Some"),
-            text(". If the value is "),
+            ". If the value is ",
             code("None"),
-            text(
-                ", nothing happens. This can be used in cases where, depending on the situation, \
-                 an update isn't required."
-            ),
+            ", nothing happens. This can be used in cases where, depending on the situation, an \
+             update isn't required.",
         ],
         p![
-            text("This is achieved using the "),
+            "This is achieved using the ",
             code("SendAsMessage"),
-            text(" trait which is only implemented for these types. You can implement "),
+            " trait which is only implemented for these types. You can implement ",
             code("SendAsMessage"),
-            text(" for your own types which allows you to use them in "),
+            " for your own types which allows you to use them in ",
             code("batch_callback"),
-            text("."),
+            ".",
         ],
     ])
 );

@@ -3,21 +3,21 @@ crate::doc_page!(
     "/zh-Hant/docs/concepts/function-components/pure-components",
     Content::new(vec![
         p![
-            text("每個函數元件都是一個"),
+            "每個函數元件都是一個",
             link!(
                 "https://zh.wikipedia.org/zh-hk/%E7%BA%AF%E5%87%BD%E6%95%B0",
-                text("純"),
+                "純",
             ),
-            text("函數，它接受一個屬性物件並傳回一個"),
+            "函數，它接受一個屬性物件並傳回一個",
             code("Html"),
-            text(" 物件。純函數是指在給定相同輸入時，總是會傳回相同輸出的函數。",),
+            " 物件。純函數是指在給定相同輸入時，總是會傳回相同輸出的函數。",
         ],
         p![
-            text("這個例子是一個純組件。對於給定的屬性 "),
+            "這個例子是一個純組件。對於給定的屬性 ",
             code("is_loading"),
-            text("，它總是傳回相同的 "),
+            "，它總是傳回相同的 ",
             code("Html"),
-            text("，沒有任何副作用。"),
+            "，沒有任何副作用。",
         ],
         code_block(
             "rust",
@@ -41,29 +41,24 @@ fn HelloWorld(props: &Props) -> Html {
             AdmonitionType::Note,
             None,
             p![
-                text(
-                    "如果您有一個內部純元件，它不使用 hooks \
-                     和其他元件機制，您通常可以將其編寫為傳回 "
-                ),
+                "如果您有一個內部純元件，它不使用 hooks 和其他元件機制，您通常可以將其編寫為傳回 ",
                 code("Html"),
-                text(" 的普通函數，從而避免 Yew 運行元件生命週期相關的一些開銷。使用 "),
+                " 的普通函數，從而避免 Yew 運行元件生命週期相關的一些開銷。使用 ",
                 link!(
                     "concepts/html/literals-and-expressions.mdx#expressions",
-                    text("表達式語法"),
+                    "表達式語法",
                 ),
-                text(" 在 "),
+                " 在 ",
                 code("html!"),
-                text(" 中渲染它們。"),
+                " 中渲染它們。",
             ],
         ),
-        h2![text("非純組件")],
+        h2!["非純組件"],
         p![
-            text(
-                "您可能想知道，如果元件不使用任何全域變量，那麼它是否可以是不\"純\"的，\
-                 因為它只是在每次渲染時調用的固定函數。 這就是下一個主題 - "
-            ),
-            link!("", text("hooks")),
-            text(" 的用武之地。"),
+            "您可能想知道，如果元件不使用任何全域變量，那麼它是否可以是不\"純\"的，\
+             因為它只是在每次渲染時調用的固定函數。 這就是下一個主題 - ",
+            link!("", "hooks"),
+            " 的用武之地。",
         ],
     ])
 );

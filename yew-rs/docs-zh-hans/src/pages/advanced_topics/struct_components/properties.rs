@@ -2,101 +2,93 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         p![
-            text(
-                "属性 (Properties) \
-                 使子组件和父组件之间能够进行通信。每个组件都有一个关联的属性类型，\
-                 用于描述从父组件传递下来的内容。理论上，这可以是任何实现了 ",
-            ),
+            "属性 (Properties) \
+             使子组件和父组件之间能够进行通信。每个组件都有一个关联的属性类型，\
+             用于描述从父组件传递下来的内容。理论上，这可以是任何实现了 ",
             code("Properties"),
-            text(" 特性的类型，但实际上，它应该是一个结构体，其中每个字段代表一个属性。"),
+            " 特性的类型，但实际上，它应该是一个结构体，其中每个字段代表一个属性。",
         ],
-        h2![text("派生宏")],
+        h2!["派生宏"],
         p![
-            text("无需自己实现 "),
+            "无需自己实现 ",
             code("Properties"),
-            text(" 特性，我们可以用 "),
+            " 特性，我们可以用 ",
             code("#[derive(Properties)]"),
-            text(" 来自动生成实现。派生 "),
+            " 来自动生成实现。派生 ",
             code("Properties"),
-            text(" 的类型也必须实现 "),
+            " 的类型也必须实现 ",
             code("PartialEq"),
-            text("。"),
+            "。",
         ],
-        h3![text("字段属性")],
+        h3!["字段属性"],
         p![
-            text("在派生 "),
+            "在派生 ",
             code("Properties"),
-            text(
-                " 时，默认情况下所有字段都是必需的。以下属性允许您为属性提供初始值，\
-                 除非它们被设置为另一个值。",
-            ),
+            " 时，默认情况下所有字段都是必需的。以下属性允许您为属性提供初始值，\
+             除非它们被设置为另一个值。",
         ],
         admonition![
             AdmonitionType::Tip,
             None,
-            p![text(
-                "属性不会在 Rustdoc \
-                 生成的文档中显示。您的属性的文档字符串应该说明一个属性是否是可选的，\
-                 以及它是否有一个特殊的默认值。",
-            )],
+            p!["属性不会在 Rustdoc \
+                生成的文档中显示。您的属性的文档字符串应该说明一个属性是否是可选的，\
+                以及它是否有一个特殊的默认值。"],
         ],
         h4![code("#[prop_or_default]")],
         p![
-            text("使用字段类型的默认值使用 "),
+            "使用字段类型的默认值使用 ",
             code("Default"),
-            text(" 特性来初始化属性值。"),
+            " 特性来初始化属性值。",
         ],
         h4![code("#[prop_or(value)]")],
         p![
-            text("使用 "),
+            "使用 ",
             code("value"),
-            text(" 来初始化属性值。"),
+            " 来初始化属性值。",
             code("value"),
-            text(" 可以是返回字段类型的任何表达式。例如，要将布尔属性默认为 "),
+            " 可以是返回字段类型的任何表达式。例如，要将布尔属性默认为 ",
             code("true"),
-            text("，请使用属性 "),
+            "，请使用属性 ",
             code("#[prop_or(true)]"),
-            text("。"),
+            "。",
         ],
         h4![code("#[prop_or_else(function)]")],
         p![
-            text("调用 "),
+            "调用 ",
             code("function"),
-            text(" 来初始化属性值。"),
+            " 来初始化属性值。",
             code("function"),
-            text(" 应该具有签名 "),
+            " 应该具有签名 ",
             code("FnMut() -> T"),
-            text("，其中 "),
+            "，其中 ",
             code("T"),
-            text(" 是字段类型。"),
+            " 是字段类型。",
         ],
         h2![code("PartialEq")],
         p![
             code("Properties"),
-            text(" 需要实现 "),
+            " 需要实现 ",
             code("PartialEq"),
-            text("。这样，Yew 才能比较它们，以便在它们发生变化时调用 "),
+            "。这样，Yew 才能比较它们，以便在它们发生变化时调用 ",
             code("changed"),
-            text(" 方法。"),
+            " 方法。",
         ],
-        h2![text("使用 Properties 的性能开销")],
-        p![text(
+        h2!["使用 Properties 的性能开销"],
+        p![
             "内部属性是基于引用计数的指针存储的。这意味着只有一个指针被传递到组件树中的属性，\
-             以避免克隆整个属性所带来的昂贵性能开销。",
-        )],
+             以避免克隆整个属性所带来的昂贵性能开销。"
+        ],
         admonition![
             AdmonitionType::Tip,
             None,
             p![
-                text("使用 "),
+                "使用 ",
                 code("AttrValue"),
-                text(
-                    "，这是我们提供的自定义属性值类型，这样就可以不用 String \
-                     或其他类似的需要克隆的类型。",
-                ),
+                "，这是我们提供的自定义属性值类型，这样就可以不用 String \
+                 或其他类似的需要克隆的类型。",
             ],
         ],
-        h2![text("示例")],
+        h2!["示例"],
         code_block(
             "rust",
             r#"use yew::Properties;
@@ -133,21 +125,21 @@ pub struct LinkProps {
     active: bool,
 }"#,
         ),
-        h2![text("Props 宏")],
+        h2!["Props 宏"],
         p![
             code("yew::props!"),
-            text(" 宏允许您以与 "),
+            " 宏允许您以与 ",
             code("html!"),
-            text(" 宏相同的方式构建属性。"),
+            " 宏相同的方式构建属性。",
         ],
         p![
-            text("该宏使用与结构体表达式相同的语法，只是您不能使用属性或基本表达式 ("),
+            "该宏使用与结构体表达式相同的语法，只是您不能使用属性或基本表达式 (",
             code("Foo { ..base }"),
-            text(")。类型路径可以直接指向属性 ("),
+            ")。类型路径可以直接指向属性 (",
             code("path::to::Props"),
-            text(")，也可以指向组件的关联属性 ("),
+            ")，也可以指向组件的关联属性 (",
             code("MyComp::Properties"),
-            text(")。"),
+            ")。",
         ],
         code_block(
             "rust",

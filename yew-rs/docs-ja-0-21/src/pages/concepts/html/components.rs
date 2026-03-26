@@ -1,13 +1,17 @@
-crate::doc_page!("Components", "/ja/docs/concepts/html/components",
+crate::doc_page!(
+    "Components",
+    "/ja/docs/concepts/html/components",
     Content::new(vec![
-        h2![text("基本")],
+        h2!["基本"],
         p![
             code("Component"),
-            text("を実装しているあらゆる型は"),
+            "を実装しているあらゆる型は",
             code("html!"),
-            text("マクロの中で使えます:"),
+            "マクロの中で使えます:",
         ],
-        code_block("rust", r#"html!{
+        code_block(
+            "rust",
+            r#"html!{
     <>
         // No properties
         <MyComponent />
@@ -21,21 +25,29 @@ crate::doc_page!("Components", "/ja/docs/concepts/html/components",
         // With Properties from a variable and specific values overridden
         <MyComponent prop2="lorem" ..props />
     </>
-}"#),
-        h2![text("ネスト")],
+}"#
+        ),
+        h2!["ネスト"],
         p![
             code("children"),
-            text("フィールドが"),
+            "フィールドが",
             code("Properties"),
-            text("の中にある場合はコンポーネントは子に渡されます。"),
+            "の中にある場合はコンポーネントは子に渡されます。",
         ],
-        code_block_title("rust", "parent.rs", r#"html! {
+        code_block_title(
+            "rust",
+            "parent.rs",
+            r#"html! {
     <Container>
         <h4>{ "Hi" }</h4>
         <div>{ "Hello" }</div>
     </Container>
-}"#),
-        code_block_title("rust", "container.rs", r#"pub struct Container(Props);
+}"#
+        ),
+        code_block_title(
+            "rust",
+            "container.rs",
+            r#"pub struct Container(Props);
 
 #[derive(Properties, Clone)]
 pub struct Props {
@@ -54,47 +66,49 @@ impl Component for Container {
            </div>
        }
     }
-}"#),
+}"#
+        ),
         admonition![
             AdmonitionType::Note,
             None,
             p![
                 code("Properties"),
-                text("を継承した型は"),
+                "を継承した型は",
                 code("Clone"),
-                text("を実装していなければいけません。これは"),
+                "を実装していなければいけません。これは",
                 code("#[derive(Properties, Clone)]"),
-                text("を使うか手で"),
+                "を使うか手で",
                 code("Clone"),
-                text("を実装すれば良いです。"),
+                "を実装すれば良いです。",
             ],
         ],
-        h2![text("Props とネストした子コンポーネント")],
-        p![text(
-            "ネストしたコンポーネントのプロパティは格納しているコンポーネントの型が子である場合は\
-             アクセス可能、または変更可能です。以下の例では"
-        ),
+        h2!["Props とネストした子コンポーネント"],
+        p!["ネストしたコンポーネントのプロパティは格納しているコンポーネントの型が子である場合は\
+             アクセス可能、または変更可能です。以下の例では",
         code("List"),
-        text("コンポーネントは"),
+        "コンポーネントは",
         code("ListItem"),
-        text(
-            "コンポーネントをラップできています。実際の使用においてこのパターンの例については"
-        ),
+        "コンポーネントをラップできています。実際の使用においてこのパターンの例については",
         code("yew-router"),
-        text(
-            "のソースコードを確認してみてください。より進んだ例としては Yew のメインのリポジトリにある"
-        ),
+        "のソースコードを確認してみてください。より進んだ例としては Yew のメインのリポジトリにある",
         code("nested-list"),
-        text("を確認してみてください。"),
+        "を確認してみてください。",
         ],
-        code_block_title("rust", "parent.rs", r#"html! {
+        code_block_title(
+            "rust",
+            "parent.rs",
+            r#"html! {
     <List>
         <ListItem value="a" />
         <ListItem value="b" />
         <ListItem value="c" />
     </List>
-}"#),
-        code_block_title("rust", "list.rs", r#"pub struct List(Props);
+}"#
+        ),
+        code_block_title(
+            "rust",
+            "list.rs",
+            r#"pub struct List(Props);
 
 #[derive(Properties, Clone)]
 pub struct Props {
@@ -114,6 +128,7 @@ impl Component for List {
             })
         }}
     }
-}"#),
+}"#
+        ),
     ])
 );

@@ -1,28 +1,28 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("MSRV raised to 1.84.0")],
+        h2!["MSRV raised to 1.84.0"],
         p![
-            text("The minimum supported Rust version is now "),
-            bold![text("1.84.0")],
-            text(". Update your toolchain:"),
+            "The minimum supported Rust version is now ",
+            bold!["1.84.0"],
+            ". Update your toolchain:",
         ],
         code_block("bash", "rustup update stable"),
-        h2![text("gloo-worker vendored")],
+        h2!["gloo-worker vendored"],
         p![
-            text("The external dependency on "),
+            "The external dependency on ",
             code("gloo-worker"),
-            text(" has been removed. All worker functionality is now built into "),
+            " has been removed. All worker functionality is now built into ",
             code("yew-agent"),
-            text("."),
+            ".",
         ],
-        h3![text("Update imports")],
+        h3!["Update imports"],
         p![
-            text("If you were importing types from "),
+            "If you were importing types from ",
             code("gloo-worker"),
-            text(", update to import from "),
+            ", update to import from ",
             code("yew_agent"),
-            text(":"),
+            ":",
         ],
         code_block_ignore(
             "rust",
@@ -34,13 +34,13 @@ use yew_agent::prelude::*;
 // or
 use yew_agent::{Spawnable, Worker, WorkerScope};"#,
         ),
-        h3![text("Codec trait")],
+        h3!["Codec trait"],
         p![
-            text("The "),
+            "The ",
             code("Codec"),
-            text(" trait is now defined in "),
+            " trait is now defined in ",
             code("yew-agent"),
-            text(":"),
+            ":",
         ],
         code_block_ignore(
             "rust",

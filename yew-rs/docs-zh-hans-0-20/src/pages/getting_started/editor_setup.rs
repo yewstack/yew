@@ -5,33 +5,25 @@ crate::doc_page!(
         admonition![
             AdmonitionType::Warning,
             Some("Contribute"),
-            p![text(
+            p![
                 "Using a different editor? Feel free to add instructions for your editor of \
                  choice."
-            )],
+            ],
         ],
-        h2![text("Add a template for creating components")],
-        h3![text("JetBrains IDEs")],
+        h2!["Add a template for creating components"],
+        h3!["JetBrains IDEs"],
         ol![
-            li![text(
-                "Navigate to File | Settings | Editor | Live Templates."
-            )],
-            li![text(
-                "Select Rust and click on the + icon to add a new Live Template."
-            )],
-            li![text("Give it a name and description of your preference.")],
-            li![text(
-                "Paste the following snippet(s) into the Template Text section."
-            )],
-            li![text(
-                "Change the applicability on the lower right, select Rust > Item > Module"
-            )],
+            li!["Navigate to File | Settings | Editor | Live Templates."],
+            li!["Select Rust and click on the + icon to add a new Live Template."],
+            li!["Give it a name and description of your preference."],
+            li!["Paste the following snippet(s) into the Template Text section."],
+            li!["Change the applicability on the lower right, select Rust > Item > Module"],
         ],
-        p![text("For function components, use the following template.")],
+        p!["For function components, use the following template."],
         ul![li![
-            text("(Optional) Click on Edit Variable and give "),
+            "(Optional) Click on Edit Variable and give ",
             code("tag"),
-            text(" a reasonable default value like \"div\", with double quotes."),
+            " a reasonable default value like \"div\", with double quotes.",
         ]],
         code_block(
             "rust",
@@ -46,9 +38,7 @@ pub fn $Name$(props: &$Name$Props) -> Html {
     }
 }"#
         ),
-        p![text(
-            "For struct components, you can use the following more complicated template."
-        )],
+        p!["For struct components, you can use the following more complicated template."],
         code_block(
             "rust",
             r#"struct $NAME$;
@@ -71,11 +61,11 @@ impl Component for $NAME$ {
     }
 }"#
         ),
-        h3![text("VS Code")],
+        h3!["VS Code"],
         ol![
-            li![text("Navigate to File > Preferences > User Snippets.")],
-            li![text("Select Rust as the language.")],
-            li![text("Add the following snippet in the snippet JSON file:")],
+            li!["Navigate to File > Preferences > User Snippets."],
+            li!["Select Rust as the language."],
+            li!["Add the following snippet in the snippet JSON file:"],
         ],
         code_block(
             "json",
@@ -123,39 +113,35 @@ impl Component for $NAME$ {
     }
 }"##
         ),
-        h2![text("Support for the html! Macro")],
-        h3![text("JetBrains IDEs")],
-        p![text("Contribution Welcome!")],
-        h3![text("VS Code")],
-        h4![text("Rust-Yew extension")],
+        h2!["Support for the html! Macro"],
+        h3!["JetBrains IDEs"],
+        p!["Contribution Welcome!"],
+        h3!["VS Code"],
+        h4!["Rust-Yew extension"],
         p![
-            text("This is a "),
-            bold![text("work in progress")],
-            text(", and "),
-            bold![text("community maintained")],
-            text(" project! "),
+            "This is a ",
+            bold!["work in progress"],
+            ", and ",
+            bold!["community maintained"],
+            " project! ",
             link![
                 "https://github.com/TechTheAwesome/code-yew-server",
-                text(
-                    "Please see details and direct related bug reports / issues / questions over \
-                     to the extension's repository."
-                ),
+                "Please see details and direct related bug reports / issues / questions over to \
+                 the extension's repository.",
             ],
         ],
         p![
-            text("Rust-Yew extension is "),
+            "Rust-Yew extension is ",
             link![
                 "https://marketplace.visualstudio.com/items?itemName=TechTheAwesome.rust-yew",
-                text("available on VSC Marketplace"),
+                "available on VSC Marketplace",
             ],
-            text(", providing syntax highlight, renames, hover, and more."),
+            ", providing syntax highlight, renames, hover, and more.",
         ],
         p![
-            text(
-                "Emmet support should work out of the box, if not please fall back to editing the "
-            ),
+            "Emmet support should work out of the box, if not please fall back to editing the ",
             code("settings.json"),
-            text(" file:"),
+            " file:",
         ],
         code_block(
             "json",

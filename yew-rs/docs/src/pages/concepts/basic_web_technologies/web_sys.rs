@@ -2,47 +2,47 @@ pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
         p![
-            text("The "),
+            "The ",
             link!("https://crates.io/crates/web-sys",
                 code("web-sys"),
-                text(" crate"),
+                " crate",
             ),
-            text(" provides bindings for Web APIs. This is procedurally generated from browser WebIDL \
-              which is why some names are so long and why some types are vague."),
+            " provides bindings for Web APIs. This is procedurally generated from browser WebIDL \
+              which is why some names are so long and why some types are vague.",
         ],
-        h2![text("Features in "), code("web-sys")],
+        h2!["Features in ", code("web-sys")],
         p![
-            text("The "),
+            "The ",
             code("web-sys"),
-            text(" crate with all of its features enabled can add lots of bloat to a Wasm application. \
+            " crate with all of its features enabled can add lots of bloat to a Wasm application. \
               To get around this issue most types are feature gated so that you only include the types \
-              you require for your application. Yew enables several features from "),
+              you require for your application. Yew enables several features from ",
             code("web-sys"),
-            text(" and exposes some types in its public API. You will often need to add "),
+            " and exposes some types in its public API. You will often need to add ",
             code("web-sys"),
-            text(" as a dependency yourself."),
+            " as a dependency yourself.",
         ],
-        h2![text("Inheritance in "), code("web-sys")],
+        h2!["Inheritance in ", code("web-sys")],
         p![
-            text("In the "),
+            "In the ",
             link!("/docs/concepts/basic-web-technologies/wasm-bindgen#simulating-inheritance",
-                text("Simulating inheritance section"),
+                "Simulating inheritance section",
             ),
-            text(" you can read how in general Rust provides an approach to simulate inheritance in JavaScript. \
-              This is very important in "),
+            " you can read how in general Rust provides an approach to simulate inheritance in JavaScript. \
+              This is very important in ",
             code("web-sys"),
-            text(" as understanding what methods are available on a type means understanding its inheritance."),
+            " as understanding what methods are available on a type means understanding its inheritance.",
         ],
         p![
-            text("This section is going to look at a specific element and list out its inheritance using Rust by calling "),
+            "This section is going to look at a specific element and list out its inheritance using Rust by calling ",
             link!("https://doc.rust-lang.org/std/ops/trait.Deref.html#tymethod.deref",
                 code("Deref::deref"),
             ),
-            text(" until the value is "),
+            " until the value is ",
             link!("/docs/concepts/basic-web-technologies/wasm-bindgen#jsvalue",
                 code("JsValue"),
             ),
-            text(":"),
+            ":",
         ],
         code_block("rust", "use std::ops::Deref;
 use web_sys::{
@@ -92,59 +92,59 @@ fn inheritance_of_text_area(text_area: HtmlTextAreaElement) {
         p![
             italic![
                 link!("https://wasm-bindgen.github.io/wasm-bindgen/web-sys/inheritance.html",
-                    text("Inheritance in "), code("web-sys"), text(" in The "), code("wasm-bindgen"), text(" Guide"),
+                    "Inheritance in ", code("web-sys"), " in The ", code("wasm-bindgen"), " Guide",
                 ),
-                text("."),
+                ".",
             ],
         ],
-        h2![text("The "), code("Node"), text(" in "), code("NodeRef")],
+        h2!["The ", code("Node"), " in ", code("NodeRef")],
         p![
-            text("Yew uses a "),
+            "Yew uses a ",
             link!("/docs/concepts/function-components/node-refs", code("NodeRef")),
-            text(" to provide a way for keeping a reference to a "),
+            " to provide a way for keeping a reference to a ",
             code("Node"),
-            text(" made by the "),
+            " made by the ",
             link!("/docs/concepts/html", code("html!")),
-            text(" macro. The "),
+            " macro. The ",
             code("Node"),
-            text(" part of "),
+            " part of ",
             code("NodeRef"),
-            text(" is referring to "),
+            " is referring to ",
             link!("https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Node.html",
                 code("web_sys::Node"),
             ),
-            text(". The "),
+            ". The ",
             code("NodeRef::get"),
-            text(" method will return a "),
+            " method will return a ",
             code("Option<Node>"),
-            text(" value, however, most of the time in Yew you want to cast this value to a specific element \
-              so you can use its specific methods. This casting can be done using "),
+            " value, however, most of the time in Yew you want to cast this value to a specific element \
+              so you can use its specific methods. This casting can be done using ",
             link!("/docs/concepts/basic-web-technologies/wasm-bindgen#JsCast",
                 code("JsCast"),
             ),
-            text(" on the "),
+            " on the ",
             code("Node"),
-            text(" value, if present, but Yew provides the "),
+            " value, if present, but Yew provides the ",
             code("NodeRef::cast"),
-            text(" method to perform this casting for convenience and so that you do not necessarily have to \
-              include the "),
+            " method to perform this casting for convenience and so that you do not necessarily have to \
+              include the ",
             code("wasm-bindgen"),
-            text(" dependency for the "),
+            " dependency for the ",
             code("JsCast"),
-            text(" trait."),
+            " trait.",
         ],
         p![
-            text("The two code blocks below do essentially the same thing, the first is using "),
+            "The two code blocks below do essentially the same thing, the first is using ",
             code("NodeRef::cast"),
-            text(" and the second is using "),
+            " and the second is using ",
             link!("https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/trait.JsCast.html#method.dyn_into",
                 code("JsCast::dyn_into"),
             ),
-            text(" on the "),
+            " on the ",
             code("web_sys::Node"),
-            text(" returned from "),
+            " returned from ",
             code("NodeRef::get"),
-            text("."),
+            ".",
         ],
         tabs(
             "Using NodeRef::cast",
@@ -184,14 +184,14 @@ fn with_jscast(node_ref: NodeRef) {
                 ),
             ],
         ),
-        h2![text("JavaScript example to Rust")],
+        h2!["JavaScript example to Rust"],
         p![
-            text("This section demonstrates examples of how JavaScript code which interact with the \
-              Web APIs can be rewritten with "),
+            "This section demonstrates examples of how JavaScript code which interact with the \
+              Web APIs can be rewritten with ",
             code("web-sys"),
-            text(" in Rust."),
+            " in Rust.",
         ],
-        h3![text("JavaScript example")],
+        h3!["JavaScript example"],
         code_block("js", "document.getElementById('mousemoveme').onmousemove = (e) => {
     // e = Mouse event.
     var rect = e.target.getBoundingClientRect()
@@ -199,11 +199,11 @@ fn with_jscast(node_ref: NodeRef) {
     var y = e.clientY - rect.top //y position within the element.
     console.log('Left? : ' + x + ' ; Top? : ' + y + '.')
 }"),
-        h3![code("web-sys"), text(" example")],
+        h3![code("web-sys"), " example"],
         p![
-            text("Using "),
+            "Using ",
             code("web-sys"),
-            text(" alone the above JavaScript example could be implemented like this:"),
+            " alone the above JavaScript example could be implemented like this:",
         ],
         code_block_title("toml", "Cargo.toml", "[dependencies]
 wasm-bindgen = \"0.2\"
@@ -243,20 +243,20 @@ Document::new()
 // we now need to save the `mousemove` Closure so that when
 // this event fires the closure is still in memory."),
         p![
-            text("This version is much more verbose, but you will probably notice part of that is because of failure \
+            "This version is much more verbose, but you will probably notice part of that is because of failure \
               types reminding us that some of these function calls have invariants that must be held, or otherwise will \
-              cause a panic in Rust. Another part of the verbosity is the calls to "),
+              cause a panic in Rust. Another part of the verbosity is the calls to ",
             code("JsCast"),
-            text(" to cast into different types so that you can call its specific methods."),
+            " to cast into different types so that you can call its specific methods.",
         ],
-        h3![text("Yew example")],
+        h3!["Yew example"],
         p![
-            text("In Yew you will mostly be creating "),
+            "In Yew you will mostly be creating ",
             link!("/docs/concepts/function-components/callbacks", code("Callback")),
-            text("s to use in the "),
+            "s to use in the ",
             link!("/docs/concepts/html", code("html!")),
-            text(" macro so the example is going to use this approach instead of completely copying \
-              the approach above:"),
+            " macro so the example is going to use this approach instead of completely copying \
+              the approach above:",
         ],
         code_block_title("toml", "Cargo.toml", "[dependencies.web-sys]
 version = \"0.3\"
@@ -286,18 +286,18 @@ let onmousemove = Callback::from(|e: MouseEvent| {
 html! {
     <div id=\"mousemoveme\" {onmousemove}></div>
 };"),
-        h2![text("External libraries")],
+        h2!["External libraries"],
         p![
             code("web-sys"),
-            text(" is a raw binding to the Web API so it comes with some pain in Rust because it was not \
+            " is a raw binding to the Web API so it comes with some pain in Rust because it was not \
               designed with Rust or even a strong type system in mind, this is where community crates \
-              provide abstractions over "),
+              provide abstractions over ",
             code("web-sys"),
-            text(" to provide more idiomatic Rust APIs."),
+            " to provide more idiomatic Rust APIs.",
         ],
         p![
             italic![
-                link!("/community/external-libs", text("External libraries page")),
+                link!("/community/external-libs", "External libraries page"),
             ],
         ],
     ])

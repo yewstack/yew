@@ -3,9 +3,9 @@ crate::doc_page!(
     "/ja/docs/concepts/function-components/generics",
     Content::new(vec![
         p![
-            text("The "),
+            "The ",
             code("#[function_component]"),
-            text(" attribute also works with generic functions for creating generic components."),
+            " attribute also works with generic functions for creating generic components.",
         ],
         code_block(
             "rust",

@@ -1,14 +1,12 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("定義自訂 Hooks")],
-        p![text(
-            "元件的有狀態邏輯可以透過建立自訂 Hooks 來提取為可重複使用的函數。",
-        )],
+        h2!["定義自訂 Hooks"],
+        p!["元件的有狀態邏輯可以透過建立自訂 Hooks 來提取為可重複使用的函數。"],
         p![
-            text("假設我們希望建立一個事件監聽器，監聽 "),
+            "假設我們希望建立一個事件監聽器，監聽 ",
             code("window"),
-            text(" 物件上的事件。"),
+            " 物件上的事件。",
         ],
         code_block(
             "rust",
@@ -34,21 +32,17 @@ pub fn show_storage_changed() -> Html {
     html! { <div>{"Storage Event Fired: "}{*state_storage_changed}</div> }
 }"#,
         ),
-        p![text(
-            "這段程式碼有一個問題：邏輯無法被另一個元件重複使用。\
-             如果我們建立另一個監聽不同事件的元件，而不是複製程式碼，我們可以將邏輯移入自訂 hook。",
-        )],
+        p!["這段程式碼有一個問題：邏輯無法被另一個元件重複使用。\
+            如果我們建立另一個監聽不同事件的元件，而不是複製程式碼，我們可以將邏輯移入自訂 hook。"],
         p![
-            text("我們將首先建立一個名為 "),
+            "我們將首先建立一個名為 ",
             code("use_event"),
-            text(" 的新函數。 "),
+            " 的新函數。 ",
             code("use_"),
-            text(
-                " 前綴表示函數是一個 hook。此函數將接受一個事件目標、一個事件類型和一個回呼。所有 \
-                 hook 必須在其函數定義上標記為 ",
-            ),
+            " 前綴表示函數是一個 hook。此函數將接受一個事件目標、一個事件類型和一個回呼。所有 \
+             hook 必須在其函數定義上標記為 ",
             code("#[hook]"),
-            text("。"),
+            "。",
         ],
         code_block(
             "rust",
@@ -67,9 +61,9 @@ where
 }"#,
         ),
         p![
-            text("這個簡單的 hook 可以透過組合內建 hook 來創建。在本例中，我們將使用 "),
+            "這個簡單的 hook 可以透過組合內建 hook 來創建。在本例中，我們將使用 ",
             code("use_effect_with"),
-            text(" hook，因此當 hook 參數變更時，可以重新建立事件監聽器。"),
+            " hook，因此當 hook 參數變更時，可以重新建立事件監聽器。",
         ],
         code_block(
             "rust",
@@ -118,16 +112,16 @@ where
     );
 }"#,
         ),
-        p![text(
-            "儘管這種方法在幾乎所有情況下都有效，但它無法用於編寫像我們已經使用的預定義 hook \
-             那樣的基本 hook。",
-        )],
         p![
-            text("查看 "),
-            link!("https://docs.rs/yew", text("docs.rs")),
-            text(" 上的文件以及 "),
+            "儘管這種方法在幾乎所有情況下都有效，但它無法用於編寫像我們已經使用的預定義 hook \
+             那樣的基本 hook。"
+        ],
+        p![
+            "查看 ",
+            link!("https://docs.rs/yew", "docs.rs"),
+            " 上的文件以及 ",
             code("hooks"),
-            text(" 目錄，查看預先定義 hook 的實作。"),
+            " 目錄，查看預先定義 hook 的實作。",
         ],
     ])
 }

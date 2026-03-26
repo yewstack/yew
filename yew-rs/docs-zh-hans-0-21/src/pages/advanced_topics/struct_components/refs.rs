@@ -4,26 +4,21 @@ crate::doc_page!(
     Content::new(vec![
         p![
             code("ref"),
-            text(
-                " 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM \
-                 元素。这可被用于在 "
-            ),
+            " 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM 元素。这可被用于在 ",
             code("view"),
-            text(" 生命周期方法之外来对 DOM 进行更改。")
+            " 生命周期方法之外来对 DOM 进行更改。"
         ],
         p![
-            text("这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。 For example, using a "),
+            "这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。 For example, using a ",
             code("NodeRef"),
-            text(" in a component's "),
+            " in a component's ",
             code("rendered"),
-            text(
-                " method allows you to make draw calls to a canvas element after it has been \
-                 rendered from "
-            ),
+            " method allows you to make draw calls to a canvas element after it has been rendered \
+             from ",
             code("view"),
-            text(".")
+            "."
         ],
-        p![text("语法如下：")],
+        p!["语法如下："],
         code_block(
             "rust",
             r#"use web_sys::Element;
@@ -61,10 +56,10 @@ impl Component for Comp {
     }
 }"#
         ),
-        h2![text("Relevant examples")],
+        h2!["Relevant examples"],
         ul![li![link!(
             "https://github.com/yewstack/yew/tree/master/examples/node_refs",
-            text("Node Refs")
+            "Node Refs"
         )]]
     ])
 );

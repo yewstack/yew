@@ -3,10 +3,8 @@ pub fn page_content() -> yew_site_lib::Content {
     Content::new(vec![
         p![
             code("html!"),
-            text(
-                " 巨集總是需要一個根節點。為了繞過這個限制，您可以使用一個\"空標籤\"（也稱為\"\
-                 fragments\"）。",
-            ),
+            " 巨集總是需要一個根節點。為了繞過這個限制，您可以使用一個\"空標籤\"（也稱為\"\
+             fragments\"）。",
         ],
         tabs![
             "Valid",

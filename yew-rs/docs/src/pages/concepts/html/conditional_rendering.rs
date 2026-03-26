@@ -1,11 +1,11 @@
 pub fn page_content() -> yew_site_lib::Content {
     use yew_site_lib::content::*;
     Content::new(vec![
-        h2![text("If blocks")],
+        h2!["If blocks"],
         p![
-            text("To conditionally render some markup, we wrap it in an "),
+            "To conditionally render some markup, we wrap it in an ",
             code("if"),
-            text(" block:"),
+            " block:",
         ],
         tabs!(
             "if",

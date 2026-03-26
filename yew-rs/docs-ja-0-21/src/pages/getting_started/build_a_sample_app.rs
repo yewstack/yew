@@ -3,25 +3,25 @@ crate::doc_page!(
     "/ja/docs/getting-started/build-a-sample-app",
     Content::new(vec![
         p![
-            text("はじめに、Rustの新規ライブラリを作りましょう（"),
-            bold![text("重要:")],
-            text(" "),
+            "はじめに、Rustの新規ライブラリを作りましょう（",
+            bold!["重要:"],
+            " ",
             code("--lib"),
-            text("フラグを渡すことで"),
-            italic![text("バイナリ")],
-            text("ではなく"),
-            italic![text("ライブラリ")],
-            text("を作ってください）"),
+            "フラグを渡すことで",
+            italic!["バイナリ"],
+            "ではなく",
+            italic!["ライブラリ"],
+            "を作ってください）",
         ],
         code_block("bash", "cargo new --lib yew-app && cd yew-app"),
         p![
-            text("依存ライブラリに"),
+            "依存ライブラリに",
             code("yew"),
-            text("と"),
+            "と",
             code("wasm-bindgen"),
-            text("を追加してください（最新バージョンについては"),
-            link!("https://docs.rs/yew", text("こちら")),
-            text("を参照してください）"),
+            "を追加してください（最新バージョンについては",
+            link!("https://docs.rs/yew", "こちら"),
+            "を参照してください）",
         ],
         code_block_title(
             "toml",
@@ -40,9 +40,9 @@ yew = "0.17"
 wasm-bindgen = "0.2""#
         ),
         p![
-            text("以下のテンプレートを "),
+            "以下のテンプレートを ",
             code("src/lib.rs"),
-            text("ファイルにコピーしてください:"),
+            "ファイルにコピーしてください:",
         ],
         code_block_title(
             "rust",
@@ -99,31 +99,29 @@ pub fn run_app() {
 }"#
         ),
         p![
-            text("このテンプレートはルートに"),
+            "このテンプレートはルートに",
             code("Component"),
-            text("をセットアップし、"),
+            "をセットアップし、",
             code("Model"),
-            text("と呼ばれるクリックしたら更新するボタンを作ります。"),
+            "と呼ばれるクリックしたら更新するボタンを作ります。",
         ],
         p![
             code("main()"),
-            text("の中にある"),
+            "の中にある",
             code("App::<Model>::new().mount_to_body()"),
-            text("がアプリをスタートしてページの"),
+            "がアプリをスタートしてページの",
             code("<body>"),
-            text(
-                "タグをマウントすることに特に注意してください。\
-                 動的なプロパティでアプリをスタートしたい場合は代わりに"
-            ),
+            "タグをマウントすることに特に注意してください。\
+             動的なプロパティでアプリをスタートしたい場合は代わりに",
             code("App::<Model>::new().mount_to_body_with_props(..)"),
-            text("を使うことで実現できます。"),
+            "を使うことで実現できます。",
         ],
         p![
-            text("最後に、アプリの中の"),
+            "最後に、アプリの中の",
             code("static"),
-            text("という名前のフォルダに"),
+            "という名前のフォルダに",
             code("index.html"),
-            text("ファイルを追加してください。"),
+            "ファイルを追加してください。",
         ],
         code_block("bash", "mkdir static"),
         code_block_title(
@@ -142,17 +140,17 @@ pub fn run_app() {
     <body></body>
 </html>"#
         ),
-        h2![text("アプリを動かす!")],
+        h2!["アプリを動かす!"],
         p![
             link!(
                 "https://drager.github.io/wasm-pack/book/",
                 code("wasm-pack")
             ),
-            text("を使うのがアプリを動かすのに推奨される方法です。まだ"),
+            "を使うのがアプリを動かすのに推奨される方法です。まだ",
             code("wasm-pack"),
-            text("をインストールしていない場合、"),
+            "をインストールしていない場合、",
             code("cargo install wasm-pack"),
-            text("でインストールして開発サーバーを動かしてみましょう:"),
+            "でインストールして開発サーバーを動かしてみましょう:",
         ],
         code_block(
             "bash",
@@ -160,14 +158,14 @@ pub fn run_app() {
         ),
         p![
             code("wasm-pack"),
-            text("はコンパイルされたWebAssemblyとJavaScriptラッパーをまとめたものを"),
+            "はコンパイルされたWebAssemblyとJavaScriptラッパーをまとめたものを",
             code("./static"),
-            text("ディレクトリに作り、アプリのWebAssemblyバイナリを読み込んで動かします。"),
+            "ディレクトリに作り、アプリのWebAssemblyバイナリを読み込んで動かします。",
         ],
         p![
-            text("そして、"),
+            "そして、",
             code("./static"),
-            text("以下で好きなサーバーをファイルをサーブしてみましょう。例えば:"),
+            "以下で好きなサーバーをファイルをサーブしてみましょう。例えば:",
         ],
         code_block(
             "bash",
