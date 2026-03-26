@@ -18,89 +18,9 @@ js_sys = { version = "0.3", package = "js-sys" }
 web_sys = { version = "0.3", package = "web-sys", features = ["Window", "Location"] }
 
 [[bin]]
-name = "yew-site-home"
-path = "src/main.rs"
-
-[[bin]]
 name = "search"
 path = "src/bin/search.rs"
 
 [[bin]]
 name = "not-found"
 path = "src/bin/not_found.rs"
-
-[[bin]]
-name = "home-ja"
-path = "src/bin/home_ja.rs"
-
-[[bin]]
-name = "home-zh-hans"
-path = "src/bin/home_zh_hans.rs"
-
-[[bin]]
-name = "home-zh-hant"
-path = "src/bin/home_zh_hant.rs"
-
-[[bin]]
-name = "home-next"
-path = "src/bin/home_next.rs"
-
-[[bin]]
-name = "home-ja-next"
-path = "src/bin/home_ja_next.rs"
-
-[[bin]]
-name = "home-zh-hans-next"
-path = "src/bin/home_zh_hans_next.rs"
-
-[[bin]]
-name = "home-zh-hant-next"
-path = "src/bin/home_zh_hant_next.rs"
-
-[[bin]]
-name = "home-v022"
-path = "src/bin/home_v022.rs"
-
-[[bin]]
-name = "home-ja-v022"
-path = "src/bin/home_ja_v022.rs"
-
-[[bin]]
-name = "home-zh-hans-v022"
-path = "src/bin/home_zh_hans_v022.rs"
-
-[[bin]]
-name = "home-zh-hant-v022"
-path = "src/bin/home_zh_hant_v022.rs"
-
-[[bin]]
-name = "home-v021"
-path = "src/bin/home_v021.rs"
-
-[[bin]]
-name = "home-ja-v021"
-path = "src/bin/home_ja_v021.rs"
-
-[[bin]]
-name = "home-zh-hans-v021"
-path = "src/bin/home_zh_hans_v021.rs"
-
-[[bin]]
-name = "home-zh-hant-v021"
-path = "src/bin/home_zh_hant_v021.rs"
-
-[[bin]]
-name = "home-v020"
-path = "src/bin/home_v020.rs"
-
-[[bin]]
-name = "home-ja-v020"
-path = "src/bin/home_ja_v020.rs"
-
-[[bin]]
-name = "home-zh-hans-v020"
-path = "src/bin/home_zh_hans_v020.rs"
-
-[[bin]]
-name = "home-zh-hant-v020"
-path = "src/bin/home_zh_hant_v020.rs"
