@@ -50,11 +50,7 @@ fn VersionBanner(props: &VersionBannerProps) -> Html {
     if props.doc_version.is_empty() || props.doc_version.as_str() == crate::LATEST_STABLE {
         return VNode::default();
     }
-    let lang_p = if props.lang.is_empty() {
-        String::new()
-    } else {
-        format!("/{}", props.lang)
-    };
+    let lang_p = crate::lang_prefix(props.lang.as_str());
     let latest_path = format!("{lang_p}/docs/getting-started");
     let latest_label = format!("latest version ({})", crate::LATEST_STABLE);
     let is_next = props.doc_version.as_str() == "Next";
@@ -92,19 +88,10 @@ fn version_slug(doc_version: &str) -> &str {
 }
 
 pub fn rewrite_doc_href(href: &str, lang: &str, doc_version: &str) -> String {
-    let after_lang = if lang.is_empty() {
-        href
-    } else {
-        let prefix = format!("/{lang}");
-        href.strip_prefix(&prefix).unwrap_or(href)
-    };
+    let after_lang = crate::strip_lang_prefix(href, lang);
 
     if let Some(rest) = after_lang.strip_prefix("/docs/") {
-        let lang_p = if lang.is_empty() {
-            String::new()
-        } else {
-            format!("/{lang}")
-        };
+        let lang_p = crate::lang_prefix(lang);
         if rest.starts_with("migration-guides/") {
             format!("{lang_p}/docs/{rest}")
         } else {
@@ -129,12 +116,7 @@ fn edit_page_url(active_path: &str, lang: &str) -> String {
         format!("docs-{}", lang.to_lowercase())
     };
 
-    let bare = if lang.is_empty() {
-        active_path
-    } else {
-        let pfx = format!("/{lang}");
-        active_path.strip_prefix(&pfx).unwrap_or(active_path)
-    };
+    let bare = crate::strip_lang_prefix(active_path, lang);
 
     let Some(page_path) = bare.strip_prefix("/docs/") else {
         return String::new();
@@ -173,44 +155,20 @@ fn build_breadcrumbs(
     None
 }
 
-fn nav_link_onclick(
-    nav_ctx: &Option<crate::NavigationContext>,
-    href: &str,
-) -> Option<Callback<MouseEvent>> {
-    let nav = nav_ctx.as_ref()?;
-    let navigate = nav.navigate.clone();
-    let href = AttrValue::from(href.to_owned());
-    Some(Callback::from(move |e: MouseEvent| {
-        navigate.emit((e, href.clone()));
-    }))
-}
-
 #[styled_component]
 pub fn Layout(props: &LayoutProps) -> Html {
     let has_sidebar = props.sidebar.is_some();
     let nav_ctx = use_context::<crate::NavigationContext>();
 
     let mobile_sidebar_open = use_state(|| false);
-    let copied = use_state(|| false);
 
     #[cfg(feature = "csr")]
-    let on_copy_md = {
-        let md = props.markdown.clone();
-        let copied = copied.clone();
-        Some(Callback::from(move |_: MouseEvent| {
-            if let Some(window) = web_sys::window() {
-                let _ = window.navigator().clipboard().write_text(&md);
-                copied.set(true);
-                let copied2 = copied.clone();
-                gloo::timers::callback::Timeout::new(2000, move || {
-                    copied2.set(false);
-                })
-                .forget();
-            }
-        }))
+    let (copied, on_copy_md) = {
+        let (c, cb) = crate::use_clipboard(props.markdown.clone());
+        (c, Some(cb))
     };
     #[cfg(not(feature = "csr"))]
-    let on_copy_md = None::<Callback<MouseEvent>>;
+    let (copied, on_copy_md) = (false, None::<Callback<MouseEvent>>);
 
     let content_ref = use_node_ref();
 
@@ -407,7 +365,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                             }
                                         } else if let Some(h) = href {
                                             let rewritten = rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str());
-                                            let bc_onclick = nav_link_onclick(&nav_ctx, &rewritten);
+                                            let bc_onclick = crate::nav_onclick(&nav_ctx, &rewritten);
                                             html! {
                                                 <li class={css!(display: flex; align-items: center;)}>
                                                     <span class={css!(
@@ -484,7 +442,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                             <svg class={css!(flex-shrink: 0;)} viewBox="0 0 24 24" width="14" height="14">
                                 <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                             </svg>
-                            if *copied { {"Copied!"} } else { {"Copy as Markdown"} }
+                            if copied { {"Copied!"} } else { {"Copy as Markdown"} }
                         </button>
                     }
                     if !props.title.is_empty() {
@@ -535,7 +493,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                         border-color: var(--color-primary);
                                         text-decoration: none;
                                     }
-                                )} href={href.clone()} onclick={nav_link_onclick(&nav_ctx, href)}>
+                                )} href={href.clone()} onclick={crate::nav_onclick(&nav_ctx, href)}>
                                     <span class={css!(
                                         font-size: 0.75rem;
                                         color: var(--color-text-secondary);
@@ -567,7 +525,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                         border-color: var(--color-primary);
                                         text-decoration: none;
                                     }
-                                )} href={href.clone()} onclick={nav_link_onclick(&nav_ctx, href)}>
+                                )} href={href.clone()} onclick={crate::nav_onclick(&nav_ctx, href)}>
                                     <span class={css!(
                                         font-size: 0.75rem;
                                         color: var(--color-text-secondary);
@@ -622,80 +580,89 @@ struct TocProps {
     content_ref: NodeRef,
 }
 
-#[cfg(feature = "csr")]
 #[styled_component]
 fn Toc(props: &TocProps) -> Html {
-    let active_id = use_state(|| Option::<AttrValue>::None);
+    #[cfg(feature = "csr")]
+    let active_id = {
+        let active_id = use_state(|| Option::<AttrValue>::None);
 
-    let compute = {
-        let active_id = active_id.clone();
-        let entries = props.entries.clone();
-        let content_ref = props.content_ref.clone();
-        use_memo(entries, move |entries| {
-            let window = web_sys::window().unwrap();
-            let content_el = content_ref.cast::<web_sys::Element>();
-            let navbar_height: f64 = window
-                .document()
-                .and_then(|d| d.query_selector(".navbar").ok().flatten())
-                .map(|el| {
-                    let html: web_sys::HtmlElement = el.unchecked_into();
-                    html.client_height() as f64
+        let compute = {
+            let active_id = active_id.clone();
+            let entries = props.entries.clone();
+            let content_ref = props.content_ref.clone();
+            use_memo(entries, move |entries| {
+                let window = web_sys::window().unwrap();
+                let content_el = content_ref.cast::<web_sys::Element>();
+                let navbar_height: f64 = window
+                    .document()
+                    .and_then(|d| d.query_selector(".navbar").ok().flatten())
+                    .map(|el| {
+                        let html: web_sys::HtmlElement = el.unchecked_into();
+                        html.client_height() as f64
+                    })
+                    .unwrap_or(60.0);
+                let ids: Vec<AttrValue> = entries.iter().map(|e| e.id.clone()).collect();
+                std::rc::Rc::new(move || {
+                    let content = match &content_el {
+                        Some(el) => el,
+                        None => return,
+                    };
+                    let mut active: Option<AttrValue> = None;
+                    let mut next_visible_idx: Option<usize> = None;
+                    for (i, id) in ids.iter().enumerate() {
+                        if let Ok(Some(el)) =
+                            content.query_selector(&format!("[id=\"{}\"]", id.as_str()))
+                        {
+                            let rect = el.get_bounding_client_rect();
+                            if rect.top() >= navbar_height {
+                                next_visible_idx = Some(i);
+                                break;
+                            }
+                        }
+                    }
+                    if let Some(idx) = next_visible_idx {
+                        if let Ok(Some(el)) =
+                            content.query_selector(&format!("[id=\"{}\"]", ids[idx].as_str()))
+                        {
+                            let rect = el.get_bounding_client_rect();
+                            let vh = window
+                                .inner_height()
+                                .ok()
+                                .and_then(|v| v.as_f64())
+                                .unwrap_or(800.0);
+                            if rect.top() > 0.0 && rect.bottom() < vh / 2.0 {
+                                active = Some(ids[idx].clone());
+                            } else if idx > 0 {
+                                active = Some(ids[idx - 1].clone());
+                            }
+                        }
+                    } else if !ids.is_empty() {
+                        active = Some(ids[ids.len() - 1].clone());
+                    }
+                    active_id.set(active);
                 })
-                .unwrap_or(60.0);
-            let ids: Vec<AttrValue> = entries.iter().map(|e| e.id.clone()).collect();
-            std::rc::Rc::new(move || {
-                let content = match &content_el {
-                    Some(el) => el,
-                    None => return,
-                };
-                let mut active: Option<AttrValue> = None;
-                let mut next_visible_idx: Option<usize> = None;
-                for (i, id) in ids.iter().enumerate() {
-                    if let Ok(Some(el)) =
-                        content.query_selector(&format!("[id=\"{}\"]", id.as_str()))
-                    {
-                        let rect = el.get_bounding_client_rect();
-                        if rect.top() >= navbar_height {
-                            next_visible_idx = Some(i);
-                            break;
-                        }
-                    }
-                }
-                if let Some(idx) = next_visible_idx {
-                    if let Ok(Some(el)) =
-                        content.query_selector(&format!("[id=\"{}\"]", ids[idx].as_str()))
-                    {
-                        let rect = el.get_bounding_client_rect();
-                        let vh = window
-                            .inner_height()
-                            .ok()
-                            .and_then(|v| v.as_f64())
-                            .unwrap_or(800.0);
-                        if rect.top() > 0.0 && rect.bottom() < vh / 2.0 {
-                            active = Some(ids[idx].clone());
-                        } else if idx > 0 {
-                            active = Some(ids[idx - 1].clone());
-                        }
-                    }
-                } else if !ids.is_empty() {
-                    active = Some(ids[ids.len() - 1].clone());
-                }
-                active_id.set(active);
             })
-        })
-    };
+        };
 
-    {
-        let compute = compute.clone();
-        yew_hooks::use_effect_once(move || {
-            compute();
-        });
-    }
-    {
-        let compute = compute.clone();
-        yew_hooks::use_event_with_window("scroll", move |_: Event| compute());
-    }
-    yew_hooks::use_event_with_window("resize", move |_: Event| compute());
+        {
+            let compute = compute.clone();
+            yew_hooks::use_effect_once(move || {
+                compute();
+            });
+        }
+        {
+            let compute = compute.clone();
+            yew_hooks::use_event_with_window("scroll", move |_: Event| compute());
+        }
+        yew_hooks::use_event_with_window("resize", move |_: Event| compute());
+
+        active_id
+    };
+    #[cfg(feature = "csr")]
+    let active_id: &Option<AttrValue> = &active_id;
+
+    #[cfg(not(feature = "csr"))]
+    let active_id: &Option<AttrValue> = &None;
 
     html! {
         <aside class={css!(
@@ -722,7 +689,7 @@ fn Toc(props: &TocProps) -> Html {
                                 _ => "",
                             }}>
                         <a class={{
-                            let is_active = matches!(&*active_id, Some(i) if id.eq(i));
+                            let is_active = matches!(active_id, Some(i) if id.eq(i));
                             css!(
                             display: block;
                             padding: 0.25rem 0;
@@ -735,53 +702,6 @@ fn Toc(props: &TocProps) -> Html {
                                 color: var(--color-primary);
                             }
                         ) }} href={format!("#{}", id)}>{text}</a>
-                        </li>
-
-                    }
-                </ul>
-            </nav>
-        </aside>
-    }
-}
-
-#[cfg(not(feature = "csr"))]
-#[styled_component]
-fn Toc(props: &TocProps) -> Html {
-    html! {
-        <aside class={css!(
-            width: 250px;
-            flex-shrink: 0;
-            @media (max-width: 996px) {
-                display: none;
-            }
-        )}>
-            <nav class={css!(r#"
-                position: sticky;
-                top: calc(var(--navbar-height) + 1rem);
-                max-height: calc(100vh - var(--navbar-height) - 2rem);
-                overflow-y: auto;
-                padding: 0 0.75rem;
-                font-size: 0.8125rem;
-                border-left: 1px solid var(--color-border);
-            "#)}>
-                <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
-                    for TocEntry { id, text, level } in &props.entries {
-                        <li style={match level {
-                                3 => "padding-left:1rem",
-                                4 => "padding-left:2rem",
-                                _ => "",
-                            }}>
-                            <a class={css!(
-                                display: block;
-                                padding: 0.25rem 0;
-                                color: var(--color-text-secondary);
-                                text-decoration: none;
-                                line-height: 1.3;
-                                transition: color 0.2s;
-                                &:hover {
-                                    color: var(--color-primary);
-                                }
-                            )} href={format!("#{}", id)}>{text}</a>
                         </li>
                     }
                 </ul>

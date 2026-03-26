@@ -6,16 +6,67 @@ pub use components::footer::Footer;
 pub use components::layout::Layout;
 pub use components::navbar::Navbar;
 pub use components::sidebar::{
-    flatten_sidebar, migration_guides_sidebar, Sidebar, SidebarCategory, SidebarEntry, SidebarItem,
+    docs_sidebar, flatten_sidebar, migration_guides_sidebar, Sidebar, SidebarCategory,
+    SidebarEntry, SidebarItem,
 };
 pub use content::Content;
 use yew::prelude::*;
 
 pub const LATEST_STABLE: &str = "0.23";
 
+pub fn lang_prefix(lang: &str) -> String {
+    if lang.is_empty() {
+        String::new()
+    } else {
+        format!("/{lang}")
+    }
+}
+
+pub fn strip_lang_prefix<'a>(path: &'a str, lang: &str) -> &'a str {
+    if lang.is_empty() {
+        path
+    } else {
+        let prefix = format!("/{lang}");
+        path.strip_prefix(&prefix).unwrap_or(path)
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub struct NavigationContext {
     pub navigate: Callback<(MouseEvent, AttrValue)>,
+}
+
+pub fn nav_onclick(
+    nav_ctx: &Option<NavigationContext>,
+    href: &str,
+) -> Option<Callback<MouseEvent>> {
+    let nav = nav_ctx.as_ref()?;
+    let navigate = nav.navigate.clone();
+    let href = AttrValue::from(href.to_owned());
+    Some(Callback::from(move |e: MouseEvent| {
+        navigate.emit((e, href.clone()));
+    }))
+}
+
+#[cfg(feature = "csr")]
+#[hook]
+pub fn use_clipboard(text: AttrValue) -> (bool, Callback<MouseEvent>) {
+    let copied = use_state(|| false);
+    let onclick = {
+        let copied = copied.clone();
+        Callback::from(move |_: MouseEvent| {
+            if let Some(window) = web_sys::window() {
+                let _ = window.navigator().clipboard().write_text(&text);
+                copied.set(true);
+                let copied2 = copied.clone();
+                gloo::timers::callback::Timeout::new(2000, move || {
+                    copied2.set(false);
+                })
+                .forget();
+            }
+        })
+    };
+    (*copied, onclick)
 }
 
 pub struct PageData {
@@ -46,6 +97,76 @@ macro_rules! page_main {
     ($page:ty) => {
         fn main() {
             yew::Renderer::<$page>::new().render();
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! doc_page_impl {
+    ($title:expr, $path:expr, $content:expr, $sidebar_fn:path, $doc_version:expr, $lang:expr) => {
+        #[allow(unused_imports)]
+        use yew::prelude::*;
+        #[allow(unused_imports)]
+        use $crate::content::*;
+        #[allow(unused_imports)]
+        use $crate::Layout;
+
+        #[component]
+        pub fn Page() -> Html {
+            let content: $crate::Content = $content;
+            let toc = content.toc_entries();
+            let markdown = content.to_markdown();
+            html! {
+                <Layout
+                    title={$title}
+                    sidebar={$sidebar_fn()}
+                    active_sidebar_path={$path}
+                    active_nav="Docs"
+                    doc_version={$doc_version}
+                    lang={$lang}
+                    markdown={markdown}
+                    toc={toc}
+                >
+                    { content.to_html() }
+                </Layout>
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! doc_page_with_content_fn_impl {
+    ($title:expr, $path:expr, $content:expr, $sidebar_fn:path, $doc_version:expr, $lang:expr) => {
+        #[allow(unused_imports)]
+        use yew::prelude::*;
+        #[allow(unused_imports)]
+        use $crate::content::*;
+        #[allow(unused_imports)]
+        use $crate::Layout;
+
+        pub fn page_content() -> $crate::Content {
+            $content
+        }
+
+        #[component]
+        pub fn Page() -> Html {
+            let content: $crate::Content = page_content();
+            let toc = content.toc_entries();
+            let markdown = content.to_markdown();
+            html! {
+                <Layout
+                    title={$title}
+                    sidebar={$sidebar_fn()}
+                    active_sidebar_path={$path}
+                    active_nav="Docs"
+                    doc_version={$doc_version}
+                    lang={$lang}
+                    markdown={markdown}
+                    toc={toc}
+                >
+                    { content.to_html() }
+                </Layout>
+            }
         }
     };
 }
@@ -329,6 +450,118 @@ macro_rules! render_page {
     }};
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __doc_page_list {
+    ($callback:path, $($ctx:tt)*) => {
+        $callback! { $($ctx)*
+            ;
+            ("getting-started", "Getting Started", "/docs/getting-started", getting_started :: introduction),
+            ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", getting_started :: build_a_sample_app),
+            ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", getting_started :: editor_setup),
+            ("getting-started/examples", "Examples", "/docs/getting-started/examples", getting_started :: examples),
+            ("concepts/basic-web-technologies/html", "HTML with html!", "/docs/concepts/basic-web-technologies/html", concepts :: basic_web_technologies :: html),
+            ("concepts/basic-web-technologies/css", "CSS with classes!", "/docs/concepts/basic-web-technologies/css", concepts :: basic_web_technologies :: css),
+            ("concepts/basic-web-technologies/js", "JS with RS", "/docs/concepts/basic-web-technologies/js", concepts :: basic_web_technologies :: js),
+            ("concepts/basic-web-technologies/wasm-bindgen", "wasm-bindgen", "/docs/concepts/basic-web-technologies/wasm-bindgen", concepts :: basic_web_technologies :: wasm_bindgen),
+            ("concepts/basic-web-technologies/web-sys", "web-sys", "/docs/concepts/basic-web-technologies/web-sys", concepts :: basic_web_technologies :: web_sys),
+            ("concepts/function-components", "Function Components", "/docs/concepts/function-components", concepts :: function_components :: introduction),
+            ("concepts/function-components/properties", "Properties", "/docs/concepts/function-components/properties", concepts :: function_components :: properties),
+            ("concepts/function-components/callbacks", "Callbacks", "/docs/concepts/function-components/callbacks", concepts :: function_components :: callbacks),
+            ("concepts/function-components/children", "Children", "/docs/concepts/function-components/children", concepts :: function_components :: children),
+            ("concepts/function-components/pure-components", "Pure Components", "/docs/concepts/function-components/pure-components", concepts :: function_components :: pure_components),
+            ("concepts/function-components/hooks", "Hooks", "/docs/concepts/function-components/hooks", concepts :: function_components :: hooks :: introduction),
+            ("concepts/function-components/hooks/custom-hooks", "Custom Hooks", "/docs/concepts/function-components/hooks/custom-hooks", concepts :: function_components :: hooks :: custom_hooks),
+            ("concepts/function-components/node-refs", "Node Refs", "/docs/concepts/function-components/node-refs", concepts :: function_components :: node_refs),
+            ("concepts/function-components/state", "State", "/docs/concepts/function-components/state", concepts :: function_components :: state),
+            ("concepts/function-components/communication", "Communication between components", "/docs/concepts/function-components/communication", concepts :: function_components :: communication),
+            ("concepts/function-components/generics", "Generic Components", "/docs/concepts/function-components/generics", concepts :: function_components :: generics),
+            ("concepts/html", "HTML", "/docs/concepts/html", concepts :: html :: introduction),
+            ("concepts/html/components", "Components", "/docs/concepts/html/components", concepts :: html :: components),
+            ("concepts/html/elements", "Elements", "/docs/concepts/html/elements", concepts :: html :: elements),
+            ("concepts/html/events", "Events", "/docs/concepts/html/events", concepts :: html :: events),
+            ("concepts/html/classes", "Classes", "/docs/concepts/html/classes", concepts :: html :: classes),
+            ("concepts/html/fragments", "Fragments", "/docs/concepts/html/fragments", concepts :: html :: fragments),
+            ("concepts/html/lists", "Lists", "/docs/concepts/html/lists", concepts :: html :: lists),
+            ("concepts/html/literals-and-expressions", "Literals and Expressions", "/docs/concepts/html/literals-and-expressions", concepts :: html :: literals_and_expressions),
+            ("concepts/html/conditional-rendering", "Conditional Rendering", "/docs/concepts/html/conditional-rendering", concepts :: html :: conditional_rendering),
+            ("concepts/agents", "Agents", "/docs/concepts/agents", concepts :: agents),
+            ("concepts/contexts", "Contexts", "/docs/concepts/contexts", concepts :: contexts),
+            ("concepts/router", "Router", "/docs/concepts/router", concepts :: router),
+            ("concepts/suspense", "Suspense", "/docs/concepts/suspense", concepts :: suspense),
+            ("advanced-topics/how-it-works", "How it works", "/docs/advanced-topics/how-it-works", advanced_topics :: how_it_works),
+            ("advanced-topics/struct-components", "Introduction", "/docs/advanced-topics/struct-components", advanced_topics :: struct_components :: introduction),
+            ("advanced-topics/struct-components/hoc", "Higher Order Components", "/docs/advanced-topics/struct-components/hoc", advanced_topics :: struct_components :: hoc),
+            ("advanced-topics/struct-components/lifecycle", "Lifecycle", "/docs/advanced-topics/struct-components/lifecycle", advanced_topics :: struct_components :: lifecycle),
+            ("advanced-topics/struct-components/scope", "Scope", "/docs/advanced-topics/struct-components/scope", advanced_topics :: struct_components :: scope),
+            ("advanced-topics/struct-components/callbacks", "Callbacks", "/docs/advanced-topics/struct-components/callbacks", advanced_topics :: struct_components :: callbacks),
+            ("advanced-topics/struct-components/properties", "Properties", "/docs/advanced-topics/struct-components/properties", advanced_topics :: struct_components :: properties),
+            ("advanced-topics/struct-components/refs", "Refs", "/docs/advanced-topics/struct-components/refs", advanced_topics :: struct_components :: refs),
+            ("advanced-topics/children", "Children", "/docs/advanced-topics/children", advanced_topics :: children),
+            ("advanced-topics/optimizations", "Optimizations & Best Practices", "/docs/advanced-topics/optimizations", advanced_topics :: optimizations),
+            ("advanced-topics/portals", "Portals", "/docs/advanced-topics/portals", advanced_topics :: portals),
+            ("advanced-topics/server-side-rendering", "Server-side Rendering", "/docs/advanced-topics/server-side-rendering", advanced_topics :: server_side_rendering),
+            ("advanced-topics/immutable", "Immutable Types", "/docs/advanced-topics/immutable", advanced_topics :: immutable),
+            ("more/debugging", "Debugging", "/docs/more/debugging", more :: debugging),
+            ("more/deployment", "Deployment", "/docs/more/deployment", more :: deployment),
+            ("more/css", "CSS", "/docs/more/css", more :: css),
+            ("more/testing", "Testing apps", "/docs/more/testing", more :: testing),
+            ("more/roadmap", "Roadmap", "/docs/more/roadmap", more :: roadmap),
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __migration_page_list {
+    ($callback:path, $($ctx:tt)*) => {
+        $callback! { $($ctx)*
+            ;
+            ("yew/from-0-19-0-to-0-20-0", "From 0.19.0 to 0.20.0", "/docs/migration-guides/yew/from-0-19-0-to-0-20-0", migration_guides :: yew :: from_0_19_0_to_0_20_0),
+            ("yew/from-0-20-0-to-0-21-0", "From 0.20.0 to 0.21.0", "/docs/migration-guides/yew/from-0-20-0-to-0-21-0", migration_guides :: yew :: from_0_20_0_to_0_21_0),
+            ("yew/from-0-21-0-to-0-22-0", "From 0.21.0 to 0.22.0", "/docs/migration-guides/yew/from-0-21-0-to-0-22-0", migration_guides :: yew :: from_0_21_0_to_0_22_0),
+            ("yew/from-0-22-0-to-0-23-0", "From 0.22.0 to 0.23.0", "/docs/migration-guides/yew/from-0-22-0-to-0-23-0", migration_guides :: yew :: from_0_22_0_to_0_23_0),
+            ("yew-agent/from-0-0-0-to-0-1-0", "From 0.0.0 to 0.1.0", "/docs/migration-guides/yew-agent/from-0-0-0-to-0-1-0", migration_guides :: yew_agent :: from_0_0_0_to_0_1_0),
+            ("yew-agent/from-0-1-0-to-0-2-0", "From 0.1.0 to 0.2.0", "/docs/migration-guides/yew-agent/from-0-1-0-to-0-2-0", migration_guides :: yew_agent :: from_0_1_0_to_0_2_0),
+            ("yew-agent/from-0-3-0-to-0-4-0", "From 0.3.0 to 0.4.0", "/docs/migration-guides/yew-agent/from-0-3-0-to-0-4-0", migration_guides :: yew_agent :: from_0_3_0_to_0_4_0),
+            ("yew-agent/from-0-4-0-to-0-5-0", "From 0.4.0 to 0.5.0", "/docs/migration-guides/yew-agent/from-0-4-0-to-0-5-0", migration_guides :: yew_agent :: from_0_4_0_to_0_5_0),
+            ("yew-router/from-0-15-0-to-0-16-0", "From 0.15.0 to 0.16.0", "/docs/migration-guides/yew-router/from-0-15-0-to-0-16-0", migration_guides :: yew_router :: from_0_15_0_to_0_16_0),
+            ("yew-router/from-0-16-0-to-0-17-0", "From 0.16.0 to 0.17.0", "/docs/migration-guides/yew-router/from-0-16-0-to-0-17-0", migration_guides :: yew_router :: from_0_16_0_to_0_17_0),
+            ("yew-router/from-0-19-0-to-0-20-0", "From 0.19.0 to 0.20.0", "/docs/migration-guides/yew-router/from-0-19-0-to-0-20-0", migration_guides :: yew_router :: from_0_19_0_to_0_20_0),
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __doc_render_pages_impl {
+    ($pages:ident, $url_prefix:expr ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
+        $($pages.push($crate::render_page!(concat!($url_prefix, "/", $slug), pages::$($mod_seg)::+::Page));)*
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __doc_render_migration_pages_impl {
+    ($pages:ident, $mg_prefix:expr ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
+        $($pages.push($crate::render_page!(concat!($mg_prefix, "/", $slug), pages::$($mod_seg)::+::Page));)*
+    };
+}
+
+#[macro_export]
+macro_rules! doc_render_pages {
+    ($url_prefix:expr $(, with_migration_guides: $mg_prefix:expr)?) => {
+        #[cfg(feature = "ssr")]
+        pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+            let mut pages = Vec::new();
+            $crate::__doc_page_list!($crate::__doc_render_pages_impl, pages, $url_prefix);
+            $($crate::__migration_page_list!($crate::__doc_render_migration_pages_impl, pages, $mg_prefix);)?
+            pages.push($crate::render_page!(concat!($url_prefix, "/tutorial"), pages::tutorial::Page));
+            pages
+        }
+    };
+}
+
 #[macro_export]
 macro_rules! page_map {
     ($fn_name:ident, $version:expr, $sidebar_fn:path, [
@@ -370,65 +603,37 @@ macro_rules! spa_sidebar_fns {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
-macro_rules! spa_version_resolver {
-    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident, $bsa_content:expr) => {
+macro_rules! __spa_version_resolver_impl {
+    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident, $bsa_content:expr ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
+        #[allow(unreachable_patterns)]
         pub fn $fn_name(path: &str) -> Option<$crate::PageData> {
             Some(match path {
-                "getting-started" => $crate::PageData { title: "Getting Started", sidebar_path: "/docs/getting-started", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::getting_started::introduction::page_content() },
-                "getting-started/build-a-sample-app" => $crate::PageData { title: "Build a sample app", sidebar_path: "/docs/getting-started/build-a-sample-app", doc_version: $version, sidebar: $sidebar_fn(), content: $bsa_content },
-                "getting-started/editor-setup" => $crate::PageData { title: "Editor setup", sidebar_path: "/docs/getting-started/editor-setup", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::getting_started::editor_setup::page_content() },
-                "getting-started/examples" => $crate::PageData { title: "Examples", sidebar_path: "/docs/getting-started/examples", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::getting_started::examples::page_content() },
-                "concepts/basic-web-technologies/html" => $crate::PageData { title: "HTML with html!", sidebar_path: "/docs/concepts/basic-web-technologies/html", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::basic_web_technologies::html::page_content() },
-                "concepts/basic-web-technologies/css" => $crate::PageData { title: "CSS with classes!", sidebar_path: "/docs/concepts/basic-web-technologies/css", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::basic_web_technologies::css::page_content() },
-                "concepts/basic-web-technologies/js" => $crate::PageData { title: "JS with RS", sidebar_path: "/docs/concepts/basic-web-technologies/js", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::basic_web_technologies::js::page_content() },
-                "concepts/basic-web-technologies/wasm-bindgen" => $crate::PageData { title: "wasm-bindgen", sidebar_path: "/docs/concepts/basic-web-technologies/wasm-bindgen", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::basic_web_technologies::wasm_bindgen::page_content() },
-                "concepts/basic-web-technologies/web-sys" => $crate::PageData { title: "web-sys", sidebar_path: "/docs/concepts/basic-web-technologies/web-sys", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::basic_web_technologies::web_sys::page_content() },
-                "concepts/function-components" => $crate::PageData { title: "Function Components", sidebar_path: "/docs/concepts/function-components", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::introduction::page_content() },
-                "concepts/function-components/properties" => $crate::PageData { title: "Properties", sidebar_path: "/docs/concepts/function-components/properties", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::properties::page_content() },
-                "concepts/function-components/callbacks" => $crate::PageData { title: "Callbacks", sidebar_path: "/docs/concepts/function-components/callbacks", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::callbacks::page_content() },
-                "concepts/function-components/children" => $crate::PageData { title: "Children", sidebar_path: "/docs/concepts/function-components/children", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::children::page_content() },
-                "concepts/function-components/pure-components" => $crate::PageData { title: "Pure Components", sidebar_path: "/docs/concepts/function-components/pure-components", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::pure_components::page_content() },
-                "concepts/function-components/hooks" => $crate::PageData { title: "Hooks", sidebar_path: "/docs/concepts/function-components/hooks", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::hooks::introduction::page_content() },
-                "concepts/function-components/hooks/custom-hooks" => $crate::PageData { title: "Custom Hooks", sidebar_path: "/docs/concepts/function-components/hooks/custom-hooks", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::hooks::custom_hooks::page_content() },
-                "concepts/function-components/node-refs" => $crate::PageData { title: "Node Refs", sidebar_path: "/docs/concepts/function-components/node-refs", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::node_refs::page_content() },
-                "concepts/function-components/state" => $crate::PageData { title: "State", sidebar_path: "/docs/concepts/function-components/state", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::state::page_content() },
-                "concepts/function-components/communication" => $crate::PageData { title: "Communication between components", sidebar_path: "/docs/concepts/function-components/communication", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::communication::page_content() },
-                "concepts/function-components/generics" => $crate::PageData { title: "Generic Components", sidebar_path: "/docs/concepts/function-components/generics", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::function_components::generics::page_content() },
-                "concepts/html" => $crate::PageData { title: "HTML", sidebar_path: "/docs/concepts/html", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::introduction::page_content() },
-                "concepts/html/components" => $crate::PageData { title: "Components", sidebar_path: "/docs/concepts/html/components", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::components::page_content() },
-                "concepts/html/elements" => $crate::PageData { title: "Elements", sidebar_path: "/docs/concepts/html/elements", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::elements::page_content() },
-                "concepts/html/events" => $crate::PageData { title: "Events", sidebar_path: "/docs/concepts/html/events", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::events::page_content() },
-                "concepts/html/classes" => $crate::PageData { title: "Classes", sidebar_path: "/docs/concepts/html/classes", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::classes::page_content() },
-                "concepts/html/fragments" => $crate::PageData { title: "Fragments", sidebar_path: "/docs/concepts/html/fragments", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::fragments::page_content() },
-                "concepts/html/lists" => $crate::PageData { title: "Lists", sidebar_path: "/docs/concepts/html/lists", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::lists::page_content() },
-                "concepts/html/literals-and-expressions" => $crate::PageData { title: "Literals and Expressions", sidebar_path: "/docs/concepts/html/literals-and-expressions", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::literals_and_expressions::page_content() },
-                "concepts/html/conditional-rendering" => $crate::PageData { title: "Conditional Rendering", sidebar_path: "/docs/concepts/html/conditional-rendering", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::html::conditional_rendering::page_content() },
-                "concepts/agents" => $crate::PageData { title: "Agents", sidebar_path: "/docs/concepts/agents", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::agents::page_content() },
-                "concepts/contexts" => $crate::PageData { title: "Contexts", sidebar_path: "/docs/concepts/contexts", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::contexts::page_content() },
-                "concepts/router" => $crate::PageData { title: "Router", sidebar_path: "/docs/concepts/router", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::router::page_content() },
-                "concepts/suspense" => $crate::PageData { title: "Suspense", sidebar_path: "/docs/concepts/suspense", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::concepts::suspense::page_content() },
-                "advanced-topics/how-it-works" => $crate::PageData { title: "How it works", sidebar_path: "/docs/advanced-topics/how-it-works", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::how_it_works::page_content() },
-                "advanced-topics/struct-components" => $crate::PageData { title: "Introduction", sidebar_path: "/docs/advanced-topics/struct-components", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::introduction::page_content() },
-                "advanced-topics/struct-components/hoc" => $crate::PageData { title: "Higher Order Components", sidebar_path: "/docs/advanced-topics/struct-components/hoc", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::hoc::page_content() },
-                "advanced-topics/struct-components/lifecycle" => $crate::PageData { title: "Lifecycle", sidebar_path: "/docs/advanced-topics/struct-components/lifecycle", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::lifecycle::page_content() },
-                "advanced-topics/struct-components/scope" => $crate::PageData { title: "Scope", sidebar_path: "/docs/advanced-topics/struct-components/scope", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::scope::page_content() },
-                "advanced-topics/struct-components/callbacks" => $crate::PageData { title: "Callbacks", sidebar_path: "/docs/advanced-topics/struct-components/callbacks", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::callbacks::page_content() },
-                "advanced-topics/struct-components/properties" => $crate::PageData { title: "Properties", sidebar_path: "/docs/advanced-topics/struct-components/properties", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::properties::page_content() },
-                "advanced-topics/struct-components/refs" => $crate::PageData { title: "Refs", sidebar_path: "/docs/advanced-topics/struct-components/refs", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::struct_components::refs::page_content() },
-                "advanced-topics/children" => $crate::PageData { title: "Children", sidebar_path: "/docs/advanced-topics/children", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::children::page_content() },
-                "advanced-topics/optimizations" => $crate::PageData { title: "Optimizations & Best Practices", sidebar_path: "/docs/advanced-topics/optimizations", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::optimizations::page_content() },
-                "advanced-topics/portals" => $crate::PageData { title: "Portals", sidebar_path: "/docs/advanced-topics/portals", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::portals::page_content() },
-                "advanced-topics/server-side-rendering" => $crate::PageData { title: "Server-side Rendering", sidebar_path: "/docs/advanced-topics/server-side-rendering", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::server_side_rendering::page_content() },
-                "advanced-topics/immutable" => $crate::PageData { title: "Immutable Types", sidebar_path: "/docs/advanced-topics/immutable", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::advanced_topics::immutable::page_content() },
-                "more/debugging" => $crate::PageData { title: "Debugging", sidebar_path: "/docs/more/debugging", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::more::debugging::page_content() },
-                "more/deployment" => $crate::PageData { title: "Deployment", sidebar_path: "/docs/more/deployment", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::more::deployment::page_content() },
-                "more/css" => $crate::PageData { title: "CSS", sidebar_path: "/docs/more/css", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::more::css::page_content() },
-                "more/testing" => $crate::PageData { title: "Testing apps", sidebar_path: "/docs/more/testing", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::more::testing::page_content() },
-                "more/roadmap" => $crate::PageData { title: "Roadmap", sidebar_path: "/docs/more/roadmap", doc_version: $version, sidebar: $sidebar_fn(), content: $doc::pages::more::roadmap::page_content() },
+                "getting-started/build-a-sample-app" => $crate::PageData {
+                    title: "Build a sample app",
+                    sidebar_path: "/docs/getting-started/build-a-sample-app",
+                    doc_version: $version,
+                    sidebar: $sidebar_fn(),
+                    content: $bsa_content,
+                },
+                $($slug => $crate::PageData {
+                    title: $title,
+                    sidebar_path: $spath,
+                    doc_version: $version,
+                    sidebar: $sidebar_fn(),
+                    content: $doc::pages::$($mod_seg)::+::page_content(),
+                },)*
                 _ => return None,
             })
         }
+    };
+}
+
+#[macro_export]
+macro_rules! spa_version_resolver {
+    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident, $bsa_content:expr) => {
+        $crate::__doc_page_list!{$crate::__spa_version_resolver_impl, $fn_name, $version, $sidebar_fn, $doc, $bsa_content}
     };
 }
 
@@ -589,828 +794,50 @@ macro_rules! spa_csr_boilerplate {
     };
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __ssr_doc_pages_impl {
+    ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
+        $({
+            let page = $resolve_fn($slug).unwrap();
+            $pages.push($crate::render_spa_page!(
+                concat!($url_prefix, "/", $slug),
+                page.title, page.sidebar, page.sidebar_path, page.doc_version, $lang,
+                $resolve_fn($slug).unwrap().content
+            ));
+        })*
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __ssr_migration_pages_impl {
+    ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
+        $({
+            let page = $resolve_fn($slug).unwrap();
+            $pages.push($crate::render_spa_page!(
+                concat!($url_prefix, "/", $slug),
+                page.title, page.sidebar, page.sidebar_path, page.doc_version, $lang,
+                $resolve_fn($slug).unwrap().content
+            ));
+        })*
+    };
+}
+
 #[macro_export]
 macro_rules! __ssr_doc_pages {
-    ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr) => {{
-        let page = $resolve_fn("getting-started").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/getting-started"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("getting-started").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("getting-started/build-a-sample-app").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/getting-started/build-a-sample-app"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("getting-started/build-a-sample-app")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("getting-started/editor-setup").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/getting-started/editor-setup"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("getting-started/editor-setup").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("getting-started/examples").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/getting-started/examples"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("getting-started/examples").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/basic-web-technologies/html").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/basic-web-technologies/html"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/basic-web-technologies/html")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/basic-web-technologies/css").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/basic-web-technologies/css"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/basic-web-technologies/css")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/basic-web-technologies/js").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/basic-web-technologies/js"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/basic-web-technologies/js")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/basic-web-technologies/wasm-bindgen").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/basic-web-technologies/wasm-bindgen"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/basic-web-technologies/wasm-bindgen")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/basic-web-technologies/web-sys").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/basic-web-technologies/web-sys"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/basic-web-technologies/web-sys")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/properties").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/properties"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/properties")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/callbacks").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/callbacks"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/callbacks")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/children").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/children"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/children")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/pure-components").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/pure-components"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/pure-components")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/hooks").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/hooks"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/hooks")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/hooks/custom-hooks").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!(
-                $url_prefix,
-                "/concepts/function-components/hooks/custom-hooks"
-            ),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/hooks/custom-hooks")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/node-refs").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/node-refs"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/node-refs")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/state").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/state"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/state")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/communication").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/communication"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/communication")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/function-components/generics").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/function-components/generics"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/function-components/generics")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/components").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/components"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/components").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/elements").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/elements"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/elements").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/events").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/events"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/events").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/classes").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/classes"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/classes").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/fragments").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/fragments"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/fragments").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/lists").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/lists"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/lists").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/literals-and-expressions").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/literals-and-expressions"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/literals-and-expressions")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/html/conditional-rendering").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/html/conditional-rendering"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/html/conditional-rendering")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/agents").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/agents"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/agents").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/contexts").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/contexts"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/contexts").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/router").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/router"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/router").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("concepts/suspense").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/concepts/suspense"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("concepts/suspense").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/how-it-works").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/how-it-works"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/how-it-works").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components/hoc").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components/hoc"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components/hoc")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components/lifecycle").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components/lifecycle"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components/lifecycle")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components/scope").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components/scope"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components/scope")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components/callbacks").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components/callbacks"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components/callbacks")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components/properties").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components/properties"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components/properties")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/struct-components/refs").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/struct-components/refs"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/struct-components/refs")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/children").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/children"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/children").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/optimizations").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/optimizations"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/optimizations")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/portals").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/portals"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/portals").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/server-side-rendering").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/server-side-rendering"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/server-side-rendering")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("advanced-topics/immutable").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/advanced-topics/immutable"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("advanced-topics/immutable").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("more/debugging").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/more/debugging"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("more/debugging").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("more/deployment").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/more/deployment"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("more/deployment").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("more/css").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/more/css"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("more/css").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("more/testing").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/more/testing"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("more/testing").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("more/roadmap").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/more/roadmap"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("more/roadmap").unwrap().content
-        ));
-    }};
+    ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr) => {
+        $crate::__doc_page_list!{$crate::__ssr_doc_pages_impl, $pages, $url_prefix, $resolve_fn, $lang}
+    };
 }
 
 #[macro_export]
 macro_rules! __ssr_migration_pages {
-    ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr) => {{
-        let page = $resolve_fn("yew/from-0-19-0-to-0-20-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew/from-0-19-0-to-0-20-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew/from-0-19-0-to-0-20-0").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew/from-0-20-0-to-0-21-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew/from-0-20-0-to-0-21-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew/from-0-20-0-to-0-21-0").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew/from-0-21-0-to-0-22-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew/from-0-21-0-to-0-22-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew/from-0-21-0-to-0-22-0").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew/from-0-22-0-to-0-23-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew/from-0-22-0-to-0-23-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew/from-0-22-0-to-0-23-0").unwrap().content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-agent/from-0-0-0-to-0-1-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-agent/from-0-0-0-to-0-1-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-agent/from-0-0-0-to-0-1-0")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-agent/from-0-1-0-to-0-2-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-agent/from-0-1-0-to-0-2-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-agent/from-0-1-0-to-0-2-0")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-agent/from-0-3-0-to-0-4-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-agent/from-0-3-0-to-0-4-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-agent/from-0-3-0-to-0-4-0")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-agent/from-0-4-0-to-0-5-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-agent/from-0-4-0-to-0-5-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-agent/from-0-4-0-to-0-5-0")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-router/from-0-15-0-to-0-16-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-router/from-0-15-0-to-0-16-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-router/from-0-15-0-to-0-16-0")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-router/from-0-16-0-to-0-17-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-router/from-0-16-0-to-0-17-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-router/from-0-16-0-to-0-17-0")
-                .unwrap()
-                .content
-        ));
-    }
-    {
-        let page = $resolve_fn("yew-router/from-0-19-0-to-0-20-0").unwrap();
-        $pages.push($crate::render_spa_page!(
-            concat!($url_prefix, "/yew-router/from-0-19-0-to-0-20-0"),
-            page.title,
-            page.sidebar,
-            page.sidebar_path,
-            page.doc_version,
-            $lang,
-            $resolve_fn("yew-router/from-0-19-0-to-0-20-0")
-                .unwrap()
-                .content
-        ));
-    }};
+    ($pages:ident, $url_prefix:expr, $resolve_fn:ident, $lang:expr) => {
+        $crate::__migration_page_list!{$crate::__ssr_migration_pages_impl, $pages, $url_prefix, $resolve_fn, $lang}
+    };
 }
+
 
 #[macro_export]
 macro_rules! spa_ssr_render_pages {

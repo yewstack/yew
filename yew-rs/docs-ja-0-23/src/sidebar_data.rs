@@ -1,1 +1,1 @@
-pub use yew_site_docs_ja::sidebar_data::docs_sidebar;
+pub use yew_site_lib::docs_sidebar;

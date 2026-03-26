@@ -99,10 +99,9 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
 
     #[cfg(feature = "csr")]
     let copy_button = {
-        let copied = use_state(|| false);
-        let code = AttrValue::from(cleaned_code);
-        let copy_opacity = if *copied { "1" } else { "0" };
-        let copy_color = if *copied {
+        let (copied, onclick) = crate::use_clipboard(AttrValue::from(cleaned_code));
+        let copy_opacity = if copied { "1" } else { "0" };
+        let copy_color = if copied {
             "#00a400"
         } else {
             "var(--color-text-secondary)"
@@ -130,24 +129,11 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
                         opacity: 1;
                     }
                 )}
-                onclick={
-                    let copied = copied.clone();
-                    move |_: MouseEvent| {
-                        if let Some(window) = web_sys::window() {
-                            let _ = window.navigator().clipboard().write_text(&code);
-                            copied.set(true);
-                            let copied2 = copied.clone();
-                            gloo::timers::callback::Timeout::new(2000, move || {
-                                copied2.set(false);
-                            })
-                            .forget();
-                        }
-                    }
-                }
-                title={if *copied { "Copied!" } else { "Copy" }}
+                {onclick}
+                title={if copied { "Copied!" } else { "Copy" }}
                 aria-label="Copy code to clipboard"
             >
-                if *copied {
+                if copied {
                     <svg viewBox="0 0 24 24" width="18" height="18">
                         <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                     </svg>

@@ -22,14 +22,6 @@ const LANGUAGES: &[(&str, &str)] = &[
     ("繁體中文", "zh-Hant"),
 ];
 
-fn lang_prefix(lang: &str) -> String {
-    if lang.is_empty() {
-        String::new()
-    } else {
-        format!("/{lang}")
-    }
-}
-
 #[styled_component]
 pub fn Navbar(props: &NavbarProps) -> Html {
     let mobile_open = yew_hooks::use_bool_toggle(false);
@@ -255,15 +247,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                                 &:hover { color: var(--color-primary); text-decoration: none; }
                                 @media (max-width: 700px) { display: none; }
                             )
-                        }} href={*href} onclick={{
-                            nav_ctx.as_ref().map(|ctx| {
-                                let navigate = ctx.navigate.clone();
-                                let h = AttrValue::from(*href);
-                                Callback::from(move |e: MouseEvent| {
-                                    navigate.emit((e, h.clone()));
-                                })
-                            })
-                        }}>{label}</a>
+                        }} href={*href} onclick={crate::nav_onclick(&nav_ctx, href)}>{label}</a>
                     }
                     <a class={css!(
                         color: var(--color-text);
@@ -426,15 +410,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             display: inline-flex;
                             align-items: center;
                             &:hover { color: var(--color-primary); text-decoration: none; }
-                        )} href={*href} onclick={{
-                            nav_ctx.as_ref().map(|ctx| {
-                                let navigate = ctx.navigate.clone();
-                                let h = AttrValue::from(*href);
-                                Callback::from(move |e: MouseEvent| {
-                                    navigate.emit((e, h.clone()));
-                                })
-                            })
-                        }}>{label}</a>
+                        )} href={*href} onclick={crate::nav_onclick(&nav_ctx, href)}>{label}</a>
                     }
                     <a class={css!(
                         color: var(--color-text);
@@ -547,13 +523,7 @@ struct DropdownItemProps {
 #[styled_component]
 fn DropdownItem(props: &DropdownItemProps) -> Html {
     let nav_ctx = use_context::<crate::NavigationContext>();
-    let onclick = nav_ctx.as_ref().map(|ctx| {
-        let navigate = ctx.navigate.clone();
-        let href = AttrValue::from(props.href.clone());
-        Callback::from(move |e: MouseEvent| {
-            navigate.emit((e, href.clone()));
-        })
-    });
+    let onclick = crate::nav_onclick(&nav_ctx, &props.href);
     let color = if props.active {
         "var(--color-primary)"
     } else {
@@ -587,14 +557,8 @@ fn compute_version_url(
     current_version: &str,
     target_slug: &str,
 ) -> String {
-    let prefix = lang_prefix(current_lang);
-
-    let without_lang = if current_lang.is_empty() {
-        current_path
-    } else {
-        let lp = lang_prefix(current_lang);
-        current_path.strip_prefix(&lp).unwrap_or(current_path)
-    };
+    let prefix = crate::lang_prefix(current_lang);
+    let without_lang = crate::strip_lang_prefix(current_path, current_lang);
 
     if without_lang.starts_with("/docs/migration-guides/") {
         return format!("{prefix}{without_lang}");
@@ -705,14 +669,8 @@ fn compute_lang_url(
     current_version: &str,
     target_lang: &str,
 ) -> String {
-    let target_prefix = lang_prefix(target_lang);
-
-    let without_lang = if current_lang.is_empty() {
-        current_path
-    } else {
-        let lp = lang_prefix(current_lang);
-        current_path.strip_prefix(&lp).unwrap_or(current_path)
-    };
+    let target_prefix = crate::lang_prefix(target_lang);
+    let without_lang = crate::strip_lang_prefix(current_path, current_lang);
 
     if without_lang.starts_with("/docs/migration-guides/") {
         return format!("{target_prefix}{without_lang}");
