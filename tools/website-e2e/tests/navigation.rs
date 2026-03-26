@@ -1030,3 +1030,434 @@ async fn migration_guide_navigation() {
 
     client.close().await.unwrap();
 }
+
+#[tokio::test]
+async fn blog_pages_exist_and_render() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    assert_status(&base, "/blog", 200).await;
+    assert_status(&base, "/blog/2022/01/20/hello-yew", 200).await;
+    assert_status(&base, "/blog/2022/11/24/release-0-20", 200).await;
+    assert_status(&base, "/blog/2023/09/23/release-0-21", 200).await;
+    assert_status(&base, "/blog/2024/10/14/release-0-22", 200).await;
+    assert_status(&base, "/blog/2025/11/29/release-0-22", 200).await;
+
+    client.goto(&format!("{base}/blog")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    assert_meta_attr(&client, "html", "lang", "en").await;
+    assert_eq!(client.title().await.unwrap(), "Blog | Yew");
+
+    let links = client.find_all(Locator::Css("main a")).await.unwrap();
+    assert!(
+        links.len() >= 3,
+        "blog index should have at least 3 post links, found {}",
+        links.len()
+    );
+
+    client
+        .goto(&format!("{base}/blog/2022/01/20/hello-yew"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    assert_eq!(client.title().await.unwrap(), "Hello Yew | Yew");
+    assert_meta_attr(
+        &client,
+        r#"meta[property="og:url"]"#,
+        "content",
+        "https://yew.rs/blog/2022/01/20/hello-yew",
+    )
+    .await;
+
+    let main_text = client
+        .find(Locator::Css("main"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        main_text.contains("Yew"),
+        "blog post should mention Yew in body"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn blog_feeds_exist() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+
+    let rss = reqwest::get(format!("{base}/blog/rss.xml")).await.unwrap();
+    assert_eq!(rss.status().as_u16(), 200);
+    let rss_body = rss.text().await.unwrap();
+    assert!(
+        rss_body.contains("<rss"),
+        "rss.xml should contain <rss element"
+    );
+    assert!(
+        rss_body.contains("hello-yew"),
+        "rss.xml should reference hello-yew post"
+    );
+
+    let atom = reqwest::get(format!("{base}/blog/atom.xml")).await.unwrap();
+    assert_eq!(atom.status().as_u16(), 200);
+    let atom_body = atom.text().await.unwrap();
+    assert!(
+        atom_body.contains("<feed"),
+        "atom.xml should contain <feed element"
+    );
+    assert!(
+        atom_body.contains("hello-yew"),
+        "atom.xml should reference hello-yew post"
+    );
+}
+
+#[tokio::test]
+async fn community_pages_exist_and_render() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    assert_status(&base, "/community/awesome", 200).await;
+    assert_status(&base, "/community/external-libs", 200).await;
+
+    client
+        .goto(&format!("{base}/community/awesome"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    assert_eq!(client.title().await.unwrap(), "Awesome Yew | Yew");
+    assert_meta_attr(&client, "html", "lang", "en").await;
+
+    let main_text = client
+        .find(Locator::Css("main"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        main_text.contains("Projects") || main_text.contains("Templates"),
+        "awesome page should have Projects or Templates section"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn search_page_exists() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+
+    assert_status(&base, "/search", 200).await;
+}
+
+#[tokio::test]
+async fn not_found_page_renders() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client.goto(&format!("{base}/404")).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let body = client
+        .find(Locator::Css("body"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        body.contains("Page Not Found") || body.contains("404"),
+        "404 page should indicate page not found"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn all_doc_versions_serve_pages() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+
+    let versions = [
+        "/docs/getting-started",
+        "/docs/next/getting-started",
+        "/docs/0.22/getting-started",
+        "/docs/0.21/getting-started",
+        "/docs/0.20/getting-started",
+    ];
+
+    for path in &versions {
+        assert_status(&base, path, 200).await;
+    }
+
+    let locales = ["ja", "zh-Hans", "zh-Hant"];
+    for locale in &locales {
+        for path in &versions {
+            let localized = path.replacen("/docs/", &format!("/{locale}/docs/"), 1);
+            assert_status(&base, &localized, 200).await;
+        }
+    }
+
+    assert_status(&base, "/docs/concepts/router", 200).await;
+    assert_status(&base, "/docs/next/concepts/router", 200).await;
+    assert_status(&base, "/docs/0.22/concepts/router", 200).await;
+    assert_status(&base, "/docs/0.21/concepts/router", 200).await;
+    assert_status(&base, "/docs/0.20/concepts/router", 200).await;
+
+    assert_status(&base, "/ja/docs/concepts/router", 200).await;
+    assert_status(&base, "/zh-Hans/docs/concepts/router", 200).await;
+    assert_status(&base, "/zh-Hant/docs/concepts/router", 200).await;
+
+    assert_status(&base, "/docs/advanced-topics/server-side-rendering", 200).await;
+    assert_status(&base, "/docs/more/css", 200).await;
+    assert_status(&base, "/docs/concepts/html/elements", 200).await;
+    assert_status(
+        &base,
+        "/docs/concepts/function-components/hooks/custom-hooks",
+        200,
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn version_banner_on_old_versions() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/concepts/router"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    assert_no_element_css(&client, "[role='alert']").await;
+
+    client
+        .goto(&format!("{base}/docs/0.22/concepts/router"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    let alerts = client
+        .find_all(Locator::Css("[role='alert']"))
+        .await
+        .unwrap();
+    assert!(
+        !alerts.is_empty(),
+        "old version (0.22) should show a version banner"
+    );
+    let alert_text = alerts[0].text().await.unwrap();
+    assert!(
+        alert_text.contains("0.22"),
+        "version banner should mention the version, got: {alert_text}"
+    );
+
+    client
+        .goto(&format!("{base}/docs/next/concepts/router"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    let alerts = client
+        .find_all(Locator::Css("[role='alert']"))
+        .await
+        .unwrap();
+    assert!(
+        !alerts.is_empty(),
+        "Next version should show a version banner"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn sidebar_structure_on_doc_pages() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/getting-started"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let aside = client.find_all(Locator::Css("aside")).await.unwrap();
+    assert!(!aside.is_empty(), "doc page should have a sidebar (aside)");
+
+    let sidebar_text = aside[0].text().await.unwrap();
+    let expected_categories = ["Getting Started", "Concepts", "Advanced Topics", "More"];
+    for cat in &expected_categories {
+        assert!(
+            sidebar_text.contains(cat),
+            "sidebar should contain category '{cat}', got: {sidebar_text}"
+        );
+    }
+
+    let sidebar_links = client.find_all(Locator::Css("aside a")).await.unwrap();
+    assert!(
+        sidebar_links.len() >= 5,
+        "sidebar should have at least 5 links, found {}",
+        sidebar_links.len()
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn doc_page_has_breadcrumbs() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/concepts/router"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let breadcrumbs = client
+        .find_all(Locator::Css("nav[aria-label='Breadcrumbs'] a"))
+        .await
+        .unwrap();
+    assert!(
+        !breadcrumbs.is_empty(),
+        "doc page should have breadcrumb links"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn doc_page_has_toc() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/concepts/router"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let asides = client.find_all(Locator::Css("aside")).await.unwrap();
+    assert!(
+        asides.len() >= 2,
+        "doc page should have at least 2 aside elements (sidebar + TOC), found {}",
+        asides.len()
+    );
+    let toc_aside = &asides[asides.len() - 1];
+    let toc_links = toc_aside.find_all(Locator::Css("a")).await.unwrap();
+    assert!(!toc_links.is_empty(), "TOC aside should have links");
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn doc_page_has_code_blocks() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/getting-started/build-a-sample-app"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let code_blocks = client.find_all(Locator::Css("pre code")).await.unwrap();
+    assert!(
+        !code_blocks.is_empty(),
+        "build-a-sample-app should have code blocks"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn spa_client_side_navigation() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/getting-started"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+
+    let link = client
+        .find(Locator::XPath(
+            "//aside//a[contains(@href, '/docs/getting-started/build-a-sample-app')]",
+        ))
+        .await
+        .expect("sidebar link to build-a-sample-app not found");
+    link.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/docs/getting-started/build-a-sample-app");
+
+    let main_text = client
+        .find(Locator::Css("main"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        main_text.len() > 100,
+        "navigated page should have substantial content"
+    );
+
+    click_version_option(&client, "0.22").await;
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/docs/0.22/getting-started/build-a-sample-app");
+
+    let main_text = client
+        .find(Locator::Css("main"))
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    assert!(
+        main_text.len() > 100,
+        "version-switched page should have substantial content"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn doc_page_pagination() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/getting-started"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let pagination = client
+        .find_all(Locator::XPath(
+            "//main//nav//a[.//span[text()='Previous'] or .//span[text()='Next']]",
+        ))
+        .await
+        .unwrap();
+    assert!(
+        !pagination.is_empty(),
+        "doc page should have pagination links (Previous/Next)"
+    );
+
+    client.close().await.unwrap();
+}
