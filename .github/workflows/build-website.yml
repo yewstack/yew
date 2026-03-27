@@ -1,4 +1,4 @@
-name: Build Yew.rs
+name: Build website
 on:
   pull_request:
     branches: [master]
@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    name: Build Yew.rs
+    name: Build Website
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -77,7 +77,7 @@ jobs:
           retention-days: 1
 
   e2e:
-    name: Yew.rs E2E Navigation
+    name: Website E2E Navigation
     needs: [build]
     runs-on: ubuntu-latest
     steps:

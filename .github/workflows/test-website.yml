@@ -1,4 +1,4 @@
-name: "Test Yew.rs"
+name: "Test Website"
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   website_tests:
-    name: Test Yew.rs Snippets
+    name: Test Website Snippets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
