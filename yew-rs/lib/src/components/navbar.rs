@@ -53,6 +53,21 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         });
     }
 
+    {
+        let is_open = *mobile_open;
+        use_effect_with(is_open, move |_| {
+            #[cfg(feature = "csr")]
+            {
+                let body = gloo::utils::body();
+                if is_open {
+                    let _ = body.style().set_property("overflow", "hidden");
+                } else {
+                    let _ = body.style().remove_property("overflow");
+                }
+            }
+        });
+    }
+
     yew_hooks::use_effect_once(|| {
         init_docsearch();
     });
@@ -116,6 +131,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         "none"
     };
     let lang_caret_rot = if *lang_open { "rotate(180deg)" } else { "none" };
+    let nav_bottom = if *mobile_open { "0" } else { "auto" };
 
     html! {
         <nav class={css!(
@@ -123,6 +139,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
             top: 0;
             left: 0;
             right: 0;
+            bottom: ${nav_bottom};
             min-height: var(--navbar-height);
             background: var(--color-bg);
             border-bottom: 1px solid var(--color-border);
@@ -135,6 +152,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                 align-items: center;
                 justify-content: space-between;
                 height: var(--navbar-height);
+                flex-shrink: 0;
                 padding: 0 1rem;
                 max-width: 1440px;
                 width: 100%;
@@ -397,8 +415,11 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     padding: 0.5rem 1rem 1rem;
                     background: var(--color-bg);
                     border-bottom: 1px solid var(--color-border);
-                    max-height: calc(100vh - 60px);
+                    flex: 1;
+                    min-height: 0;
                     overflow-y: auto;
+                    overscroll-behavior: contain;
+                    -webkit-overflow-scrolling: touch;
                 )}>
                     for (label, href, _) in nav_items {
                         <a class={css!(
