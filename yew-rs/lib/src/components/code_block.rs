@@ -176,7 +176,7 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
                     font-size: 0.875rem;
                     line-height: 1.5;
                 )}>
-                    <code>{highlighted_html}</code>
+                    <code class={css!(display: inline-grid; min-width: 100%;)}>{highlighted_html}</code>
                 </pre>
             </div>
         </div>
