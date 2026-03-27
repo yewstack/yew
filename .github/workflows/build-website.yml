@@ -1,10 +1,9 @@
-name: Build website
+name: Build Yew.rs
 on:
   pull_request:
     branches: [master]
     paths:
       - "yew-rs/**"
-      - "website/static/**"
       - "tools/website-e2e/**"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -13,7 +12,6 @@ on:
     branches: [master]
     paths:
       - "yew-rs/**"
-      - "website/static/**"
       - "tools/website-e2e/**"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -21,7 +19,7 @@ on:
 
 jobs:
   build:
-    name: Build Website
+    name: Build Yew.rs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -61,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: website
-          path: website/build/
+          path: yew-rs/build/
           retention-days: 1
 
       - if: github.event_name == 'pull_request'
@@ -79,7 +77,7 @@ jobs:
           retention-days: 1
 
   e2e:
-    name: Website E2E Navigation
+    name: Yew.rs E2E Navigation
     needs: [build]
     runs-on: ubuntu-latest
     steps:
@@ -98,7 +96,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: website
-          path: website/build/
+          path: yew-rs/build/
 
       - uses: browser-actions/setup-geckodriver@latest
         with:

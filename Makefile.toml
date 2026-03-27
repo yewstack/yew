@@ -68,14 +68,10 @@ command = "cargo"
 args = ["test", "--doc", "--all-features"]
 workspace = true
 
-[tasks.website-test]
-command = "cargo"
-args = ["test", "-p", "website-test"]
-
 [tasks.test-flow]
 category = "Testing"
 description = "Run all tests"
-run_task = { name = ["test", "doc-test", "website-test"], fork = true, parallel = true }
+run_task = { name = ["test", "doc-test"], fork = true, parallel = true }
 
 # misc
 

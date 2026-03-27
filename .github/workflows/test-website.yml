@@ -1,21 +1,19 @@
-name: "Test Website"
+name: "Test Yew.rs"
 
 on:
   pull_request:
     paths:
       - ".github/workflows/test-website.yml"
       - "packages/**/*"
-      - "website/**/*"
       - "yew-rs/**/*"
       - "tools/doc-test-util/**/*"
-      - "tools/website-test/**/*"
       - "tools/website-test-yew-rs/**/*"
   push:
     branches: [master]
 
 jobs:
   website_tests:
-    name: Test Website Snippets
+    name: Test Yew.rs Snippets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -45,9 +43,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: nanasess/setup-chromedriver@v2
-
-      - name: Run website code snippet tests (MDX)
-        run: cargo test -p website-test --target wasm32-unknown-unknown
 
       - name: Run website code snippet tests (yew-rs)
         run: cargo test -p website-test-yew-rs --target wasm32-unknown-unknown

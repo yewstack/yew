@@ -17,9 +17,9 @@ async fn assert_status(base: &str, path: &str, expected: u16) {
 
 fn build_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../website/build")
+        .join("../../yew-rs/build")
         .canonicalize()
-        .expect("website/build directory not found; run `cargo run -p yew-site-ssg` first")
+        .expect("yew-rs/build directory not found; run `cargo run -p yew-site-ssg` first")
 }
 
 fn webdriver_url() -> String {

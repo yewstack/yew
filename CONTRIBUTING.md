@@ -98,7 +98,6 @@ Below, you can find some useful guidance and best practices on how to write APIs
 
 ## Website
 
-The source code of our website ([https://yew.rs](https://yew.rs)) is in the [website directory](website).
-Most of the times, edits can be done in markdown.
+The source code of our website ([https://yew.rs](https://yew.rs)) is in the [yew-rs directory](yew-rs).
 
-[website/README.md](website/README.md) has more detailed instructions.
+[yew-rs/README.md](yew-rs/README.md) has more detailed instructions.

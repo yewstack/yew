@@ -2,7 +2,7 @@
   "hosting": [
     {
       "target": "website",
-      "public": "website/build/",
+      "public": "yew-rs/build/",
       "cleanUrls": true,
       "redirects": [],
       "rewrites": [

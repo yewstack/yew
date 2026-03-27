@@ -4615,28 +4615,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "website-test"
-version = "0.1.0"
-dependencies = [
- "derive_more",
- "doc-test-util",
- "glob",
- "gloo",
- "gloo-net 0.6.0",
- "js-sys",
- "serde",
- "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "weblog",
- "yew 0.23.0",
- "yew-agent",
- "yew-autoprops",
- "yew-router 0.20.0",
-]
-
-[[package]]
 name = "website-test-yew-rs"
 version = "0.1.0"
 dependencies = [

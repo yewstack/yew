@@ -1267,7 +1267,7 @@ fn generate_redirects(output_dir: &Path) -> Result<()> {
 }
 
 fn copy_static_assets(source_dir: &Path, output_dir: &Path) -> Result<()> {
-    let static_dir = source_dir.join("../website/static");
+    let static_dir = source_dir.join("static");
     if static_dir.exists() {
         println!("Copying static assets from {}", static_dir.display());
         copy_dir_recursive(&static_dir, output_dir)?;
@@ -1418,7 +1418,7 @@ async fn main() -> Result<()> {
 
     let output_dir = match &args.output_dir {
         Some(d) => d.clone(),
-        None => source_dir.join("../website/build"),
+        None => source_dir.join("build"),
     };
     std::fs::create_dir_all(&output_dir)?;
 

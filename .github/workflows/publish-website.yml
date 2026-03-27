@@ -1,7 +1,7 @@
-name: Publish website
+name: Publish Yew.rs
 on:
   workflow_run:
-    workflows: ["Build website"]
+    workflows: ["Build Yew.rs"]
     types:
       - completed
 
@@ -20,7 +20,7 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           run-id: ${{ github.event.workflow_run.id }}
           name: website
-          path: website/build
+          path: yew-rs/build
 
       - if: github.event.workflow_run.event == 'pull_request'
         name: Download pr info
