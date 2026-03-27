@@ -7,66 +7,8 @@ use std::sync::Arc;
 
 use anyhow::{bail, Context, Result};
 use clap::Parser;
-use syntect::highlighting::ThemeSet;
-use syntect::html::{css_for_theme_with_class_style, ClassStyle};
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpListener;
-
-fn filter_json_meta_rules(css: &str) -> String {
-    let mut result = String::new();
-    let mut skip_block = false;
-    for line in css.lines() {
-        let trimmed = line.trim();
-        if trimmed.contains(".sy-meta") && trimmed.contains(".sy-json") {
-            skip_block = true;
-            continue;
-        }
-        if skip_block {
-            if trimmed == "}" {
-                skip_block = false;
-            }
-            continue;
-        }
-        result.push_str(line);
-        result.push('\n');
-    }
-    result
-}
-
-fn generate_highlight_css() {
-    let ts = ThemeSet::load_defaults();
-    let style = ClassStyle::SpacedPrefixed { prefix: "sy-" };
-    let light_css = filter_json_meta_rules(
-        &css_for_theme_with_class_style(&ts.themes["InspiredGitHub"], style).unwrap(),
-    );
-    let dark_css = filter_json_meta_rules(
-        &css_for_theme_with_class_style(&ts.themes["base16-ocean.dark"], style).unwrap(),
-    );
-
-    println!("/* syntect light theme (InspiredGitHub) */");
-    print!("{light_css}");
-
-    println!();
-    println!("/* syntect dark theme (base16-ocean.dark) */");
-    for line in dark_css.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with('.') || trimmed.starts_with("code") {
-            if let Some(brace) = trimmed.find('{') {
-                let selectors_part = &trimmed[..brace];
-                let rest = &trimmed[brace..];
-                let prefixed: Vec<String> = selectors_part
-                    .split(',')
-                    .map(|s| format!("[data-theme=\"dark\"] {}", s.trim()))
-                    .collect();
-                println!("{} {rest}", prefixed.join(", "));
-            } else {
-                println!("[data-theme=\"dark\"] {trimmed}");
-            }
-        } else if !trimmed.is_empty() {
-            println!("{trimmed}");
-        }
-    }
-}
 
 fn file_hash(path: &Path) -> Result<String> {
     let bytes = std::fs::read(path).with_context(|| format!("reading {}", path.display()))?;
@@ -318,25 +260,10 @@ fn strip_html_tags(s: &str) -> String {
 #[derive(Parser)]
 struct Args {
     #[arg(long)]
-    output_dir: Option<PathBuf>,
-
-    #[arg(long)]
-    source_dir: Option<PathBuf>,
-
-    #[arg(long, default_value = "4")]
-    jobs: usize,
-
-    #[arg(long)]
-    skip_build: bool,
-
-    #[arg(long)]
     skip_capture: bool,
 
     #[arg(long)]
     skip_wasm_opt: bool,
-
-    #[arg(long)]
-    gen_highlight_css: bool,
 
     /// After building, serve the output directory on this port.
     /// Example: --serve 8080
@@ -721,7 +648,7 @@ fn collect_page_files(base: &Path, dir: &Path, results: &mut Vec<PathBuf>) {
     }
 }
 
-fn cargo_build_all(source_dir: &Path, pages: &[PageBinary], jobs: usize) -> Result<()> {
+fn cargo_build_all(source_dir: &Path, pages: &[PageBinary]) -> Result<()> {
     let mut crate_names: Vec<&str> = pages.iter().map(|p| p.crate_name.as_str()).collect();
     crate_names.sort();
     crate_names.dedup();
@@ -731,19 +658,13 @@ fn cargo_build_all(source_dir: &Path, pages: &[PageBinary], jobs: usize) -> Resu
         "--release".to_string(),
         "--target".to_string(),
         "wasm32-unknown-unknown".to_string(),
-        "-j".to_string(),
-        jobs.to_string(),
     ];
     for name in &crate_names {
         args.push("-p".to_string());
         args.push(name.to_string());
     }
 
-    println!(
-        "Compiling {} crates ({} parallel jobs)...",
-        crate_names.len(),
-        jobs
-    );
+    println!("Compiling {} crates...", crate_names.len());
     let status = Command::new("cargo")
         .args(&args)
         .env("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "1")
@@ -769,7 +690,6 @@ fn process_binary(
     bin_name: &str,
     staging_dir: &Path,
     target_dir: &Path,
-    cpu_id: usize,
     skip_wasm_opt: bool,
 ) -> Result<ProcessedBinary> {
     std::fs::create_dir_all(staging_dir)?;
@@ -805,9 +725,7 @@ fn process_binary(
 
     let wasm_bg = staging_dir.join(format!("{bin_name}_bg.wasm"));
     if !skip_wasm_opt && wasm_bg.exists() {
-        let opt_out = Command::new("taskset")
-            .args(["-c", &cpu_id.to_string()])
-            .arg("wasm-opt")
+        let opt_out = Command::new("wasm-opt")
             .args(["-Oz", "-o"])
             .arg(&wasm_bg)
             .arg(&wasm_bg)
@@ -939,9 +857,11 @@ fn build_pages_parallel(
     pages: &[PageBinary],
     output_dir: &Path,
     target_dir: &Path,
-    jobs: usize,
     skip_wasm_opt: bool,
 ) -> Result<()> {
+    let jobs = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4);
     use std::collections::HashMap;
     use std::sync::Mutex;
 
@@ -967,7 +887,7 @@ fn build_pages_parallel(
     std::thread::scope(|s| {
         let mut handles = Vec::new();
 
-        for thread_id in 0..jobs.min(total_bins) {
+        for _ in 0..jobs.min(total_bins) {
             let counter = counter.clone();
             let next_bin = next_bin.clone();
             let errors = &errors;
@@ -985,7 +905,7 @@ fn build_pages_parallel(
                 println!("[{n}/{total_bins}] Processing binary: {bin_name}");
 
                 let staging_dir = staging_base.join(bin_name);
-                match process_binary(bin_name, &staging_dir, target_dir, thread_id, skip_wasm_opt) {
+                match process_binary(bin_name, &staging_dir, target_dir, skip_wasm_opt) {
                     Ok(pb) => {
                         processed.lock().unwrap().insert(bin_name.clone(), pb);
                     }
@@ -1394,32 +1314,16 @@ fn percent_decode(s: &str) -> String {
 async fn main() -> Result<()> {
     let args = Args::parse();
 
-    if args.gen_highlight_css {
-        generate_highlight_css();
-        return Ok(());
-    }
-
     let cwd = std::env::current_dir()?;
-    let source_dir = match &args.source_dir {
-        Some(d) => d.clone(),
-        None => {
-            if cwd.join("ssg").is_dir() && cwd.join("lib").is_dir() {
-                cwd.clone()
-            } else if cwd.join("yew-rs").is_dir() {
-                cwd.join("yew-rs")
-            } else {
-                bail!(
-                    "Cannot find yew-rs directory. Run from the workspace root, from yew-rs/, or \
-                     pass --source-dir explicitly."
-                );
-            }
-        }
+    let source_dir = if cwd.join("ssg").is_dir() && cwd.join("lib").is_dir() {
+        cwd.clone()
+    } else if cwd.join("yew-rs").is_dir() {
+        cwd.join("yew-rs")
+    } else {
+        bail!("Cannot find yew-rs directory. Run from the workspace root or from yew-rs/.");
     };
 
-    let output_dir = match &args.output_dir {
-        Some(d) => d.clone(),
-        None => source_dir.join("build"),
-    };
+    let output_dir = source_dir.join("build");
     std::fs::create_dir_all(&output_dir)?;
 
     let output_dir = if output_dir.is_absolute() {
@@ -1451,45 +1355,36 @@ async fn main() -> Result<()> {
     let pages = all_pages;
     println!("Building {} pages", pages.len());
 
-    if !args.skip_build {
-        let t = std::time::Instant::now();
-        println!("\n=== Compile phase ===");
-        cargo_build_all(&source_dir, &pages, args.jobs)?;
-        println!("Compile phase: {:.1}s", t.elapsed().as_secs_f64());
+    let t = std::time::Instant::now();
+    println!("\n=== Compile phase ===");
+    cargo_build_all(&source_dir, &pages)?;
+    println!("Compile phase: {:.1}s", t.elapsed().as_secs_f64());
 
-        let target_dir = source_dir.join("..").join("target");
+    let target_dir = source_dir.join("..").join("target");
 
-        let t = std::time::Instant::now();
-        println!(
-            "\n=== Bundle phase ({} parallel jobs{}) ===",
-            args.jobs,
-            if args.skip_wasm_opt {
-                ", wasm-opt skipped"
-            } else {
-                ""
-            }
-        );
-        build_pages_parallel(
-            &pages,
-            &output_dir,
-            &target_dir,
-            args.jobs,
-            args.skip_wasm_opt,
-        )?;
-        println!("Bundle phase: {:.1}s", t.elapsed().as_secs_f64());
+    let t = std::time::Instant::now();
+    println!(
+        "\n=== Bundle phase{} ===",
+        if args.skip_wasm_opt {
+            " (wasm-opt skipped)"
+        } else {
+            ""
+        }
+    );
+    build_pages_parallel(&pages, &output_dir, &target_dir, args.skip_wasm_opt)?;
+    println!("Bundle phase: {:.1}s", t.elapsed().as_secs_f64());
 
-        println!("\nCopying static assets...");
-        copy_static_assets(&source_dir, &output_dir)?;
+    println!("\nCopying static assets...");
+    copy_static_assets(&source_dir, &output_dir)?;
 
-        println!("Generating sitemap.xml...");
-        generate_sitemap(&pages, &output_dir, "https://yew.rs")?;
+    println!("Generating sitemap.xml...");
+    generate_sitemap(&pages, &output_dir, "https://yew.rs")?;
 
-        println!("Generating blog feeds...");
-        generate_blog_feeds(&output_dir)?;
+    println!("Generating blog feeds...");
+    generate_blog_feeds(&output_dir)?;
 
-        println!("Generating redirects...");
-        generate_redirects(&output_dir)?;
-    }
+    println!("Generating redirects...");
+    generate_redirects(&output_dir)?;
 
     if !args.skip_capture {
         let t = std::time::Instant::now();
