@@ -53,44 +53,30 @@ yew_site_lib::spa_sidebar_fns!(
     yew_site_docs_zh_hans_0_20
 );
 
-yew_site_lib::spa_version_resolver!(
-    resolve_next,
-    "Next",
-    sidebar,
-    yew_site_docs_zh_hans,
-    yew_site_docs_zh_hans::pages::getting_started::build_a_sample_app::page_content()
-);
+yew_site_lib::spa_version_resolver!(resolve_next, "Next", sidebar, yew_site_docs_zh_hans);
 yew_site_lib::spa_version_resolver!(
     resolve_stable,
     "0.23",
     sidebar_0_23,
-    yew_site_docs_zh_hans,
-    yew_site_docs_zh_hans::pages::getting_started::build_a_sample_app::page_content_versioned(
-        Some("0.23")
-    )
+    yew_site_docs_zh_hans_0_23
 );
 yew_site_lib::spa_version_resolver!(
     resolve_v022,
     "0.22",
     sidebar_0_22,
-    yew_site_docs_zh_hans,
-    yew_site_docs_zh_hans::pages::getting_started::build_a_sample_app::page_content_versioned(
-        Some("0.22")
-    )
+    yew_site_docs_zh_hans_0_22
 );
 yew_site_lib::spa_version_resolver!(
     resolve_v021,
     "0.21",
     sidebar_0_21,
-    yew_site_docs_zh_hans_0_21,
-    yew_site_docs_zh_hans_0_21::pages::getting_started::build_a_sample_app::page_content()
+    yew_site_docs_zh_hans_0_21
 );
 yew_site_lib::spa_version_resolver!(
     resolve_v020,
     "0.20",
     sidebar_0_20,
-    yew_site_docs_zh_hans_0_20,
-    yew_site_docs_zh_hans_0_20::pages::getting_started::build_a_sample_app::page_content()
+    yew_site_docs_zh_hans_0_20
 );
 
 yew_site_lib::page_map!(resolve_migration, "", sidebar, [

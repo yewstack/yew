@@ -48,29 +48,26 @@ yew_site_lib::spa_version_resolver!(
     resolve_next,
     "Next",
     yew_site_docs::sidebar_data::docs_sidebar,
-    yew_site_docs,
-    yew_site_docs::pages::getting_started::build_a_sample_app::page_content()
+    yew_site_docs
 );
 yew_site_lib::spa_version_resolver!(
     resolve_stable,
     "0.23",
     yew_site_docs_0_23::sidebar_data::docs_sidebar,
-    yew_site_docs,
-    yew_site_docs::pages::getting_started::build_a_sample_app::page_content_versioned(Some("0.23"))
+    yew_site_docs_0_23
 );
 yew_site_lib::spa_version_resolver!(
     resolve_v022,
     "0.22",
     yew_site_docs_0_22::sidebar_data::docs_sidebar,
-    yew_site_docs,
-    yew_site_docs::pages::getting_started::build_a_sample_app::page_content_versioned(Some("0.22"))
+    yew_site_docs_0_22
 );
 
 yew_site_lib::page_map!(resolve_v021, "0.21", yew_site_docs_0_21::sidebar_data::docs_sidebar, [
     ("getting-started", "Getting Started", "/docs/getting-started", yew_site_docs_0_21::pages::getting_started::introduction::page_content()),
     ("getting-started/build-a-sample-app", "Build a sample app", "/docs/getting-started/build-a-sample-app", yew_site_docs_0_21::pages::getting_started::build_a_sample_app::page_content()),
     ("getting-started/editor-setup", "Editor setup", "/docs/getting-started/editor-setup", yew_site_docs_0_21::pages::getting_started::editor_setup::page_content()),
-    ("getting-started/examples", "Examples", "/docs/getting-started/examples", yew_site_docs::pages::getting_started::examples::page_content()),
+    ("getting-started/examples", "Examples", "/docs/getting-started/examples", yew_site_docs_0_21::pages::getting_started::examples::page_content()),
     ("concepts/basic-web-technologies/html", "HTML with html!", "/docs/concepts/basic-web-technologies/html", yew_site_docs_0_21::pages::concepts::basic_web_technologies::html::page_content()),
     ("concepts/basic-web-technologies/css", "CSS with classes!", "/docs/concepts/basic-web-technologies/css", yew_site_docs_0_21::pages::concepts::basic_web_technologies::css::page_content()),
     ("concepts/basic-web-technologies/js", "JS with RS", "/docs/concepts/basic-web-technologies/js", yew_site_docs::pages::concepts::basic_web_technologies::js::page_content()),

@@ -13,7 +13,7 @@ ssr = ["yew/ssr", "stylist/ssr"]
 yew = "0.23"
 stylist = { version = "0.15", features = ["yew_integration", "parser"] }
 syntect = { git = "https://github.com/Madoshakalaka/syntect.git", branch = "line-highlighting", default-features = false, features = ["parsing", "html", "default-syntaxes", "dump-load", "regex-fancy"] }
-web-sys = { workspace = true, features = ["Window", "Document", "DomRect", "Element", "EventTarget", "HtmlElement", "HtmlHeadElement", "Location", "MediaQueryList", "Navigator", "Node", "Clipboard"], optional = true }
+web-sys = { workspace = true, features = ["Window", "Document", "DomRect", "Element", "EventTarget", "HtmlElement", "HtmlHeadElement", "HtmlInputElement", "Location", "MediaQueryList", "Navigator", "Node", "Clipboard"], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 gloo = { workspace = true, optional = true }

@@ -205,6 +205,10 @@ pub enum Block {
         alt: AttrValue,
     },
     HorizontalRule,
+    Custom {
+        html: Html,
+        markdown: String,
+    },
 }
 
 #[macro_export]
@@ -480,6 +484,9 @@ pub fn tab(
 }
 pub fn hr() -> Block {
     Block::HorizontalRule
+}
+pub fn custom(html: Html, markdown: String) -> Block {
+    Block::Custom { html, markdown }
 }
 
 impl Inline {
@@ -769,6 +776,7 @@ impl Block {
                 </>
             },
             Block::HorizontalRule => html! { <hr /> },
+            Block::Custom { html, .. } => html.clone(),
         }
     }
 
@@ -884,6 +892,7 @@ impl Block {
             Block::Image { src, alt } => format!("![{alt}]({src})\n\n"),
             Block::ThemedImage { light_src, alt, .. } => format!("![{alt}]({light_src})\n\n"),
             Block::HorizontalRule => "---\n\n".to_string(),
+            Block::Custom { markdown, .. } => format!("{markdown}\n"),
         }
     }
 }

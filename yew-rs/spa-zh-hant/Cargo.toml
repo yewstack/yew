@@ -6,8 +6,8 @@ rust-version = "1.84"
 
 [features]
 default = ["csr"]
-csr = ["yew/csr", "yew-site-lib/csr", "dep:yew-router"]
-ssr = ["yew/ssr", "yew-site-lib/ssr"]
+csr = ["yew/csr", "yew-site-lib/csr", "yew-site-docs/csr", "dep:yew-router"]
+ssr = ["yew/ssr", "yew-site-lib/ssr", "yew-site-docs/ssr"]
 
 [dependencies]
 yew = "0.23"

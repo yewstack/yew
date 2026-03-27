@@ -2,6 +2,7 @@ pub mod components;
 pub mod content;
 pub mod styles;
 
+pub use components::examples_gallery::examples_page_content;
 pub use components::footer::Footer;
 pub use components::layout::Layout;
 pub use components::navbar::Navbar;
@@ -623,17 +624,9 @@ macro_rules! spa_sidebar_fns {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __spa_version_resolver_impl {
-    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident, $bsa_content:expr ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
-        #[allow(unreachable_patterns)]
+    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
         pub fn $fn_name(path: &str) -> Option<$crate::PageData> {
             Some(match path {
-                "getting-started/build-a-sample-app" => $crate::PageData {
-                    title: "Build a sample app",
-                    sidebar_path: "/docs/getting-started/build-a-sample-app",
-                    doc_version: $version,
-                    sidebar: $sidebar_fn(),
-                    content: $bsa_content,
-                },
                 $($slug => $crate::PageData {
                     title: $title,
                     sidebar_path: $spath,
@@ -649,8 +642,8 @@ macro_rules! __spa_version_resolver_impl {
 
 #[macro_export]
 macro_rules! spa_version_resolver {
-    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident, $bsa_content:expr) => {
-        $crate::__doc_page_list!{$crate::__spa_version_resolver_impl, $fn_name, $version, $sidebar_fn, $doc, $bsa_content}
+    ($fn_name:ident, $version:expr, $sidebar_fn:path, $doc:ident) => {
+        $crate::__doc_page_list!{$crate::__spa_version_resolver_impl, $fn_name, $version, $sidebar_fn, $doc}
     };
 }
 

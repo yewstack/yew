@@ -1,35 +1,5 @@
 crate::doc_page!(
-    "Examples",
+    "例",
     "/ja/docs/getting-started/examples",
-    Content::new(vec![
-        p![
-            "Yewのリポジトリは",
-            link!("https://github.com/yewstack/yew/tree/v0.17/examples", "例"),
-            "がたくさんあります（メンテナンス状況は様々）。\
-             様々なフレームワークの機能の使い方を知るのにはそれらの例に取り組むのを勧めます。\
-             プルリクエストやIssueはウェルカムです。",
-        ],
-        ul![
-            li![link!(
-                "https://github.com/yewstack/yew/tree/v0.17/examples/todomvc",
-                bold!["Todoアプリ"]
-            )],
-            li![link!(
-                "https://github.com/yewstack/yew/tree/v0.17/examples/custom_components",
-                bold!["カスタムコンポーネント"]
-            )],
-            li![link!(
-                "https://github.com/yewstack/yew/tree/v0.17/examples/multi_thread",
-                bold!["マルチスレッド（エージェント）"]
-            )],
-            li![link!(
-                "https://github.com/yewstack/yew/tree/v0.17/examples/timer",
-                bold!["タイマーサービス"]
-            )],
-            li![link!(
-                "https://github.com/yewstack/yew/tree/v0.16.0/examples/nested_list",
-                bold!["ネストしたコンポーネント"]
-            )],
-        ],
-    ])
+    yew_site_lib::examples_page_content(false)
 );
