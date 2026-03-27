@@ -1,25 +1,15 @@
 # yew-rs: Yew Documentation Website
 
-## Quick build (English only)
+## Quick build
 
 ```sh
-cargo r -p yew-site-ssg -- --skip-wasm-opt
+cargo r -p yew-site-ssg -- --skip-wasm-opt --skip-capture
 ```
 
-Builds English pages only. Run from the workspace root or from `yew-rs/`.
+Builds the English pages, skips injecting the index.html with captured content. The fastest command to use in development.
 
-## Full build (all locales)
+## Quick build and serve
 
 ```sh
-cargo r -p yew-site-ssg -- --skip-wasm-opt --all-locales
+cargo r -p yew-site-ssg -- --skip-wasm-opt --skip-capture --serve 8080
 ```
-
-## Build and serve
-
-```sh
-cargo r -p yew-site-ssg -- --skip-wasm-opt --serve 8080
-```
-
-## Tests
-
-`--skip-capture` also saves more time but the SSR tests will fail.

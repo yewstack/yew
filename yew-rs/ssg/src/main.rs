@@ -259,6 +259,10 @@ fn strip_html_tags(s: &str) -> String {
 
 #[derive(Parser)]
 struct Args {
+    /// Build wasm crates in release mode (optimized, slower to compile).
+    #[arg(long)]
+    release: bool,
+
     #[arg(long)]
     skip_capture: bool,
 
@@ -648,29 +652,31 @@ fn collect_page_files(base: &Path, dir: &Path, results: &mut Vec<PathBuf>) {
     }
 }
 
-fn cargo_build_all(source_dir: &Path, pages: &[PageBinary]) -> Result<()> {
+fn cargo_build_all(source_dir: &Path, pages: &[PageBinary], release: bool) -> Result<()> {
     let mut crate_names: Vec<&str> = pages.iter().map(|p| p.crate_name.as_str()).collect();
     crate_names.sort();
     crate_names.dedup();
 
     let mut args = vec![
         "build".to_string(),
-        "--release".to_string(),
         "--target".to_string(),
         "wasm32-unknown-unknown".to_string(),
     ];
+    if release {
+        args.push("--release".to_string());
+    }
     for name in &crate_names {
         args.push("-p".to_string());
         args.push(name.to_string());
     }
 
     println!("Compiling {} crates...", crate_names.len());
-    let status = Command::new("cargo")
-        .args(&args)
-        .env("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "1")
-        .current_dir(source_dir.join(".."))
-        .status()
-        .context("Failed to run cargo build")?;
+    let mut cmd = Command::new("cargo");
+    cmd.args(&args).current_dir(source_dir.join(".."));
+    if release {
+        cmd.env("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "1");
+    }
+    let status = cmd.status().context("Failed to run cargo build")?;
 
     if !status.success() {
         bail!("cargo build failed");
@@ -690,12 +696,14 @@ fn process_binary(
     bin_name: &str,
     staging_dir: &Path,
     target_dir: &Path,
+    release: bool,
     skip_wasm_opt: bool,
 ) -> Result<ProcessedBinary> {
     std::fs::create_dir_all(staging_dir)?;
 
+    let profile = if release { "release" } else { "debug" };
     let wasm_input = target_dir
-        .join("wasm32-unknown-unknown/release")
+        .join(format!("wasm32-unknown-unknown/{profile}"))
         .join(format!("{bin_name}.wasm"));
 
     if !wasm_input.exists() {
@@ -857,6 +865,7 @@ fn build_pages_parallel(
     pages: &[PageBinary],
     output_dir: &Path,
     target_dir: &Path,
+    release: bool,
     skip_wasm_opt: bool,
 ) -> Result<()> {
     let jobs = std::thread::available_parallelism()
@@ -905,7 +914,7 @@ fn build_pages_parallel(
                 println!("[{n}/{total_bins}] Processing binary: {bin_name}");
 
                 let staging_dir = staging_base.join(bin_name);
-                match process_binary(bin_name, &staging_dir, target_dir, skip_wasm_opt) {
+                match process_binary(bin_name, &staging_dir, target_dir, release, skip_wasm_opt) {
                     Ok(pb) => {
                         processed.lock().unwrap().insert(bin_name.clone(), pb);
                     }
@@ -1357,7 +1366,7 @@ async fn main() -> Result<()> {
 
     let t = std::time::Instant::now();
     println!("\n=== Compile phase ===");
-    cargo_build_all(&source_dir, &pages)?;
+    cargo_build_all(&source_dir, &pages, args.release)?;
     println!("Compile phase: {:.1}s", t.elapsed().as_secs_f64());
 
     let target_dir = source_dir.join("..").join("target");
@@ -1371,7 +1380,13 @@ async fn main() -> Result<()> {
             ""
         }
     );
-    build_pages_parallel(&pages, &output_dir, &target_dir, args.skip_wasm_opt)?;
+    build_pages_parallel(
+        &pages,
+        &output_dir,
+        &target_dir,
+        args.release,
+        args.skip_wasm_opt,
+    )?;
     println!("Bundle phase: {:.1}s", t.elapsed().as_secs_f64());
 
     println!("\nCopying static assets...");
