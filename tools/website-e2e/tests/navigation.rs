@@ -1461,3 +1461,68 @@ async fn doc_page_pagination() {
 
     client.close().await.unwrap();
 }
+
+#[tokio::test]
+async fn dropdowns_close_on_outside_click() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/0.22/getting-started"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(500)).await;
+
+    let baseline_uls = client.find_all(Locator::Css("nav ul")).await.unwrap().len();
+
+    // --- Locale dropdown closes on outside click ---
+    let lang_btn = find_lang_button(&client).await;
+    lang_btn.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(300)).await;
+
+    let open_uls = client.find_all(Locator::Css("nav ul")).await.unwrap().len();
+    assert!(
+        open_uls > baseline_uls,
+        "locale dropdown should be open after click"
+    );
+
+    let heading = client
+        .find(Locator::XPath("//main//h1[contains(., 'Getting Started')]"))
+        .await
+        .expect("'Getting Started' heading not found");
+    heading.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(300)).await;
+
+    let closed_uls = client.find_all(Locator::Css("nav ul")).await.unwrap().len();
+    assert_eq!(
+        closed_uls, baseline_uls,
+        "locale dropdown should close after clicking outside"
+    );
+
+    // --- Version dropdown closes on outside click ---
+    let version_btn = find_nav_button_by_text(&client, "0.22").await;
+    version_btn.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(300)).await;
+
+    let open_uls = client.find_all(Locator::Css("nav ul")).await.unwrap().len();
+    assert!(
+        open_uls > baseline_uls,
+        "version dropdown should be open after click"
+    );
+
+    let heading = client
+        .find(Locator::XPath("//main//h1[contains(., 'Getting Started')]"))
+        .await
+        .expect("'Getting Started' heading not found");
+    heading.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(300)).await;
+
+    let closed_uls = client.find_all(Locator::Css("nav ul")).await.unwrap().len();
+    assert_eq!(
+        closed_uls, baseline_uls,
+        "version dropdown should close after clicking outside"
+    );
+
+    client.close().await.unwrap();
+}

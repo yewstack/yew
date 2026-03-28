@@ -29,7 +29,6 @@ pub fn Navbar(props: &NavbarProps) -> Html {
     let lang_open = yew_hooks::use_bool_toggle(false);
     let version_ref = use_node_ref();
     let lang_ref = use_node_ref();
-
     {
         let version_open = version_open.clone();
         yew_hooks::use_click_away(version_ref.clone(), move |_: Event| {

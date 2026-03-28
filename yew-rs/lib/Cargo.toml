@@ -18,4 +18,4 @@ wasm-bindgen = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 gloo = { workspace = true, optional = true }
 yew-router = { version = "0.20", default-features = false, optional = true }
-yew-hooks = "0.6"
+yew-hooks = { workspace = true }
