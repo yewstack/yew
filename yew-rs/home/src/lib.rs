@@ -183,7 +183,7 @@ fn Hero(props: &HomeProps) -> Html {
     let get_started_href = docs_href(&props.locale, &props.version_slug, "/getting-started");
 
     html! {
-        <div class={css!(background: var(--color-hero-bg); padding: 4rem 2rem; text-align: center; @media (max-width: 700px) { padding: 2rem 1rem; })}>
+        <div class={css!(padding: 4rem 2rem; text-align: center; @media (max-width: 700px) { padding: 2rem 1rem; })}>
             <div class={css!(display: flex; align-items: center; justify-content: center; gap: calc(var(--h1-font-size) / 2); padding: var(--h1-font-size); @media (max-width: 700px) { flex-direction: column; })}>
                 <img class={css!(r#"width: calc(var(--h1-font-size) * 5); height: calc(var(--h1-font-size) * 5); @media (max-width: 700px) { width: calc(var(--h1-font-size) * 3); height: calc(var(--h1-font-size) * 3); }"#)} src="/img/logo.svg" alt="Yew" />
                 <h1 class={css!(r#"font-size: calc(var(--h1-font-size) * 3); margin: 0; @media (max-width: 700px) { font-size: calc(var(--h1-font-size) * 1.5); }"#)}>{"Yew"}</h1>

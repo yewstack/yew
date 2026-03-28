@@ -29,7 +29,6 @@ pub fn GlobalStyles() -> Html {
                     --color-text-secondary: #606770;
                     --color-border: #dadde1;
                     --color-code-bg: #f6f8fa;
-                    --color-hero-bg: #f9fafb;
 
                     --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
                     --font-mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
@@ -72,7 +71,6 @@ pub fn GlobalStyles() -> Html {
                     --color-text-secondary: #b0b0b0;
                     --color-border: #3e4042;
                     --color-code-bg: #2d2d2d;
-                    --color-hero-bg: #242526;
 
                     --admonition-note-bg: #2a2a2c;
                     --admonition-tip-bg: #1a2e1a;

@@ -45,10 +45,12 @@ pub fn Navbar(props: &NavbarProps) -> Html {
     {
         let version_open = version_open.clone();
         let lang_open = lang_open.clone();
+        let mobile_open = mobile_open.clone();
         let deps = (props.current_path.clone(), props.doc_version.clone());
         use_effect_with(deps, move |_| {
             version_open.set(false);
             lang_open.set(false);
+            mobile_open.set(false);
         });
     }
 
@@ -467,16 +469,23 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                         display: block;
                     "#)}>{"Version"}</span>
                     for (label, slug) in VERSION_SLUGS {
-                        <a class={css!(
-                            color: ${if has_doc_version && *label == props.doc_version.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
-                            text-decoration: none;
-                            padding: 0.75rem 0;
-                            font-size: 0.875rem;
-                            font-weight: 500;
-                            display: inline-flex;
-                            align-items: center;
-                            &:hover { color: var(--color-primary); text-decoration: none; }
-                        )} href={compute_version_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), slug)}>{label}</a>
+                        {
+                            {
+                                let url = compute_version_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), slug);
+                                html! {
+                                    <a class={css!(
+                                        color: ${if has_doc_version && *label == props.doc_version.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
+                                        text-decoration: none;
+                                        padding: 0.75rem 0;
+                                        font-size: 0.875rem;
+                                        font-weight: 500;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        &:hover { color: var(--color-primary); text-decoration: none; }
+                                    )} href={url.clone()} onclick={crate::nav_onclick(&nav_ctx, &url)}>{label}</a>
+                                }
+                            }
+                        }
                     }
                     <div class={css!(height: 1px; background: var(--color-border); margin: 0.25rem 0;)} />
                     <span class={css!(r#"

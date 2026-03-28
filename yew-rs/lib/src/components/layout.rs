@@ -108,25 +108,40 @@ pub fn rewrite_doc_href(href: &str, lang: &str, doc_version: &str) -> String {
     }
 }
 
-fn edit_page_url(active_path: &str, lang: &str) -> String {
+fn edit_page_url(active_path: &str, lang: &str, doc_version: &str) -> String {
     const BASE: &str = "https://github.com/yewstack/yew/blob/master/yew-rs";
+    const SECTION_INDEX_SLUGS: &[&str] = &[
+        "getting-started",
+        "concepts/function-components",
+        "concepts/function-components/hooks",
+        "concepts/html",
+        "advanced-topics/struct-components",
+    ];
 
-    let crate_dir = if lang.is_empty() {
-        "docs".to_string()
-    } else {
-        format!("docs-{}", lang.to_lowercase())
-    };
+    let mut crate_dir = "docs".to_string();
+    if !lang.is_empty() {
+        crate_dir.push('-');
+        crate_dir.push_str(&lang.to_lowercase());
+    }
+    if !doc_version.is_empty() && doc_version != "Next" {
+        crate_dir.push('-');
+        crate_dir.push_str(&doc_version.replace('.', "-"));
+    }
 
     let bare = crate::strip_lang_prefix(active_path, lang);
 
     let Some(page_path) = bare.strip_prefix("/docs/") else {
         return String::new();
     };
-    let file_path: String = page_path
+    let mut file_path: String = page_path
         .split('/')
         .map(|seg| seg.replace('-', "_"))
         .collect::<Vec<_>>()
         .join("/");
+
+    if SECTION_INDEX_SLUGS.contains(&page_path) {
+        file_path.push_str("/introduction");
+    }
 
     format!("{BASE}/{crate_dir}/src/pages/{file_path}.rs")
 }
@@ -217,7 +232,11 @@ pub fn Layout(props: &LayoutProps) -> Html {
     });
 
     let edit_url = if has_sidebar {
-        edit_page_url(props.active_sidebar_path.as_str(), props.lang.as_str())
+        edit_page_url(
+            props.active_sidebar_path.as_str(),
+            props.lang.as_str(),
+            props.doc_version.as_str(),
+        )
     } else {
         String::new()
     };
