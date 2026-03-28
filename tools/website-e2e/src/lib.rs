@@ -86,6 +86,16 @@ pub async fn assert_nav_button(client: &fantoccini::Client, text: &str) {
     find_nav_button(client, text).await;
 }
 
+pub async fn click_nav_link(client: &fantoccini::Client, text: &str) {
+    let xpath = format!("//nav//a[normalize-space(text())='{text}']");
+    let link = client
+        .find(Locator::XPath(&xpath))
+        .await
+        .unwrap_or_else(|_| panic!("nav link '{text}' not found"));
+    link.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(800)).await;
+}
+
 pub fn page_looks_japanese(text: &str) -> bool {
     let kana_count = text
         .chars()

@@ -245,21 +245,26 @@ pub fn Navbar(
                         }
                     </div>
                     for (label, href, _) in nav_items {
-                        <a class={{
-                            let color = if *label == active_nav_label { "var(--color-primary)" } else { "var(--color-text)" };
-                            css!(
-                                color: ${color};
-                                text-decoration: none;
-                                padding: 0.5rem 0.75rem;
-                                font-size: 0.875rem;
-                                font-weight: 500;
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 0.25rem;
-                                &:hover { color: var(--color-primary); text-decoration: none; }
-                                @media (max-width: 700px) { display: none; }
-                            )
-                        }} href={*href} onclick={crate::nav_onclick(&nav_ctx, href)}>{label}</a>
+                        {
+                            {
+                                let url = compute_nav_href(href, lang.as_str(), doc_version.as_str());
+                                let color = if *label == active_nav_label { "var(--color-primary)" } else { "var(--color-text)" };
+                                html! {
+                                    <a class={css!(
+                                        color: ${color};
+                                        text-decoration: none;
+                                        padding: 0.5rem 0.75rem;
+                                        font-size: 0.875rem;
+                                        font-weight: 500;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 0.25rem;
+                                        &:hover { color: var(--color-primary); text-decoration: none; }
+                                        @media (max-width: 700px) { display: none; }
+                                    )} href={url.clone()} onclick={crate::nav_onclick(&nav_ctx, &url)}>{label}</a>
+                                }
+                            }
+                        }
                     }
                     <a class={css!(
                         color: var(--color-text);
@@ -416,16 +421,23 @@ pub fn Navbar(
                     -webkit-overflow-scrolling: touch;
                 )}>
                     for (label, href, _) in nav_items {
-                        <a class={css!(
-                            color: var(--color-text);
-                            text-decoration: none;
-                            padding: 0.75rem 0;
-                            font-size: 0.875rem;
-                            font-weight: 500;
-                            display: inline-flex;
-                            align-items: center;
-                            &:hover { color: var(--color-primary); text-decoration: none; }
-                        )} href={*href} onclick={crate::nav_onclick(&nav_ctx, href)}>{label}</a>
+                        {
+                            {
+                                let url = compute_nav_href(href, lang.as_str(), doc_version.as_str());
+                                html! {
+                                    <a class={css!(
+                                        color: var(--color-text);
+                                        text-decoration: none;
+                                        padding: 0.75rem 0;
+                                        font-size: 0.875rem;
+                                        font-weight: 500;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        &:hover { color: var(--color-primary); text-decoration: none; }
+                                    )} href={url.clone()} onclick={crate::nav_onclick(&nav_ctx, &url)}>{label}</a>
+                                }
+                            }
+                        }
                     }
                     <a class={css!(
                         color: var(--color-text);
@@ -559,6 +571,31 @@ fn DropdownItem(href: AttrValue, active: bool, children: Html) {
             </a>
         </li>
     }
+}
+
+fn compute_nav_href(base_href: &str, lang: &str, doc_version: &str) -> String {
+    let prefix = crate::lang_prefix(lang);
+    let version_slug = VERSION_SLUGS
+        .iter()
+        .find(|(label, _)| *label == doc_version)
+        .map(|(_, slug)| *slug)
+        .unwrap_or("");
+
+    if base_href.starts_with("/tutorial") {
+        if version_slug.is_empty() {
+            return format!("{prefix}/tutorial");
+        }
+        return format!("{prefix}/{version_slug}/tutorial");
+    }
+
+    if let Some(doc_path) = base_href.strip_prefix("/docs/") {
+        if version_slug.is_empty() {
+            return format!("{prefix}/docs/{doc_path}");
+        }
+        return format!("{prefix}/docs/{version_slug}/{doc_path}");
+    }
+
+    format!("{prefix}{base_href}")
 }
 
 fn compute_version_url(

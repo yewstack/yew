@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use fantoccini::Locator;
 use website_e2e::{
-    assert_nav_button as assert_version_selector, assert_path, build_dir, make_client,
-    page_looks_chinese, page_looks_japanese, start_file_server,
+    assert_nav_button as assert_version_selector, assert_path, build_dir, click_nav_link,
+    make_client, page_looks_chinese, page_looks_japanese, start_file_server,
 };
 
 async fn assert_lang_selector(client: &fantoccini::Client, expected: &str) {
@@ -1498,6 +1498,32 @@ async fn dropdowns_close_on_outside_click() {
         closed_uls, baseline_uls,
         "version dropdown should close after clicking outside"
     );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
+async fn nav_tutorial_link_version_and_locale_aware() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    let cases: &[(&str, &str)] = &[
+        ("/0.22/", "/0.22/tutorial"),
+        ("/ja/0.21/", "/ja/0.21/tutorial"),
+        ("/ja/docs/getting-started/editor-setup", "/ja/tutorial"),
+    ];
+
+    for &(start, expected) in cases {
+        client.goto(&format!("{base}{start}")).await.unwrap();
+        tokio::time::sleep(Duration::from_millis(500)).await;
+
+        click_nav_link(&client, "Tutorial").await;
+        tokio::time::sleep(Duration::from_millis(500)).await;
+
+        let url = client.current_url().await.unwrap();
+        assert_path(&url, expected);
+    }
 
     client.close().await.unwrap();
 }
