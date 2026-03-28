@@ -26,11 +26,16 @@ fn VersionBanner(doc_version: AttrValue, lang: AttrValue) {
             padding: 0.75rem 1rem;
             border: 1px solid #e6a700;
             border-radius: 6px;
-            background: #fff8e1;
+            background: #fff8e6;
             color: #5a4600;
             margin-bottom: 1rem;
             font-size: 0.9rem;
             line-height: 1.5;
+            [data-theme="dark"] *& {
+                background: #4d3800;
+                color: #ffd666;
+                border-color: #806200;
+            }
         )} role="alert">
             if is_next {
                 <div>{"This is unreleased documentation for Yew "}<b>{"Next"}</b>{" version."}</div>
@@ -39,7 +44,13 @@ fn VersionBanner(doc_version: AttrValue, lang: AttrValue) {
             }
             <div class={css!(margin-top: 0.5rem;)}>
                 {"For up-to-date documentation, see the "}
-                <b><a class={css!(color: #1a73e8; font-weight: 600;)} href={latest_path}>{latest_label}</a></b>
+                <b><a class={css!(
+                    color: #1a73e8;
+                    font-weight: 600;
+                    [data-theme="dark"] *& {
+                        color: #6cb4ff;
+                    }
+                )} href={latest_path}>{latest_label}</a></b>
                 {"."}
             </div>
         </div>

@@ -1,3 +1,5 @@
+use stylist::yew::Global;
+use stylist::StyleSource;
 use syntect::html::{ClassStyle, ClassedHTMLGenerator};
 use syntect::parsing::SyntaxSet;
 use syntect::util::LinesWithEndings;
@@ -143,6 +145,13 @@ pub fn CodeBlock(
     #[cfg(not(feature = "csr"))]
     let copy_button = html! {};
 
+    let syntect_light: StyleSource = SYNTECT_LIGHT_THEME
+        .try_into()
+        .expect("syntect light theme CSS");
+    let syntect_dark: StyleSource = SYNTECT_DARK_THEME
+        .try_into()
+        .expect("syntect dark theme CSS");
+
     html! {
         <div class={css!(
             margin-bottom: 1.5rem;
@@ -151,6 +160,8 @@ pub fn CodeBlock(
             border: 1px solid var(--color-border);
             &:hover button { opacity: 1; }
         )}>
+            <Global css={syntect_light} />
+            <Global css={syntect_dark} />
             if !title.is_empty() {
                 <div class={css!(
                     background: var(--color-bg-secondary);
@@ -177,3 +188,6 @@ pub fn CodeBlock(
         </div>
     }
 }
+
+const SYNTECT_LIGHT_THEME: &str = include_str!("syntect_light.css");
+const SYNTECT_DARK_THEME: &str = include_str!("syntect_dark.css");

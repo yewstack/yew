@@ -48,6 +48,21 @@ pub fn ContentLink(href: AttrValue, children: Html, #[prop_or_default] internal:
 }
 
 #[comp]
+fn ThemedImg(light_src: AttrValue, dark_src: AttrValue, alt: AttrValue) {
+    html! {
+        <>
+            <img src={light_src} alt={&alt} class={css!(
+                [data-theme="dark"] *& { display: none; }
+            )} />
+            <img src={dark_src} alt={&alt} class={css!(
+                display: none;
+                [data-theme="dark"] *& { display: block; }
+            )} />
+        </>
+    }
+}
+
+#[comp]
 fn ContentTable(children: Html) {
     html! {
         <div class={css!(overflow-x: auto; margin-bottom: 1rem;)}>
@@ -755,10 +770,7 @@ impl Block {
                 dark_src,
                 alt,
             } => html! {
-                <>
-                    <img src={light_src.clone()} alt={alt.clone()} class="themed-img-light" />
-                    <img src={dark_src.clone()} alt={alt.clone()} class="themed-img-dark" />
-                </>
+                <ThemedImg light_src={light_src.clone()} dark_src={dark_src.clone()} alt={alt.clone()} />
             },
             Block::HorizontalRule => html! { <hr /> },
             Block::Custom { html, .. } => html.clone(),
