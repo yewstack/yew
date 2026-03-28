@@ -56,7 +56,7 @@ cargo install --locked trunk"),
         p![
             "With your development environment set up, you can now proceed with reading the documentation. \
               If you like to learn by getting your hands dirty, we recommend you check out our ",
-            link!("/docs/tutorial", "tutorial"),
+            doc_link!(@ "/tutorial", "tutorial"),
             ".",
         ],
     ])

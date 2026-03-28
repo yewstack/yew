@@ -1,55 +1,5 @@
-use std::path::PathBuf;
-use std::time::Duration;
-
-use fantoccini::{ClientBuilder, Locator};
-use website_e2e::start_file_server;
-
-fn build_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../yew-rs/build")
-        .canonicalize()
-        .expect("yew-rs/build directory not found; run `cargo run -p yew-site-ssg` first")
-}
-
-fn webdriver_url() -> String {
-    std::env::var("WEBDRIVER_URL").unwrap_or_else(|_| "http://localhost:4444".into())
-}
-
-async fn make_client() -> fantoccini::Client {
-    for _ in 0..3 {
-        let webdriver = webdriver_url();
-        let mut caps = serde_json::Map::new();
-
-        if std::env::var("HEADLESS").is_ok() {
-            let args = serde_json::json!(["--headless", "--no-sandbox", "--disable-gpu"]);
-            caps.insert(
-                "goog:chromeOptions".into(),
-                serde_json::json!({ "args": args }),
-            );
-            caps.insert(
-                "moz:firefoxOptions".into(),
-                serde_json::json!({ "args": ["-headless"] }),
-            );
-        }
-
-        match ClientBuilder::native()
-            .capabilities(caps)
-            .connect(&webdriver)
-            .await
-        {
-            Ok(c) => return c,
-            Err(_) => {
-                tokio::time::sleep(Duration::from_millis(500)).await;
-            }
-        }
-    }
-    panic!("failed to connect to WebDriver after retries");
-}
-
-async fn wait_for_page(client: &fantoccini::Client) {
-    tokio::time::sleep(Duration::from_millis(1000)).await;
-    client.find(Locator::Css("main")).await.unwrap();
-}
+use fantoccini::Locator;
+use website_e2e::{build_dir, make_client, start_file_server, wait_for_page};
 
 const GITHUB_BASE: &str = "https://github.com/yewstack/yew/blob/master/yew-rs";
 

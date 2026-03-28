@@ -58,7 +58,7 @@ cargo install --locked trunk"#,
         p![
             "設定好開發環境後，現在可以繼續閱讀文件。如果您喜歡透過動手實作來學習，\
              我們建議您查看我們的",
-            link!("/zh-Hant/docs/tutorial", "教學"),
+            doc_link!(@ "/tutorial", "教學"),
             "。",
         ],
     ])

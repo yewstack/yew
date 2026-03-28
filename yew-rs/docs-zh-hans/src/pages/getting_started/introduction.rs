@@ -67,7 +67,7 @@ cargo install --locked trunk"#,
         p![
             "设置好开发环境后，您现在可以继续阅读文档。如果您喜欢通过动手实践来学习，\
              我们建议您查看我们的",
-            link!("/zh-Hans/docs/tutorial", "教程"),
+            doc_link!(@ "/tutorial", "教程"),
             "。",
         ],
     ])

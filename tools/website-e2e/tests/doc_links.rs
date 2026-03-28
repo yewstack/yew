@@ -1,61 +1,9 @@
-use std::path::PathBuf;
 use std::time::Duration;
 
-use fantoccini::{ClientBuilder, Locator};
-use website_e2e::start_file_server;
-
-fn build_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../yew-rs/build")
-        .canonicalize()
-        .expect("yew-rs/build directory not found; run `cargo run -p yew-site-ssg` first")
-}
-
-fn webdriver_url() -> String {
-    std::env::var("WEBDRIVER_URL").unwrap_or_else(|_| "http://localhost:4444".into())
-}
-
-async fn make_client() -> fantoccini::Client {
-    for _ in 0..3 {
-        let webdriver = webdriver_url();
-        let mut caps = serde_json::Map::new();
-
-        if std::env::var("HEADLESS").is_ok() {
-            let args = serde_json::json!(["--headless", "--no-sandbox", "--disable-gpu"]);
-            caps.insert(
-                "goog:chromeOptions".into(),
-                serde_json::json!({ "args": args }),
-            );
-            caps.insert(
-                "moz:firefoxOptions".into(),
-                serde_json::json!({ "args": ["-headless"] }),
-            );
-        }
-
-        match ClientBuilder::native()
-            .capabilities(caps)
-            .connect(&webdriver)
-            .await
-        {
-            Ok(c) => return c,
-            Err(_) => {
-                tokio::time::sleep(Duration::from_millis(500)).await;
-            }
-        }
-    }
-    panic!("failed to connect to WebDriver after retries");
-}
-
-fn assert_path(url: &url::Url, expected: &str) {
-    let actual = url.path().trim_end_matches('/');
-    let expected = expected.trim_end_matches('/');
-    assert_eq!(
-        actual,
-        expected,
-        "expected path {expected}, got {}",
-        url.path()
-    );
-}
+use fantoccini::Locator;
+use website_e2e::{
+    assert_nav_button, assert_path, build_dir, make_client, start_file_server, wait_for_page,
+};
 
 async fn click_content_link_by_href(client: &fantoccini::Client, href_contains: &str) {
     let css = format!("main a[href*='{href_contains}']");
@@ -64,11 +12,6 @@ async fn click_content_link_by_href(client: &fantoccini::Client, href_contains: 
     });
     link.click().await.unwrap();
     tokio::time::sleep(Duration::from_millis(800)).await;
-}
-
-async fn wait_for_page(client: &fantoccini::Client) {
-    tokio::time::sleep(Duration::from_millis(1000)).await;
-    client.find(Locator::Css("main")).await.unwrap();
 }
 
 async fn assert_element_visible(client: &fantoccini::Client, css_selector: &str) {
@@ -321,6 +264,80 @@ async fn doc_link_fragment_preserved() {
         "rendering-head-tags",
         "fragment should be preserved"
     );
+
+    client.close().await.unwrap();
+}
+
+async fn assert_tutorial_reached(
+    client: &fantoccini::Client,
+    expected_path: &str,
+    expected_version: &str,
+    expected_lang: &str,
+) {
+    assert_path(&client.current_url().await.unwrap(), expected_path);
+
+    let main = client.find(Locator::Css("main")).await.unwrap();
+    let h1 = main.find(Locator::Css("h1")).await.unwrap();
+    let text = h1.text().await.unwrap();
+    assert!(
+        text.contains("Tutorial"),
+        "expected tutorial page at {expected_path}, got h1: '{text}'"
+    );
+
+    assert_nav_button(client, expected_version).await;
+    assert_nav_button(client, expected_lang).await;
+}
+
+#[tokio::test]
+async fn tutorial_links_version_and_locale_aware() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    let cases: &[(&str, &str, &str, &str)] = &[
+        ("/docs/getting-started", "/tutorial", "0.23", "English"),
+        (
+            "/docs/next/getting-started",
+            "/next/tutorial",
+            "Next",
+            "English",
+        ),
+        (
+            "/docs/0.22/getting-started",
+            "/0.22/tutorial",
+            "0.22",
+            "English",
+        ),
+        (
+            "/docs/0.21/getting-started",
+            "/0.21/tutorial",
+            "0.21",
+            "English",
+        ),
+        ("/ja/docs/getting-started", "/ja/tutorial", "0.23", "日本語"),
+        (
+            "/ja/docs/0.20/getting-started",
+            "/ja/0.20/tutorial",
+            "0.20",
+            "日本語",
+        ),
+        (
+            "/zh-Hans/docs/0.21/getting-started",
+            "/zh-Hans/0.21/tutorial",
+            "0.21",
+            "简体中文",
+        ),
+    ];
+
+    for &(start, expected_path, expected_version, expected_lang) in cases {
+        client.goto(&format!("{base}{start}")).await.unwrap();
+        wait_for_page(&client).await;
+
+        click_content_link_by_href(&client, "tutorial").await;
+        wait_for_page(&client).await;
+
+        assert_tutorial_reached(&client, expected_path, expected_version, expected_lang).await;
+    }
 
     client.close().await.unwrap();
 }

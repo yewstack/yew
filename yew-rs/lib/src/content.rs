@@ -221,6 +221,9 @@ macro_rules! sup { ($($e:expr),* $(,)?) => { $crate::content::sup(vec![$($e.into
 macro_rules! link { ($href:expr, $($e:expr),* $(,)?) => { $crate::content::link($href, vec![$($e.into()),*]) }; }
 #[macro_export]
 macro_rules! doc_link {
+    (@ $href:expr, $($e:expr),+ $(,)?) => {
+        $crate::content::doc_link($href, vec![$($e.into()),+])
+    };
     ($page_mod:path, # $fragment:expr, $($e:expr),+ $(,)?) => {{
         use $page_mod as __page;
         $crate::content::doc_link(format!("{}#{}", __page::HREF, $fragment), vec![$($e.into()),+])

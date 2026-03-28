@@ -23,7 +23,7 @@ crate::doc_page!(
             None,
             p![
                 "如果您還沒有完成 ",
-                link!("../../tutorial", "教程"),
+                doc_link!(@ "/tutorial", "教程"),
                 "，請嘗試一下並自己測試這種響應性！",
             ],
         ),

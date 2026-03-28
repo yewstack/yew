@@ -22,7 +22,7 @@ pub fn page_content() -> yew_site_lib::Content {
             None,
             p![
                 "如果您尚未完成 ",
-                link!("/zh-Hans/docs/tutorial", "教程"),
+                doc_link!(@ "/tutorial", "教程"),
                 "，请尝试并自行测试这种响应性！",
             ],
         ),

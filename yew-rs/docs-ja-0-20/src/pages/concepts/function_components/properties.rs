@@ -26,7 +26,7 @@ crate::doc_page!(
             None,
             p![
                 "If you have not yet completed the ",
-                link!["/ja/docs/tutorial", "tutorial"],
+                doc_link!(@ "/tutorial", "tutorial"),
                 ", try it out and test this reactivity yourself!",
             ]
         ],

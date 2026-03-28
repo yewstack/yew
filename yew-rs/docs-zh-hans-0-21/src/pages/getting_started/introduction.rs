@@ -21,6 +21,6 @@ cargo install --locked trunk"),
           You might want to try one of these options:"],
         ul![li![link!("https://github.com/drager/wasm-pack/", "wasm-pack")], li![link!("https://github.com/IMI-eRnD-Be/wasm-run", "wasm-run")], li![link!("https://github.com/rustminded/xtask-wasm/", "xtask-wasm"), " (still in early development)"]],
         h2!["Next steps"],
-        p!["With your development environment set up, you can now proceed with reading the documentation. If you like to learn by getting your hands dirty, we recommend you check out our ", link!("/docs/0.21/tutorial", "tutorial"), "."]
+        p!["With your development environment set up, you can now proceed with reading the documentation. If you like to learn by getting your hands dirty, we recommend you check out our ", doc_link!(@ "/tutorial", "tutorial"), "."]
     ])
 );

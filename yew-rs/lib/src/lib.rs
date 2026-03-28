@@ -651,6 +651,32 @@ macro_rules! spa_version_resolver {
     };
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __spa_migration_resolver_impl {
+    ($fn_name:ident, $sidebar_fn:path, $doc:ident ; $( ($slug:expr, $title:expr, $spath:expr, $($mod_seg:ident)::+) ),* $(,)?) => {
+        pub fn $fn_name(path: &str) -> Option<$crate::PageData> {
+            Some(match path {
+                $($slug => $crate::PageData {
+                    title: $title,
+                    sidebar_path: $spath,
+                    doc_version: "",
+                    sidebar: $sidebar_fn(),
+                    content: $doc::pages::$($mod_seg)::+::page_content(),
+                },)*
+                _ => return None,
+            })
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! spa_migration_resolver {
+    ($fn_name:ident, $sidebar_fn:path, $doc:ident) => {
+        $crate::__migration_page_list!{$crate::__spa_migration_resolver_impl, $fn_name, $sidebar_fn, $doc}
+    };
+}
+
 #[macro_export]
 macro_rules! spa_csr_boilerplate {
     ($lang:expr, $locale:expr, $url_prefix:expr, $docs_next:ident, $docs_0_21:ident, $docs_0_20:ident) => {

@@ -80,6 +80,14 @@ pub fn rewrite_doc_href(href: &str, lang: &str, doc_version: &str) -> String {
                 format!("{lang_p}/docs/{slug}/{rest}")
             }
         }
+    } else if after_lang.strip_suffix('/').unwrap_or(after_lang) == "/tutorial" {
+        let lang_p = crate::lang_prefix(lang);
+        let slug = version_slug(doc_version);
+        if slug.is_empty() {
+            format!("{lang_p}/tutorial")
+        } else {
+            format!("{lang_p}/{slug}/tutorial")
+        }
     } else {
         href.to_string()
     }

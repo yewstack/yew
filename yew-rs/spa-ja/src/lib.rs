@@ -59,19 +59,7 @@ yew_site_lib::spa_version_resolver!(resolve_v022, "0.22", sidebar_0_22, yew_site
 yew_site_lib::spa_version_resolver!(resolve_v021, "0.21", sidebar_0_21, yew_site_docs_ja_0_21);
 yew_site_lib::spa_version_resolver!(resolve_v020, "0.20", sidebar_0_20, yew_site_docs_ja_0_20);
 
-yew_site_lib::page_map!(resolve_migration, "", sidebar, [
-    ("yew/from-0-19-0-to-0-20-0", "From 0.19.0 to 0.20.0", "/docs/migration-guides/yew/from-0-19-0-to-0-20-0", yew_site_docs::pages::migration_guides::yew::from_0_19_0_to_0_20_0::page_content()),
-    ("yew/from-0-20-0-to-0-21-0", "From 0.20.0 to 0.21.0", "/docs/migration-guides/yew/from-0-20-0-to-0-21-0", yew_site_docs::pages::migration_guides::yew::from_0_20_0_to_0_21_0::page_content()),
-    ("yew/from-0-21-0-to-0-22-0", "From 0.21.0 to 0.22.0", "/docs/migration-guides/yew/from-0-21-0-to-0-22-0", yew_site_docs::pages::migration_guides::yew::from_0_21_0_to_0_22_0::page_content()),
-    ("yew/from-0-22-0-to-0-23-0", "From 0.22.0 to 0.23.0", "/docs/migration-guides/yew/from-0-22-0-to-0-23-0", yew_site_docs_ja::pages::migration_guides::yew::from_0_22_0_to_0_23_0::page_content()),
-    ("yew-agent/from-0-0-0-to-0-1-0", "From 0.0.0 to 0.1.0", "/docs/migration-guides/yew-agent/from-0-0-0-to-0-1-0", yew_site_docs::pages::migration_guides::yew_agent::from_0_0_0_to_0_1_0::page_content()),
-    ("yew-agent/from-0-1-0-to-0-2-0", "From 0.1.0 to 0.2.0", "/docs/migration-guides/yew-agent/from-0-1-0-to-0-2-0", yew_site_docs::pages::migration_guides::yew_agent::from_0_1_0_to_0_2_0::page_content()),
-    ("yew-agent/from-0-3-0-to-0-4-0", "From 0.3.0 to 0.4.0", "/docs/migration-guides/yew-agent/from-0-3-0-to-0-4-0", yew_site_docs::pages::migration_guides::yew_agent::from_0_3_0_to_0_4_0::page_content()),
-    ("yew-agent/from-0-4-0-to-0-5-0", "From 0.4.0 to 0.5.0", "/docs/migration-guides/yew-agent/from-0-4-0-to-0-5-0", yew_site_docs_ja::pages::migration_guides::yew_agent::from_0_4_0_to_0_5_0::page_content()),
-    ("yew-router/from-0-15-0-to-0-16-0", "From 0.15.0 to 0.16.0", "/docs/migration-guides/yew-router/from-0-15-0-to-0-16-0", yew_site_docs_ja::pages::migration_guides::yew_router::from_0_15_0_to_0_16_0::page_content()),
-    ("yew-router/from-0-16-0-to-0-17-0", "From 0.16.0 to 0.17.0", "/docs/migration-guides/yew-router/from-0-16-0-to-0-17-0", yew_site_docs::pages::migration_guides::yew_router::from_0_16_0_to_0_17_0::page_content()),
-    ("yew-router/from-0-19-0-to-0-20-0", "From 0.19.0 to 0.20.0", "/docs/migration-guides/yew-router/from-0-19-0-to-0-20-0", yew_site_docs_ja::pages::migration_guides::yew_router::from_0_19_0_to_0_20_0::page_content()),
-]);
+yew_site_lib::spa_migration_resolver!(resolve_migration, sidebar, yew_site_docs_ja);
 
 yew_site_lib::spa_csr_boilerplate!(
     "ja",

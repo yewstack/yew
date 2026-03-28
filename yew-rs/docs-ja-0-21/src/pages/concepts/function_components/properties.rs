@@ -23,7 +23,7 @@ crate::doc_page!(
             None,
             p![
                 "まだ ",
-                link!("/ja/docs/tutorial", "チュートリアル"),
+                doc_link!(@ "/tutorial", "チュートリアル"),
                 " を完了していない場合は、このリアクティブ性を自分でテストしてみてください！",
             ]
         ),

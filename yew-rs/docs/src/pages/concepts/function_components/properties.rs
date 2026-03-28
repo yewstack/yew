@@ -25,7 +25,7 @@ pub fn page_content() -> yew_site_lib::Content {
             None,
             p![
                 "If you have not yet completed the ",
-                link!("/docs/tutorial", "tutorial"),
+                doc_link!(@ "/tutorial", "tutorial"),
                 ", try it out and test this reactivity yourself!",
             ],
         ),

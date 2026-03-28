@@ -1,8 +1,14 @@
-use std::path::PathBuf;
 use std::time::Duration;
 
-use fantoccini::{ClientBuilder, Locator};
-use website_e2e::{page_looks_chinese, page_looks_japanese, start_file_server};
+use fantoccini::Locator;
+use website_e2e::{
+    assert_nav_button as assert_version_selector, assert_path, build_dir, make_client,
+    page_looks_chinese, page_looks_japanese, start_file_server,
+};
+
+async fn assert_lang_selector(client: &fantoccini::Client, expected: &str) {
+    assert_version_selector(client, expected).await;
+}
 
 async fn assert_status(base: &str, path: &str, expected: u16) {
     let url = format!("{base}{path}");
@@ -12,69 +18,6 @@ async fn assert_status(base: &str, path: &str, expected: u16) {
         expected,
         "{path} returned {} (expected {expected})",
         resp.status()
-    );
-}
-
-fn build_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../yew-rs/build")
-        .canonicalize()
-        .expect("yew-rs/build directory not found; run `cargo run -p yew-site-ssg` first")
-}
-
-fn webdriver_url() -> String {
-    std::env::var("WEBDRIVER_URL").unwrap_or_else(|_| "http://localhost:4444".into())
-}
-
-async fn make_client() -> fantoccini::Client {
-    let webdriver = webdriver_url();
-    let mut caps = serde_json::Map::new();
-
-    if std::env::var("HEADLESS").is_ok() {
-        let args = serde_json::json!(["--headless", "--no-sandbox", "--disable-gpu"]);
-        caps.insert(
-            "goog:chromeOptions".into(),
-            serde_json::json!({ "args": args }),
-        );
-        caps.insert(
-            "moz:firefoxOptions".into(),
-            serde_json::json!({ "args": ["-headless"] }),
-        );
-    }
-
-    ClientBuilder::native()
-        .capabilities(caps)
-        .connect(&webdriver)
-        .await
-        .expect("failed to connect to WebDriver")
-}
-
-async fn find_nav_button_by_text(
-    client: &fantoccini::Client,
-    text: &str,
-) -> fantoccini::elements::Element {
-    let xpath = format!("//nav//button[contains(text(), '{text}')]");
-    client
-        .find(Locator::XPath(&xpath))
-        .await
-        .unwrap_or_else(|_| panic!("nav button containing '{text}' not found"))
-}
-
-async fn assert_version_selector(client: &fantoccini::Client, expected: &str) {
-    let btn = find_nav_button_by_text(client, expected).await;
-    let text = btn.text().await.unwrap();
-    assert!(
-        text.contains(expected),
-        "version selector mismatch: expected '{expected}', got '{text}'"
-    );
-}
-
-async fn assert_lang_selector(client: &fantoccini::Client, expected: &str) {
-    let btn = find_nav_button_by_text(client, expected).await;
-    let text = btn.text().await.unwrap();
-    assert!(
-        text.contains(expected),
-        "language selector mismatch: expected '{expected}', got '{text}'"
     );
 }
 
@@ -111,17 +54,6 @@ async fn click_sidebar_category(client: &fantoccini::Client, label: &str) {
         .unwrap_or_else(|_| panic!("sidebar category '{label}' not found"));
     link.click().await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
-}
-
-fn assert_path(url: &::url::Url, expected: &str) {
-    let actual = url.path().trim_end_matches('/');
-    let expected = expected.trim_end_matches('/');
-    assert_eq!(
-        actual,
-        expected,
-        "expected path {expected}, got {}",
-        url.path()
-    );
 }
 
 async fn assert_meta_attr(client: &fantoccini::Client, css: &str, attr: &str, expected: &str) {
@@ -218,7 +150,7 @@ async fn version_and_language_navigation() {
 
     // Step 2: expand version selector, verify options, click Next
     {
-        let btn = find_nav_button_by_text(&client, "0.23").await;
+        let btn = website_e2e::find_nav_button(&client, "0.23").await;
         btn.click().await.unwrap();
         tokio::time::sleep(Duration::from_millis(200)).await;
 
@@ -1501,7 +1433,7 @@ async fn dropdowns_close_on_outside_click() {
     );
 
     // --- Version dropdown closes on outside click ---
-    let version_btn = find_nav_button_by_text(&client, "0.22").await;
+    let version_btn = website_e2e::find_nav_button(&client, "0.22").await;
     version_btn.click().await.unwrap();
     tokio::time::sleep(Duration::from_millis(300)).await;
 
