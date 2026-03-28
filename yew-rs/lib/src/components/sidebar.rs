@@ -111,6 +111,23 @@ pub fn Sidebar(
     };
 
     let open_state = use_state(|| Rc::new(initially_open));
+
+    {
+        let open_state = open_state.clone();
+        let entries = entries.clone();
+        let active_path = active_path.clone();
+        use_effect_with(active_path.clone(), move |_| {
+            let mut needed = HashSet::new();
+            let mut path = Vec::new();
+            collect_active_categories(&entries, active_path.as_str(), &mut path, &mut needed);
+            if !needed.is_empty() && !needed.is_subset(&**open_state) {
+                let mut next = (**open_state).clone();
+                next.extend(needed);
+                open_state.set(Rc::new(next));
+            }
+        });
+    }
+
     let open_ctx = {
         let state_for_toggle = open_state.clone();
         let toggle = Callback::from(move |label: &'static str| {

@@ -1395,6 +1395,49 @@ async fn doc_page_pagination() {
 }
 
 #[tokio::test]
+async fn next_button_opens_sidebar_section() {
+    let addr = start_file_server(&build_dir()).await;
+    let base = format!("http://{addr}");
+    let client = make_client().await;
+
+    client
+        .goto(&format!("{base}/docs/advanced-topics/immutable"))
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+
+    let next_link = client
+        .find(Locator::XPath(
+            "//nav[@aria-label='Docs pages']//a[.//span[text()='Next']]",
+        ))
+        .await
+        .expect("Next pagination button not found");
+    next_link.click().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+
+    let url = client.current_url().await.unwrap();
+    assert_path(&url, "/docs/more/debugging");
+
+    let more_category = client
+        .find(Locator::XPath(
+            "//aside//div[contains(@aria-label, \"category 'More'\")]",
+        ))
+        .await
+        .expect("More category not found in sidebar");
+    let expanded = more_category
+        .attr("aria-expanded")
+        .await
+        .unwrap()
+        .unwrap_or_default();
+    assert_eq!(
+        expanded, "true",
+        "More sidebar section should be open after navigating via Next button"
+    );
+
+    client.close().await.unwrap();
+}
+
+#[tokio::test]
 async fn dropdowns_close_on_outside_click() {
     let addr = start_file_server(&build_dir()).await;
     let base = format!("http://{addr}");
