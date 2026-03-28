@@ -358,7 +358,7 @@ fn main() {
                     code("IString"),
                     " from ",
                     link!("https://crates.io/crates/implicit-clone", "implicit-clone"),
-                    " See that crate to learn more.",
+                    ". See that crate to learn more.",
                 ],
             ],
             li_blocks![
@@ -404,7 +404,7 @@ fn main() {
                     code("IArray<T>"),
                     " can be imported from ",
                     link!("https://crates.io/crates/implicit-clone", "implicit-clone"),
-                    " See that crate to learn more.",
+                    ". See that crate to learn more.",
                 ],
             ],
             li_blocks![p!["You tell us. Did you run into an edge-case you wish \
