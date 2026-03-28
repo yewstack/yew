@@ -929,6 +929,7 @@ pub struct TocEntry {
 
 pub struct Content {
     pub blocks: Vec<Block>,
+    pub description: Option<&'static str>,
 }
 
 impl Content {
@@ -957,7 +958,15 @@ impl Content {
                 }
             }
         }
-        Self { blocks }
+        Self {
+            blocks,
+            description: None,
+        }
+    }
+
+    pub fn with_description(mut self, desc: &'static str) -> Self {
+        self.description = Some(desc);
+        self
     }
 
     pub fn toc_entries(&self) -> IArray<TocEntry> {
@@ -985,6 +994,50 @@ impl Content {
                 _ => None,
             })
             .collect()
+    }
+
+    pub fn description_text(&self) -> String {
+        fn truncate(text: String) -> String {
+            if text.len() > 160 {
+                let end = text
+                    .char_indices()
+                    .nth(157)
+                    .map(|(i, _)| i)
+                    .unwrap_or(text.len());
+                format!("{}...", &text[..end])
+            } else {
+                text
+            }
+        }
+
+        if let Some(desc) = self.description {
+            return truncate(desc.to_string());
+        }
+
+        for block in &self.blocks {
+            if let Block::Paragraph(children) = block {
+                let text: String = children.iter().map(Inline::to_plain_text).collect();
+                let text = text.trim().to_string();
+                if !text.is_empty() {
+                    return truncate(text);
+                }
+            }
+        }
+        for block in &self.blocks {
+            if let Block::Heading {
+                level, children, ..
+            } = block
+            {
+                if *level >= 2 {
+                    let text: String = children.iter().map(Inline::to_plain_text).collect();
+                    let text = text.trim().to_string();
+                    if !text.is_empty() {
+                        return truncate(text);
+                    }
+                }
+            }
+        }
+        String::new()
     }
 
     pub fn to_html(&self) -> Html {

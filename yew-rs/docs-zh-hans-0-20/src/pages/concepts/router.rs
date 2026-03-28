@@ -133,4 +133,5 @@ crate::doc_page!(
                  u{914d}。",
         ],
     ])
+    .with_description("Yew's official router")
 );

@@ -55,4 +55,5 @@ crate::doc_page!("Agents", "/docs/concepts/agents",
             ],
         ],
     ])
+    .with_description("Yew's Actor System")
 );

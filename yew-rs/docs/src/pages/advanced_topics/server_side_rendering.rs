@@ -339,6 +339,7 @@ async fn main() {
             ],
         ],
     ])
+    .with_description("Render Yew on the server-side.")
 }
 
 crate::doc_page!(

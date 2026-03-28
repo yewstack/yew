@@ -66,6 +66,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ]],
         ],
     ])
+    .with_description("The planned feature roadmap for the Yew framework")
 }
 
 crate::doc_page!("Roadmap", "/docs/more/roadmap", page_content());

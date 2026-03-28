@@ -190,6 +190,7 @@ impl LinkProps {
 }"#,
         ),
     ])
+    .with_description("Parent to child communication")
 }
 
 crate::doc_page!(

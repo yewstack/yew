@@ -130,4 +130,5 @@ html! {
 }"#
         ),
     ])
+    .with_description("A handy macro to handle classes")
 );

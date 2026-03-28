@@ -42,6 +42,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " を参照してください。",
         ],
     ])
+    .with_description("アプリケーションをテストする")
 }
 
 crate::doc_page!(

@@ -207,6 +207,7 @@ html! {
             "Inner HTML",
         )]],
     ])
+    .with_description("Both HTML and SVG elements are supported")
 }
 
 crate::doc_page!("Elements", "/docs/concepts/html/elements", page_content());

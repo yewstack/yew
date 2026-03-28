@@ -103,4 +103,5 @@ pub struct LinkProps {
 }"#,
         ),
     ])
+    .with_description("Parent to child communication")
 );

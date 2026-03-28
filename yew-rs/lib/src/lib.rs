@@ -84,6 +84,13 @@ pub fn use_clipboard(text: AttrValue) -> (bool, Callback<MouseEvent>) {
     (*copied, onclick)
 }
 
+pub struct RenderedPage {
+    pub url: &'static str,
+    pub body: String,
+    pub styles: String,
+    pub description: String,
+}
+
 pub struct PageData {
     pub title: &'static str,
     pub sidebar_path: &'static str,
@@ -409,6 +416,8 @@ macro_rules! render_spa_page {
             }
         }
 
+        let description = __make_content().description_text();
+
         let (writer, reader) = render_static();
         let __sidebar_vec: Vec<$crate::SidebarEntry> = ::std::ops::Deref::deref(&$sidebar).to_vec();
         let body = ServerRenderer::<__SpaWrapper>::with_props(move || {
@@ -430,14 +439,22 @@ macro_rules! render_spa_page {
         let mut styles = String::new();
         style_data.write_static_markup(&mut styles).unwrap();
 
-        ($url, body, styles)
+        $crate::RenderedPage {
+            url: $url,
+            body,
+            styles,
+            description,
+        }
     }};
 }
 
 #[cfg(feature = "ssr")]
 #[macro_export]
 macro_rules! render_page {
-    ($url:expr, $page:ty) => {{
+    ($url:expr, $page:ty) => {
+        $crate::render_page!($url, $page, "")
+    };
+    ($url:expr, $page:ty, $desc:expr) => {{
         use ::yew::prelude::*;
         use $crate::ssr_reexports::{render_static, ManagerProvider, ServerRenderer, StyleManager};
 
@@ -468,7 +485,12 @@ macro_rules! render_page {
         let mut styles = String::new();
         style_data.write_static_markup(&mut styles).unwrap();
 
-        ($url, body, styles)
+        $crate::RenderedPage {
+            url: $url,
+            body,
+            styles,
+            description: ($desc).to_string(),
+        }
     }};
 }
 
@@ -574,7 +596,7 @@ macro_rules! __doc_render_migration_pages_impl {
 macro_rules! doc_render_pages {
     ($url_prefix:expr $(, with_migration_guides: $mg_prefix:expr)?) => {
         #[cfg(feature = "ssr")]
-        pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+        pub async fn render_pages() -> Vec<$crate::RenderedPage> {
             let mut pages = Vec::new();
             $crate::__doc_page_list!($crate::__doc_render_pages_impl, pages, $url_prefix);
             $($crate::__migration_page_list!($crate::__doc_render_migration_pages_impl, pages, $mg_prefix);)?
@@ -898,7 +920,7 @@ macro_rules! spa_ssr_render_pages {
         home_pages: [$home:ty, $home_next:ty, $home_v022:ty, $home_v021:ty, $home_v020:ty]
     ) => {
         #[cfg(feature = "ssr")]
-        pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+        pub async fn render_pages() -> Vec<$crate::RenderedPage> {
             let mut pages = Vec::new();
 
             $crate::__ssr_doc_pages!(
@@ -983,23 +1005,34 @@ macro_rules! spa_ssr_render_pages {
                 $lang
             );
 
-            pages.push($crate::render_page!(concat!($url_prefix, "/"), $home));
-            pages.push($crate::render_page!(
-                concat!($url_prefix, "/next/"),
-                $home_next
-            ));
-            pages.push($crate::render_page!(
-                concat!($url_prefix, "/0.22/"),
-                $home_v022
-            ));
-            pages.push($crate::render_page!(
-                concat!($url_prefix, "/0.21/"),
-                $home_v021
-            ));
-            pages.push($crate::render_page!(
-                concat!($url_prefix, "/0.20/"),
-                $home_v020
-            ));
+            {
+                let __home_desc = yew_site_home::home_description($lang);
+                pages.push($crate::render_page!(
+                    concat!($url_prefix, "/"),
+                    $home,
+                    __home_desc
+                ));
+                pages.push($crate::render_page!(
+                    concat!($url_prefix, "/next/"),
+                    $home_next,
+                    __home_desc
+                ));
+                pages.push($crate::render_page!(
+                    concat!($url_prefix, "/0.22/"),
+                    $home_v022,
+                    __home_desc
+                ));
+                pages.push($crate::render_page!(
+                    concat!($url_prefix, "/0.21/"),
+                    $home_v021,
+                    __home_desc
+                ));
+                pages.push($crate::render_page!(
+                    concat!($url_prefix, "/0.20/"),
+                    $home_v020,
+                    __home_desc
+                ));
+            }
 
             pages
         }

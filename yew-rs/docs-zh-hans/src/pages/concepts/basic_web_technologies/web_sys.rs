@@ -315,6 +315,7 @@ html! {
             "_",
         ],
     ])
+    .with_description("The web-sys crate provides bindings for Web APIs.")
 }
 
 crate::doc_page!(

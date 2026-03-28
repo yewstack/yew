@@ -114,6 +114,7 @@ impl Component for Comp {
             ".",
         ],
     ])
+    .with_description("Component's Scope")
 }
 
 crate::doc_page!(

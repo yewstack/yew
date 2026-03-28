@@ -93,4 +93,5 @@ fn Modal(props: &ModalProps) -> Html {
             "Portals example"
         )]]
     ])
+    .with_description("Rendering into out-of-tree DOM nodes")
 );

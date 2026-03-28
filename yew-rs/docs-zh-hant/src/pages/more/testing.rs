@@ -39,6 +39,7 @@ pub fn page_content() -> yew_site_lib::Content {
             "。",
         ],
     ])
+    .with_description("測試你的應用程式")
 }
 
 crate::doc_page!("測試應用", "/zh-Hant/docs/more/testing", page_content());

@@ -166,4 +166,5 @@ html! {
             "Inner HTML"
         ]]],
     ])
+    .with_description("Both HTML and SVG elements are supported")
 );

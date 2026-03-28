@@ -31,4 +31,5 @@ html! {
         ),
         p!["更多 CSS 相關的內容請參考", link!("", "此文檔"), "。",],
     ])
+    .with_description("A handy macro to handle classes")
 );

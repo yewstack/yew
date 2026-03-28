@@ -373,4 +373,5 @@ impl Component for Comp {
              允许向组件发送消息以及访问传递给组件的 props。"
         ]
     ])
+    .with_description("Components and their lifecycle hooks")
 );

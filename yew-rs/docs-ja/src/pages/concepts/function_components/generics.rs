@@ -41,6 +41,7 @@ html! {
 };"#,
         ),
     ])
+    .with_description("The #[component] attribute")
 }
 
 crate::doc_page!(

@@ -428,6 +428,7 @@ fn main() {
             " は実験的なパッケージで、関数の引数に基づいて動的にProps構造体を作成することを可能にします。プロパティ構造体が再利用されない場合、これは有用かもしれません。",
         ],
     ])
+    .with_description("Parent to child communication")
 }
 
 crate::doc_page!(

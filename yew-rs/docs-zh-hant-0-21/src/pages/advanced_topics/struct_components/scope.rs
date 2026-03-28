@@ -108,4 +108,5 @@ impl Component for Comp {
             " 中使用它們。",
         ],
     ])
+    .with_description("Component's Scope")
 );

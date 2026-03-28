@@ -154,6 +154,7 @@ html! {
             "內嵌 HTML",
         )]],
     ])
+    .with_description("Both HTML and SVG elements are supported")
 }
 
 crate::doc_page!(

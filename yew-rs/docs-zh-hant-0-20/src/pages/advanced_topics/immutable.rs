@@ -31,4 +31,5 @@ crate::doc_page!(
             ],],
         ],
     ])
+    .with_description("Immutable data structures for Yew")
 );

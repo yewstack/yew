@@ -130,4 +130,5 @@ fn MyComponent(props: &Props) -> Html {
 }"#
         ),
     ])
+    .with_description("A handy macro to handle classes")
 );

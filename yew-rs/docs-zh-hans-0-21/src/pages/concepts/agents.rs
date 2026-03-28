@@ -19,4 +19,5 @@ crate::doc_page!(
         h2!["Further reading"],
         ul![li!["The ", link!["https://github.com/yewstack/yew/tree/master/examples/web_worker_fib", "web_worker_fib"], " example shows how components can use agents to communicate with each other."]]
     ])
+    .with_description("Yew's Actor System")
 );

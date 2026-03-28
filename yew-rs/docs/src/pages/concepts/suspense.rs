@@ -158,6 +158,7 @@ fn app() -> Html {
             li![link!("https://github.com/yewstack/yew/tree/master/examples/suspense", "Suspense")],
         ],
     ])
+    .with_description("Suspense for data fetching")
 }
 
 crate::doc_page!("Suspense", "/docs/concepts/suspense", page_content());

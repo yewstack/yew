@@ -459,6 +459,7 @@ fn main() {
              结构体。如果属性结构体永远不会被重用，这可能会很有用。",
         ],
     ])
+    .with_description("Parent to child communication")
 }
 
 crate::doc_page!(

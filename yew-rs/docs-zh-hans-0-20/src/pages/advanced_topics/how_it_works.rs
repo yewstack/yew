@@ -5,4 +5,5 @@ crate::doc_page!(
         h1!["底层库的内部细节"],
         p!["组件生命周期状态机，虚拟 dom diff 算法。"],
     ])
+    .with_description("关于框架的底层细节")
 );

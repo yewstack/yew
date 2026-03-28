@@ -121,6 +121,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ]],
         ],
     ])
+    .with_description("关于框架的底层细节")
 }
 
 crate::doc_page!(

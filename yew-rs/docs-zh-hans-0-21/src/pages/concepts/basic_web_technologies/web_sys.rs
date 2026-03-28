@@ -26,4 +26,5 @@ crate::doc_page!(
         p![code("web-sys"), code("web-sys"), " to provide more idiomatic Rust APIs."],
         p![link!("/community/external-libs", "External libraries page")]
     ])
+    .with_description("The web-sys crate provides bindings for Web APIs.")
 );

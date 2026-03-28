@@ -262,6 +262,7 @@ html! {
             ],
         ],
     ])
+    .with_description("The procedural macro for generating HTML and SVG")
 }
 
 crate::doc_page!("HTML", "/zh-Hant/docs/concepts/html", page_content());

@@ -46,4 +46,5 @@ crate::doc_page!(
             " for this module.",
         ],
     ])
+    .with_description("Testing your app")
 );

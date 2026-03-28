@@ -323,6 +323,7 @@ impl Component for Comp {
         h2!["ライフサイクルコンテキスト"],
         p!["すべてのコンポーネントライフサイクルメソッドは、コンテキストオブジェクトを受け取ります。このオブジェクトは、コンポーネントのスコープへの参照を提供し、コンポーネントにメッセージを送信したり、コンポーネントに渡されたプロパティを取得したりすることができます。"],
     ])
+    .with_description("Components and their lifecycle hooks")
 }
 
 crate::doc_page!(

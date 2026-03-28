@@ -109,4 +109,5 @@ crate::doc_page!(
             " macro can be used to obtain a value of an environment variables at compile time.",
         ],
     ])
+    .with_description("部署 Yew 应用程序")
 );

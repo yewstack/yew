@@ -37,4 +37,5 @@ crate::doc_page!(
             "。",
         ],
     ])
+    .with_description("JavaScript with Rust")
 );

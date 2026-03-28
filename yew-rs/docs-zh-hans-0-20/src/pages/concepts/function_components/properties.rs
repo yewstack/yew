@@ -375,4 +375,5 @@ fn main() {
                            or PR a fix to this documentation."]],
         ],
     ])
+    .with_description("Parent to child communication")
 );

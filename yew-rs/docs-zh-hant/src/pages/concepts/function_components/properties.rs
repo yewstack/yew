@@ -448,6 +448,7 @@ fn main() {
              結構體。如果屬性結構體永遠不會被重複使用，這可能會很有用。",
         ],
     ])
+    .with_description("Parent to child communication")
 }
 
 crate::doc_page!(

@@ -45,6 +45,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li![link!("https://github.com/yewstack/yew/projects/6", "エージェント")],
         ],
     ])
+    .with_description("Yew フレームワークの計画機能ロードマップ")
 }
 
 crate::doc_page!("ロードマップ", "/ja/docs/more/roadmap", page_content());

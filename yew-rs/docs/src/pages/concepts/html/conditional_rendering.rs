@@ -74,6 +74,7 @@ html! {
             ),
         ),
     ])
+    .with_description("Rendering nodes conditionally in html!")
 }
 
 crate::doc_page!(

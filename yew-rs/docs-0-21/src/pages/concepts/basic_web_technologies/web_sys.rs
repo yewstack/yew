@@ -301,4 +301,5 @@ html! {
             ],
         ],
     ])
+    .with_description("The web-sys crate provides bindings for Web APIs.")
 );

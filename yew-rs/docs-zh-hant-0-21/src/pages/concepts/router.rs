@@ -100,4 +100,5 @@ enum AppRoute {
              無法被轉換，就會被視為沒有匹配。"
         ],
     ])
+    .with_description("Yew's official router")
 );

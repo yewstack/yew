@@ -60,4 +60,5 @@ html! {
 };"#
         ),
     ])
+    .with_description("Rendering nodes conditionally in html!")
 );

@@ -117,4 +117,5 @@ impl Component for List {
 }"#
         )
     ])
+    .with_description("Create complex layouts with component hierarchies")
 );

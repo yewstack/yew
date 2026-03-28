@@ -155,6 +155,7 @@ html! {
             "インライン HTML",
         ]]],
     ])
+    .with_description("Both HTML and SVG elements are supported")
 }
 
 crate::doc_page!("要素", "/ja/docs/concepts/html/elements", page_content());

@@ -115,6 +115,7 @@ html! {
             "をご覧ください。",
         ],
     ])
+    .with_description("A handy macro to handle classes")
 }
 
 crate::doc_page!(

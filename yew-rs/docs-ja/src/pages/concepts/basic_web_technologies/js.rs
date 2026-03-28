@@ -79,6 +79,7 @@ let document = window()
             "を強くお勧めします。",
         ],
     ])
+    .with_description("JavaScript with Rust")
 }
 
 crate::doc_page!(

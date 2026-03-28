@@ -41,6 +41,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ],
         ],
     ])
+    .with_description("Yew's Actor System")
 }
 
 crate::doc_page!("Agents", "/docs/concepts/agents", page_content());

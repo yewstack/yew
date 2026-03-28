@@ -64,4 +64,5 @@ crate::doc_page!(
             li!["Agents"],
         ],
     ])
+    .with_description("Yew 框架的計劃功能路線圖")
 );

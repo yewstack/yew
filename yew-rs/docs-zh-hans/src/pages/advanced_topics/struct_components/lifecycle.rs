@@ -372,6 +372,7 @@ impl Component for Comp {
              允许向组件发送消息并传递给组件的 props。"
         ],
     ])
+    .with_description("Components and their lifecycle hooks")
 }
 
 crate::doc_page!(

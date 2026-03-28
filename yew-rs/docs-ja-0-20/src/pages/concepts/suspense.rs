@@ -194,4 +194,5 @@ pub type UserContent = WithUser<BaseUserContent>;"##
             "Suspense"
         ]]],
     ])
+    .with_description("Suspense for data fetching")
 );

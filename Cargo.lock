@@ -5516,6 +5516,7 @@ dependencies = [
  "yew-site-blog",
  "yew-site-community",
  "yew-site-home",
+ "yew-site-lib",
  "yew-site-spa-en",
  "yew-site-spa-ja",
  "yew-site-spa-zh-hans",

@@ -43,4 +43,5 @@ html! {
 };"#
         )
     ])
+    .with_description("The #[component] attribute")
 );

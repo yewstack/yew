@@ -110,4 +110,5 @@ crate::doc_page!(
             " macro can be used to obtain a value of an environment variable at compile time.",
         ],
     ])
+    .with_description("Yew アプリケーションのデプロイ")
 );

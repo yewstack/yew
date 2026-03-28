@@ -52,6 +52,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " 範例展示了元件如何向代理程式傳送訊息並接收來自代理程式的訊息。",
         ]],
     ])
+    .with_description("Yew's Actor System")
 }
 
 crate::doc_page!(

@@ -133,4 +133,5 @@ html! {
             li![link!["https://github.com/yewstack/yew/tree/master/examples/function_router", "Function Router"]],
         ],
     ])
+    .with_description("Create complex layouts with component hierarchies")
 );

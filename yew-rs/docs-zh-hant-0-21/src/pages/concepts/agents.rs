@@ -68,4 +68,5 @@ crate::doc_page!(
             " 範例顯示了如何在 agents 之間溝通。",
         ]],
     ])
+    .with_description("Yew's Actor System")
 );

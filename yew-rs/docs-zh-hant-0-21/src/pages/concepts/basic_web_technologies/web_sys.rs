@@ -265,4 +265,5 @@ html! {
         ],
         p!["_[補充依賴庫清單]（/community/external-libs）_"],
     ])
+    .with_description("The web-sys crate provides bindings for Web APIs.")
 );

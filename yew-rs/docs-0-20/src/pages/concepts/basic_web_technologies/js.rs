@@ -72,4 +72,5 @@ let document = window()
             ".",
         ],
     ])
+    .with_description("JavaScript with Rust")
 );

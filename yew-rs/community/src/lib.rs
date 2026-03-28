@@ -25,7 +25,7 @@ macro_rules! community_page {
 }
 
 #[cfg(feature = "ssr")]
-pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+pub async fn render_pages() -> Vec<yew_site_lib::RenderedPage> {
     let mut pages = Vec::new();
     pages.push(yew_site_lib::render_page!(
         "/community/awesome",

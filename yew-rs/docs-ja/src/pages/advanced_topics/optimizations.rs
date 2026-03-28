@@ -180,6 +180,7 @@ build-std-features = ["panic_immediate_abort"]"#),
             li![link!["https://github.com/WebAssembly/binaryen", "binaryen プロジェクト"]],
         ],
     ])
+    .with_description("Make your app faster")
 }
 
 crate::doc_page!(

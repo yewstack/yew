@@ -193,4 +193,5 @@ fn app() -> Html {
             )],
         ],
     ])
+    .with_description("Suspense for data fetching")
 );

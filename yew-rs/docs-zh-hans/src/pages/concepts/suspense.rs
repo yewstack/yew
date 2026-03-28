@@ -180,6 +180,7 @@ fn app() -> Html {
             "占位标签",
         )]],
     ])
+    .with_description("Suspense for data fetching")
 }
 
 crate::doc_page!(

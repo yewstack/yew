@@ -245,4 +245,5 @@ fn main() {
             ],
         ],
     ])
+    .with_description("Render Yew on the server-side.")
 );

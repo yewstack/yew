@@ -96,6 +96,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " 巨集可以在編譯時取得環境變數的值。",
         ],
     ])
+    .with_description("部署 Yew 應用程式")
 }
 
 crate::doc_page!("部署", "/zh-Hant/docs/more/deployment", page_content());

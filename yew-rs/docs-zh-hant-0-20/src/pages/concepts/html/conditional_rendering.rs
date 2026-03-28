@@ -50,4 +50,5 @@ crate::doc_page!(
             ],
         ],
     ])
+    .with_description("Rendering nodes conditionally in html!")
 );

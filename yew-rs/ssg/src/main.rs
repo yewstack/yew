@@ -192,71 +192,6 @@ fn generate_breadcrumb_jsonld(url_path: &str, title: &str) -> String {
     )
 }
 
-fn extract_description(html_body: &str) -> String {
-    fn find_first_tag_text(html: &str, tag_prefix: &str, tag_close: &str) -> Option<String> {
-        let mut search_from = 0;
-        while let Some(pos) = html[search_from..].find(tag_prefix) {
-            let abs = search_from + pos;
-            let after = &html[abs..];
-            if let Some(gt) = after.find('>') {
-                let start = abs + gt + 1;
-                if let Some(end) = html[start..].find(tag_close) {
-                    let inner = &html[start..start + end];
-                    let text = strip_html_tags(inner)
-                        .trim()
-                        .trim_end_matches('#')
-                        .trim()
-                        .to_string();
-                    if !text.is_empty() {
-                        return Some(text);
-                    }
-                }
-            }
-            search_from = abs + 1;
-        }
-        None
-    }
-
-    fn truncate(text: String) -> String {
-        if text.len() > 160 {
-            let end = text
-                .char_indices()
-                .nth(157)
-                .map(|(i, _)| i)
-                .unwrap_or(text.len());
-            format!("{}...", &text[..end])
-        } else {
-            text
-        }
-    }
-
-    if let Some(text) = find_first_tag_text(html_body, "<h2", "</h2>") {
-        return truncate(text);
-    }
-    if let Some(text) = find_first_tag_text(html_body, "<h3", "</h3>") {
-        return truncate(text);
-    }
-    if let Some(text) = find_first_tag_text(html_body, "<p", "</p>") {
-        return truncate(text);
-    }
-    "A framework for creating reliable and efficient web applications.".to_string()
-}
-
-fn strip_html_tags(s: &str) -> String {
-    let mut result = String::new();
-    let mut in_tag = false;
-    for c in s.chars() {
-        if c == '<' {
-            in_tag = true;
-        } else if c == '>' {
-            in_tag = false;
-        } else if !in_tag {
-            result.push(c);
-        }
-    }
-    result
-}
-
 #[derive(Parser)]
 struct Args {
     /// Build wasm crates in release mode (optimized, slower to compile).
@@ -969,8 +904,8 @@ fn build_pages_parallel(
 async fn render_and_inject(output_dir: &Path, all_locales: bool) -> Result<()> {
     let all_rendered = render_all_pages(all_locales).await;
 
-    for (url_path, body_html, styles_html) in &all_rendered {
-        let rel = url_path.trim_start_matches('/');
+    for page in &all_rendered {
+        let rel = page.url.trim_start_matches('/');
         let html_path = if rel.is_empty() {
             output_dir.join("index.html")
         } else {
@@ -978,33 +913,35 @@ async fn render_and_inject(output_dir: &Path, all_locales: bool) -> Result<()> {
         };
 
         if !html_path.exists() {
-            println!("Warning: no index.html for {url_path}, skipping");
+            println!("Warning: no index.html for {}, skipping", page.url);
             continue;
         }
 
-        println!("Injecting: {url_path}");
+        println!("Injecting: {}", page.url);
         let original = std::fs::read_to_string(&html_path)?;
-        let description = extract_description(body_html);
+        let description = if page.description.is_empty() {
+            "A framework for creating reliable and efficient web applications.".to_string()
+        } else {
+            page.description.clone()
+        };
         let escaped_desc = description
             .replace('&', "&amp;")
             .replace('"', "&quot;")
             .replace('<', "&lt;")
             .replace('>', "&gt;");
-        let mut extra_head = styles_html.clone();
-        if !escaped_desc.is_empty() {
-            extra_head.push_str(&format!(
-                "    <meta name=\"description\" content=\"{escaped_desc}\" />\n\x20   <meta \
-                 property=\"og:description\" content=\"{escaped_desc}\" />\n"
-            ));
-        }
-        let updated = inject_styles(&inject_body(&original, body_html), &extra_head);
+        let mut extra_head = page.styles.clone();
+        extra_head.push_str(&format!(
+            "    <meta name=\"description\" content=\"{escaped_desc}\" />\n\x20   <meta \
+             property=\"og:description\" content=\"{escaped_desc}\" />\n"
+        ));
+        let updated = inject_styles(&inject_body(&original, &page.body), &extra_head);
         std::fs::write(&html_path, updated)?;
     }
 
     Ok(())
 }
 
-async fn render_all_pages(all_locales: bool) -> Vec<(&'static str, String, String)> {
+async fn render_all_pages(all_locales: bool) -> Vec<yew_site_lib::RenderedPage> {
     let mut all = Vec::new();
     all.extend(yew_site_spa_en::render_pages().await);
     if all_locales {

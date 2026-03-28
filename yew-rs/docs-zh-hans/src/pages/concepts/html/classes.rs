@@ -143,6 +143,7 @@ fn MyComponent(props: &Props) -> Html {
 }"#,
         ),
     ])
+    .with_description("A handy macro to handle classes")
 }
 
 crate::doc_page!("类", "/zh-Hans/docs/concepts/html/classes", page_content());

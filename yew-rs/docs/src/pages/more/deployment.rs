@@ -109,6 +109,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " macro can be used to obtain a value of an environment variable at compile time.",
         ],
     ])
+    .with_description("Deploying Yew applications")
 }
 
 crate::doc_page!("Deployment", "/docs/more/deployment", page_content());

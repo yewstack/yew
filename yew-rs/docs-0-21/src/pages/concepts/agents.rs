@@ -65,4 +65,5 @@ crate::doc_page!(
             ],
         ],
     ])
+    .with_description("Yew's Actor System")
 );

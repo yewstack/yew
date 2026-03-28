@@ -405,4 +405,5 @@ fn main() {
                  プロパティ構造体が再利用されない場合、これは有用かもしれません。",
         ],
     ])
+    .with_description("Parent to child communication")
 );

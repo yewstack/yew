@@ -102,6 +102,7 @@ impl Component for Comp {
             " でそれらを使用できるようになります。",
         ],
     ])
+    .with_description("Component's Scope")
 }
 
 crate::doc_page!(

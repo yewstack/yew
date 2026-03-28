@@ -63,6 +63,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li![link!("https://github.com/yewstack/yew/projects/6", "代理",)],
         ],
     ])
+    .with_description("The planned feature roadmap for the Yew framework")
 }
 
 crate::doc_page!("路线图", "/zh-Hans/docs/more/roadmap", page_content());

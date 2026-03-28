@@ -127,6 +127,7 @@ html! {
             li![link!["https://github.com/yewstack/yew/tree/master/examples/function_router", "関数型ルーティング"]],
         ],
     ])
+    .with_description("Create complex layouts with component hierarchies")
 }
 
 crate::doc_page!(

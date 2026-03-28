@@ -88,6 +88,7 @@ html! {
             "を参照してください。",
         ],
     ])
+    .with_description("It is HTML but not quite!")
 }
 
 crate::doc_page!(

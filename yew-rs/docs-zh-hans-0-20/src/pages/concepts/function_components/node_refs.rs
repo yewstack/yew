@@ -41,4 +41,5 @@ crate::doc_page!(
             ]],
         ],
     ])
+    .with_description("Out-of-band DOM access")
 );

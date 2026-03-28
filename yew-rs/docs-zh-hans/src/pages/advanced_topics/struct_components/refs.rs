@@ -62,6 +62,7 @@ impl Component for Comp {
             "节点引用",
         )]],
     ])
+    .with_description("Out-of-band DOM access")
 }
 
 crate::doc_page!(

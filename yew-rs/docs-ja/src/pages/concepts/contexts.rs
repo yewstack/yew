@@ -218,6 +218,7 @@ pub fn ThemedButton() -> Html {
             ],
         ],
     ])
+    .with_description("Using contexts to pass deeply nested data")
 }
 
 crate::doc_page!(

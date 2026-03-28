@@ -13,4 +13,5 @@ crate::doc_page!(
              改变），来测试你的网站。"
         ]
     ])
+    .with_description("测试你的应用")
 );

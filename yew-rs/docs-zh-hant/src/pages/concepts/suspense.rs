@@ -177,6 +177,7 @@ fn app() -> Html {
             "佔位標籤",
         )]],
     ])
+    .with_description("Suspense for data fetching")
 }
 
 crate::doc_page!(

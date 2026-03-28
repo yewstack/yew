@@ -312,4 +312,5 @@ impl Component for Comp {
             " 的方法。",
         ],
     ])
+    .with_description("Components and their lifecycle hooks")
 );

@@ -16,4 +16,5 @@ crate::doc_page!("Testing apps", "/ja/docs/more/testing", {
             "に記載されています。",
         ],
     ])
+    .with_description("アプリケーションをテストする")
 });

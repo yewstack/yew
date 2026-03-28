@@ -249,4 +249,5 @@ build-std-features = ["panic_immediate_abort"]"#),
             ],
         ],
     ])
+    .with_description("Make your app faster")
 );

@@ -156,6 +156,7 @@ fn app() -> Html {
             li![link!("https://github.com/yewstack/yew/tree/master/examples/suspense", "プレースホルダー")],
         ],
     ])
+    .with_description("Suspense for data fetching")
 }
 
 crate::doc_page!(

@@ -60,4 +60,5 @@ that require occasional attention and tweaking. Use these experimental options w
         h2!["Further reading:"],
         ul![li![link!("https://doc.rust-lang.org/book/ch15-00-smart-pointers.html", "The Rust Book's chapter on smart pointers")], li![link!("https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size", "Information from the Rust Wasm Book about reducing binary sizes")], li![link!("https://doc.rust-lang.org/cargo/reference/profiles.html", "Documentation about Rust profiles")], li![link!("https://github.com/WebAssembly/binaryen", "binaryen project")]]
     ])
+    .with_description("Make your app faster")
 );

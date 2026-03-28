@@ -96,4 +96,5 @@ fn main() {
         admonition![AdmonitionType::Caution, None, p!["Server-side rendering is currently experimental. If you find a bug, please file
 an issue on ", link!("https://github.com/yewstack/yew/issues/new?assignees=&labels=bug&template=bug_report.md&title=", "GitHub"), "."]]
     ])
+    .with_description("Render Yew on the server-side.")
 );

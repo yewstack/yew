@@ -63,6 +63,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li![link!("https://github.com/yewstack/yew/projects/6", "代理",)],
         ],
     ])
+    .with_description("Yew 框架的計劃功能路線圖")
 }
 
 crate::doc_page!("路線圖", "/zh-Hant/docs/more/roadmap", page_content());

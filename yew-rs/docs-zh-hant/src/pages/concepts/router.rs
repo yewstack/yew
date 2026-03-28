@@ -610,6 +610,7 @@ pub fn app() -> Html {
         h2!["介面參考"],
         ul![li![link!("https://docs.rs/yew-router/", "yew-router",)]],
     ])
+    .with_description("Yew's official router")
 }
 
 crate::doc_page!(

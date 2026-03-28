@@ -40,6 +40,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ]],
         ],
     ])
+    .with_description("Out-of-band DOM access")
 }
 
 crate::doc_page!(

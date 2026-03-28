@@ -104,6 +104,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " マクロは、コンパイル時に環境変数の値を取得できます。",
         ],
     ])
+    .with_description("Yew アプリケーションのデプロイ")
 }
 
 crate::doc_page!("デプロイ", "/ja/docs/more/deployment", page_content());

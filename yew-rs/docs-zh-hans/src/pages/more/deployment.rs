@@ -96,6 +96,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " 宏可以在编译时获取环境变量的值。",
         ],
     ])
+    .with_description("部署 Yew 应用程序")
 }
 
 crate::doc_page!("部署", "/zh-Hans/docs/more/deployment", page_content());

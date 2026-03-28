@@ -60,4 +60,5 @@ if let Some(text) = some_text {
 };"#
         ),
     ])
+    .with_description("Rendering nodes conditionally in html!")
 );

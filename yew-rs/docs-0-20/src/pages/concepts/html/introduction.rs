@@ -224,4 +224,5 @@ if true {
             ],
         ],
     ])
+    .with_description("The procedural macro for generating HTML and SVG")
 );

@@ -134,6 +134,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ]],
         ],
     ])
+    .with_description("Low level details about the framework")
 }
 
 crate::doc_page!(

@@ -119,4 +119,5 @@ fn app() -> Html {
         h2!["Relevant examples"],
         ul![li![link!["https://github.com/yewstack/yew/tree/master/examples/suspense", "Suspense"]]]
     ])
+    .with_description("Suspense for data fetching")
 );

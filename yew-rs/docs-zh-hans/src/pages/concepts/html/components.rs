@@ -146,6 +146,7 @@ html! {
             )],
         ],
     ])
+    .with_description("Create complex layouts with component hierarchies")
 }
 
 crate::doc_page!(

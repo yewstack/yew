@@ -133,4 +133,5 @@ build-std-features = ["panic_immediate_abort"]"#
             过于庞大，或者你想在深层嵌套的页面（例如，在另一个页面顶部渲染的页面）中快速迭代，\
             则可以使用一个示例 crate 创建一个更简单的主页面实现并在之上渲染你正在开发的组件。"],
     ])
+    .with_description("Make your app faster")
 );

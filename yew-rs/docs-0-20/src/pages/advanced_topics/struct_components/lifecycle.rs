@@ -410,4 +410,5 @@ impl Component for Comp {
              the props passed to the component.",
         ],
     ])
+    .with_description("Components and their lifecycle hooks")
 );

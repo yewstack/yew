@@ -150,4 +150,5 @@ impl Component for $NAME$ {
 }"#
         ),
     ])
+    .with_description("Setting your code editor")
 );

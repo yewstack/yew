@@ -45,6 +45,7 @@ pub fn page_content() -> yew_site_lib::Content {
             " for this module.",
         ],
     ])
+    .with_description("Testing your app")
 }
 
 crate::doc_page!("Testing apps", "/docs/more/testing", page_content());

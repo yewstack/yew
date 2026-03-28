@@ -62,4 +62,5 @@ impl Component for Comp {
             "Node Refs"
         )]]
     ])
+    .with_description("Out-of-band DOM access")
 );

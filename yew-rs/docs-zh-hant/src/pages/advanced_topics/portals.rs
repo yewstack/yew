@@ -85,6 +85,7 @@ fn Modal(props: &ModalProps) -> Html {
             "傳送門範例",
         ]]],
     ])
+    .with_description("Rendering into out-of-tree DOM nodes")
 }
 
 crate::doc_page!(

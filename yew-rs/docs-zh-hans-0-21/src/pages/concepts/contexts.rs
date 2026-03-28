@@ -140,4 +140,5 @@ pub fn ThemedButton() -> Html {
         h2!["Further reading"],
         ul![li!["The ", link!["https://github.com/yewstack/yew/tree/master/examples/contexts", "contexts example"]]]
     ])
+    .with_description("Using contexts to pass deeply nested data")
 );

@@ -134,4 +134,5 @@ crate::doc_page!(
             ]],
         ],
     ])
+    .with_description("Low level details about the framework")
 );

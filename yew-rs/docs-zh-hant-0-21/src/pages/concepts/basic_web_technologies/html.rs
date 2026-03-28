@@ -47,4 +47,5 @@ let combined_html: Html = html! {
             "。",
         ],
     ])
+    .with_description("It is HTML but not quite!")
 );

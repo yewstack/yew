@@ -48,4 +48,5 @@ impl Component for Comp {
 }"#
         ),
     ])
+    .with_description("Out-of-band DOM access")
 );

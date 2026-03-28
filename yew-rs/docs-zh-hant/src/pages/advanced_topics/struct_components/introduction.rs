@@ -50,6 +50,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ],
         ),
     ])
+    .with_description("Components in Yew")
 }
 
 crate::doc_page!(

@@ -39,6 +39,7 @@ pub fn page_content() -> yew_site_lib::Content {
             ],
         ],
     ])
+    .with_description("Yew のエージェントシステム")
 }
 
 crate::doc_page!(

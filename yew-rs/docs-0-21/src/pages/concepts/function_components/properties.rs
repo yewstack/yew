@@ -419,4 +419,5 @@ fn main() {
              never reused.",
         ],
     ])
+    .with_description("Parent to child communication")
 );

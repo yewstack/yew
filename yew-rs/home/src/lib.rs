@@ -135,6 +135,10 @@ pub const STRINGS_ZH_HANT: HomeStrings = HomeStrings {
     ],
 };
 
+pub fn home_description(lang: &str) -> &'static str {
+    strings_for_locale(if lang.is_empty() { "en" } else { lang }).subtitle
+}
+
 pub fn strings_for_locale(locale: &str) -> &'static HomeStrings {
     match locale {
         "ja" => &STRINGS_JA,
@@ -330,7 +334,7 @@ home_component!(PageZhHansV020, "zh-Hans", "0.20");
 home_component!(PageZhHantV020, "zh-Hant", "0.20");
 
 #[cfg(feature = "ssr")]
-pub async fn render_search_and_404() -> Vec<(&'static str, String, String)> {
+pub async fn render_search_and_404() -> Vec<yew_site_lib::RenderedPage> {
     vec![
         yew_site_lib::render_page!("/search", search::Page),
         yew_site_lib::render_page!("/404", not_found::Page),
@@ -338,7 +342,7 @@ pub async fn render_search_and_404() -> Vec<(&'static str, String, String)> {
 }
 
 #[cfg(feature = "ssr")]
-pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+pub async fn render_pages() -> Vec<yew_site_lib::RenderedPage> {
     let mut pages = render_search_and_404().await;
     pages.extend(vec![
         yew_site_lib::render_page!("/", Page),

@@ -55,4 +55,5 @@ crate::doc_page!("Agents", "/ja/docs/concepts/agents",
             ],
         ],
     ])
+    .with_description("Yew のエージェントシステム")
 );

@@ -98,4 +98,5 @@ crate::doc_page!(
             " 巨集可以在編譯時取得環境變數的值。",
         ],
     ])
+    .with_description("部署 Yew 應用程式")
 );

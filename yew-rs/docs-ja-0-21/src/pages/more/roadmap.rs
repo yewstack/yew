@@ -74,4 +74,5 @@ crate::doc_page!(
             )],
         ],
     ])
+    .with_description("Yew フレームワークの計画機能ロードマップ")
 );

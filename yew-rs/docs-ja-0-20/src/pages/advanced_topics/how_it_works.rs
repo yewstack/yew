@@ -134,4 +134,5 @@ crate::doc_page!(
             ]],
         ],
     ])
+    .with_description("フレームワークの低レベルの詳細について")
 );

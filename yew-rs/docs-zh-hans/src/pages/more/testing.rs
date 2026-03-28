@@ -39,6 +39,7 @@ pub fn page_content() -> yew_site_lib::Content {
             "。",
         ],
     ])
+    .with_description("测试你的应用")
 }
 
 crate::doc_page!("测试应用", "/zh-Hans/docs/more/testing", page_content());

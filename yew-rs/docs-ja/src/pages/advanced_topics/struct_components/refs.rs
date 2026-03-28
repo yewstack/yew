@@ -64,6 +64,7 @@ impl Component for Comp {
             "ノード参照",
         )]],
     ])
+    .with_description("Out-of-band DOM access")
 }
 
 crate::doc_page!(

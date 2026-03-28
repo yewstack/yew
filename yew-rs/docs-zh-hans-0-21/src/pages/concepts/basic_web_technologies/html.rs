@@ -29,4 +29,5 @@ crate::doc_page!(
             "."
         ]
     ])
+    .with_description("It is HTML but not quite!")
 );

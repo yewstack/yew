@@ -137,4 +137,5 @@ enum AppRoute {
              のキャプチャ部分がそれに変換できない場合、variant はマッチしません。",
         ],
     ])
+    .with_description("Yew's official router")
 );

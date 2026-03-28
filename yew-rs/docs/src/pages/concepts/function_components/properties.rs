@@ -492,6 +492,7 @@ assert_eq!(props.last, 3);"#,
              never reused.",
         ],
     ])
+    .with_description("Parent to child communication")
 }
 
 crate::doc_page!(

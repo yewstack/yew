@@ -216,28 +216,33 @@ macro_rules! blog_page {
 }
 
 #[cfg(feature = "ssr")]
-pub async fn render_pages() -> Vec<(&'static str, String, String)> {
+pub async fn render_pages() -> Vec<yew_site_lib::RenderedPage> {
     let mut pages = Vec::new();
     pages.push(yew_site_lib::render_page!("/blog", pages::index::Page));
     pages.push(yew_site_lib::render_page!(
         "/blog/2022/01/20/hello-yew",
-        pages::hello_yew::Page
+        pages::hello_yew::Page,
+        pages::hello_yew::META.description
     ));
     pages.push(yew_site_lib::render_page!(
         "/blog/2022/11/24/release-0-20",
-        pages::release_0_20::Page
+        pages::release_0_20::Page,
+        pages::release_0_20::META.description
     ));
     pages.push(yew_site_lib::render_page!(
         "/blog/2023/09/23/release-0-21",
-        pages::release_0_21::Page
+        pages::release_0_21::Page,
+        pages::release_0_21::META.description
     ));
     pages.push(yew_site_lib::render_page!(
         "/blog/2024/10/14/release-0-22",
-        pages::release_0_22::Page
+        pages::release_0_22::Page,
+        pages::release_0_22::META.description
     ));
     pages.push(yew_site_lib::render_page!(
         "/blog/2025/11/29/release-0-22",
-        pages::release_0_22_1::Page
+        pages::release_0_22_1::Page,
+        pages::release_0_22_1::META.description
     ));
     pages
 }

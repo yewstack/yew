@@ -200,4 +200,5 @@ fn main() {
         h2!["yew-autoprops"],
         p![link!("https://crates.io/crates/yew-autoprops", "yew-autoprops"), " 是一个实验性包，允许您根据函数的参数动态创建 Props 结构体。如果属性结构体永远不会被重用，这可能会很有用。"]
     ])
+    .with_description("Parent to child communication")
 );

@@ -77,6 +77,7 @@ pub fn page_content() -> yew_site_lib::Content {
             li![link!["https://docs.rs/yew/*/yew/virtual_dom/index.html", code("yew::virtual_dom"), " のAPIドキュメント"]],
         ],
     ])
+    .with_description("フレームワークの低レベルの詳細について")
 }
 
 crate::doc_page!(

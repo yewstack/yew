@@ -252,4 +252,5 @@ impl Component for MyComponent {
 }"#
         ),
     ])
+    .with_description("Both HTML and SVG elements are supported")
 );

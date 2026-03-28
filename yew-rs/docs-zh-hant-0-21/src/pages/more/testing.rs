@@ -19,4 +19,5 @@ crate::doc_page!(
             "。",
         ],
     ])
+    .with_description("測試你的應用程式")
 );

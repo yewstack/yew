@@ -19,4 +19,5 @@ crate::doc_page!(
         p!["{ text }"],
         p!["False case"]
     ])
+    .with_description("Rendering nodes conditionally in html!")
 );

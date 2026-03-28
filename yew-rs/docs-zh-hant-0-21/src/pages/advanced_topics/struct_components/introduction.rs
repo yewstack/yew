@@ -47,4 +47,5 @@ crate::doc_page!(
             ],
         ],
     ])
+    .with_description("Components in Yew")
 );

@@ -646,4 +646,5 @@ pub fn app() -> Html {
         h2!["API Reference"],
         ul![li![link!("https://docs.rs/yew-router/", "yew-router")],],
     ])
+    .with_description("Yew's official router")
 );
