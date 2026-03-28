@@ -1,17 +1,5 @@
-use stylist::yew::styled_component;
 use yew::prelude::*;
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct NavbarProps {
-    #[prop_or_default]
-    pub active: AttrValue,
-    #[prop_or_default]
-    pub doc_version: AttrValue,
-    #[prop_or_default]
-    pub lang: AttrValue,
-    #[prop_or_default]
-    pub current_path: AttrValue,
-}
+use yew_site_proc::comp;
 
 const VERSION_SLUGS: &[(&str, &str)] = crate::VERSIONS;
 
@@ -22,8 +10,13 @@ const LANGUAGES: &[(&str, &str)] = &[
     ("繁體中文", "zh-Hant"),
 ];
 
-#[styled_component]
-pub fn Navbar(props: &NavbarProps) -> Html {
+#[comp]
+pub fn Navbar(
+    #[prop_or_default] active: AttrValue,
+    #[prop_or_default] doc_version: AttrValue,
+    #[prop_or_default] lang: AttrValue,
+    #[prop_or_default] current_path: AttrValue,
+) {
     let mobile_open = yew_hooks::use_bool_toggle(false);
     let version_open = yew_hooks::use_bool_toggle(false);
     let lang_open = yew_hooks::use_bool_toggle(false);
@@ -46,7 +39,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
         let version_open = version_open.clone();
         let lang_open = lang_open.clone();
         let mobile_open = mobile_open.clone();
-        let deps = (props.current_path.clone(), props.doc_version.clone());
+        let deps = (current_path.clone(), doc_version.clone());
         use_effect_with(deps, move |_| {
             version_open.set(false);
             lang_open.set(false);
@@ -94,7 +87,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
 
     let nav_ctx = use_context::<crate::NavigationContext>();
 
-    let has_doc_version = !props.doc_version.is_empty();
+    let has_doc_version = !doc_version.is_empty();
 
     let nav_items: &[(&str, &str, &str)] = &[
         ("Docs", "/docs/getting-started", "/docs/"),
@@ -105,11 +98,11 @@ pub fn Navbar(props: &NavbarProps) -> Html {
 
     let active_nav_label = {
         let path_matches = |prefix: &str| -> bool {
-            if props.lang.is_empty() {
-                props.current_path.starts_with(prefix)
+            if lang.is_empty() {
+                current_path.starts_with(prefix)
             } else {
-                let lang_prefix = format!("/{}{}", props.lang.as_str(), prefix);
-                props.current_path.starts_with(&lang_prefix)
+                let lang_prefix = format!("/{}{}", lang.as_str(), prefix);
+                current_path.starts_with(&lang_prefix)
             }
         };
         nav_items
@@ -117,12 +110,12 @@ pub fn Navbar(props: &NavbarProps) -> Html {
             .filter(|(_, _, prefix)| path_matches(prefix))
             .max_by_key(|(_, _, prefix)| prefix.len())
             .map(|(label, ..)| *label)
-            .unwrap_or(props.active.as_str())
+            .unwrap_or(active.as_str())
     };
 
     let current_lang_label = LANGUAGES
         .iter()
-        .find(|(_, code)| *code == props.lang.as_str())
+        .find(|(_, code)| *code == lang.as_str())
         .map(|(label, _)| *label)
         .unwrap_or("English");
 
@@ -194,7 +187,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             justify-content: space-between;
                             &:hover { border-color: var(--color-primary); }
                         )} onclick={toggle_version.clone()}>
-                            {if has_doc_version { props.doc_version.to_string() } else { "Next".to_string() }}
+                            {if has_doc_version { doc_version.to_string() } else { "Next".to_string() }}
                             <svg class={css!(
                                 transition: transform 0.2s;
                                 transform: ${version_caret_rot};
@@ -206,8 +199,8 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             <DropdownMenu>
                                 for (label, slug) in VERSION_SLUGS {
                                     <DropdownItem
-                                        href={compute_version_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), slug)}
-                                        active={*label == props.doc_version.as_str()}
+                                        href={compute_version_url(current_path.as_str(), lang.as_str(), doc_version.as_str(), slug)}
+                                        active={*label == doc_version.as_str()}
                                     >{label}</DropdownItem>
                                 }
                             </DropdownMenu>
@@ -244,8 +237,8 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             <DropdownMenu>
                                 for (label, code) in LANGUAGES {
                                     <DropdownItem
-                                        href={compute_lang_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), code)}
-                                        active={*code == props.lang.as_str()}
+                                        href={compute_lang_url(current_path.as_str(), lang.as_str(), doc_version.as_str(), code)}
+                                        active={*code == lang.as_str()}
                                     >{label}</DropdownItem>
                                 }
                             </DropdownMenu>
@@ -471,10 +464,10 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     for (label, slug) in VERSION_SLUGS {
                         {
                             {
-                                let url = compute_version_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), slug);
+                                let url = compute_version_url(current_path.as_str(), lang.as_str(), doc_version.as_str(), slug);
                                 html! {
                                     <a class={css!(
-                                        color: ${if has_doc_version && *label == props.doc_version.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
+                                        color: ${if has_doc_version && *label == doc_version.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
                                         text-decoration: none;
                                         padding: 0.75rem 0;
                                         font-size: 0.875rem;
@@ -499,7 +492,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                     "#)}>{"Language"}</span>
                     for (label, code) in LANGUAGES {
                         <a class={css!(
-                            color: ${if *code == props.lang.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
+                            color: ${if *code == lang.as_str() { "var(--color-primary)" } else { "var(--color-text)" }};
                             text-decoration: none;
                             padding: 0.75rem 0;
                             font-size: 0.875rem;
@@ -507,7 +500,7 @@ pub fn Navbar(props: &NavbarProps) -> Html {
                             display: inline-flex;
                             align-items: center;
                             &:hover { color: var(--color-primary); text-decoration: none; }
-                        )} href={compute_lang_url(props.current_path.as_str(), props.lang.as_str(), props.doc_version.as_str(), code)}>{label}</a>
+                        )} href={compute_lang_url(current_path.as_str(), lang.as_str(), doc_version.as_str(), code)}>{label}</a>
                     }
                 </div>
             }
@@ -515,13 +508,8 @@ pub fn Navbar(props: &NavbarProps) -> Html {
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-struct DropdownMenuProps {
-    children: Html,
-}
-
-#[styled_component]
-fn DropdownMenu(props: &DropdownMenuProps) -> Html {
+#[comp]
+fn DropdownMenu(children: Html) {
     html! {
         <ul class={css!(
             position: absolute;
@@ -537,28 +525,21 @@ fn DropdownMenu(props: &DropdownMenuProps) -> Html {
             z-index: 200;
             min-width: 80px;
         )}>
-            {props.children.clone()}
+            {children}
         </ul>
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-struct DropdownItemProps {
-    href: String,
-    active: bool,
-    children: Html,
-}
-
-#[styled_component]
-fn DropdownItem(props: &DropdownItemProps) -> Html {
+#[comp]
+fn DropdownItem(href: AttrValue, active: bool, children: Html) {
     let nav_ctx = use_context::<crate::NavigationContext>();
-    let onclick = crate::nav_onclick(&nav_ctx, &props.href);
-    let color = if props.active {
+    let onclick = crate::nav_onclick(&nav_ctx, &href);
+    let color = if active {
         "var(--color-primary)"
     } else {
         "var(--color-text)"
     };
-    let fw = if props.active { "600" } else { "normal" };
+    let fw = if active { "600" } else { "normal" };
     html! {
         <li>
             <a class={css!(
@@ -573,8 +554,8 @@ fn DropdownItem(props: &DropdownItemProps) -> Html {
                     background: var(--color-bg-offset);
                     color: var(--color-primary);
                 }
-            )} href={props.href.clone()} {onclick}>
-                {props.children.clone()}
+            )} href={href} {onclick}>
+                {children}
             </a>
         </li>
     }

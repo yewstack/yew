@@ -1,41 +1,28 @@
 use std::collections::HashSet;
 use std::rc::Rc;
 
-use stylist::yew::styled_component;
+use implicit_clone::unsync::IArray;
+use implicit_clone::ImplicitClone;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ImplicitClone)]
 pub struct SidebarItem {
     pub label: &'static str,
     pub href: &'static str,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ImplicitClone)]
 pub struct SidebarCategory {
     pub label: &'static str,
     pub link: Option<&'static str>,
     pub items: Vec<SidebarEntry>,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ImplicitClone)]
 pub enum SidebarEntry {
     Item(SidebarItem),
     Category(SidebarCategory),
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct SidebarProps {
-    pub entries: Vec<SidebarEntry>,
-    #[prop_or_default]
-    pub active_path: AttrValue,
-    #[prop_or_default]
-    pub title: AttrValue,
-    #[prop_or_default]
-    pub all_open: bool,
-    #[prop_or_default]
-    pub lang: AttrValue,
-    #[prop_or_default]
-    pub doc_version: AttrValue,
 }
 
 fn strip_locale(href: &str) -> &str {
@@ -93,11 +80,15 @@ struct OpenCategories {
     toggle: Callback<&'static str>,
 }
 
-#[styled_component]
-pub fn Sidebar(props: &SidebarProps) -> Html {
-    let active_path = props.active_path.clone();
-
-    let all_open = props.all_open;
+#[comp]
+pub fn Sidebar(
+    entries: IArray<SidebarEntry>,
+    #[prop_or_default] active_path: AttrValue,
+    #[prop_or_default] title: AttrValue,
+    #[prop_or_default] all_open: bool,
+    #[prop_or_default] lang: AttrValue,
+    #[prop_or_default] doc_version: AttrValue,
+) {
     let initially_open = {
         if all_open {
             fn collect_all_labels(entries: &[SidebarEntry], result: &mut HashSet<&'static str>) {
@@ -109,12 +100,12 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
                 }
             }
             let mut result = HashSet::new();
-            collect_all_labels(&props.entries, &mut result);
+            collect_all_labels(&entries, &mut result);
             result
         } else {
             let mut result = HashSet::new();
             let mut path = Vec::new();
-            collect_active_categories(&props.entries, active_path.as_str(), &mut path, &mut result);
+            collect_active_categories(&entries, active_path.as_str(), &mut path, &mut result);
             result
         }
     };
@@ -137,7 +128,7 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
         }
     };
 
-    let aria_label = if props.title.is_empty() {
+    let aria_label = if title.is_empty() {
         "Docs sidebar"
     } else {
         "Blog recent posts navigation"
@@ -164,16 +155,16 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
                 }
             "#)}>
                 <nav class={css!(padding: 0 0.5rem;)} aria-label={aria_label}>
-                    if !props.title.is_empty() {
-                        <div class={css!(font-size: 0.875rem; font-weight: 700; padding: 0.375rem 0.75rem; margin-bottom: 0.25rem; color: var(--color-text);)}>{&props.title}</div>
+                    if !title.is_empty() {
+                        <div class={css!(font-size: 0.875rem; font-weight: 700; padding: 0.375rem 0.75rem; margin-bottom: 0.25rem; color: var(--color-text);)}>{&title}</div>
                     }
                     <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
-                        for entry in props.entries.iter() {
+                        for entry in entries.iter() {
                             <EntryView
                                 entry={entry.clone()}
-                                active_path={active_path.clone()}
-                                lang={props.lang.clone()}
-                                doc_version={props.doc_version.clone()}
+                                active_path={&active_path}
+                                lang={&lang}
+                                doc_version={&doc_version}
                             />
                         }
                     </ul>
@@ -183,25 +174,17 @@ pub fn Sidebar(props: &SidebarProps) -> Html {
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-struct EntryViewProps {
-    entry: SidebarEntry,
-    active_path: AttrValue,
-    lang: AttrValue,
-    doc_version: AttrValue,
-}
-
-#[styled_component]
-fn EntryView(props: &EntryViewProps) -> Html {
+#[comp]
+fn EntryView(entry: SidebarEntry, active_path: AttrValue, lang: AttrValue, doc_version: AttrValue) {
     use super::layout::rewrite_doc_href;
 
     let nav_ctx = use_context::<crate::NavigationContext>();
     let open_ctx = use_context::<OpenCategories>();
 
-    match &props.entry {
+    match &entry {
         SidebarEntry::Item(item) => {
-            let is_active = paths_match(props.active_path.as_str(), item.href);
-            let href = rewrite_doc_href(item.href, props.lang.as_str(), props.doc_version.as_str());
+            let is_active = paths_match(active_path.as_str(), item.href);
+            let href = rewrite_doc_href(item.href, lang.as_str(), doc_version.as_str());
             let onclick = crate::nav_onclick(&nav_ctx, &href);
             let link_color = if is_active {
                 "var(--color-primary)"
@@ -242,7 +225,7 @@ fn EntryView(props: &EntryViewProps) -> Html {
             };
             let cat_href = cat
                 .link
-                .map(|h| rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str()));
+                .map(|h| rewrite_doc_href(h, lang.as_str(), doc_version.as_str()));
             let cat_onclick = cat_href
                 .as_deref()
                 .and_then(|h| crate::nav_onclick(&nav_ctx, h));
@@ -274,9 +257,9 @@ fn EntryView(props: &EntryViewProps) -> Html {
                             for e in cat.items.iter() {
                                 <EntryView
                                     entry={e.clone()}
-                                    active_path={props.active_path.clone()}
-                                    lang={props.lang.clone()}
-                                    doc_version={props.doc_version.clone()}
+                                    active_path={&active_path}
+                                    lang={&lang}
+                                    doc_version={&doc_version}
                                 />
                             }
                         </ul>
@@ -287,7 +270,7 @@ fn EntryView(props: &EntryViewProps) -> Html {
     }
 }
 
-pub fn docs_sidebar() -> Vec<SidebarEntry> {
+pub fn docs_sidebar() -> IArray<SidebarEntry> {
     vec![
         SidebarEntry::Category(SidebarCategory {
             label: "Getting Started",
@@ -527,6 +510,7 @@ pub fn docs_sidebar() -> Vec<SidebarEntry> {
         }),
         migration_guides_sidebar(),
     ]
+    .into()
 }
 
 pub fn migration_guides_sidebar() -> SidebarEntry {

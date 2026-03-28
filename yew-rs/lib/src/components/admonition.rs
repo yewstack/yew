@@ -1,7 +1,8 @@
-use stylist::yew::styled_component;
+use implicit_clone::ImplicitClone;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, ImplicitClone)]
 pub enum AdmonitionType {
     Note,
     Tip,
@@ -49,25 +50,20 @@ impl AdmonitionType {
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct AdmonitionProps {
-    pub children: Html,
-    #[prop_or(AdmonitionType::Note)]
-    pub kind: AdmonitionType,
-    #[prop_or_default]
-    pub title: AttrValue,
-}
-
-#[styled_component]
-pub fn Admonition(props: &AdmonitionProps) -> Html {
-    let title = if props.title.is_empty() {
-        props.kind.label().to_string()
+#[comp]
+pub fn Admonition(
+    children: Html,
+    #[prop_or(AdmonitionType::Note)] kind: AdmonitionType,
+    #[prop_or_default] title: AttrValue,
+) {
+    let title = if title.is_empty() {
+        kind.label().to_string()
     } else {
-        props.title.to_string()
+        title.to_string()
     };
 
-    let bg = props.kind.bg();
-    let border = props.kind.border();
+    let bg = kind.bg();
+    let border = kind.border();
 
     html! {
         <div class={css!(
@@ -87,7 +83,7 @@ pub fn Admonition(props: &AdmonitionProps) -> Html {
                 <span>{title}</span>
             </div>
             <div class={css!("p:last-child { margin-bottom: 0; }")}>
-                {props.children.clone()}
+                {children}
             </div>
         </div>
     }

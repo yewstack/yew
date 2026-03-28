@@ -1,32 +1,24 @@
-use stylist::yew::styled_component;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct TabsProps {
-    pub children: ChildrenWithProps<TabItem>,
-    #[prop_or_default]
-    pub default_value: AttrValue,
-}
-
-#[styled_component]
-pub fn Tabs(props: &TabsProps) -> Html {
+#[comp]
+pub fn Tabs(children: ChildrenWithProps<TabItem>, #[prop_or_default] default_value: AttrValue) {
     let active = use_state(|| {
-        if props.default_value.is_empty() {
-            props
-                .children
+        if default_value.is_empty() {
+            children
                 .iter()
                 .next()
                 .map(|c| c.props.value.to_string())
                 .unwrap_or_default()
         } else {
-            props.default_value.to_string()
+            default_value.to_string()
         }
     });
 
     html! {
         <div class={css!(margin-bottom: 1.5rem;)}>
             <ul class={css!(display: flex; list-style: none; padding: 0; margin: 0; border-bottom: 2px solid var(--color-border); gap: 0;)} role="tablist">
-                for child in props.children.iter(){
+                for child in children.iter(){
                     <li
                         class={{
                             let value = child.props.value.clone();
@@ -40,7 +32,7 @@ pub fn Tabs(props: &TabsProps) -> Html {
 
                 }
             </ul>
-            for child in props.children.iter(){
+            for child in children.iter(){
                 <div class={css!(display: ${if *active == child.props.value.as_str() { "block" } else { "none" }}; padding: 1rem 0;)} role="tabpanel">
                     {child.props.children.clone()}
                 </div>
@@ -49,15 +41,7 @@ pub fn Tabs(props: &TabsProps) -> Html {
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct TabItemProps {
-    pub value: AttrValue,
-    pub label: AttrValue,
-    #[prop_or_default]
-    pub children: Html,
-}
-
-#[component]
-pub fn TabItem(props: &TabItemProps) -> Html {
-    html! { {props.children.clone()} }
+#[comp]
+pub fn TabItem(value: AttrValue, label: AttrValue, #[prop_or_default] children: Html) {
+    html! { {children} }
 }

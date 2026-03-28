@@ -1,9 +1,10 @@
-use stylist::yew::{styled_component, Global};
+use stylist::yew::Global;
 use stylist::StyleSource;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
-#[styled_component]
-pub fn GlobalStyles() -> Html {
+#[comp]
+pub fn GlobalStyles() {
     let syntect_light: StyleSource = SYNTECT_LIGHT_THEME
         .try_into()
         .expect("syntect light theme CSS");

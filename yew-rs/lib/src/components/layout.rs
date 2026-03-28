@@ -1,7 +1,8 @@
-use stylist::yew::styled_component;
+use implicit_clone::unsync::IArray;
 #[cfg(feature = "csr")]
 use wasm_bindgen::JsCast;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
 use crate::components::footer::Footer;
 use crate::components::navbar::Navbar;
@@ -10,51 +11,16 @@ use crate::content::TocEntry;
 use crate::styles::GlobalStyles;
 use crate::DocContext;
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct LayoutProps {
-    pub children: Html,
-    #[prop_or_default]
-    pub title: AttrValue,
-    #[prop_or_default]
-    pub description: AttrValue,
-    #[prop_or_default]
-    pub sidebar: Option<Vec<SidebarEntry>>,
-    #[prop_or_default]
-    pub active_sidebar_path: AttrValue,
-    #[prop_or_default]
-    pub active_nav: AttrValue,
-    #[prop_or_default]
-    pub doc_version: AttrValue,
-    #[prop_or_default]
-    pub lang: AttrValue,
-    #[prop_or_default]
-    pub full_width: bool,
-    #[prop_or_default]
-    pub markdown: AttrValue,
-    #[prop_or_default]
-    pub sidebar_title: AttrValue,
-    #[prop_or_default]
-    pub sidebar_all_open: bool,
-    #[prop_or_default]
-    pub toc: Vec<TocEntry>,
-}
-
-#[derive(Clone, PartialEq, Properties)]
-struct VersionBannerProps {
-    doc_version: AttrValue,
-    lang: AttrValue,
-}
-
-#[styled_component]
-fn VersionBanner(props: &VersionBannerProps) -> Html {
+#[comp]
+fn VersionBanner(doc_version: AttrValue, lang: AttrValue) {
     use yew::virtual_dom::VNode;
-    if props.doc_version.is_empty() || props.doc_version.as_str() == crate::LATEST_STABLE {
+    if doc_version.is_empty() || doc_version.as_str() == crate::LATEST_STABLE {
         return VNode::default();
     }
-    let lang_p = crate::lang_prefix(props.lang.as_str());
+    let lang_p = crate::lang_prefix(lang.as_str());
     let latest_path = format!("{lang_p}/docs/getting-started");
     let latest_label = format!("latest version ({})", crate::LATEST_STABLE);
-    let is_next = props.doc_version.as_str() == "Next";
+    let is_next = doc_version.as_str() == "Next";
     html! {
         <div class={css!(
             padding: 0.75rem 1rem;
@@ -69,7 +35,7 @@ fn VersionBanner(props: &VersionBannerProps) -> Html {
             if is_next {
                 <div>{"This is unreleased documentation for Yew "}<b>{"Next"}</b>{" version."}</div>
             } else {
-                <div>{"This is documentation for Yew "}<b>{props.doc_version.to_string()}</b>{", which is no longer actively maintained."}</div>
+                <div>{"This is documentation for Yew "}<b>{doc_version.to_string()}</b>{", which is no longer actively maintained."}</div>
             }
             <div class={css!(margin-top: 0.5rem;)}>
                 {"For up-to-date documentation, see the "}
@@ -171,16 +137,29 @@ fn build_breadcrumbs(
     None
 }
 
-#[styled_component]
-pub fn Layout(props: &LayoutProps) -> Html {
-    let has_sidebar = props.sidebar.as_ref().is_some_and(|s| !s.is_empty());
+#[comp]
+pub fn Layout(
+    children: Html,
+    #[prop_or_default] title: AttrValue,
+    #[prop_or_default] sidebar: Option<IArray<SidebarEntry>>,
+    #[prop_or_default] active_sidebar_path: AttrValue,
+    #[prop_or_default] active_nav: AttrValue,
+    #[prop_or_default] doc_version: AttrValue,
+    #[prop_or_default] lang: AttrValue,
+    #[prop_or_default] full_width: bool,
+    #[prop_or_default] markdown: AttrValue,
+    #[prop_or_default] sidebar_title: AttrValue,
+    #[prop_or_default] sidebar_all_open: bool,
+    #[prop_or_default] toc: IArray<TocEntry>,
+) {
+    let has_sidebar = sidebar.as_ref().is_some_and(|s| !s.is_empty());
     let nav_ctx = use_context::<crate::NavigationContext>();
 
     let mobile_sidebar_open = use_state(|| false);
 
     #[cfg(feature = "csr")]
     let (copied, on_copy_md) = {
-        let (c, cb) = crate::use_clipboard(props.markdown.clone());
+        let (c, cb) = crate::use_clipboard(markdown.clone());
         (c, Some(cb))
     };
     #[cfg(not(feature = "csr"))]
@@ -189,7 +168,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
     let content_ref = use_node_ref();
 
     {
-        let title = props.title.clone();
+        let title = title.clone();
         use_effect_with(title.clone(), move |_| {
             #[cfg(feature = "csr")]
             {
@@ -205,22 +184,21 @@ pub fn Layout(props: &LayoutProps) -> Html {
 
     {
         let content_ref = content_ref.clone();
-        let sidebar_path = props.active_sidebar_path.clone();
+        let sidebar_path = active_sidebar_path.clone();
         use_effect_with(sidebar_path, move |_| {
             scroll_to_hash(&content_ref);
         });
     }
 
-    let breadcrumbs = props
-        .sidebar
+    let breadcrumbs = sidebar
         .as_ref()
-        .and_then(|entries| build_breadcrumbs(entries, props.active_sidebar_path.as_str()));
+        .and_then(|entries| build_breadcrumbs(entries, active_sidebar_path.as_str()));
 
-    let pagination = props.sidebar.as_ref().map(|entries| {
+    let pagination = sidebar.as_ref().map(|entries| {
         let pages = flatten_sidebar(entries);
-        let active = props.active_sidebar_path.as_str();
-        let lang = props.lang.as_str();
-        let ver = props.doc_version.as_str();
+        let active = active_sidebar_path.as_str();
+        let lang = lang.as_str();
+        let ver = doc_version.as_str();
         let idx = pages.iter().position(|(_, href)| *href == active);
         let prev: Option<(String, String)> = idx
             .and_then(|i| if i > 0 { Some(pages[i - 1]) } else { None })
@@ -233,26 +211,26 @@ pub fn Layout(props: &LayoutProps) -> Html {
 
     let edit_url = if has_sidebar {
         edit_page_url(
-            props.active_sidebar_path.as_str(),
-            props.lang.as_str(),
-            props.doc_version.as_str(),
+            active_sidebar_path.as_str(),
+            lang.as_str(),
+            doc_version.as_str(),
         )
     } else {
         String::new()
     };
 
-    let has_toc = !props.toc.is_empty();
+    let has_toc = !toc.is_empty();
     let main_dir = if has_sidebar || has_toc {
         "row"
     } else {
         "column"
     };
-    let content_max_w = if props.full_width {
+    let content_max_w = if full_width {
         "none"
     } else {
         "var(--content-max-width)"
     };
-    let content_pad = if props.full_width { "0" } else { "2rem" };
+    let content_pad = if full_width { "0" } else { "2rem" };
     let content_margin = if has_sidebar || has_toc {
         "0"
     } else {
@@ -260,8 +238,8 @@ pub fn Layout(props: &LayoutProps) -> Html {
     };
 
     let doc_ctx = crate::DocContext {
-        lang: props.lang.clone(),
-        doc_version: props.doc_version.clone(),
+        lang: lang.clone(),
+        doc_version: doc_version.clone(),
     };
 
     html! {
@@ -269,10 +247,10 @@ pub fn Layout(props: &LayoutProps) -> Html {
         <div class={css!(display: flex; flex-direction: column; min-height: 100vh;)}>
             <GlobalStyles />
             <Navbar
-                active={props.active_nav.clone()}
-                doc_version={props.doc_version.clone()}
-                lang={props.lang.clone()}
-                current_path={props.active_sidebar_path.clone()}
+                active={active_nav}
+                doc_version={&doc_version}
+                lang={&lang}
+                current_path={&active_sidebar_path}
             />
             <div class={css!(
                 flex: 1;
@@ -287,7 +265,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                     flex-direction: column;
                 }
             )}>
-                if let Some(entries) = props.sidebar.as_ref().filter(|s| !s.is_empty()) {
+                if let Some(entries) = sidebar.as_ref().filter(|s| !s.is_empty()) {
                     <div class={if *mobile_sidebar_open {
                         css!(
                             display: contents;
@@ -307,11 +285,11 @@ pub fn Layout(props: &LayoutProps) -> Html {
                     }}>
                         <Sidebar
                             entries={entries.clone()}
-                            active_path={props.active_sidebar_path.clone()}
-                            title={props.sidebar_title.clone()}
-                            all_open={props.sidebar_all_open}
-                            lang={props.lang.clone()}
-                            doc_version={props.doc_version.clone()}
+                            active_path={active_sidebar_path}
+                            title={sidebar_title}
+                            all_open={sidebar_all_open}
+                            lang={&lang}
+                            doc_version={doc_version.clone()}
                         />
                     </div>
                 }
@@ -358,7 +336,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         </button>
                     }
                     if has_sidebar {
-                        <VersionBanner doc_version={props.doc_version.clone()} lang={props.lang.clone()} />
+                        <VersionBanner doc_version={&doc_version} lang={&lang} />
                     }
                     if let Some(trail) = &breadcrumbs {
                         <nav class={css!(margin-bottom: 0.5rem;)} aria-label="Breadcrumbs">
@@ -400,7 +378,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                                                 </li>
                                             }
                                         } else if let Some(h) = href {
-                                            let rewritten = rewrite_doc_href(h, props.lang.as_str(), props.doc_version.as_str());
+                                            let rewritten = rewrite_doc_href(h, lang.as_str(), doc_version.as_str());
                                             let bc_onclick = crate::nav_onclick(&nav_ctx, &rewritten);
                                             html! {
                                                 <li class={css!(display: flex; align-items: center;)}>
@@ -436,7 +414,7 @@ pub fn Layout(props: &LayoutProps) -> Html {
                             </ul>
                         </nav>
                     }
-                    if has_sidebar && !props.doc_version.is_empty() {
+                    if has_sidebar && !doc_version.is_empty() {
                         <span class={css!(
                             display: inline-block;
                             font-size: 0.75rem;
@@ -448,10 +426,10 @@ pub fn Layout(props: &LayoutProps) -> Html {
                             color: var(--color-text-secondary);
                             margin-bottom: 1rem;
                         )}>
-                            {"Version: "}{&props.doc_version}
+                            {"Version: "}{&doc_version}
                         </span>
                     }
-                    if !props.full_width && !props.markdown.is_empty() {
+                    if !full_width && !markdown.is_empty() {
                         <button class={css!(
                             float: right;
                             margin: 0 0 0.5rem 0.5rem;
@@ -481,10 +459,10 @@ pub fn Layout(props: &LayoutProps) -> Html {
                             if copied { {"Copied!"} } else { {"Copy as Markdown"} }
                         </button>
                     }
-                    if !props.title.is_empty() {
-                        <h1 class={css!(margin-top: 0; margin-bottom: 1.5rem;)}>{&props.title}</h1>
+                    if !title.is_empty() {
+                        <h1 class={css!(margin-top: 0; margin-bottom: 1.5rem;)}>{&title}</h1>
                     }
-                    {props.children.clone()}
+                    {children.clone()}
                     if !edit_url.is_empty() {
                         <div class={css!(margin-top: 2rem;)}>
                             <a class={css!(
@@ -577,8 +555,8 @@ pub fn Layout(props: &LayoutProps) -> Html {
                         </nav>
                     }
                 </main>
-                if !props.toc.is_empty() {
-                    <Toc entries={props.toc.clone()} content_ref={content_ref.clone()} />
+                if !toc.is_empty() {
+                    <Toc entries={toc} content_ref={content_ref.clone()} />
                 }
             </div>
             <Footer />
@@ -613,22 +591,16 @@ fn scroll_to_hash(content_ref: &NodeRef) {
 #[cfg(not(feature = "csr"))]
 fn scroll_to_hash(_content_ref: &NodeRef) {}
 
-#[derive(Clone, PartialEq, Properties)]
-struct TocProps {
-    entries: Vec<TocEntry>,
-    content_ref: NodeRef,
-}
-
-#[styled_component]
-fn Toc(props: &TocProps) -> Html {
+#[comp]
+fn Toc(entries: IArray<TocEntry>, content_ref: NodeRef) {
     #[cfg(feature = "csr")]
     let active_id = {
         let active_id = use_state(|| Option::<AttrValue>::None);
 
         let compute = {
             let active_id = active_id.clone();
-            let entries = props.entries.clone();
-            let content_ref = props.content_ref.clone();
+            let entries = entries.clone();
+            let content_ref = content_ref.clone();
             use_memo(entries, move |entries| {
                 let window = web_sys::window().unwrap();
                 let content_el = content_ref.cast::<web_sys::Element>();
@@ -721,7 +693,7 @@ fn Toc(props: &TocProps) -> Html {
                 border-left: 1px solid var(--color-border);
             "#)}>
                 <ul class={css!(list-style: none; padding: 0; margin: 0;)}>
-                    for TocEntry { id, text, level } in &props.entries {
+                    for TocEntry { id, text, level } in &*entries {
                         <li style={match level {
                                 3 => "padding-left:1rem",
                                 4 => "padding-left:2rem",

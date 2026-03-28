@@ -1,8 +1,9 @@
 pub mod pages;
 
+use implicit_clone::unsync::IArray;
 use yew_site_lib::components::sidebar::{SidebarCategory, SidebarEntry, SidebarItem};
 
-pub fn blog_sidebar() -> Vec<SidebarEntry> {
+pub fn blog_sidebar() -> IArray<SidebarEntry> {
     let mut years: Vec<(&str, Vec<&BlogMeta>)> = Vec::new();
     for post in BLOG_POSTS {
         let year = &post.date[..4];
@@ -36,7 +37,8 @@ pub fn blog_sidebar() -> Vec<SidebarEntry> {
                     .collect(),
             })
         })
-        .collect()
+        .collect::<Vec<_>>()
+        .into()
 }
 
 #[derive(Clone, PartialEq)]

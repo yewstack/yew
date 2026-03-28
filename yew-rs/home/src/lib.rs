@@ -269,7 +269,6 @@ pub fn home_html(locale: &'static str, version_slug: &'static str) -> Html {
 }
 
 fn home_page(locale: &'static str, version_slug: &'static str) -> Html {
-    let strings = strings_for_locale(locale);
     let lang = if locale == "en" { "" } else { locale };
     let doc_version = VERSION_LABELS
         .iter()
@@ -280,7 +279,6 @@ fn home_page(locale: &'static str, version_slug: &'static str) -> Html {
     html! {
         <Layout
             title=""
-            description={strings.subtitle}
             full_width=true
             lang={lang}
             doc_version={doc_version}

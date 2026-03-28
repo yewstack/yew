@@ -1,29 +1,22 @@
-use stylist::yew::styled_component;
+use implicit_clone::unsync::IArray;
+use implicit_clone::ImplicitClone;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
 use crate::components::admonition::Admonition;
 pub use crate::components::admonition::AdmonitionType;
 use crate::components::code_block::CodeBlock;
 use crate::components::tabs::{TabItem, Tabs};
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct ContentLinkProps {
-    pub href: AttrValue,
-    pub children: Html,
-    #[prop_or_default]
-    pub internal: bool,
-}
-
-#[styled_component]
-pub fn ContentLink(props: &ContentLinkProps) -> Html {
+#[comp]
+pub fn ContentLink(href: AttrValue, children: Html, #[prop_or_default] internal: bool) {
     let nav_ctx = use_context::<crate::NavigationContext>();
     let doc_ctx = use_context::<crate::DocContext>();
-    let (display_href, onclick) = if props.internal {
+    let (display_href, onclick) = if internal {
         let rewritten = if let Some(ctx) = &doc_ctx {
-            let (base, fragment) = props
-                .href
+            let (base, fragment) = href
                 .split_once('#')
-                .map_or((props.href.as_str(), ""), |(b, f)| (b, f));
+                .map_or((href.as_str(), ""), |(b, f)| (b, f));
             let mut url = crate::components::layout::rewrite_doc_href(
                 base,
                 ctx.lang.as_str(),
@@ -35,12 +28,12 @@ pub fn ContentLink(props: &ContentLinkProps) -> Html {
             }
             url
         } else {
-            props.href.to_string()
+            href.to_string()
         };
         let onclick = crate::nav_onclick(&nav_ctx, &rewritten);
         (AttrValue::from(rewritten), onclick)
     } else {
-        (props.href.clone(), None)
+        (href.clone(), None)
     };
     html! {
         <a class={css!(
@@ -50,17 +43,12 @@ pub fn ContentLink(props: &ContentLinkProps) -> Html {
             &:hover {
                 text-decoration: underline;
             }
-        )} href={display_href} {onclick}>{props.children.clone()}</a>
+        )} href={display_href} {onclick}>{children}</a>
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-struct ContentTableProps {
-    children: Html,
-}
-
-#[styled_component]
-fn ContentTable(props: &ContentTableProps) -> Html {
+#[comp]
+fn ContentTable(children: Html) {
     html! {
         <div class={css!(overflow-x: auto; margin-bottom: 1rem;)}>
             <table class={css!(
@@ -77,26 +65,23 @@ fn ContentTable(props: &ContentTableProps) -> Html {
                     font-weight: 600;
                 }
             )}>
-                {props.children.clone()}
+                {children}
             </table>
         </div>
     }
 }
 
-#[derive(Clone, PartialEq, Properties)]
-struct AnchorHeadingProps {
+#[comp]
+fn AnchorHeading(
     level: u8,
     id: AttrValue,
     children: Html,
     hash_href: AttrValue,
     hash_label: AttrValue,
-}
-
-#[styled_component]
-fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
-    let id = Some(props.id.clone());
+) {
+    let id = Some(id);
     let content = html! { <>
-        {props.children.clone()}
+        {children}
         <a class={css!(
             opacity: 0;
             transition: opacity 0.2s;
@@ -104,7 +89,7 @@ fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
             color: var(--color-primary);
             text-decoration: none;
             font-weight: normal;
-        )} href={props.hash_href.clone()} aria-label={props.hash_label.clone()}>{"#"}</a>
+        )} href={hash_href} aria-label={hash_label}>{"#"}</a>
     </> };
     let heading_class = css!(
         r#"
@@ -112,7 +97,7 @@ fn AnchorHeading(props: &AnchorHeadingProps) -> Html {
         &:hover a { opacity: 1; }
     "#
     );
-    match props.level {
+    match level {
         2 => {
             html! { <h2 {id} class={heading_class}>{content}</h2> }
         }
@@ -920,7 +905,7 @@ fn slugify(text: &str) -> String {
     slug.trim_end_matches('-').to_string()
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, ImplicitClone)]
 pub struct TocEntry {
     pub id: AttrValue,
     pub text: AttrValue,
@@ -960,7 +945,7 @@ impl Content {
         Self { blocks }
     }
 
-    pub fn toc_entries(&self) -> Vec<TocEntry> {
+    pub fn toc_entries(&self) -> IArray<TocEntry> {
         self.blocks
             .iter()
             .filter_map(|block| match block {

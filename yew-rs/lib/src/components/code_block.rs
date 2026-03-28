@@ -1,8 +1,8 @@
-use stylist::yew::styled_component;
 use syntect::html::{ClassStyle, ClassedHTMLGenerator};
 use syntect::parsing::SyntaxSet;
 use syntect::util::LinesWithEndings;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
 thread_local! {
     static SS: SyntaxSet = SyntaxSet::load_defaults_newlines();
@@ -82,19 +82,14 @@ fn highlight_code(code: &str, language: &str) -> (String, String) {
     (cleaned, html)
 }
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct CodeBlockProps {
-    pub code: AttrValue,
-    #[prop_or("rust".into())]
-    pub language: AttrValue,
-    #[prop_or_default]
-    pub title: AttrValue,
-}
-
-#[styled_component]
-pub fn CodeBlock(props: &CodeBlockProps) -> Html {
+#[comp]
+pub fn CodeBlock(
+    code: AttrValue,
+    #[prop_or("rust".into())] language: AttrValue,
+    #[prop_or_default] title: AttrValue,
+) {
     #[allow(unused_variables)]
-    let (cleaned_code, highlighted) = highlight_code(&props.code, &props.language);
+    let (cleaned_code, highlighted) = highlight_code(&code, &language);
     let highlighted_html = Html::from_html_unchecked(AttrValue::from(highlighted));
 
     #[cfg(feature = "csr")]
@@ -156,7 +151,7 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
             border: 1px solid var(--color-border);
             &:hover button { opacity: 1; }
         )}>
-            if !props.title.is_empty() {
+            if !title.is_empty() {
                 <div class={css!(
                     background: var(--color-bg-secondary);
                     padding: 0.5rem 1rem;
@@ -164,7 +159,7 @@ pub fn CodeBlock(props: &CodeBlockProps) -> Html {
                     font-weight: 600;
                     border-bottom: 1px solid var(--color-border);
                     font-family: var(--font-mono);
-                )}>{&props.title}</div>
+                )}>{&title}</div>
             }
             <div class={css!(position: relative;)}>
                 {copy_button}

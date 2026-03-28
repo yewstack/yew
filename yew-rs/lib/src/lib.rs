@@ -11,6 +11,7 @@ pub use components::sidebar::{
     SidebarEntry, SidebarItem,
 };
 pub use content::Content;
+use implicit_clone::unsync::IArray;
 use yew::prelude::*;
 
 pub const LATEST_STABLE: &str = "0.23";
@@ -87,7 +88,7 @@ pub struct PageData {
     pub title: &'static str,
     pub sidebar_path: &'static str,
     pub doc_version: &'static str,
-    pub sidebar: Vec<SidebarEntry>,
+    pub sidebar: IArray<SidebarEntry>,
     pub content: Content,
 }
 
@@ -335,7 +336,7 @@ fn translate_label(label: &'static str, lang: &str) -> &'static str {
     }
 }
 
-pub fn translate_sidebar(sidebar: Vec<SidebarEntry>, lang: &str) -> Vec<SidebarEntry> {
+pub fn translate_sidebar(sidebar: IArray<SidebarEntry>, lang: &str) -> IArray<SidebarEntry> {
     if lang.is_empty() || lang == "en" {
         return sidebar;
     }
@@ -357,8 +358,8 @@ pub fn translate_sidebar(sidebar: Vec<SidebarEntry>, lang: &str) -> Vec<SidebarE
         }
     }
     sidebar
-        .into_iter()
-        .map(|e| translate_entry(e, lang))
+        .iter()
+        .map(|e| translate_entry(e.clone(), lang))
         .collect()
 }
 
@@ -388,11 +389,13 @@ macro_rules! render_spa_page {
             let content = __make_content();
             let toc = content.toc_entries();
             let markdown = content.to_markdown();
+            let sidebar: ::implicit_clone::unsync::IArray<$crate::SidebarEntry> =
+                props.sidebar.clone().into();
             html! {
                 <ManagerProvider manager={props.manager.clone()}>
                     <$crate::Layout
                         title={props.title}
-                        sidebar={props.sidebar.clone()}
+                        sidebar={sidebar}
                         active_sidebar_path={props.sidebar_path}
                         active_nav="Docs"
                         doc_version={props.doc_version}
@@ -407,12 +410,13 @@ macro_rules! render_spa_page {
         }
 
         let (writer, reader) = render_static();
+        let __sidebar_vec: Vec<$crate::SidebarEntry> = ::std::ops::Deref::deref(&$sidebar).to_vec();
         let body = ServerRenderer::<__SpaWrapper>::with_props(move || {
             let mgr = StyleManager::builder().writer(writer).build().unwrap();
             __SpaProps {
                 manager: mgr,
                 title: $title,
-                sidebar: $sidebar,
+                sidebar: __sidebar_vec,
                 sidebar_path: $sidebar_path,
                 doc_version: $doc_version,
                 lang: $lang,
@@ -603,19 +607,19 @@ macro_rules! page_map {
 #[macro_export]
 macro_rules! spa_sidebar_fns {
     ($lang:expr, $next:ident, $v023:ident, $v022:ident, $v021:ident, $v020:ident) => {
-        fn sidebar() -> Vec<$crate::SidebarEntry> {
+        fn sidebar() -> ::implicit_clone::unsync::IArray<$crate::SidebarEntry> {
             $crate::translate_sidebar($next::sidebar_data::docs_sidebar(), $lang)
         }
-        fn sidebar_0_23() -> Vec<$crate::SidebarEntry> {
+        fn sidebar_0_23() -> ::implicit_clone::unsync::IArray<$crate::SidebarEntry> {
             $crate::translate_sidebar($v023::sidebar_data::docs_sidebar(), $lang)
         }
-        fn sidebar_0_22() -> Vec<$crate::SidebarEntry> {
+        fn sidebar_0_22() -> ::implicit_clone::unsync::IArray<$crate::SidebarEntry> {
             $crate::translate_sidebar($v022::sidebar_data::docs_sidebar(), $lang)
         }
-        fn sidebar_0_21() -> Vec<$crate::SidebarEntry> {
+        fn sidebar_0_21() -> ::implicit_clone::unsync::IArray<$crate::SidebarEntry> {
             $crate::translate_sidebar($v021::sidebar_data::docs_sidebar(), $lang)
         }
-        fn sidebar_0_20() -> Vec<$crate::SidebarEntry> {
+        fn sidebar_0_20() -> ::implicit_clone::unsync::IArray<$crate::SidebarEntry> {
             $crate::translate_sidebar($v020::sidebar_data::docs_sidebar(), $lang)
         }
     };

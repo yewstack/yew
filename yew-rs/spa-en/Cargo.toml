@@ -10,6 +10,7 @@ csr = ["yew/csr", "yew-site-lib/csr", "yew-site-docs/csr", "dep:yew-router"]
 ssr = ["yew/ssr", "yew-site-lib/ssr", "yew-site-docs/ssr"]
 
 [dependencies]
+implicit-clone = { workspace = true }
 yew = "0.23"
 yew-site-lib = { path = "../lib", default-features = false }
 yew-router = { version = "0.20", default-features = false, optional = true }

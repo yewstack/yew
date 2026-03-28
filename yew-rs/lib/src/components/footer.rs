@@ -1,8 +1,8 @@
-use stylist::yew::styled_component;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
-#[styled_component]
-pub fn Footer() -> Html {
+#[comp]
+pub fn Footer() {
     html! {
         <footer class={css!("
             background: var(--color-bg-secondary);

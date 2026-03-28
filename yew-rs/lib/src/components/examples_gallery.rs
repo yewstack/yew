@@ -1,5 +1,5 @@
-use stylist::yew::styled_component;
 use yew::prelude::*;
+use yew_site_proc::comp;
 
 use crate::content::*;
 use crate::Content;
@@ -63,8 +63,8 @@ fn matches_filter(ct: &str, filter: Filter) -> bool {
     }
 }
 
-#[styled_component]
-fn ExamplesGallery() -> Html {
+#[comp]
+fn ExamplesGallery() {
     let search = use_state(String::new);
     let filter = use_state(|| Filter::All);
 
@@ -213,29 +213,22 @@ fn ExamplesGallery() -> Html {
     }
 }
 
-#[derive(Properties, PartialEq)]
-struct FilterButtonProps {
-    label: AttrValue,
-    active: bool,
-    onclick: Callback<MouseEvent>,
-}
-
-#[styled_component]
-fn FilterButton(props: &FilterButtonProps) -> Html {
-    let bg = if props.active {
+#[comp]
+fn FilterButton(label: AttrValue, active: bool, onclick: Callback<MouseEvent>) {
+    let bg = if active {
         "var(--color-bg)"
     } else {
         "transparent"
     };
-    let color = if props.active {
+    let color = if active {
         "var(--color-text)"
     } else {
         "var(--color-text-secondary)"
     };
-    let weight = if props.active { "600" } else { "400" };
+    let weight = if active { "600" } else { "400" };
     html! {
         <button
-            onclick={props.onclick.clone()}
+            {onclick}
             class={css!(
                 padding: 0.375rem 0.75rem;
                 border: none;
@@ -250,35 +243,32 @@ fn FilterButton(props: &FilterButtonProps) -> Html {
                 &:hover { color: var(--color-text); }
             )}
         >
-            {&props.label}
+            {&label}
         </button>
     }
 }
 
-#[derive(Properties, PartialEq)]
-struct ExampleCardProps {
+#[comp]
+fn ExampleCard(
     name: AttrValue,
     display_name: AttrValue,
     description: AttrValue,
     component_type: AttrValue,
-}
-
-#[styled_component]
-fn ExampleCard(props: &ExampleCardProps) -> Html {
-    let badge_color = match props.component_type.as_str() {
+) {
+    let badge_color = match component_type.as_str() {
         ct if ct.contains('S') && ct.contains('F') => "#8b5cf6",
         ct if ct.contains('S') => "#6366f1",
         _ => "var(--color-primary)",
     };
-    let badge_label = match props.component_type.as_str() {
+    let badge_label = match component_type.as_str() {
         ct if ct.contains('S') && ct.contains('F') => "SC+FC",
         ct if ct.contains('S') => "SC",
         _ => "FC",
     };
-    let demo_url = format!("https://examples.yew.rs/{}", props.name);
+    let demo_url = format!("https://examples.yew.rs/{}", name);
     let source_url = format!(
         "https://github.com/yewstack/yew/tree/master/examples/{}",
-        props.name
+        name
     );
     html! {
         <div class={css!(
@@ -318,16 +308,16 @@ fn ExampleCard(props: &ExampleCardProps) -> Html {
                     font-weight: 600;
                     line-height: 1.3;
                 )}>
-                    {&props.display_name}
+                    {&display_name}
                 </h3>
-                if !props.description.is_empty() {
+                if !description.is_empty() {
                     <p class={css!(
                         margin: 0;
                         font-size: 0.8125rem;
                         color: var(--color-text-secondary);
                         line-height: 1.5;
                     )}>
-                        {&props.description}
+                        {&description}
                     </p>
                 }
             </div>
