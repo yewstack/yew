@@ -1,0 +1,24 @@
+[package]
+name = "yew-site-lib"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+
+[features]
+default = ["csr"]
+csr = ["yew/csr", "dep:web-sys", "dep:wasm-bindgen", "dep:js-sys", "dep:gloo", "dep:yew-router"]
+ssr = ["yew/ssr", "stylist/ssr"]
+
+[dependencies]
+yew = "0.23"
+stylist = { version = "0.15", features = ["yew_integration", "parser"] }
+syntect = { git = "https://github.com/Madoshakalaka/syntect.git", branch = "line-highlighting", default-features = false, features = ["parsing", "html", "default-syntaxes", "dump-load", "regex-fancy"] }
+web-sys = { workspace = true, features = ["Window", "Document", "DomRect", "Element", "EventTarget", "HtmlElement", "HtmlHeadElement", "HtmlInputElement", "Location", "MediaQueryList", "Navigator", "Node", "Clipboard"], optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+gloo = { workspace = true, optional = true }
+yew-router = { version = "0.20", default-features = false, optional = true }
+implicit-clone = { workspace = true }
+yew-autoprops = "0.5"
+yew-hooks = { workspace = true }
+yew-site-proc = { path = "../proc" }

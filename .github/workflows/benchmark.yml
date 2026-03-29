@@ -3,12 +3,12 @@ name: Benchmark
 on:
   push:
     paths-ignore:
-      - "website/**"
+      - "yew-rs/**"
     branches:
       - master
   pull_request:
     paths-ignore:
-      - "website/**"
+      - "yew-rs/**"
     types: [labeled, synchronize, opened, reopened]
 
 # Cancel outstanding benchmarks on pull requests

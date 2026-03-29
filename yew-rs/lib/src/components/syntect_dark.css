@@ -1,0 +1,158 @@
+[data-theme="dark"] .sy-code {
+color: #c0c5ce;
+background-color: #2b303b;
+}
+[data-theme="dark"] .sy-variable.sy-parameter {
+color: #c0c5ce;
+}
+[data-theme="dark"] .sy-variable.sy-parameter.sy-function {
+color: #c0c5ce;
+}
+[data-theme="dark"] .sy-comment, [data-theme="dark"] .sy-punctuation.sy-definition.sy-comment {
+color: #65737e;
+}
+[data-theme="dark"] .sy-punctuation.sy-definition.sy-string, [data-theme="dark"] .sy-punctuation.sy-definition.sy-variable, [data-theme="dark"] .sy-punctuation.sy-definition.sy-string, [data-theme="dark"] .sy-punctuation.sy-definition.sy-parameters, [data-theme="dark"] .sy-punctuation.sy-definition.sy-string, [data-theme="dark"] .sy-punctuation.sy-definition.sy-array {
+color: #c0c5ce;
+}
+[data-theme="dark"] .sy-none {
+color: #c0c5ce;
+}
+[data-theme="dark"] .sy-keyword.sy-operator {
+color: #c0c5ce;
+}
+[data-theme="dark"] .sy-keyword {
+color: #b48ead;
+}
+[data-theme="dark"] .sy-variable, [data-theme="dark"] .sy-variable.sy-other.sy-dollar.sy-only.sy-js {
+color: #bf616a;
+}
+[data-theme="dark"] .sy-entity.sy-name.sy-function, [data-theme="dark"] .sy-meta.sy-require, [data-theme="dark"] .sy-support.sy-function.sy-any-method, [data-theme="dark"] .sy-variable.sy-function {
+color: #8fa1b3;
+}
+[data-theme="dark"] .sy-support.sy-class, [data-theme="dark"] .sy-entity.sy-name.sy-class, [data-theme="dark"] .sy-entity.sy-name.sy-type.sy-class {
+color: #ebcb8b;
+}
+[data-theme="dark"] .sy-meta.sy-class {
+color: #eff1f5;
+}
+[data-theme="dark"] .sy-keyword.sy-other.sy-special-method {
+color: #8fa1b3;
+}
+[data-theme="dark"] .sy-storage {
+color: #b48ead;
+}
+[data-theme="dark"] .sy-support.sy-function {
+color: #96b5b4;
+}
+[data-theme="dark"] .sy-string, [data-theme="dark"] .sy-constant.sy-other.sy-symbol, [data-theme="dark"] .sy-entity.sy-other.sy-inherited-class {
+color: #a3be8c;
+}
+[data-theme="dark"] .sy-constant.sy-numeric {
+color: #d08770;
+}
+[data-theme="dark"] .sy-none {
+color: #d08770;
+}
+[data-theme="dark"] .sy-none {
+color: #d08770;
+}
+[data-theme="dark"] .sy-constant {
+color: #d08770;
+}
+[data-theme="dark"] .sy-entity.sy-name.sy-tag {
+color: #bf616a;
+}
+[data-theme="dark"] .sy-entity.sy-other.sy-attribute-name {
+color: #d08770;
+}
+[data-theme="dark"] .sy-entity.sy-other.sy-attribute-name.sy-id, [data-theme="dark"] .sy-punctuation.sy-definition.sy-entity {
+color: #8fa1b3;
+}
+[data-theme="dark"] .sy-meta.sy-selector {
+color: #b48ead;
+}
+[data-theme="dark"] .sy-none {
+color: #d08770;
+}
+[data-theme="dark"] .sy-markup.sy-heading .sy-punctuation.sy-definition.sy-heading, [data-theme="dark"] .sy-entity.sy-name.sy-section {
+color: #8fa1b3;
+}
+[data-theme="dark"] .sy-keyword.sy-other.sy-unit {
+color: #d08770;
+}
+[data-theme="dark"] .sy-markup.sy-bold, [data-theme="dark"] .sy-punctuation.sy-definition.sy-bold {
+color: #ebcb8b;
+font-weight: bold;
+}
+[data-theme="dark"] .sy-markup.sy-italic, [data-theme="dark"] .sy-punctuation.sy-definition.sy-italic {
+color: #b48ead;
+font-style: italic;
+}
+[data-theme="dark"] .sy-markup.sy-raw.sy-inline {
+color: #a3be8c;
+}
+[data-theme="dark"] .sy-string.sy-other.sy-link {
+color: #bf616a;
+}
+[data-theme="dark"] .sy-meta.sy-link {
+color: #d08770;
+}
+[data-theme="dark"] .sy-meta.sy-image {
+color: #d08770;
+}
+[data-theme="dark"] .sy-markup.sy-list {
+color: #bf616a;
+}
+[data-theme="dark"] .sy-markup.sy-quote {
+color: #d08770;
+}
+[data-theme="dark"] .sy-meta.sy-separator {
+color: #c0c5ce;
+background-color: #4f5b66;
+}
+[data-theme="dark"] .sy-markup.sy-inserted, [data-theme="dark"] .sy-markup.sy-inserted.sy-git_gutter {
+color: #a3be8c;
+}
+[data-theme="dark"] .sy-markup.sy-deleted, [data-theme="dark"] .sy-markup.sy-deleted.sy-git_gutter {
+color: #bf616a;
+}
+[data-theme="dark"] .sy-markup.sy-changed, [data-theme="dark"] .sy-markup.sy-changed.sy-git_gutter {
+color: #b48ead;
+}
+[data-theme="dark"] .sy-markup.sy-ignored, [data-theme="dark"] .sy-markup.sy-ignored.sy-git_gutter {
+color: #4f5b66;
+}
+[data-theme="dark"] .sy-markup.sy-untracked, [data-theme="dark"] .sy-markup.sy-untracked.sy-git_gutter {
+color: #4f5b66;
+}
+[data-theme="dark"] .sy-constant.sy-other.sy-color {
+color: #96b5b4;
+}
+[data-theme="dark"] .sy-string.sy-regexp {
+color: #96b5b4;
+}
+[data-theme="dark"] .sy-constant.sy-character.sy-escape {
+color: #96b5b4;
+}
+[data-theme="dark"] .sy-punctuation.sy-section.sy-embedded, [data-theme="dark"] .sy-variable.sy-interpolation {
+color: #ab7967;
+}
+[data-theme="dark"] .sy-invalid.sy-illegal {
+color: #2b303b;
+background-color: #bf616a;
+}
+[data-theme="dark"] .sy-markup.sy-deleted.sy-git_gutter {
+color: #f92672;
+}
+[data-theme="dark"] .sy-markup.sy-inserted.sy-git_gutter {
+color: #a6e22e;
+}
+[data-theme="dark"] .sy-markup.sy-changed.sy-git_gutter {
+color: #967efb;
+}
+[data-theme="dark"] .sy-markup.sy-ignored.sy-git_gutter {
+color: #565656;
+}
+[data-theme="dark"] .sy-markup.sy-untracked.sy-git_gutter {
+color: #565656;
+}

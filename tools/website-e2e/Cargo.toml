@@ -1,0 +1,14 @@
+[package]
+name = "website-e2e"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+fantoccini = "0.22"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "time"] }
+serde_json.workspace = true
+axum = "0.8"
+tower-http = { version = "0.6", features = ["fs"] }
+url = "2"
+reqwest = { workspace = true }
