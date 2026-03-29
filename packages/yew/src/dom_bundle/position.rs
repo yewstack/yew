@@ -24,7 +24,15 @@ enum DomSlotVariant {
 /// [`Self::to_position`] before the reassignment took place.
 #[derive(Clone)]
 pub(crate) struct DynamicDomSlot {
-    target: Rc<RefCell<DomSlot>>,
+    inner: Rc<RefCell<DomSlotInner>>,
+}
+
+struct DomSlotInner {
+    slot: DomSlot,
+    /// When set, `reassign` eagerly resolves the new position and propagates it to the parent.
+    /// Used by BList to maintain per-child position caches that stay in sync with component
+    /// re-renders, eliminating O(N) chain traversals.
+    parent: Option<DynamicDomSlot>,
 }
 
 impl std::fmt::Debug for DomSlot {
@@ -42,7 +50,7 @@ impl std::fmt::Debug for DomSlot {
 
 impl std::fmt::Debug for DynamicDomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", *self.target.borrow())
+        write!(f, "{:#?}", self.inner.borrow().slot)
     }
 }
 
@@ -122,7 +130,7 @@ impl DomSlot {
         self.with_next_sibling(checkedf)
     }
 
-    fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
+    pub(super) fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         match &self.variant {
             DomSlotVariant::Node(ref n) => f(n.as_ref()),
             DomSlotVariant::Chained(ref chain) => chain.with_next_sibling(f),
@@ -163,7 +171,10 @@ impl DynamicDomSlot {
     /// argument.
     pub fn new(initial_position: DomSlot) -> Self {
         Self {
-            target: Rc::new(RefCell::new(initial_position)),
+            inner: Rc::new(RefCell::new(DomSlotInner {
+                slot: initial_position,
+                parent: None,
+            })),
         }
     }
 
@@ -182,9 +193,22 @@ impl DynamicDomSlot {
 
     /// Change the [`DomSlot`] that is targeted. Subsequently, this will behave as if `self` was
     /// created from the passed DomSlot in the first place.
+    ///
+    /// If a parent link is set (via [`set_parent`](Self::set_parent)), the resolved position is
+    /// eagerly propagated to the parent after the update.
     pub fn reassign(&self, next_position: DomSlot) {
-        // TODO: is not defensive against accidental reference loops
-        *self.target.borrow_mut() = next_position;
+        self.inner.borrow_mut().slot = next_position;
+        let parent = self.inner.borrow().parent.clone();
+        if let Some(parent) = parent {
+            let resolved = self.with_next_sibling(|n| DomSlot::create(n.cloned()));
+            parent.reassign(resolved);
+        }
+    }
+
+    /// Set a parent slot that will be eagerly updated whenever this slot is reassigned.
+    /// Pass `None` to clear the parent link.
+    pub fn set_parent(&self, parent: Option<DynamicDomSlot>) {
+        self.inner.borrow_mut().parent = parent;
     }
 
     /// Get a [`DomSlot`] that gets automatically updated when `self` gets reassigned. All such
@@ -196,20 +220,16 @@ impl DynamicDomSlot {
     }
 
     fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
-        // we use an iterative approach to traverse a possible long chain for references
-        // see for example issue #3043 why a recursive call is impossible for large lists in vdom
-
-        // TODO: there could be some data structure that performs better here. E.g. a balanced tree
-        // with parent pointers come to mind, but they are a bit fiddly to implement in rust
-        let mut this = self.target.clone();
+        // We use an iterative approach to traverse a possible long chain of references.
+        // See issue #3043 for why a recursive call is impossible for large lists in vdom.
+        //
+        // With BList's child_slots and parent-link notification, chain depth is bounded to O(1)
+        // per hop, making the total traversal O(1) rather than O(N).
+        let mut this = self.inner.clone();
         loop {
-            //                          v------- borrow lives for this match expression
-            let next_this = match &this.borrow().variant {
+            let next_this = match &this.borrow().slot.variant {
                 DomSlotVariant::Node(ref n) => break f(n.as_ref()),
-                // We clone an Rc here temporarily, so that we don't have to consume stack
-                // space. The alternative would be to keep the
-                // `Ref<'_, DomSlot>` above in some temporary buffer
-                DomSlotVariant::Chained(ref chain) => chain.target.clone(),
+                DomSlotVariant::Chained(ref chain) => chain.inner.clone(),
             };
             this = next_this;
         }

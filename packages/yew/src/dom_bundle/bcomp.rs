@@ -25,6 +25,10 @@ impl BComp {
     pub fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
+
+    pub(super) fn set_position_parent(&self, parent: Option<DynamicDomSlot>) {
+        self.own_position.set_parent(parent);
+    }
 }
 
 impl fmt::Debug for BComp {

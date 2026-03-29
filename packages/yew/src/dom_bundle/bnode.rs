@@ -4,7 +4,9 @@ use std::fmt;
 
 use web_sys::{Element, Node};
 
-use super::{BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomSlot};
+use super::{
+    BComp, BList, BPortal, BRaw, BSubtree, BSuspense, BTag, BText, DomSlot, DynamicDomSlot,
+};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::utils::RcExt;
@@ -42,6 +44,20 @@ impl BNode {
             Self::Portal(bportal) => bportal.key(),
             Self::Suspense(bsusp) => bsusp.key(),
             Self::Raw(_) => None,
+        }
+    }
+
+    /// Set the parent notification link on this node's position slot (components only).
+    pub(super) fn set_slot_parent(&self, parent: DynamicDomSlot) {
+        if let Self::Comp(bcomp) = self {
+            bcomp.set_position_parent(Some(parent));
+        }
+    }
+
+    /// Clear the parent notification link on this node's position slot.
+    pub(super) fn clear_slot_parent(&self) {
+        if let Self::Comp(bcomp) = self {
+            bcomp.set_position_parent(None);
         }
     }
 }

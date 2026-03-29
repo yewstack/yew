@@ -7,7 +7,7 @@ use std::ops::Deref;
 
 use web_sys::Element;
 
-use super::{test_log, BNode, BSubtree, DomSlot};
+use super::{test_log, BNode, BSubtree, DomSlot, DynamicDomSlot};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::utils::RcExt;
@@ -18,6 +18,11 @@ use crate::virtual_dom::{Key, VList, VNode};
 pub(super) struct BList {
     /// The reverse (render order) list of child [BNode]s
     rev_children: Vec<BNode>,
+    /// Per-child eagerly-resolved position slots. Each `rev_child_slots[i]` tracks the resolved
+    /// DOM position of `rev_children[i]`. Component children have parent-link notifications so
+    /// their slot is kept in sync across re-renders. This bounds DomSlot chain depth to O(1),
+    /// eliminating O(N^2) traversal during list reconciliation.
+    rev_child_slots: Vec<DynamicDomSlot>,
     /// All [BNode]s in the BList have keys
     fully_keyed: bool,
     key: Option<Key>,
@@ -88,8 +93,9 @@ impl NodeWriter<'_> {
         Self { slot: next, ..self }
     }
 }
-/// Helper struct implementing [Eq] and [Hash] by only looking at a node's key
-struct KeyedEntry(usize, BNode);
+/// Helper struct implementing [Eq] and [Hash] by only looking at a node's key.
+/// Also carries the corresponding child_slot alongside the bundle.
+struct KeyedEntry(usize, BNode, DynamicDomSlot);
 impl Borrow<Key> for KeyedEntry {
     fn borrow(&self) -> &Key {
         self.1.key().expect("unkeyed child in fully keyed list")
@@ -120,6 +126,9 @@ impl BNode {
                 };
                 let key = b.key().cloned();
                 self_list.rev_children.push(b);
+                self_list
+                    .rev_child_slots
+                    .push(DynamicDomSlot::new(DomSlot::at_end()));
                 self_list.fully_keyed = key.is_some();
                 self_list.key = key;
                 self_list
@@ -130,9 +139,10 @@ impl BNode {
 
 impl BList {
     /// Create a new empty [BList]
-    pub const fn new() -> BList {
+    pub fn new() -> BList {
         BList {
             rev_children: vec![],
+            rev_child_slots: vec![],
             fully_keyed: true,
             key: None,
         }
@@ -151,6 +161,7 @@ impl BList {
         slot: DomSlot,
         lefts: Vec<VNode>,
         rights: &mut Vec<BNode>,
+        child_slots: &mut Vec<DynamicDomSlot>,
     ) -> DomSlot {
         let mut writer = NodeWriter {
             root,
@@ -159,26 +170,52 @@ impl BList {
             slot,
         };
 
-        // Remove extra nodes
+        // Remove extra nodes and clear their parent links
         if lefts.len() < rights.len() {
             for r in rights.drain(lefts.len()..) {
+                r.clear_slot_parent();
                 test_log!("removing: {:?}", r);
                 r.detach(root, parent, false);
             }
+            child_slots.truncate(lefts.len());
         }
 
         let mut lefts_it = lefts.into_iter().rev();
+        let mut idx = 0;
         for (r, l) in rights.iter_mut().zip(&mut lefts_it) {
             writer = writer.patch(l, r);
+            Self::update_child_slot(&writer.slot, idx, child_slots, r);
+            writer.slot = child_slots[idx].to_position();
+            idx += 1;
         }
 
         // Add missing nodes
         for l in lefts_it {
             let (next_writer, el) = writer.add(l);
-            rights.push(el);
             writer = next_writer;
+            Self::update_child_slot(&writer.slot, idx, child_slots, &el);
+            writer.slot = child_slots[idx].to_position();
+            rights.push(el);
+            idx += 1;
         }
         writer.slot
+    }
+
+    /// Eagerly resolve `returned_slot` and store in `child_slots[idx]`, setting up parent
+    /// notification for component children.
+    fn update_child_slot(
+        returned_slot: &DomSlot,
+        idx: usize,
+        child_slots: &mut Vec<DynamicDomSlot>,
+        child: &BNode,
+    ) {
+        let resolved = returned_slot.with_next_sibling(|n| DomSlot::create(n.cloned()));
+        if idx < child_slots.len() {
+            child_slots[idx].reassign(resolved);
+        } else {
+            child_slots.push(DynamicDomSlot::new(resolved));
+        }
+        child.set_slot_parent(child_slots[idx].clone());
     }
 
     /// Diff and patch fully keyed child lists.
@@ -192,6 +229,7 @@ impl BList {
         slot: DomSlot,
         left_vdoms: Vec<VNode>,
         rev_bundles: &mut Vec<BNode>,
+        child_slots: &mut Vec<DynamicDomSlot>,
     ) -> DomSlot {
         macro_rules! key {
             ($v:expr) => {
@@ -228,7 +266,15 @@ impl BList {
         // Corresponds to adding or removing items from the back of the list
         if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
             // No key changes
-            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, rev_bundles);
+            return Self::apply_unkeyed(
+                root,
+                parent_scope,
+                parent,
+                slot,
+                left_vdoms,
+                rev_bundles,
+                child_slots,
+            );
         }
 
         // We partially drain the new vnodes in several steps.
@@ -241,12 +287,15 @@ impl BList {
         };
         // Step 1. Diff matching children at the end
         let lefts_to = lefts.len() - matching_len_end;
-        for (l, r) in lefts
+        for (idx, (l, r)) in lefts
             .drain(lefts_to..)
             .rev()
             .zip(rev_bundles[..matching_len_end].iter_mut())
+            .enumerate()
         {
             writer = writer.patch(l, r);
+            Self::update_child_slot(&writer.slot, idx, child_slots, r);
+            writer.slot = child_slots[idx].to_position();
         }
 
         // Step 2. Diff matching children in the middle, that is between the first and last key
@@ -282,23 +331,40 @@ impl BList {
         }
         let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
 
+        // Splice out middle child_slots alongside bundles
+        let spliced_child_slots: Vec<DynamicDomSlot> = if bundle_middle.start < child_slots.len() {
+            let end = bundle_middle.end.min(child_slots.len());
+            child_slots
+                .splice(bundle_middle.start..end, std::iter::empty())
+                .collect()
+        } else {
+            vec![]
+        };
+
         // BNode contains js objects that look suspicious to clippy but are harmless
         #[allow(clippy::mutable_key_type)]
         let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
         let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
-        for (idx, r) in (&mut spliced_middle).enumerate() {
+        for (i, r) in (&mut spliced_middle).enumerate() {
+            r.clear_slot_parent();
             #[cold]
             fn duplicate_in_bundle(root: &BSubtree, parent: &Element, r: BNode) {
                 test_log!("removing: {:?}", r);
                 r.detach(root, parent, false);
             }
-            if let Some(KeyedEntry(_, dup)) = spare_bundles.replace(KeyedEntry(idx, r)) {
+            let cs = spliced_child_slots
+                .get(i)
+                .cloned()
+                .unwrap_or_else(|| DynamicDomSlot::new(DomSlot::at_end()));
+            if let Some(KeyedEntry(_, dup, _)) = spare_bundles.replace(KeyedEntry(i, r, cs)) {
                 duplicate_in_bundle(root, parent, dup);
             }
         }
 
         // Step 2.2. Put the middle part back together in the new key order
         let mut replacements: Vec<BNode> = Vec::with_capacity((matching_len_start..lefts_to).len());
+        let mut slot_replacements: Vec<DynamicDomSlot> =
+            Vec::with_capacity(replacements.capacity());
         // The goal is to shift as few nodes as possible.
 
         // We handle runs of in-order nodes. When we encounter one out-of-order, we decide whether:
@@ -328,7 +394,7 @@ impl BList {
             let ancestor = spare_bundles.take(key!(l));
             // Check if we need to shift or commit a run
             if let Some(run) = current_run.as_mut() {
-                if let Some(KeyedEntry(idx, _)) = ancestor {
+                if let Some(KeyedEntry(idx, ..)) = ancestor {
                     // If there are only few runs, this is a cold path
                     if idx < run.end_idx {
                         // Have to decide whether to shift or commit the current run. A few
@@ -354,7 +420,7 @@ impl BList {
                     }
                 }
             }
-            let bundle = if let Some(KeyedEntry(idx, mut r_bundle)) = ancestor {
+            let (bundle, cs) = if let Some(KeyedEntry(idx, mut r_bundle, cs)) = ancestor {
                 match current_run.as_mut() {
                     // hot path
                     // We know that idx >= run.end_idx, so this node doesn't need to shift
@@ -376,33 +442,51 @@ impl BList {
                     },
                 }
                 writer = writer.patch(l, &mut r_bundle);
-                r_bundle
+                let resolved = writer
+                    .slot
+                    .with_next_sibling(|n| DomSlot::create(n.cloned()));
+                cs.reassign(resolved);
+                r_bundle.set_slot_parent(cs.clone());
+                writer.slot = cs.to_position();
+                (r_bundle, cs)
             } else {
                 // Even if there is an active run, we don't have to modify it
                 let (next_writer, bundle) = writer.add(l);
                 writer = next_writer;
-                bundle
+                let resolved = writer
+                    .slot
+                    .with_next_sibling(|n| DomSlot::create(n.cloned()));
+                let cs = DynamicDomSlot::new(resolved);
+                bundle.set_slot_parent(cs.clone());
+                writer.slot = cs.to_position();
+                (bundle, cs)
             };
             replacements.push(bundle);
+            slot_replacements.push(cs);
         }
         // drop the splice iterator and immediately replace the range with the reordered elements
         drop(spliced_middle);
         rev_bundles.splice(matching_len_end..matching_len_end, replacements);
+        child_slots.splice(matching_len_end..matching_len_end, slot_replacements);
 
         // Step 2.3. Remove any extra rights
-        for KeyedEntry(_, r) in spare_bundles.drain() {
+        for KeyedEntry(_, r, _) in spare_bundles.drain() {
             test_log!("removing: {:?}", r);
             r.detach(root, parent, false);
         }
 
         // Step 3. Diff matching children at the start
         let rights_to = rev_bundles.len() - matching_len_start;
-        for (l, r) in lefts
+        for (i, (l, r)) in lefts
             .drain(..) // matching_len_start.. has been drained already
             .rev()
             .zip(rev_bundles[rights_to..].iter_mut())
+            .enumerate()
         {
             writer = writer.patch(l, r);
+            let slot_idx = rights_to + i;
+            Self::update_child_slot(&writer.slot, slot_idx, child_slots, r);
+            writer.slot = child_slots[slot_idx].to_position();
         }
 
         writer.slot
@@ -411,14 +495,20 @@ impl BList {
 
 impl ReconcileTarget for BList {
     fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
+        for child in self.rev_children.iter() {
+            child.clear_slot_parent();
+        }
         for child in self.rev_children.into_iter() {
             child.detach(root, parent, parent_to_detach);
         }
     }
 
     fn shift(&self, next_parent: &Element, mut slot: DomSlot) -> DomSlot {
-        for node in self.rev_children.iter() {
+        for (node, child_slot) in self.rev_children.iter().zip(self.rev_child_slots.iter()) {
             slot = node.shift(next_parent, slot);
+            let resolved = slot.with_next_sibling(|n| DomSlot::create(n.cloned()));
+            child_slot.reassign(resolved);
+            slot = child_slot.to_position();
         }
 
         slot
@@ -479,10 +569,11 @@ impl Reconcilable for VList {
         if let Some(additional) = lefts.len().checked_sub(rights.len()) {
             rights.reserve_exact(additional);
         }
+        let child_slots = &mut blist.rev_child_slots;
         let first = if fully_keyed && blist.fully_keyed {
-            BList::apply_keyed(root, parent_scope, parent, slot, lefts, rights)
+            BList::apply_keyed(root, parent_scope, parent, slot, lefts, rights, child_slots)
         } else {
-            BList::apply_unkeyed(root, parent_scope, parent, slot, lefts, rights)
+            BList::apply_unkeyed(root, parent_scope, parent, slot, lefts, rights, child_slots)
         };
         blist.fully_keyed = fully_keyed;
         blist.key = key;
@@ -517,8 +608,13 @@ mod feat_hydration {
 
             children.reverse();
 
+            let rev_child_slots = children
+                .iter()
+                .map(|_| DynamicDomSlot::new(DomSlot::at_end()))
+                .collect();
             BList {
                 rev_children: children,
+                rev_child_slots,
                 fully_keyed,
                 key,
             }
