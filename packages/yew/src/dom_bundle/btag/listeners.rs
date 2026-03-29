@@ -406,8 +406,8 @@ mod tests {
         input
             .dispatch_event(
                 &Event::new_with_event_init_dict("blur", &{
-                    let mut dict = EventInit::new();
-                    dict.bubbles(false);
+                    let dict = EventInit::new();
+                    dict.set_bubbles(false);
                     dict
                 })
                 .unwrap(),
@@ -567,9 +567,7 @@ mod tests {
         assert_count(&el, 0);
         el.get()
             .unwrap()
-            .dyn_into::<HtmlElement>()
-            .unwrap()
-            .focus()
+            .dispatch_event(&FocusEvent::new("focus").unwrap().into())
             .unwrap();
         scheduler::start_now();
         assert_count(&el, 1);
@@ -731,10 +729,11 @@ mod tests {
     #[test]
     fn oninput() {
         test_input_listener(|| {
-            web_sys::InputEvent::new_with_event_init_dict(
-                "input",
-                web_sys::InputEventInit::new().bubbles(true),
-            )
+            web_sys::InputEvent::new_with_event_init_dict("input", &{
+                let init = web_sys::InputEventInit::new();
+                init.set_bubbles(true);
+                init
+            })
             .unwrap()
         })
     }
@@ -742,10 +741,11 @@ mod tests {
     #[test]
     fn onchange() {
         test_input_listener(|| {
-            web_sys::Event::new_with_event_init_dict(
-                "change",
-                web_sys::EventInit::new().bubbles(true),
-            )
+            web_sys::Event::new_with_event_init_dict("change", &{
+                let init = web_sys::EventInit::new();
+                init.set_bubbles(true);
+                init
+            })
             .unwrap()
         })
     }
