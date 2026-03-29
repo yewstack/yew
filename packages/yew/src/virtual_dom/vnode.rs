@@ -106,7 +106,10 @@ impl VNode {
 
 impl Default for VNode {
     fn default() -> Self {
-        VNode::VList(Rc::new(VList::default()))
+        thread_local! {
+            static EMPTY_VLIST: Rc<VList> = Rc::new(VList::default());
+        }
+        VNode::VList(EMPTY_VLIST.with(Rc::clone))
     }
 }
 
