@@ -196,22 +196,28 @@ impl DynamicDomSlot {
     }
 
     fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
-        // we use an iterative approach to traverse a possible long chain for references
-        // see for example issue #3043 why a recursive call is impossible for large lists in vdom
-
-        // TODO: there could be some data structure that performs better here. E.g. a balanced tree
-        // with parent pointers come to mind, but they are a bit fiddly to implement in rust
-        let mut this = self.target.clone();
+        // We use an iterative approach to traverse a possible long chain of references.
+        // See issue #3043 for why a recursive call is impossible for large lists in vdom.
+        //
+        // We traverse via raw pointers to avoid Rc refcount overhead (clone + drop) per hop.
+        //
+        // SAFETY: All RefCells in the chain are valid for the duration of this traversal:
+        // - `self.target` (Rc) is alive because `self` is borrowed
+        // - Each DomSlot::Chained(DynamicDomSlot { target }) in the chain holds a strong Rc to the
+        //   next RefCell, so all links are transitively kept alive
+        // - Yew is single-threaded and this function does not yield, so no mutable borrow (e.g.
+        //   from reassign()) can occur on any RefCell in the chain during traversal
+        // - Each RefCell::borrow() is dropped before advancing to the next hop
+        let mut ptr: *const RefCell<DomSlot> = Rc::as_ptr(&self.target);
         loop {
-            //                          v------- borrow lives for this match expression
-            let next_this = match &this.borrow().variant {
+            let cell = unsafe { &*ptr };
+            let slot_ref = cell.borrow();
+            match &slot_ref.variant {
                 DomSlotVariant::Node(ref n) => break f(n.as_ref()),
-                // We clone an Rc here temporarily, so that we don't have to consume stack
-                // space. The alternative would be to keep the
-                // `Ref<'_, DomSlot>` above in some temporary buffer
-                DomSlotVariant::Chained(ref chain) => chain.target.clone(),
-            };
-            this = next_this;
+                DomSlotVariant::Chained(ref chain) => {
+                    ptr = Rc::as_ptr(&chain.target);
+                }
+            }
         }
     }
 }
