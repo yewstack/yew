@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774605819587,
+  "lastUpdate": 1774780858935,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -53929,6 +53929,178 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.21.0-keyed 43_first-paint",
             "value": 391.8,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "3cbf219bdf747a0240169dff5862cff99b21605e",
+          "message": "chore(deps): bump the cargo-deps group across 1 directory with 11 updates (#4084)\n\n* chore(deps): bump the cargo-deps group across 1 directory with 11 updates\n\nBumps the cargo-deps group with 9 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [wasm-bindgen-test](https://github.com/wasm-bindgen/wasm-bindgen) | `0.3.64` | `0.3.65` |\n| [tracing-subscriber](https://github.com/tokio-rs/tracing) | `0.3.22` | `0.3.23` |\n| [tokise](https://github.com/yewstack/tokise) | `0.2.0` | `0.2.1` |\n| [toml](https://github.com/toml-rs/toml) | `1.0.6+spec-1.1.0` | `1.0.7+spec-1.1.0` |\n| [gloo-net](https://github.com/rustwasm/gloo) | `0.6.0` | `0.7.0` |\n| [yew-autoprops](https://github.com/yewstack/yew-autoprops) | `0.4.1` | `0.5.0` |\n| [gloo-timers](https://github.com/rustwasm/gloo) | `0.3.0` | `0.4.0` |\n| [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark) | `0.13.1` | `0.13.3` |\n| [env_logger](https://github.com/rust-cli/env_logger) | `0.11.9` | `0.11.10` |\n\n\n\nUpdates `wasm-bindgen-test` from 0.3.64 to 0.3.65\n- [Release notes](https://github.com/wasm-bindgen/wasm-bindgen/releases)\n- [Changelog](https://github.com/wasm-bindgen/wasm-bindgen/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/wasm-bindgen/wasm-bindgen/commits)\n\nUpdates `js-sys` from 0.3.91 to 0.3.92\n- [Release notes](https://github.com/wasm-bindgen/wasm-bindgen/releases)\n- [Changelog](https://github.com/wasm-bindgen/wasm-bindgen/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/wasm-bindgen/wasm-bindgen/commits)\n\nUpdates `web-sys` from 0.3.91 to 0.3.92\n- [Release notes](https://github.com/wasm-bindgen/wasm-bindgen/releases)\n- [Changelog](https://github.com/wasm-bindgen/wasm-bindgen/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/wasm-bindgen/wasm-bindgen/commits)\n\nUpdates `tracing-subscriber` from 0.3.22 to 0.3.23\n- [Release notes](https://github.com/tokio-rs/tracing/releases)\n- [Commits](https://github.com/tokio-rs/tracing/compare/tracing-subscriber-0.3.22...tracing-subscriber-0.3.23)\n\nUpdates `tokise` from 0.2.0 to 0.2.1\n- [Release notes](https://github.com/yewstack/tokise/releases)\n- [Commits](https://github.com/yewstack/tokise/compare/v0.2.0...v0.2.1)\n\nUpdates `toml` from 1.0.6+spec-1.1.0 to 1.0.7+spec-1.1.0\n- [Commits](https://github.com/toml-rs/toml/compare/toml-v1.0.6...toml-v1.0.7)\n\nUpdates `gloo-net` from 0.6.0 to 0.7.0\n- [Release notes](https://github.com/rustwasm/gloo/releases)\n- [Changelog](https://github.com/ranile/gloo/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rustwasm/gloo/compare/0.6.0...gloo-net-v0.7.0)\n\nUpdates `yew-autoprops` from 0.4.1 to 0.5.0\n- [Release notes](https://github.com/yewstack/yew-autoprops/releases)\n- [Commits](https://github.com/yewstack/yew-autoprops/compare/v0.4.1...v0.5.0)\n\nUpdates `gloo-timers` from 0.3.0 to 0.4.0\n- [Release notes](https://github.com/rustwasm/gloo/releases)\n- [Changelog](https://github.com/ranile/gloo/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rustwasm/gloo/compare/0.3.0...gloo-timers-v0.4.0)\n\nUpdates `pulldown-cmark` from 0.13.1 to 0.13.3\n- [Release notes](https://github.com/raphlinus/pulldown-cmark/releases)\n- [Commits](https://github.com/raphlinus/pulldown-cmark/compare/v0.13.1...v0.13.3)\n\nUpdates `env_logger` from 0.11.9 to 0.11.10\n- [Release notes](https://github.com/rust-cli/env_logger/releases)\n- [Changelog](https://github.com/rust-cli/env_logger/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/rust-cli/env_logger/compare/v0.11.9...v0.11.10)\n\n---\nupdated-dependencies:\n- dependency-name: wasm-bindgen-test\n  dependency-version: 0.3.65\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: js-sys\n  dependency-version: 0.3.92\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: web-sys\n  dependency-version: 0.3.92\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: tracing-subscriber\n  dependency-version: 0.3.23\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: tokise\n  dependency-version: 0.2.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: toml\n  dependency-version: 1.0.7+spec-1.1.0\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: gloo-net\n  dependency-version: 0.7.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: yew-autoprops\n  dependency-version: 0.5.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: gloo-timers\n  dependency-version: 0.4.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: pulldown-cmark\n  dependency-version: 0.13.3\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: env_logger\n  dependency-version: 0.11.10\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\n* fix: update tests for web-sys 0.3.92 compatibility\n\nReplace deprecated EventInit::bubbles() with set_bubbles(), and use\ndispatch_event instead of .focus() in the non_bubbling test.\n\nwasm-bindgen PR #4960 (included in 0.2.115) adds display:none to the\n#output element in headless test pages. Since yew's integration tests\nrender inside #output, .focus() becomes a no-op on child elements\n(browsers skip focus on elements not in the layout tree).\ndispatch_event bypasses this by firing the event directly through the\nDOM event system regardless of rendering state.\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Mattuwu \"Siyuan\" Yan <syan4@ualberta.ca>",
+          "timestamp": "2026-03-29T10:26:53Z",
+          "url": "https://github.com/yewstack/yew/commit/3cbf219bdf747a0240169dff5862cff99b21605e"
+        },
+        "date": 1774780857113,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.21.0-keyed 01_run1k",
+            "value": 115.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 02_replace1k",
+            "value": 136.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 89,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 04_select1k",
+            "value": 47.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 05_swap1k",
+            "value": 92.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 06_remove-one-1k",
+            "value": 63.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 07_create10k",
+            "value": 1137.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 134.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 09_clear1k_x8",
+            "value": 61.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 21_ready-memory",
+            "value": 2.243398666381836,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 22_run-memory",
+            "value": 2.65664005279541,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.11733341217041,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 41_size-uncompressed",
+            "value": 170.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 42_size-compressed",
+            "value": 55.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.21.0-keyed 43_first-paint",
+            "value": 407.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 01_run1k",
+            "value": 115.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 02_replace1k",
+            "value": 136.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 03_update10th1k_x16",
+            "value": 63.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 04_select1k",
+            "value": 17.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 05_swap1k",
+            "value": 67.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 06_remove-one-1k",
+            "value": 48.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 07_create10k",
+            "value": 1136.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 08_create1k-after1k_x2",
+            "value": 135.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 09_clear1k_x8",
+            "value": 62.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 21_ready-memory",
+            "value": 2.325617790222168,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 22_run-memory",
+            "value": 6.31894588470459,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 25_run-clear-memory",
+            "value": 5.062741279602051,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 41_size-uncompressed",
+            "value": 166.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 42_size-compressed",
+            "value": 54.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.21.0-keyed 43_first-paint",
+            "value": 411.1,
             "unit": ""
           }
         ]
