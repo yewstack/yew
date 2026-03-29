@@ -40,8 +40,11 @@ jobs:
             exit 1
           fi
           echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
-          echo "PR_BRANCH=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_ENV
-          echo "COMMIT_SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+          echo "PR_BRANCH=$PR_BRANCH" >> $GITHUB_ENV
+          echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
+        env:
+          PR_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
 
       - if: github.event.workflow_run.event == 'push'
         name: Apply push environment
@@ -59,5 +62,5 @@ jobs:
           commentURLPath: "/docs/next"
           # PR information
           prNumber: "${{ env.PR_NUMBER }}"
-          prBranchName: "${{ env.PR_BRANCH }}"
+          prBranchName: ${{ env.PR_BRANCH }}
           commitSHA: "${{ env.COMMIT_SHA }}"
