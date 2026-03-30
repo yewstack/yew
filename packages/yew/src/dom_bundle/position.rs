@@ -199,6 +199,9 @@ impl DynamicDomSlot {
         // We use an iterative approach to traverse a possible long chain of references.
         // See issue #3043 for why a recursive call is impossible for large lists in vdom.
         //
+        // TODO: there could be some data structure that performs better here. E.g. a balanced tree
+        // with parent pointers come to mind, but they are a bit fiddly to implement in rust
+        //
         // We traverse via raw pointers to avoid Rc refcount overhead (clone + drop) per hop.
         //
         // SAFETY: All RefCells in the chain are valid for the duration of this traversal:
