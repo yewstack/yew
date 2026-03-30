@@ -62,5 +62,4 @@ chrono = "0.4"
 thiserror = "2.0"
 bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 reqwest = "0.13"
-# waiting for https://github.com/jetli/yew-hooks/pull/63
-yew-hooks = { git = "https://github.com/Madoshakalaka/yew-hooks.git", branch = "fix/use-click-away-multiple-hooks" }
+yew-hooks = "0.6"
