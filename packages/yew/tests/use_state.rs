@@ -413,3 +413,60 @@ async fn use_state_handle_as_prop_triggers_child_rerender_issue_4058() {
         CHILD_RENDER_COUNT.load(Ordering::Relaxed)
     );
 }
+
+#[wasm_bindgen_test]
+async fn toggle_conditional_with_empty_component_no_crash() {
+    use wasm_bindgen::JsCast;
+    use web_sys::HtmlElement;
+
+    #[component]
+    fn Empty() -> Html {
+        html! {}
+    }
+
+    #[component]
+    fn App() -> Html {
+        let toggled = use_state(|| false);
+
+        let onclick = {
+            let toggled = toggled.clone();
+            Callback::from(move |_: MouseEvent| {
+                toggled.set(!*toggled);
+            })
+        };
+
+        html! {
+            <>
+                if *toggled {
+                    <span></span>
+                }
+                <Empty />
+                if !*toggled { <div>{"old"}</div> }
+                <button id="toggle-btn" {onclick}>{"Toggle"}</button>
+                <div id="result">{ if *toggled { "toggled" } else { "initial" } }</div>
+            </>
+        }
+    }
+
+    yew::Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .render();
+    scheduler::flush().await;
+
+    let result = obtain_result();
+    assert_eq!(result.as_str(), "initial");
+
+    gloo::utils::document()
+        .get_element_by_id("toggle-btn")
+        .unwrap()
+        .unchecked_into::<HtmlElement>()
+        .click();
+
+    scheduler::flush().await;
+
+    let result = obtain_result();
+    assert_eq!(
+        result.as_str(),
+        "toggled",
+        "Toggling conditional blocks with empty components must not crash (issue #4092)"
+    );
+}
