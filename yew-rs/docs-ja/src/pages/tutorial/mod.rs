@@ -608,7 +608,7 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##),
         h3!["スタイル"],
         p![
             "私たちのアプリケーションは非常に見栄えが悪いです。CSS やその他のスタイルがありません。残念ながら、Yew は組み込みのスタイルコンポーネントを提供していません。スタイルシートを追加する方法については、",
-            link!["https://trunkrs.dev/assets/", "Trunk のアセット"],
+            link!["https://trunk-rs.github.io/trunk/guide/assets/index.html", "Trunk のアセット"],
             "を参照してください。",
         ],
         h3!["さらなる依存ライブラリ"],

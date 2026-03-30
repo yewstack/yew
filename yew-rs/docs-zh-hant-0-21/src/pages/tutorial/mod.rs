@@ -780,7 +780,10 @@ fn app() -> Html {
         p![
             "我們的應用程式看起來非常醜陋。沒有 CSS 或任何樣式。不幸的是，Yew \
              沒有提供內建的樣式組件。請查看 ",
-            link!("https://trunkrs.dev/assets/", "Trunk 的 assets"),
+            link!(
+                "https://trunk-rs.github.io/trunk/guide/assets/index.html",
+                "Trunk 的 assets"
+            ),
             "，以了解如何新增樣式表。",
         ],
         h3!["更多依賴函式庫"],

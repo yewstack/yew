@@ -748,7 +748,10 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         ],
         h3!["Styles"],
         p![
-            link!("https://trunkrs.dev/assets/", "Trunk's assets"),
+            link!(
+                "https://trunk-rs.github.io/trunk/guide/assets/index.html",
+                "Trunk's assets"
+            ),
             " to learn how to add style sheets."
         ],
         h3!["More libraries"],

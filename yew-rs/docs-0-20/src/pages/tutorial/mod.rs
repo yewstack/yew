@@ -778,7 +778,10 @@ let fetched_videos: Vec<Video> = Request::get("/tutorial/data.json")"##
         p![
             "Our apps look very ugly. There's no CSS, or any kind of styles. Unfortunately, Yew \
              doesn't offer a built-in way to style components. See ",
-            link!("https://trunkrs.dev/assets/", "Trunk's assets"),
+            link!(
+                "https://trunk-rs.github.io/trunk/guide/assets/index.html",
+                "Trunk's assets"
+            ),
             " to learn how to add style sheets.",
         ],
         h3!["More libraries"],
