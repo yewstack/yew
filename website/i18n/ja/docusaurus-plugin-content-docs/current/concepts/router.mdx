@@ -104,9 +104,9 @@ use yew_router::prelude::*;
 enum Route {
     #[at("/")]
     Home,
-    #[at("/post/:id")]
+    #[at("/post/{id}")]
     Post { id: String },
-    #[at("/*path")]
+    #[at("/{*path}")]
     Misc { path: String },
 }
 
@@ -132,7 +132,7 @@ fn switch(route: Route) -> Html {
 ```rust ,ignore
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
-    #[at("/news/:id")]
+    #[at("/news/{id}")]
     News { id: u8 },
     #[not_found]
     #[at("/404")]
@@ -145,7 +145,7 @@ enum Route {
 
 ![ルーターの逆シリアル化失敗の動作](/img/router-deserialization-failure-behavior.gif)
 
-ルーティング構文やパラメータのバインディング方法の詳細については、[route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params) を参照してください。
+ルーティング構文やパラメータのバインディング方法の詳細については、[matchit](https://docs.rs/matchit/0.9/matchit/) を参照してください。
 
 ### 位置 (Location)
 
@@ -396,7 +396,7 @@ enum MainRoute {
     Contact,
     #[at("/settings")]
     SettingsRoot,
-    #[at("/settings/*")]
+    #[at("/settings/{*_rest}")]
     Settings,
     #[not_found]
     #[at("/404")]

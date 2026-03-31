@@ -25,11 +25,11 @@ pub fn route_meta(route: &Route) -> (&'static str, &'static str) {
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/posts/:id")]
+    #[at("/posts/{id}")]
     Post { id: u32 },
     #[at("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[at("/authors/{id}")]
     Author { id: u32 },
     #[at("/authors")]
     Authors,

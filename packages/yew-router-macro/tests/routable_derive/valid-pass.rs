@@ -4,9 +4,9 @@
 enum Routes {
     #[at("/")]
     One,
-    #[at("/two/:id")]
+    #[at("/two/{id}")]
     Two { id: u32 },
-    #[at("/:a/:b/*rest")]
+    #[at("/{a}/{b}/{*rest}")]
     Three { a: u32, b: u32, rest: ::std::string::String },
     #[at("/404")]
     #[not_found]
@@ -15,9 +15,9 @@ enum Routes {
 
 #[derive(Debug, PartialEq, Clone, ::yew_router::Routable)]
 enum MoreRoutes {
-    #[at("/subpath/*rest")]
+    #[at("/subpath/{*rest}")]
     Subpath { rest: ::std::string::String },
-    #[at("/*all")]
+    #[at("/{*all}")]
     CatchAll { all: ::std::string::String },
 }
 

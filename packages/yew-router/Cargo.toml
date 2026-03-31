@@ -18,7 +18,7 @@ yew-router-macro = { version = "0.20.0", path = "../yew-router-macro" }
 wasm-bindgen.workspace = true
 js-sys.workspace = true
 gloo = { workspace = true, features = ["futures"] }
-route-recognizer = "0.3"
+matchit = "0.9"
 serde.workspace = true
 serde_urlencoded = "0.7.1"
 tracing = "0.1.44"

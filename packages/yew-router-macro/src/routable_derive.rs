@@ -174,14 +174,13 @@ impl Routable {
 
                     let mut wildcard_fields = std::collections::HashSet::new();
                     for field in fields.iter() {
-                        if right.contains(&format!("*{field}")) {
+                        if right.contains(&format!("{{*{field}}}")) {
                             wildcard_fields.insert((*field).clone());
                         }
-                        // :param -> {param}
-                        // *param -> {param}
-                        // so we can pass it to `format!("...", param)`
-                        right = right.replace(&format!(":{field}"), &format!("{{{field}}}"));
-                        right = right.replace(&format!("*{field}"), &format!("{{{field}}}"));
+                        // {*param} -> {param} so we can pass it to `format!("...", param)`
+                        // {param} is already valid format syntax
+                        right =
+                            right.replace(&format!("{{*{field}}}"), &format!("{{{field}}}"));
                     }
 
                     let field_encodings = fields.iter().map(|field| {
