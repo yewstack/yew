@@ -22,7 +22,7 @@ pub fn build_router<R: Routable>() -> Router {
         let stripped_route = strip_slash_suffix(path);
         router
             .insert(stripped_route, path.to_string())
-            .expect("failed to insert route");
+            .unwrap_or_else(|e| panic!("failed to insert route {stripped_route:?}: {e}"));
     });
 
     router
