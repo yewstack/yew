@@ -397,7 +397,7 @@ enum MainRoute {
     #[at("/settings")]
     SettingsRoot,
     #[at("/settings/{*_rest}")]
-    Settings,
+    Settings { _rest: String },
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -421,7 +421,7 @@ fn switch_main(route: MainRoute) -> Html {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsRoot | MainRoute::Settings { .. } => html! { <Switch<SettingsRoute> render={switch_settings} /> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }

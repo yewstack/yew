@@ -8,6 +8,25 @@ use syn::{Data, DeriveInput, Fields, Ident, LitStr, Variant};
 const AT_ATTR_IDENT: &str = "at";
 const NOT_FOUND_ATTR_IDENT: &str = "not_found";
 
+/// Extract parameter names from a matchit-style route pattern.
+/// E.g. `"/posts/{id}"` → `["id"]`, `"/files/{*path}"` → `["path"]`.
+fn extract_route_params(route: &str) -> Vec<String> {
+    let mut params = Vec::new();
+    let mut chars = route.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '{' {
+            if chars.peek() == Some(&'*') {
+                chars.next();
+            }
+            let name: String = chars.by_ref().take_while(|&c| c != '}').collect();
+            if !name.is_empty() {
+                params.push(name);
+            }
+        }
+    }
+    params
+}
+
 pub struct Routable {
     ident: Ident,
     ats: Vec<LitStr>,
@@ -99,6 +118,32 @@ fn parse_variants_attributes(
                 lit,
                 "relative paths are not supported at this moment.",
             ));
+        }
+
+        let route_params = extract_route_params(&val);
+        if !route_params.is_empty() {
+            let field_names: std::collections::HashSet<String> = match &variant.fields {
+                Fields::Named(fields) => fields
+                    .named
+                    .iter()
+                    .filter_map(|f| f.ident.as_ref().map(|i| i.to_string()))
+                    .collect(),
+                Fields::Unit => std::collections::HashSet::new(),
+                Fields::Unnamed(_) => unreachable!(),
+            };
+
+            for param in &route_params {
+                if !field_names.contains(param) {
+                    return Err(syn::Error::new_spanned(
+                        &lit,
+                        format!(
+                            "route parameter `{param}` does not have a corresponding field in \
+                             variant `{}`",
+                            variant.ident
+                        ),
+                    ));
+                }
+            }
         }
 
         ats.push(lit);
