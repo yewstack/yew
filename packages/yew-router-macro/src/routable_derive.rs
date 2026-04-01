@@ -120,6 +120,29 @@ fn parse_variants_attributes(
             ));
         }
 
+        // Reject old route-recognizer `:param` / `*param` syntax that would
+        // silently become literal path segments under matchit.
+        for segment in val.split('/') {
+            if let Some(name) = segment.strip_prefix(':') {
+                return Err(syn::Error::new_spanned(
+                    &lit,
+                    format!(
+                        "route segments must not start with `:`. Use `{{{name}}}` to capture a \
+                         parameter.",
+                    ),
+                ));
+            }
+            if let Some(name) = segment.strip_prefix('*') {
+                return Err(syn::Error::new_spanned(
+                    &lit,
+                    format!(
+                        "route segments must not start with `*`. Use `{{*{name}}}` to capture a \
+                         wildcard.",
+                    ),
+                ));
+            }
+        }
+
         let route_params = extract_route_params(&val);
         if !route_params.is_empty() {
             let field_names: std::collections::HashSet<String> = match &variant.fields {
