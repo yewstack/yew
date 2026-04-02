@@ -176,17 +176,18 @@ impl BList {
         let mut lefts_rev = lefts.into_iter().rev();
 
         // Add excess new nodes at the tail of render order (rightmost first
-        // for the NodeWriter, then extended in render order).
-        let mut excess: Vec<BNode> = Vec::new();
+        // for the NodeWriter).
+        let excess_start = rights.len();
         for l in lefts_rev
             .by_ref()
             .take(left_len.saturating_sub(paired_count))
         {
             let (next_writer, el) = writer.add(l);
-            excess.push(el);
+            rights.push(el);
             writer = next_writer;
         }
-        rights.extend(excess.into_iter().rev());
+        // Items were pushed right-to-left; flip to render order.
+        rights[excess_start..].reverse();
 
         // Patch paired nodes right-to-left.
         for (l, r) in lefts_rev.zip(rights[..paired_count].iter_mut().rev()) {
@@ -409,13 +410,11 @@ impl BList {
             };
             replacements.push(bundle);
         }
-        // drop the splice iterator and immediately replace the range with the reordered elements.
-        // replacements was built right-to-left; iterate in reverse for render order.
+        // drop the splice iterator and immediately replace the range with the reordered elements
         drop(spliced_middle);
-        bundles.splice(
-            matching_len_start..matching_len_start,
-            replacements.into_iter().rev(),
-        );
+        // replacements was built right-to-left; reverse to render order
+        replacements.reverse();
+        bundles.splice(matching_len_start..matching_len_start, replacements);
 
         // Step 2.3. Remove any extra rights
         for KeyedEntry(_, r) in spare_bundles.drain() {
