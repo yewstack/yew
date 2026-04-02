@@ -1,0 +1,21 @@
+[package]
+name = "yew-site-ssg"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+anyhow = { workspace = true }
+clap = { workspace = true }
+atom_syndication = { version = "0.12", default-features = false, features = ["builders"] }
+rss = { version = "2", default-features = false, features = ["builders"] }
+syntect = { git = "https://github.com/Madoshakalaka/syntect.git", branch = "line-highlighting", default-features = false, features = ["parsing", "html", "default-syntaxes", "default-themes", "dump-load", "regex-fancy"] }
+yew-site-lib = { path = "../lib", default-features = false }
+yew-site-home = { path = "../home", default-features = false, features = ["ssr"] }
+yew-site-spa-en = { path = "../spa-en", default-features = false, features = ["ssr"] }
+yew-site-spa-ja = { path = "../spa-ja", default-features = false, features = ["ssr"] }
+yew-site-spa-zh-hans = { path = "../spa-zh-hans", default-features = false, features = ["ssr"] }
+yew-site-spa-zh-hant = { path = "../spa-zh-hant", default-features = false, features = ["ssr"] }
+yew-site-blog = { path = "../blog", default-features = false, features = ["ssr"] }
+yew-site-community = { path = "../community", default-features = false, features = ["ssr"] }

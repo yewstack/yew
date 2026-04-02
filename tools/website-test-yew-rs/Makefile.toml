@@ -1,0 +1,3 @@
+[tasks.doc-test]
+command = "cargo"
+args = ["test"]

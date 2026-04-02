@@ -1,0 +1,296 @@
+crate::doc_page!(
+    "Elements",
+    "/zh-Hant/docs/concepts/html/elements",
+    Content::new(vec![
+        h2!["標籤結構"],
+        p!["元件標籤都必須要是自封閉的標籤或是跟開啟標籤對應的關閉標籤。"],
+        tabs![
+            "open-close",
+            tab![
+                "Open - Close",
+                "open-close",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div id="my_div"></div>
+}"#,
+                ),
+            ],
+            tab![
+                "INVALID",
+                "invalid-open",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div id="my_div"> // <- 缺少關閉標籤
+}"#,
+                ),
+            ],
+            tab![
+                "Self-Closing",
+                "self-closing",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <input id="my_input" />
+}"#,
+                ),
+            ],
+            tab![
+                "INVALID",
+                "invalid-self-closing",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <input id="my_input"> // <- 缺少自封閉標籤語法
+}"#,
+                ),
+            ],
+        ],
+        admonition![
+            AdmonitionType::Note,
+            None,
+            p![
+                "為了方便起見，通常需要關閉標籤的元件，也都可以用自封閉標籤表示。例如，寫 html! { \
+                 <div class=\"placeholder\" /> } 是合法的。"
+            ],
+        ],
+        h2!["子結點"],
+        p!["輕鬆寫出複雜巢狀的 HTML 與 SVG 架構："],
+        tabs![
+            "html",
+            tab![
+                "HTML",
+                "html",
+                code_block(
+                    "rust",
+                    r#"html! {
+    <div>
+        <div data-key="abc"></div>
+        <div class="parent">
+            <span class="child" value="anything"></span>
+            <label for="first-name">{ "First Name" }</label>
+            <input type="text" id="first-name" value="placeholder" />
+            <input type="checkbox" checked=true />
+            <textarea value="write a story" />
+            <select name="status">
+                <option selected=true disabled=false value="">{ "Selected" }</option>
+                <option selected=false disabled=true value="">{ "Unselected" }</option>
+            </select>
+        </div>
+    </div>
+}"#,
+                ),
+            ],
+            tab![
+                "SVG",
+                "svg",
+                code_block(
+                    "rust",
+                    r##"html! {
+    <svg width="149" height="147" viewBox="0 0 149 147" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60.5776 13.8268L51.8673 42.6431L77.7475 37.331L60.5776 13.8268Z" fill="#DEB819"/>
+        <path d="M108.361 94.9937L138.708 90.686L115.342 69.8642" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g filter="url(#filter0_d)">
+            <circle cx="75.3326" cy="73.4918" r="55" fill="#FDD630"/>
+            <circle cx="75.3326" cy="73.4918" r="52.5" stroke="black" stroke-width="5"/>
+        </g>
+        <circle cx="71" cy="99" r="5" fill="white" fill-opacity="0.75" stroke="black" stroke-width="3"/>
+        <defs>
+            <filter id="filter0_d" x="16.3326" y="18.4918" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="2"/>
+                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+            </filter>
+        </defs>
+    </svg>
+}"##,
+                ),
+            ],
+        ],
+        h2!["Classes"],
+        p!["你很多方便的選項可以寫元件裡的 class："],
+        tabs![
+            "literal",
+            tab![
+                "Literal",
+                "literal",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div class="container"></div>
+}"#,
+                ),
+            ],
+            tab![
+                "Multiple",
+                "multiple",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div class="container center-align"></div>
+}"#,
+                ),
+            ],
+            tab![
+                "Interpolated",
+                "interpolated",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div class={format!("{}-container", size)}></div>
+}"#,
+                ),
+            ],
+            tab![
+                "Expression",
+                "expression",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div class={self.classes()}></div>
+}"#,
+                ),
+            ],
+            tab![
+                "Tuple",
+                "tuple",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div class={("class-1", "class-2")}></div>
+}"#,
+                ),
+            ],
+            tab![
+                "Vector",
+                "vector",
+                code_block(
+                    "rust",
+                    r#"html! {
+  <div class={vec!["class-1", "class-2"]}></div>
+}"#,
+                ),
+            ],
+        ],
+        h2!["監聽"],
+        p![
+            "監聽器的屬性必須要傳入一個 ",
+            code("Callback"),
+            "，他封裝了閉包。callback 的內容取決於，當觸發監聽事件時，你希望應用程式有什麼反應：",
+        ],
+        tabs![
+            "component-handler",
+            tab![
+                "Component Handler",
+                "component-handler",
+                code_block(
+                    "rust",
+                    r#"struct MyComponent {
+    link: ComponentLink<Self>,
+}
+
+enum Msg {
+    Click,
+}
+
+impl Component for MyComponent {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        MyComponent { link }
+    }
+
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::Click => {
+                // 處理點擊事件
+            }
+        }
+    }
+
+    fn view(&self) -> Html {
+        // 從一個元件連結中，建立一個 callback 並在元件中處理他
+        let click_callback = self.link.callback(|_: ClickEvent| Msg::Click);
+        html! {
+            <button onclick={click_callback}>
+                { "Click me!" }
+            </button>
+        }
+    }
+}"#,
+                ),
+            ],
+            tab![
+                "Agent Handler",
+                "agent-handler",
+                code_block(
+                    "rust",
+                    r#"struct MyComponent {
+    worker: Dispatcher<MyWorker>,
+}
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        MyComponent {
+            worker: MyWorker::dispatcher()
+        }
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        false
+    }
+
+    fn view(&self) -> Html {
+        // 從一個 worker 中建立一個 callback，並在其他的 context 中處理他
+        let click_callback = self.worker.callback(|_: ClickEvent| WorkerMsg::Process);
+        html! {
+            <button onclick={click_callback}>
+                { "Click me!" }
+            </button>
+        }
+    }
+}"#,
+                ),
+            ],
+            tab![
+                "Other Cases",
+                "other-cases",
+                code_block(
+                    "rust",
+                    r#"struct MyComponent;
+
+impl Component for MyComponent {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
+        MyComponent
+    }
+
+    fn update(&mut self, _: Self::Message) -> ShouldRender {
+        false
+    }
+
+    fn view(&self) -> Html {
+        // 建立一個臨時的 callback
+        let click_callback = Callback::from(|| {
+            ConsoleService::log("clicked!");
+        });
+
+        html! {
+            <button onclick={click_callback}>
+                { "Click me!" }
+            </button>
+        }
+    }
+}"#,
+                ),
+            ],
+        ],
+    ])
+    .with_description("Both HTML and SVG elements are supported")
+);

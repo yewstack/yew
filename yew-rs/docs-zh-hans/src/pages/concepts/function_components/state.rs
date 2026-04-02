@@ -1,0 +1,92 @@
+pub fn page_content() -> yew_site_lib::Content {
+    use yew_site_lib::content::*;
+    Content::new(vec![
+        h2!["如何存储状态的一般视图"],
+        p!["这个表格可以作为一个指南，帮助您决定哪种状态存储类型最适合您的用例："],
+        table(
+            vec![
+                vec!["Hook".into()],
+                vec!["类型".into()],
+                vec!["何时渲染?".into()],
+                vec!["作用域".into()],
+            ],
+            vec![
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html",
+                        "use_state"
+                    ]],
+                    vec![code("T")],
+                    vec!["被设置一个值".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html",
+                        "use_state_eq"
+                    ]],
+                    vec![code("T: PartialEq")],
+                    vec!["被设置一个不同的值".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html",
+                        "use_reducer"
+                    ]],
+                    vec![code("T: Reducible")],
+                    vec!["被调用归纳".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer_eq.html",
+                        "use_reducer_eq"
+                    ]],
+                    vec![code("T: Reducible + PartialEq")],
+                    vec!["被调用归纳，归纳后的值与之前不同".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_memo.html",
+                        "use_memo"
+                    ]],
+                    vec![code("Deps -> T")],
+                    vec!["依赖项发生变化".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_callback.html",
+                        "use_callback"
+                    ]],
+                    vec![code("Deps -> Callback<E>")],
+                    vec!["依赖项发生变化".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec![link![
+                        "https://yew-rs-api.web.app/next/yew/functional/fn.use_mut_ref.html",
+                        "use_mut_ref"
+                    ]],
+                    vec![code("T")],
+                    vec!["-".into()],
+                    vec!["组件内部实例".into()],
+                ],
+                vec![
+                    vec!["全局静态常量".into()],
+                    vec![code("T")],
+                    vec!["-".into()],
+                    vec!["全局，任何位置都可以使用".into()],
+                ],
+            ],
+        ),
+    ])
+}
+
+crate::doc_page!(
+    "状态",
+    "/zh-Hans/docs/concepts/function-components/state",
+    page_content()
+);

@@ -1,0 +1,9 @@
+crate::doc_page!(
+    "サンプルアプリケーションの構築",
+    "/ja/docs/getting-started/build-a-sample-app",
+    {
+        yew_site_docs_ja::pages::getting_started::build_a_sample_app::page_content_versioned(Some(
+            "0.23",
+        ))
+    }
+);

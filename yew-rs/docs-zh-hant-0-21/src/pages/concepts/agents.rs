@@ -1,0 +1,72 @@
+crate::doc_page!(
+    "Agents",
+    "/zh-Hant/docs/concepts/agents",
+    Content::new(vec![
+        h1!["Agents"],
+        p![
+            "Agents 類似於 Angular 的 ",
+            link!(
+                "https://angular.io/guide/architecture-services",
+                "Services",
+            ),
+            "（但沒有依賴注入）而且提供 Yew 一個 ",
+            link!(
+                "https://en.wikipedia.org/wiki/Actor_model",
+                "Actor Model",
+            ),
+            "。Agents 可以用來作為兩個元件間的路由訊息，而且與他們在元件間的層級關係獨立出來，\
+                 所以他也可以用來作為一個全域的狀態，甚至可以用來減輕用來渲染 UI \
+                 畫面的主執行緒的大量運算任務。 未來，我們還規劃要讓 agents 幫忙 Yew 專案可以跨頁籤溝通。",
+        ],
+        p![
+            "為了讓 agents 可以並行， Yew 使用了 ",
+            link!(
+                "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers",
+                "web-workers",
+            ),
+            "。",
+        ],
+        h2!["生命周期"],
+        img(
+            "https://user-images.githubusercontent.com/42674621/79125224-b6481d80-7d95-11ea-8e6a-ab9b52d1d8ac.png",
+            "Agent 生命周期",
+        ),
+        h2!["Agents 的型別"],
+        h4!["範圍"],
+        ul![
+            li!["Job - 在 UI 執行緒上，為每一個 bridge，新增一個 agent。\
+                 這對於將「共享但獨立的行為」移出元件很有用。（待驗證）當工作結束，agent 會消失。"],
+            li!["Context - Bridges 會建立並連接上 UI 執行緒上的 agent。\
+                 這可以用來協調元件與其他 agent 之間的狀態。當沒有任何 bridge 連接上這個 agent，\
+                 這個 agent 就會消失。"],
+            li!["Private - 與 Job 相同，但是是在自己的 web worker 上執行的。"],
+            li!["Public - 與 Context 相同，但是是在自己的 web worker 上執行的。"],
+            li!["Global（編寫中）"],
+        ],
+        h2!["在 Agents 與元件之間溝通"],
+        h3!["Bridges"],
+        p!["bridge 允許 agent 與元件進行雙向的溝通。bridge 也允許 agents 之間互相溝通。"],
+        h3!["Dispatchers"],
+        p!["dispatcher 允許元件與 agent 進行單向的溝通。dispatcher 也允許元件向 agent 發送訊息。"],
+        h2!["開銷"],
+        p![
+            "Agents 透過使用 ",
+            link!(
+                "https://github.com/servo/bincode",
+                "bincode",
+            ),
+            " 序列化他們的訊息，來溝通。所以比起呼叫方法，他的效能花費比較高。\
+                 除非計算的成本，或是跨元件計算的成本，比傳遞訊息的成本要高，否則 agent \
+                 的方法儘量只有包含單純的邏輯運算。",
+        ],
+        h2!["延伸閱讀"],
+        ul![li![
+            link!(
+                "https://github.com/yewstack/yew/tree/master/examples/web_worker_fib",
+                "web_worker_fib",
+            ),
+            " 範例顯示了如何在 agents 之間溝通。",
+        ]],
+    ])
+    .with_description("Yew's Actor System")
+);

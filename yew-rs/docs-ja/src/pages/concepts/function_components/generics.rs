@@ -1,0 +1,51 @@
+pub fn page_content() -> yew_site_lib::Content {
+    use yew_site_lib::content::*;
+    Content::new(vec![
+        p![
+            code("#[component]"),
+            " 属性は、ジェネリックコンポーネントを作成するためのジェネリック関数にも適用されます。",
+        ],
+        code_block(
+            "rust",
+            r#"use std::fmt::Display;
+use yew::{component, html, Properties, Html};
+
+#[derive(Properties, PartialEq)]
+pub struct Props<T>
+where
+    T: PartialEq,
+{
+    data: T,
+}
+
+#[component]
+pub fn MyGenericComponent<T>(props: &Props<T>) -> Html
+where
+    T: PartialEq + Clone + Into<Html>,
+{
+    html! {
+        <p>
+            { props.data.clone().into() }
+        </p>
+    }
+}
+
+// その後、このように使用できます
+html! {
+    <MyGenericComponent<i32> data=123 />
+};
+
+// または
+html! {
+    <MyGenericComponent<String> data={"foo".to_string()} />
+};"#,
+        ),
+    ])
+    .with_description("The #[component] attribute")
+}
+
+crate::doc_page!(
+    "ジェネリックコンポーネント",
+    "/ja/docs/concepts/function-components/generics",
+    page_content()
+);
