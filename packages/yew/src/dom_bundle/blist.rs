@@ -144,6 +144,10 @@ impl BList {
     }
 
     /// Diff and patch unkeyed child lists
+    ///
+    /// Pairs children by render-order position from the front, so that leading
+    /// nodes are always reconciled with themselves when the list grows or
+    /// shrinks at the tail.
     fn apply_unkeyed(
         root: &BSubtree,
         parent_scope: &AnyScope,
@@ -159,25 +163,47 @@ impl BList {
             slot,
         };
 
-        // Remove extra nodes
-        if lefts.len() < rights.len() {
-            for r in rights.drain(lefts.len()..) {
+        // `rights` is stored in reverse render order. Flip to render order so
+        // that simple index-based pairing matches children front-to-front.
+        rights.reverse();
+
+        let left_len = lefts.len();
+
+        // Remove excess old nodes from the END of render order (now the tail).
+        if left_len < rights.len() {
+            for r in rights.drain(left_len..) {
                 test_log!("removing: {:?}", r);
                 r.detach(root, parent, false);
             }
         }
 
-        let mut lefts_it = lefts.into_iter().rev();
-        for (r, l) in rights.iter_mut().zip(&mut lefts_it) {
-            writer = writer.patch(l, r);
-        }
+        let paired_count = rights.len(); // min(left_len, old_len)
 
-        // Add missing nodes
-        for l in lefts_it {
+        // The NodeWriter must process children right-to-left in render order.
+        let mut lefts_rev = lefts.into_iter().rev();
+
+        // 1. Add excess new nodes at the tail of render order (rightmost first).
+        let excess_start = rights.len();
+        for l in lefts_rev
+            .by_ref()
+            .take(left_len.saturating_sub(paired_count))
+        {
             let (next_writer, el) = writer.add(l);
             rights.push(el);
             writer = next_writer;
         }
+        // Items were pushed right-to-left; flip them to render order.
+        rights[excess_start..].reverse();
+
+        // 2. Patch paired nodes right-to-left. lefts_rev now yields positions [paired_count-1 ..
+        //    0]. rights[..paired_count] is in render order, .rev() walks right-to-left.
+        for (l, r) in lefts_rev.zip(rights[..paired_count].iter_mut().rev()) {
+            writer = writer.patch(l, r);
+        }
+
+        // Flip back to reverse render order.
+        rights.reverse();
+
         writer.slot
     }
 
@@ -1485,5 +1511,207 @@ mod layout_tests_keys {
         });
 
         diff_layouts(layouts);
+    }
+}
+
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
+#[cfg(test)]
+mod node_identity_tests {
+    extern crate self as yew;
+
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::dom_bundle::{BSubtree, Bundle, DomSlot};
+    use crate::html::AnyScope;
+    use crate::{html, scheduler, Html};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn for_iterable_preserves_sibling_identity() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let items: Vec<Html> = vec![];
+        let vnode = html! { <><div id="stable"/>{for items}</> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), r#"<div id="stable"></div>END"#);
+
+        let div_node = parent.first_child().expect("should have a child");
+        assert_eq!(div_node.node_name(), "DIV");
+
+        let items: Vec<Html> = vec![html! { <span/> }];
+        let vnode = html! { <><div id="stable"/>{for items}</> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(
+            parent.inner_html(),
+            r#"<div id="stable"></div><span></span>END"#
+        );
+
+        let first = parent.first_child().expect("should have children");
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "the <div> DOM node should be reused, not recreated (got <{}>, the old <div> was \
+             destroyed by {{for}} flattening)",
+            first.node_name(),
+        );
+    }
+
+    #[test]
+    fn vec_expression_preserves_sibling_identity() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let items: Vec<Html> = vec![];
+        let vnode = html! { <><div id="stable"/>{items}</> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), r#"<div id="stable"></div>END"#);
+
+        let div_node = parent.first_child().expect("should have a child");
+        assert_eq!(div_node.node_name(), "DIV");
+
+        let items: Vec<Html> = vec![html! { <span/> }];
+        let vnode = html! { <><div id="stable"/>{items}</> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(
+            parent.inner_html(),
+            r#"<div id="stable"></div><span></span>END"#
+        );
+
+        let first = parent.first_child().expect("should have children");
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "the <div> DOM node should be reused, not recreated (got <{}>, the old <div> was \
+             destroyed by Vec flattening)",
+            first.node_name(),
+        );
+    }
+
+    #[test]
+    fn option_expression_preserves_sibling_identity() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let maybe: Option<Html> = None;
+        let vnode = html! { <><div id="stable"/>{maybe}</> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), r#"<div id="stable"></div>END"#);
+
+        let div_node = parent.first_child().expect("should have a child");
+        assert_eq!(div_node.node_name(), "DIV");
+
+        let maybe: Option<Html> = Some(html! { <span/> });
+        let vnode = html! { <><div id="stable"/>{maybe}</> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(
+            parent.inner_html(),
+            r#"<div id="stable"></div><span></span>END"#
+        );
+
+        let first = parent.first_child().expect("should have children");
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "the <div> DOM node should be reused, not recreated (got <{}>, the old <div> was \
+             destroyed by Option flattening)",
+            first.node_name(),
+        );
+    }
+
+    #[test]
+    fn unkeyed_grow_preserves_leading_nodes() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let vnode = html! { <><div/><span/></> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span>END");
+
+        let div_node = parent.first_child().unwrap();
+        assert_eq!(div_node.node_name(), "DIV");
+        let span_node = div_node.next_sibling().unwrap();
+        assert_eq!(span_node.node_name(), "SPAN");
+
+        let vnode = html! { <><div/><span/><p/></> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span><p></p>END");
+
+        let first = parent.first_child().unwrap();
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "growing a list should not recreate leading <div>",
+        );
+        let second = first.next_sibling().unwrap();
+        assert!(
+            second.is_same_node(Some(&span_node)),
+            "growing a list should not recreate leading <span>",
+        );
+    }
+
+    #[test]
+    fn unkeyed_shrink_preserves_leading_nodes() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let vnode = html! { <><div/><span/><p/></> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span><p></p>END");
+
+        let div_node = parent.first_child().unwrap();
+        let span_node = div_node.next_sibling().unwrap();
+
+        let vnode = html! { <><div/><span/></> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span>END");
+
+        let first = parent.first_child().unwrap();
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "shrinking a list should not recreate leading <div>",
+        );
+        let second = first.next_sibling().unwrap();
+        assert!(
+            second.is_same_node(Some(&span_node)),
+            "shrinking a list should not recreate leading <span>",
+        );
     }
 }
