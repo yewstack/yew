@@ -299,17 +299,11 @@ impl BList {
         }
         let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
 
-        let middle_count = bundle_middle.len();
-
         // BNode contains js objects that look suspicious to clippy but are harmless
         #[allow(clippy::mutable_key_type)]
-        let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(middle_count);
+        let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
         let mut spliced_middle = bundles.splice(bundle_middle, std::iter::empty());
-        for (fwd_idx, r) in (&mut spliced_middle).enumerate() {
-            // Assign indices measuring distance from the right (rightmost = 0).
-            // The run algorithm below processes right-to-left and expects
-            // increasing indices in that direction.
-            let idx = middle_count - 1 - fwd_idx;
+        for (idx, r) in (&mut spliced_middle).enumerate() {
             #[cold]
             fn duplicate_in_bundle(root: &BSubtree, parent: &Element, r: BNode) {
                 test_log!("removing: {:?}", r);
@@ -327,16 +321,16 @@ impl BList {
         // We handle runs of in-order nodes. When we encounter one out-of-order, we decide whether:
         // - to shift all nodes in the current run to the position after the node before of the run,
         //   or to
-        // - "commit" to the current run, shift all nodes before the end of the run that we might
+        // - "commit" to the current run, shift all nodes after the end of the run that we might
         //   encounter in the future, and then start a new run.
-        // Example of a run:
-        //               barrier_idx --v                   v-- end_idx
-        // spliced_middle  [ ... , M , N , C , D , E , F , G , ... ] (original element order)
-        //                                 ^---^-----------^ the nodes that are part of the current
-        // run                           v start_writer
-        // replacements    [ ... , M , C , D , G ]                   (new element order)
-        //                             ^-- start_idx
-        let mut barrier_idx = 0; // nodes from spliced_middle[..barrier_idx] are shifted unconditionally
+        //
+        // Indices are in render order (idx 0 = leftmost). Processing goes right-to-left, so we
+        // expect decreasing indices for nodes already in the right relative order.
+        //
+        // `barrier_idx` is the next expected index when scanning right-to-left.
+        // `None` means every remaining node is in the committed region and must be shifted.
+        let middle_count = spare_bundles.len();
+        let mut barrier_idx: Option<usize> = middle_count.checked_sub(1);
         struct RunInformation<'a> {
             start_writer: NodeWriter<'a>,
             start_idx: usize,
@@ -353,7 +347,7 @@ impl BList {
             if let Some(run) = current_run.as_mut() {
                 if let Some(KeyedEntry(idx, _)) = ancestor {
                     // If there are only few runs, this is a cold path
-                    if idx < run.end_idx {
+                    if idx > run.end_idx {
                         // Have to decide whether to shift or commit the current run. A few
                         // calculations: A perfect estimate of the amount of
                         // nodes we have to shift if we move this run:
@@ -361,12 +355,13 @@ impl BList {
                         // A very crude estimate of the amount of nodes we will have to shift if we
                         // commit the run: Note nodes of the current run
                         // should not be counted here!
-                        let estimated_skipped_nodes = run.end_idx - idx.max(barrier_idx);
+                        let barrier_val = barrier_idx.unwrap_or(run.end_idx);
+                        let estimated_skipped_nodes = idx.min(barrier_val) - run.end_idx;
                         // double run_length to counteract that the run is part of the
                         // estimated_skipped_nodes
                         if 2 * run_length > estimated_skipped_nodes {
                             // less work to commit to this run
-                            barrier_idx = 1 + run.end_idx;
+                            barrier_idx = run.end_idx.checked_sub(1);
                         } else {
                             // Less work to shift this run
                             for r in replacements[run.start_idx..].iter_mut().rev() {
@@ -380,23 +375,30 @@ impl BList {
             let bundle = if let Some(KeyedEntry(idx, mut r_bundle)) = ancestor {
                 match current_run.as_mut() {
                     // hot path
-                    // We know that idx >= run.end_idx, so this node doesn't need to shift
+                    // We know that idx <= run.end_idx, so this node doesn't need to shift
                     Some(run) => run.end_idx = idx,
-                    None => match idx.cmp(&barrier_idx) {
-                        // peep hole optimization, don't start a run as the element is already where
-                        // it should be
-                        Ordering::Equal => barrier_idx += 1,
-                        // shift the node unconditionally, don't start a run
-                        Ordering::Less => writer.shift(&r_bundle),
-                        // start a run
-                        Ordering::Greater => {
-                            current_run = Some(RunInformation {
-                                start_writer: writer.clone(),
-                                start_idx: replacements.len(),
-                                end_idx: idx,
-                            })
+                    None => {
+                        if let Some(b) = barrier_idx {
+                            match idx.cmp(&b) {
+                                // peep hole optimization, don't start a run as the element is
+                                // already where it should be
+                                Ordering::Equal => barrier_idx = idx.checked_sub(1),
+                                // shift the node unconditionally, don't start a run
+                                Ordering::Greater => writer.shift(&r_bundle),
+                                // start a run
+                                Ordering::Less => {
+                                    current_run = Some(RunInformation {
+                                        start_writer: writer.clone(),
+                                        start_idx: replacements.len(),
+                                        end_idx: idx,
+                                    })
+                                }
+                            }
+                        } else {
+                            // Everything to the right has been committed; must shift
+                            writer.shift(&r_bundle);
                         }
-                    },
+                    }
                 }
                 writer = writer.patch(l, &mut r_bundle);
                 r_bundle
