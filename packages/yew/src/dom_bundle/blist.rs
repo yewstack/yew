@@ -16,8 +16,8 @@ use crate::virtual_dom::{Key, VList, VNode};
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
 pub(super) struct BList {
-    /// The reverse (render order) list of child [BNode]s
-    rev_children: Vec<BNode>,
+    /// Child [BNode]s in render order
+    children: Vec<BNode>,
     /// All [BNode]s in the BList have keys
     fully_keyed: bool,
     key: Option<Key>,
@@ -41,7 +41,7 @@ impl Deref for BList {
     type Target = Vec<BNode>;
 
     fn deref(&self) -> &Self::Target {
-        &self.rev_children
+        &self.children
     }
 }
 
@@ -119,7 +119,7 @@ impl BNode {
                     _ => unreachable!("just been set to the variant"),
                 };
                 let key = b.key().cloned();
-                self_list.rev_children.push(b);
+                self_list.children.push(b);
                 self_list.fully_keyed = key.is_some();
                 self_list.key = key;
                 self_list
@@ -132,7 +132,7 @@ impl BList {
     /// Create a new empty [BList]
     pub const fn new() -> BList {
         BList {
-            rev_children: vec![],
+            children: vec![],
             fully_keyed: true,
             key: None,
         }
@@ -145,7 +145,7 @@ impl BList {
 
     /// Diff and patch unkeyed child lists
     ///
-    /// Pairs children by render-order position from the front, so that leading
+    /// Pairs children front-to-front by render-order position so that leading
     /// nodes are always reconciled with themselves when the list grows or
     /// shrinks at the tail.
     fn apply_unkeyed(
@@ -163,26 +163,20 @@ impl BList {
             slot,
         };
 
-        // `rights` is stored in reverse render order. Flip to render order so
-        // that simple index-based pairing matches children front-to-front.
-        rights.reverse();
-
-        let left_len = lefts.len();
-
-        // Remove excess old nodes from the END of render order (now the tail).
-        if left_len < rights.len() {
-            for r in rights.drain(left_len..) {
+        // Remove excess old nodes from the end of render order.
+        if lefts.len() < rights.len() {
+            for r in rights.drain(lefts.len()..) {
                 test_log!("removing: {:?}", r);
                 r.detach(root, parent, false);
             }
         }
 
         let paired_count = rights.len(); // min(left_len, old_len)
-
-        // The NodeWriter must process children right-to-left in render order.
+        let left_len = lefts.len();
         let mut lefts_rev = lefts.into_iter().rev();
 
-        // 1. Add excess new nodes at the tail of render order (rightmost first).
+        // Add excess new nodes at the tail of render order (rightmost first
+        // for the NodeWriter).
         let excess_start = rights.len();
         for l in lefts_rev
             .by_ref()
@@ -192,17 +186,13 @@ impl BList {
             rights.push(el);
             writer = next_writer;
         }
-        // Items were pushed right-to-left; flip them to render order.
+        // Items were pushed right-to-left; flip to render order.
         rights[excess_start..].reverse();
 
-        // 2. Patch paired nodes right-to-left. lefts_rev now yields positions [paired_count-1 ..
-        //    0]. rights[..paired_count] is in render order, .rev() walks right-to-left.
+        // Patch paired nodes right-to-left.
         for (l, r) in lefts_rev.zip(rights[..paired_count].iter_mut().rev()) {
             writer = writer.patch(l, r);
         }
-
-        // Flip back to reverse render order.
-        rights.reverse();
 
         writer.slot
     }
@@ -217,7 +207,7 @@ impl BList {
         parent: &Element,
         slot: DomSlot,
         left_vdoms: Vec<VNode>,
-        rev_bundles: &mut Vec<BNode>,
+        bundles: &mut Vec<BNode>,
     ) -> DomSlot {
         macro_rules! key {
             ($v:expr) => {
@@ -232,10 +222,10 @@ impl BList {
             a.zip(b).take_while(|(a, b)| a == b).count()
         }
 
-        // Find first key mismatch from the back
+        // Find first key mismatch from the back of render order
         let matching_len_end = matching_len(
             left_vdoms.iter().map(|v| key!(v)).rev(),
-            rev_bundles.iter().map(|v| key!(v)),
+            bundles.iter().map(|v| key!(v)).rev(),
         );
 
         if cfg!(debug_assertions) {
@@ -252,9 +242,9 @@ impl BList {
 
         // If there is no key mismatch, apply the unkeyed approach
         // Corresponds to adding or removing items from the back of the list
-        if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
+        if matching_len_end == std::cmp::min(left_vdoms.len(), bundles.len()) {
             // No key changes
-            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, rev_bundles);
+            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, bundles);
         }
 
         // We partially drain the new vnodes in several steps.
@@ -265,35 +255,36 @@ impl BList {
             parent,
             slot,
         };
-        // Step 1. Diff matching children at the end
+        // Step 1. Diff matching children at the end of render order
         let lefts_to = lefts.len() - matching_len_end;
+        let bundles_from = bundles.len() - matching_len_end;
         for (l, r) in lefts
             .drain(lefts_to..)
             .rev()
-            .zip(rev_bundles[..matching_len_end].iter_mut())
+            .zip(bundles[bundles_from..].iter_mut().rev())
         {
             writer = writer.patch(l, r);
         }
 
         // Step 2. Diff matching children in the middle, that is between the first and last key
-        // mismatch Find first key mismatch from the front
+        // mismatch. Find first key mismatch from the front.
         let mut matching_len_start = matching_len(
             lefts.iter().map(|v| key!(v)),
-            rev_bundles.iter().map(|v| key!(v)).rev(),
+            bundles.iter().map(|v| key!(v)),
         );
 
         // Step 2.1. Splice out the existing middle part and build a lookup by key
-        let rights_to = rev_bundles.len() - matching_len_start;
-        let mut bundle_middle = matching_len_end..rights_to;
+        let mut bundle_middle = matching_len_start..bundles_from;
         if bundle_middle.start > bundle_middle.end {
             // If this range is "inverted", this implies that the incoming nodes in lefts contain a
             // duplicate key!
             // Pictogram:
             //                                         v lefts_to
-            // lefts:              | SSSSSSSS | ------ | EEEEEEEE |
-            //                                ↕ matching_len_start
-            // rev_bundles.rev():  | SSS | ?? | EEE |
-            //                           ^ rights_to
+            // lefts:   | SSSSSSSS | ------ | EEEEEEEE |
+            //                     ↕ matching_len_start
+            // bundles: | SSS | ?? | EEE |
+            //                     ^ matching_len_start
+            //                          ^ bundles_from
             // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a
             // key in the ? portion of bundles. Since the former can't overlap, a key
             // must be duplicate. Duplicates might lead to us forgetting about some
@@ -304,15 +295,21 @@ impl BList {
             // by pretending. We still need to adjust some things so splicing doesn't
             // panic:
             matching_len_start = 0;
-            bundle_middle = matching_len_end..rev_bundles.len();
+            bundle_middle = 0..bundles_from;
         }
         let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
 
+        let middle_count = bundle_middle.len();
+
         // BNode contains js objects that look suspicious to clippy but are harmless
         #[allow(clippy::mutable_key_type)]
-        let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
-        let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
-        for (idx, r) in (&mut spliced_middle).enumerate() {
+        let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(middle_count);
+        let mut spliced_middle = bundles.splice(bundle_middle, std::iter::empty());
+        for (fwd_idx, r) in (&mut spliced_middle).enumerate() {
+            // Assign indices measuring distance from the right (rightmost = 0).
+            // The run algorithm below processes right-to-left and expects
+            // increasing indices in that direction.
+            let idx = middle_count - 1 - fwd_idx;
             #[cold]
             fn duplicate_in_bundle(root: &BSubtree, parent: &Element, r: BNode) {
                 test_log!("removing: {:?}", r);
@@ -413,7 +410,9 @@ impl BList {
         }
         // drop the splice iterator and immediately replace the range with the reordered elements
         drop(spliced_middle);
-        rev_bundles.splice(matching_len_end..matching_len_end, replacements);
+        // replacements was built right-to-left; reverse to render order
+        replacements.reverse();
+        bundles.splice(matching_len_start..matching_len_start, replacements);
 
         // Step 2.3. Remove any extra rights
         for KeyedEntry(_, r) in spare_bundles.drain() {
@@ -422,11 +421,10 @@ impl BList {
         }
 
         // Step 3. Diff matching children at the start
-        let rights_to = rev_bundles.len() - matching_len_start;
         for (l, r) in lefts
             .drain(..) // matching_len_start.. has been drained already
             .rev()
-            .zip(rev_bundles[rights_to..].iter_mut())
+            .zip(bundles[..matching_len_start].iter_mut().rev())
         {
             writer = writer.patch(l, r);
         }
@@ -437,13 +435,13 @@ impl BList {
 
 impl ReconcileTarget for BList {
     fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
-        for child in self.rev_children.into_iter() {
+        for child in self.children.into_iter() {
             child.detach(root, parent, parent_to_detach);
         }
     }
 
     fn shift(&self, next_parent: &Element, mut slot: DomSlot) -> DomSlot {
-        for node in self.rev_children.iter() {
+        for node in self.children.iter().rev() {
             slot = node.shift(next_parent, slot);
         }
 
@@ -498,7 +496,7 @@ impl Reconcilable for VList {
         // i.e. the current DOM list element that we want to replace with self.
         let (key, fully_keyed, lefts) = self.split_for_blist();
 
-        let rights = &mut blist.rev_children;
+        let rights = &mut blist.children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
 
@@ -541,10 +539,8 @@ mod feat_hydration {
                 children.push(child);
             }
 
-            children.reverse();
-
             BList {
-                rev_children: children,
+                children,
                 fully_keyed,
                 key,
             }
