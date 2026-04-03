@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::mem::size_of;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};

@@ -51,11 +51,7 @@ impl Deref for VList {
     fn deref(&self) -> &Self::Target {
         match self.children {
             Some(ref m) => m,
-            None => {
-                // This can be replaced with `const { &Vec::new() }` in Rust 1.79.
-                const EMPTY: &Vec<VNode> = &Vec::new();
-                EMPTY
-            }
+            None => const { &Vec::new() },
         }
     }
 }
@@ -84,7 +80,7 @@ impl<A: Into<VNode>> FromIterator<A> for VList {
 
 impl From<Option<Rc<Vec<VNode>>>> for VList {
     fn from(children: Option<Rc<Vec<VNode>>>) -> Self {
-        if children.as_ref().map(|x| x.is_empty()).unwrap_or(true) {
+        if children.as_ref().is_none_or(|x| x.is_empty()) {
             VList::new()
         } else {
             let mut vlist = VList {

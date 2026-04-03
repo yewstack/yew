@@ -1,6 +1,5 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use std::cmp::PartialEq;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};

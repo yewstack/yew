@@ -1,7 +1,5 @@
 //! This module contains the implementation of a virtual text node `VText`.
 
-use std::cmp::PartialEq;
-
 use super::AttrValue;
 use crate::html::ImplicitClone;
 

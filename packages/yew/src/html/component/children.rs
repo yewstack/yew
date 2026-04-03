@@ -194,7 +194,7 @@ where
 
     /// Children list is empty
     pub fn is_empty(&self) -> bool {
-        self.children.as_ref().map(|x| x.is_empty()).unwrap_or(true)
+        self.children.as_ref().is_none_or(|x| x.is_empty())
     }
 
     /// Number of children elements

@@ -9,7 +9,7 @@ mod flush_wakers {
     use std::task::Waker;
 
     thread_local! {
-        static FLUSH_WAKERS: RefCell<Vec<Waker>> = Default::default();
+        static FLUSH_WAKERS: RefCell<Vec<Waker>> = const { RefCell::new(Vec::new()) };
     }
 
     #[cfg(all(
@@ -229,7 +229,7 @@ pub(crate) fn start_now() {
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
         // `start()` method is being called recursively as part of a `runnable.run()`.
-        static LOCK: RefCell<()> = Default::default();
+        static LOCK: RefCell<()> = const { RefCell::new(()) };
     }
 
     LOCK.with(|l| {
@@ -481,7 +481,7 @@ mod tests {
         use std::cell::Cell;
 
         thread_local! {
-            static FLAG: Cell<bool> = Default::default();
+            static FLAG: Cell<bool> = const { Cell::new(false) };
         }
 
         struct Test;
