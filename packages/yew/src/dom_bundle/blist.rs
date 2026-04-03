@@ -222,12 +222,6 @@ impl BList {
             a.zip(b).take_while(|(a, b)| a == b).count()
         }
 
-        // Find first key mismatch from the back of render order
-        let matching_len_end = matching_len(
-            left_vdoms.iter().map(|v| key!(v)).rev(),
-            bundles.iter().map(|v| key!(v)).rev(),
-        );
-
         if cfg!(debug_assertions) {
             let mut keys = HashSet::with_capacity(left_vdoms.len());
             for (idx, n) in left_vdoms.iter().enumerate() {
@@ -240,12 +234,24 @@ impl BList {
             }
         }
 
-        // If there is no key mismatch, apply the unkeyed approach
-        // Corresponds to adding or removing items from the back of the list
-        if matching_len_end == std::cmp::min(left_vdoms.len(), bundles.len()) {
-            // No key changes
-            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, bundles);
+        // If keys match from the front for the entire shorter list, items were
+        // only added or removed at the back. apply_unkeyed handles this since
+        // it pairs front-to-front.
+        {
+            let front_match = matching_len(
+                left_vdoms.iter().map(|v| key!(v)),
+                bundles.iter().map(|v| key!(v)),
+            );
+            if front_match == std::cmp::min(left_vdoms.len(), bundles.len()) {
+                return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, bundles);
+            }
         }
+
+        // Find first key mismatch from the back of render order
+        let matching_len_end = matching_len(
+            left_vdoms.iter().map(|v| key!(v)).rev(),
+            bundles.iter().map(|v| key!(v)).rev(),
+        );
 
         // We partially drain the new vnodes in several steps.
         let mut lefts = left_vdoms;
@@ -1710,6 +1716,43 @@ mod node_identity_tests {
         assert!(
             second.is_same_node(Some(&span_node)),
             "shrinking a list should not recreate leading <span>",
+        );
+    }
+
+    #[test]
+    fn keyed_prepend_preserves_trailing_nodes() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let vnode = html! { <><i key="i"/><e key="e"/></> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<i></i><e></e>END");
+
+        let i_node = parent.first_child().unwrap();
+        let e_node = i_node.next_sibling().unwrap();
+
+        let vnode = html! { <><p key="p"/><i key="i"/><e key="e"/></> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<p></p><i></i><e></e>END");
+
+        let children = parent.child_nodes();
+        let second = children.get(1).unwrap();
+        let third = children.get(2).unwrap();
+        assert!(
+            second.is_same_node(Some(&i_node)),
+            "prepending to a keyed list should preserve trailing <i>",
+        );
+        assert!(
+            third.is_same_node(Some(&e_node)),
+            "prepending to a keyed list should preserve trailing <e>",
         );
     }
 }
