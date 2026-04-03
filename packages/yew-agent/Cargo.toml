@@ -13,28 +13,11 @@ rust-version = "1.84.0"
 
 [dependencies]
 yew = { version = "0.23.0", path = "../yew" }
+gloo-worker = { version = "0.6", features = ["futures"] }
 wasm-bindgen.workspace = true
-js-sys.workspace = true
-pinned = "0.1.0"
-thiserror.workspace = true
-bincode = { workspace = true }
-wasm-bindgen-futures.workspace = true
 serde = { workspace = true, features = ["derive"] }
 futures.workspace = true
 yew-agent-macro = { version = "0.4", path = "../yew-agent-macro" }
-
-[dependencies.web-sys]
-workspace = true
-features = [
-    "Blob",
-    "BlobPropertyBag",
-    "DedicatedWorkerGlobalScope",
-    "MessageEvent",
-    "Url",
-    "Worker",
-    "WorkerOptions",
-	"WorkerType"
-]
 
 [dev-dependencies]
 serde = { workspace = true }
