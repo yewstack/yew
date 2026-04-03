@@ -145,7 +145,6 @@ where
     // These implementations should be merged once https://github.com/tokio-rs/tracing/issues/2503 is resolved.
 
     /// Renders Yew Application into a string Stream
-    #[allow(clippy::let_with_type_underscore)]
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         name = "render_stream",

@@ -102,7 +102,6 @@ impl TopologicalQueue {
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Default)]
-#[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
     main: FifoQueue,

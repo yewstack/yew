@@ -177,7 +177,6 @@ impl VTag {
     /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
     /// fields.
     #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
     pub fn __new_input(
         value: Option<AttrValue>,
         checked: Option<bool>,
@@ -210,7 +209,6 @@ impl VTag {
     /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
     /// fields.
     #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
     pub fn __new_textarea(
         value: Option<AttrValue>,
         defaultvalue: Option<AttrValue>,
@@ -239,7 +237,6 @@ impl VTag {
     /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
     /// fields.
     #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
     pub fn __new_other(
         tag: AttrValue,
         node_ref: NodeRef,
@@ -260,7 +257,6 @@ impl VTag {
 
     /// Constructs a [VTag] from [VTagInner] and fields common to all [VTag] kinds
     #[inline]
-    #[allow(clippy::too_many_arguments)]
     fn new_base(
         inner: VTagInner,
         node_ref: NodeRef,

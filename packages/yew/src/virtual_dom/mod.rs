@@ -176,7 +176,7 @@ mod feat_ssr {
 }
 
 /// Defines if the [`Attributes`] is set as element's attribute or property and its value.
-#[allow(missing_docs)]
+#[expect(missing_docs)]
 #[derive(PartialEq, Clone, Debug)]
 pub enum AttributeOrProperty {
     // This exists as a workaround to support Rust <1.72

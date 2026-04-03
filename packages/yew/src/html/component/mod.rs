@@ -143,7 +143,7 @@ pub trait Component: Sized + 'static {
     /// Returned bool indicates whether to render this Component after update.
     ///
     /// By default, this function will return true and thus make the component re-render.
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         true
     }
@@ -153,7 +153,7 @@ pub trait Component: Sized + 'static {
     /// Returned bool indicates whether to render this Component after changed.
     ///
     /// By default, this function will return true and thus make the component re-render.
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
         true
     }
@@ -173,7 +173,7 @@ pub trait Component: Sized + 'static {
     /// Note that `rendered()` calls do not always follow a render request from `update()` or
     /// `changed()`. Yew may optimize some calls out to reduce virtual DOM tree generation overhead.
     /// The `create()` call is always followed by a call to `view()` and later `rendered()`.
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {}
 
     /// Prepares the state during server side rendering.
@@ -187,7 +187,7 @@ pub trait Component: Sized + 'static {
     }
 
     /// Called right before a Component is unmounted.
-    #[allow(unused_variables)]
+    #[expect(unused_variables)]
     fn destroy(&mut self, ctx: &Context<Self>) {}
 }
 

@@ -151,7 +151,6 @@ impl Parse for HtmlElement {
 }
 
 impl ToTokens for HtmlElement {
-    #[allow(clippy::cognitive_complexity)]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
             name,
