@@ -228,8 +228,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// If the future panics, then the promise will not resolve, and will leak.
     pub fn send_future_batch<Fut>(&self, future: Fut)
     where
-        Fut: Future + 'static,
-        Fut::Output: SendAsMessage<COMP>,
+        Fut: Future<Output: SendAsMessage<COMP>> + 'static,
     {
         let link = self.clone();
         let js_future = async move {

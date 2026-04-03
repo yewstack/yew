@@ -61,8 +61,7 @@ where
 
 impl<COMP> Default for LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     fn default() -> Self {
         Self::with_props(COMP::Properties::default())
@@ -71,8 +70,7 @@ where
 
 impl<COMP> LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     /// Creates a [LocalServerRenderer] with default properties.
     pub fn new() -> Self {
@@ -184,8 +182,7 @@ where
 
 impl<COMP> Default for ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     fn default() -> Self {
         Self::with_props(Default::default)
@@ -194,8 +191,7 @@ where
 
 impl<COMP> ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     /// Creates a [ServerRenderer] with default properties.
     pub fn new() -> Self {

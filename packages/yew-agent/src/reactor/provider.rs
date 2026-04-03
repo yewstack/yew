@@ -89,11 +89,13 @@ where
 #[component]
 pub fn ReactorProvider<R, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
-    R: 'static + Reactor,
-    <<R as Reactor>::Scope as ReactorScoped>::Input:
-        Serialize + for<'de> Deserialize<'de> + 'static,
-    <<R as Reactor>::Scope as ReactorScoped>::Output:
-        Serialize + for<'de> Deserialize<'de> + 'static,
+    R: 'static
+        + Reactor<
+            Scope: ReactorScoped<
+                Input: Serialize + for<'de> Deserialize<'de> + 'static,
+                Output: Serialize + for<'de> Deserialize<'de> + 'static,
+            >,
+        >,
     C: Codec + 'static,
 {
     let WorkerProviderProps {

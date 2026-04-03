@@ -154,8 +154,7 @@ where
 
 impl<T> fmt::Debug for UseWorkerSubscriptionHandle<T>
 where
-    T: Worker,
-    T::Output: fmt::Debug,
+    T: Worker<Output: fmt::Debug>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(type_name::<Self>())

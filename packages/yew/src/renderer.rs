@@ -46,8 +46,7 @@ where
 
 impl<COMP> Default for Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default> + 'static,
 {
     fn default() -> Self {
         Self::with_props(Default::default())
@@ -56,8 +55,7 @@ where
 
 impl<COMP> Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default> + 'static,
 {
     /// Creates a [Renderer] that renders into the document body with default properties.
     pub fn new() -> Self {
