@@ -27,7 +27,7 @@ where
     T: Oneshot,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(type_name::<Self>())
+        f.debug_struct(type_name::<Self>()).finish_non_exhaustive()
     }
 }
 

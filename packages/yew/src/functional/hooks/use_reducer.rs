@@ -136,7 +136,7 @@ where
         };
         f.debug_struct("UseReducerHandle")
             .field("value", &value)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -177,7 +177,8 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseReducerDispatcher").finish()
+        f.debug_struct("UseReducerDispatcher")
+            .finish_non_exhaustive()
     }
 }
 

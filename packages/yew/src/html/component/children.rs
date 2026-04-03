@@ -243,7 +243,8 @@ impl<T> Default for ChildrenRenderer<T> {
 
 impl<T> fmt::Debug for ChildrenRenderer<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ChildrenRenderer<_>")
+        f.debug_struct("ChildrenRenderer<_>")
+            .finish_non_exhaustive()
     }
 }
 

@@ -82,7 +82,9 @@ impl Reconcilable for VText {
 
 impl std::fmt::Debug for BText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BText").field("text", &self.text).finish()
+        f.debug_struct("BText")
+            .field("text", &self.text)
+            .finish_non_exhaustive()
     }
 }
 

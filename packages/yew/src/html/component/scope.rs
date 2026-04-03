@@ -28,7 +28,7 @@ pub struct AnyScope {
 
 impl fmt::Debug for AnyScope {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("AnyScope<_>")
+        f.debug_struct("AnyScope").finish_non_exhaustive()
     }
 }
 
@@ -106,7 +106,7 @@ pub struct Scope<COMP: BaseComponent> {
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("Scope<_>")
+        f.debug_struct("Scope<_>").finish_non_exhaustive()
     }
 }
 

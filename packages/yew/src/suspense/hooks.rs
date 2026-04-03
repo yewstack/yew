@@ -35,7 +35,7 @@ impl<T: fmt::Debug> fmt::Debug for UseFutureHandle<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseFutureHandle")
             .field("value", &format!("{:?}", self.inner))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
