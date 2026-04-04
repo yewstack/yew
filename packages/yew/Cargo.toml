@@ -85,7 +85,7 @@ tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros"] }
 tokio = { workspace = true, features = ["macros", "rt", "time"] }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
+wasm-bindgen-test.workspace = true
 gloo = { workspace = true, features = ["futures"] }
 wasm-bindgen-futures.workspace = true
 trybuild = { workspace = true }
