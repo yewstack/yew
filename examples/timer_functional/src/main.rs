@@ -162,11 +162,13 @@ fn App() -> Html {
         })
     };
 
-    let on_cancel = {
-        Callback::from(move |_: MouseEvent| {
-            state.dispatch(TimerAction::Cancel);
-        })
-    };
+    let on_cancel = Callback::from({
+        let (_, dispatcher) = state.into_inner();
+
+        move |_: MouseEvent| {
+            dispatcher.dispatch(TimerAction::Cancel);
+        }
+    });
 
     html!(
         <>
