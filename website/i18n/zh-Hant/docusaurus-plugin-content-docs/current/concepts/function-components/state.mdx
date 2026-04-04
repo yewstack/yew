@@ -27,8 +27,14 @@ title: '狀態'
 `value_rc()` 回傳一個擁有所有權的 `Rc<T>`，可以移動到閉包中或獨立儲存。
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
 let counter = use_state(|| 0);
 let rc_value: Rc<i32> = counter.value_rc();
+# html! {}
+# }
 ```
 
 ### `into_inner()`
@@ -39,15 +45,33 @@ let rc_value: Rc<i32> = counter.value_rc();
 對於 `UseReducerHandle`，回傳類型為 `(Rc<T>, UseReducerDispatcher<T>)`：
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[derive(Default, PartialEq)]
+# struct CounterState { counter: i32 }
+# impl Reducible for CounterState {
+#     type Action = ();
+#     fn reduce(self: Rc<Self>, _: ()) -> Rc<Self> { self }
+# }
+# #[component]
+# fn Comp() -> Html {
 let state = use_reducer(CounterState::default);
 let (value, dispatcher) = state.into_inner();
+# html! {}
+# }
 ```
 
 對於 `UseStateHandle`，回傳類型為 `(Rc<T>, UseStateSetter<T>)`：
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
 let state = use_state(|| 0);
 let (value, setter) = state.into_inner();
+# html! {}
+# }
 ```
 
 [use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html

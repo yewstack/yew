@@ -27,8 +27,14 @@ title: '状態'
 異なり、`value_rc()` はクロージャに移動させたり、独立して保持できる所有された `Rc<T>` を返します。
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
 let counter = use_state(|| 0);
 let rc_value: Rc<i32> = counter.value_rc();
+# html! {}
+# }
 ```
 
 ### `into_inner()`
@@ -39,15 +45,33 @@ let rc_value: Rc<i32> = counter.value_rc();
 `UseReducerHandle` の場合、返り値の型は `(Rc<T>, UseReducerDispatcher<T>)` です：
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[derive(Default, PartialEq)]
+# struct CounterState { counter: i32 }
+# impl Reducible for CounterState {
+#     type Action = ();
+#     fn reduce(self: Rc<Self>, _: ()) -> Rc<Self> { self }
+# }
+# #[component]
+# fn Comp() -> Html {
 let state = use_reducer(CounterState::default);
 let (value, dispatcher) = state.into_inner();
+# html! {}
+# }
 ```
 
 `UseStateHandle` の場合、返り値の型は `(Rc<T>, UseStateSetter<T>)` です：
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
 let state = use_state(|| 0);
 let (value, setter) = state.into_inner();
+# html! {}
+# }
 ```
 
 [use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html

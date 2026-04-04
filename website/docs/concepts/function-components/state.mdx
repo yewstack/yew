@@ -28,8 +28,14 @@ tied to the handle's lifetime), `value_rc()` gives you an owned `Rc<T>` that can
 closures or stored independently.
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
 let counter = use_state(|| 0);
 let rc_value: Rc<i32> = counter.value_rc();
+# html! {}
+# }
 ```
 
 ### `into_inner()`
@@ -41,15 +47,33 @@ the full handle.
 For `UseReducerHandle`, the return type is `(Rc<T>, UseReducerDispatcher<T>)`:
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[derive(Default, PartialEq)]
+# struct CounterState { counter: i32 }
+# impl Reducible for CounterState {
+#     type Action = ();
+#     fn reduce(self: Rc<Self>, _: ()) -> Rc<Self> { self }
+# }
+# #[component]
+# fn Comp() -> Html {
 let state = use_reducer(CounterState::default);
 let (value, dispatcher) = state.into_inner();
+# html! {}
+# }
 ```
 
 For `UseStateHandle`, the return type is `(Rc<T>, UseStateSetter<T>)`:
 
 ```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
 let state = use_state(|| 0);
 let (value, setter) = state.into_inner();
+# html! {}
+# }
 ```
 
 [use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html

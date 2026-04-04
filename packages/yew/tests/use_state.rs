@@ -16,7 +16,7 @@ async fn use_state_works() {
     #[component(UseComponent)]
     fn use_state_comp() -> Html {
         let counter = use_state(|| 0);
-        assert_eq!(counter.value_rc(), Rc::new(0));
+        assert_eq!(*counter.value_rc(), *counter);
         if *counter < 5 {
             counter.set(*counter + 1)
         }
