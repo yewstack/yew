@@ -1,4 +1,4 @@
-#[cfg(all(feature = "axum", not(target_arch = "wasm32")))]
+#[cfg(feature = "axum")]
 pub mod axum {
     use std::sync::Arc;
 
@@ -44,8 +44,8 @@ pub mod axum {
     }
 }
 
-#[cfg(all(feature = "actix", not(target_arch = "wasm32")))]
-pub mod service {
+#[cfg(feature = "actix")]
+pub mod actix_web {
     use actix_web::web::{Data, Json};
     use actix_web::HttpResponse;
 
@@ -57,12 +57,12 @@ pub mod service {
     /// let resolver = Data::new(
     ///    Resolver::new()
     ///        .register::<Post>(|id| async move { db::get_post(id).await })
-    /// )
+    /// );
     ///
     /// HttpServer::new(move || {
     ///    App::new()
     ///        .route("/api/link", post().to(linked_state_handler))
-    ///        .data(resolver)
+    ///        .app_data(resolver)
     /// })
     ///    .bind(("0.0.0.0", 8080))?
     ///    .run()
