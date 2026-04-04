@@ -169,9 +169,9 @@ routes and will not match each other. This matters because browsers resolve
 relative paths differently depending on the trailing slash:
 
 | URL in address bar | Relative reference `./image.jpg` resolves to |
-|---|---|
-| `/about` | `/image.jpg` |
-| `/about/` | `/about/image.jpg` |
+| ------------------ | -------------------------------------------- |
+| `/about`           | `/image.jpg`                                 |
+| `/about/`          | `/about/image.jpg`                           |
 
 If your component uses relative asset paths, make sure the route definition and
 the links pointing to it agree on the trailing slash.
