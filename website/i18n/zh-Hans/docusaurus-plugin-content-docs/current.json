@@ -84,7 +84,7 @@
     "description": "The label for category Struct Components in sidebar docs"
   },
   "sidebar.docs.category.Migration guides.link.generated-index.title": {
-    "message": "Migration guides",
+    "message": "迁移指南",
     "description": "The generated-index page title for category Migration guides in sidebar docs"
   },
   "sidebar.docs.category.yew.link.generated-index.title": {
