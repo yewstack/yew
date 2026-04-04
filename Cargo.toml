@@ -10,6 +10,9 @@ default-members = [
 ]
 resolver = "3"
 
+[workspace.package]
+rust-version = "1.85"
+
 [profile.release]
 lto = true
 codegen-units = 1

@@ -9,9 +9,9 @@ use std::{fmt, iter};
 
 use futures::{Stream, StreamExt};
 
+use super::BaseComponent;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
-use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::platform::spawn_local;

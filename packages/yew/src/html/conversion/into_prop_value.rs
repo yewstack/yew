@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::{IArray, IMap};
 
 use crate::callback::Callback;
 use crate::html::{BaseComponent, ChildrenRenderer, Component, Scope};
@@ -216,7 +216,7 @@ impl<T: IntoPropValue<VNode>> IntoPropValue<VNode> for Option<T> {
 }
 
 macro_rules! impl_into_prop {
-    (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
+    (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr_2021 }) => {
         // implement V -> T
         impl IntoPropValue<$to_ty> for $from_ty {
             #[inline]

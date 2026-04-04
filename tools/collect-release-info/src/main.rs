@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::Command;
 use std::{env, fs};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use serde_json::json;
 
 fn parse_tag(tag: &str) -> Result<(&str, &str)> {

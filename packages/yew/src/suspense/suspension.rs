@@ -7,8 +7,8 @@ use std::task::{Context, Poll};
 
 use thiserror::Error;
 
-use crate::platform::spawn_local;
 use crate::Callback;
+use crate::platform::spawn_local;
 
 thread_local! {
     static SUSPENSION_ID: RefCell<usize> = const { RefCell::new(0) };

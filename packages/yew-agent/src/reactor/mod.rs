@@ -19,7 +19,7 @@
 //! #
 //! use futures::sink::SinkExt;
 //! use futures::stream::StreamExt;
-//! use yew_agent::reactor::{reactor, ReactorScope};
+//! use yew_agent::reactor::{ReactorScope, reactor};
 //! #[reactor(MyReactor)]
 //! pub async fn my_reactor(mut scope: ReactorScope<ReactorInput, ReactorOutput>) {
 //!     while let Some(input) = scope.next().await {
@@ -45,8 +45,8 @@ pub use gloo_worker::reactor::{
     ReactorSpawner,
 };
 pub use hooks::{
-    use_reactor_bridge, use_reactor_subscription, ReactorEvent, UseReactorBridgeHandle,
-    UseReactorSubscriptionHandle,
+    ReactorEvent, UseReactorBridgeHandle, UseReactorSubscriptionHandle, use_reactor_bridge,
+    use_reactor_subscription,
 };
 pub use provider::ReactorProvider;
 pub(crate) use provider::ReactorProviderState;

@@ -1,14 +1,14 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::{For, In};
-use syn::{braced, Expr, Pat};
+use syn::{Expr, Pat, braced};
 
 use super::{HtmlChildrenTree, ToNodeIterator};
-use crate::html_tree::HtmlTree;
 use crate::PeekValue;
+use crate::html_tree::HtmlTree;
 
 /// Determines if an expression is guaranteed to always return the same value anywhere.
 fn is_contextless_pure(expr: &Expr) -> bool {
@@ -95,13 +95,17 @@ impl ToTokens for HtmlFor {
             },
         };
 
-        let body = body.0.iter().map(|child| {
-            if let Some(child) = child.to_node_iterator_stream() {
-                quote!( #acc.extend(#child) )
-            } else {
-                quote!( #acc.push(::std::convert::Into::into(#child)) )
-            }
-        });
+        let body = body
+            .0
+            .iter()
+            .map(|child| match child.to_node_iterator_stream() {
+                Some(child) => {
+                    quote!( #acc.extend(#child) )
+                }
+                _ => {
+                    quote!( #acc.push(::std::convert::Into::into(#child)) )
+                }
+            });
 
         tokens.extend(quote!({
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();

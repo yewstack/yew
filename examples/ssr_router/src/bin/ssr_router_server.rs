@@ -4,15 +4,15 @@ use std::future::Future;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 
+use axum::Router;
 use axum::body::Body;
 use axum::extract::{Query, Request, State};
 use axum::handler::HandlerWithoutStateExt;
 use axum::http::Uri;
 use axum::response::IntoResponse;
 use axum::routing::get;
-use axum::Router;
 use clap::Parser;
-use function_router::{route_meta, Route, ServerApp, ServerAppProps};
+use function_router::{Route, ServerApp, ServerAppProps, route_meta};
 use futures::stream::{self, StreamExt};
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;

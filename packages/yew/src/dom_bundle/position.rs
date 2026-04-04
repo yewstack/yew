@@ -119,8 +119,8 @@ impl DomSlot {
 
     fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         match &self.variant {
-            DomSlotVariant::Node(ref n) => f(n.as_ref()),
-            DomSlotVariant::Chained(ref chain) => chain.with_next_sibling(f),
+            DomSlotVariant::Node(n) => f(n.as_ref()),
+            DomSlotVariant::Chained(chain) => chain.with_next_sibling(f),
         }
     }
 
@@ -200,11 +200,11 @@ impl DynamicDomSlot {
         loop {
             //                          v------- borrow lives for this match expression
             let next_this = match &this.borrow().variant {
-                DomSlotVariant::Node(ref n) => break f(n.as_ref()),
+                DomSlotVariant::Node(n) => break f(n.as_ref()),
                 // We clone an Rc here temporarily, so that we don't have to consume stack
                 // space. The alternative would be to keep the
                 // `Ref<'_, DomSlot>` above in some temporary buffer
-                DomSlotVariant::Chained(ref chain) => chain.target.clone(),
+                DomSlotVariant::Chained(chain) => chain.target.clone(),
             };
             this = next_this;
         }

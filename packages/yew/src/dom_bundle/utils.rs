@@ -6,7 +6,7 @@ macro_rules! test_log {
 }
 #[cfg(not(all(test, target_arch = "wasm32", verbose_tests)))]
 macro_rules! test_log {
-    ($fmt:literal, $($arg:expr),* $(,)?) => {
+    ($fmt:literal, $($arg:expr_2021),* $(,)?) => {
         // Only type-check the format expression, do not run any side effects
         let _ = || { std::format_args!(concat!("\t  ", $fmt), $($arg),*); };
     };

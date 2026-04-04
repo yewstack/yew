@@ -5,7 +5,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::generator::Generated;
-use crate::{content, Route};
+use crate::{Route, content};
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct Props {

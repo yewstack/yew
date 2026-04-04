@@ -1,8 +1,8 @@
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
+use syn::Expr;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::Expr;
 
 use super::html_dashed_name::HtmlDashedName;
 use super::{HtmlChildrenTree, TagTokens};
@@ -65,10 +65,13 @@ impl ToTokens for HtmlList {
             close,
         } = &self;
 
-        let key = if let Some(key) = &open.props.key {
-            quote_spanned! {key.span()=> ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
-        } else {
-            quote! { ::std::option::Option::None }
+        let key = match &open.props.key {
+            Some(key) => {
+                quote_spanned! {key.span()=> ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
+            }
+            _ => {
+                quote! { ::std::option::Option::None }
+            }
         };
 
         let span = {
@@ -97,7 +100,7 @@ pub struct HtmlListOpen {
     pub props: HtmlListProps,
 }
 impl HtmlListOpen {
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.tag.to_spanned()
     }
 }
@@ -157,7 +160,7 @@ impl Parse for HtmlListProps {
 
 struct HtmlListClose(TagTokens);
 impl HtmlListClose {
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.0.to_spanned()
     }
 }

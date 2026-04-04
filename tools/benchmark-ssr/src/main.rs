@@ -10,7 +10,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use serde::{Deserialize, Serialize};
 use tabled::settings::Style;
 use tabled::{Table, Tabled};
-use tokio::task::{spawn_local, LocalSet};
+use tokio::task::{LocalSet, spawn_local};
 use yew::platform::time::sleep;
 use yew::prelude::*;
 
@@ -38,11 +38,7 @@ fn dur_as_millis_f64(dur: Duration) -> f64 {
 
 fn bench_baseline() -> Duration {
     fn fib(n: u32) -> u32 {
-        if n <= 1 {
-            1
-        } else {
-            fib(n - 1) + fib(n - 2)
-        }
+        if n <= 1 { 1 } else { fib(n - 1) + fib(n - 2) }
     }
 
     let start_time = Instant::now();

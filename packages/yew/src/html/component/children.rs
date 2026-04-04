@@ -253,11 +253,12 @@ impl<T: Clone> IntoIterator for ChildrenRenderer<T> {
     type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
-        if let Some(children) = self.children {
-            let children = RcExt::unwrap_or_clone(children);
-            children.into_iter()
-        } else {
-            Vec::new().into_iter()
+        match self.children {
+            Some(children) => {
+                let children = RcExt::unwrap_or_clone(children);
+                children.into_iter()
+            }
+            _ => Vec::new().into_iter(),
         }
     }
 }

@@ -6,7 +6,7 @@ use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token};
+use syn::{Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token, braced};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
@@ -49,26 +49,28 @@ impl Prop {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
-        let label = if let Expr::Path(ExprPath {
-            ref attrs,
-            qself: None,
-            ref path,
-        }) = expr
-        {
-            if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
-                Ok(HtmlDashedName::from(ident.clone()))
-            } else {
-                Err(syn::Error::new_spanned(
-                    path,
-                    "only simple identifiers are allowed in the shorthand property syntax",
-                ))
+        let label = match expr {
+            Expr::Path(ExprPath {
+                ref attrs,
+                qself: None,
+                ref path,
+            }) => {
+                if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
+                    Ok(HtmlDashedName::from(ident.clone()))
+                } else {
+                    Err(syn::Error::new_spanned(
+                        path,
+                        "only simple identifiers are allowed in the shorthand property syntax",
+                    ))
+                }
             }
-        } else {
-            return Err(syn::Error::new_spanned(
-                expr,
-                "missing label for property value. If trying to use the shorthand property \
-                 syntax, only identifiers may be used",
-            ));
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    expr,
+                    "missing label for property value. If trying to use the shorthand property \
+                     syntax, only identifiers may be used",
+                ));
+            }
         }?;
 
         Ok(Self {
@@ -113,16 +115,16 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
     if input.peek(Brace) {
         strip_braces(input.parse()?)
     } else {
-        let expr = if let Some(ExprRange {
-            start: Some(start), ..
-        }) = range_expression_peek(input)
-        {
-            // If a range expression is seen, treat the left-side expression as the value
-            // and leave the right-side expression to be parsed as a base expression
-            advance_until_next_dot2(input)?;
-            *start
-        } else {
-            input.parse()?
+        let expr = match range_expression_peek(input) {
+            Some(ExprRange {
+                start: Some(start), ..
+            }) => {
+                // If a range expression is seen, treat the left-side expression as the value
+                // and leave the right-side expression to be parsed as a base expression
+                advance_until_next_dot2(input)?;
+                *start
+            }
+            _ => input.parse()?,
         };
 
         match &expr {
@@ -264,11 +266,7 @@ impl PropList {
         self.0.windows(2).filter_map(|pair| {
             let (a, b) = (&pair[0], &pair[1]);
 
-            if a.label == b.label {
-                Some(b)
-            } else {
-                None
-            }
+            if a.label == b.label { Some(b) } else { None }
         })
     }
 

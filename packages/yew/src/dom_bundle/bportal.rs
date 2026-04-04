@@ -2,7 +2,7 @@
 
 use web_sys::{Element, Node};
 
-use super::{test_log, BNode, BSubtree, DomSlot};
+use super::{BNode, BSubtree, DomSlot, test_log};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::virtual_dom::{Key, VPortal};
@@ -132,7 +132,7 @@ mod layout_tests {
 
     use super::*;
     use crate::html::NodeRef;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
     use crate::virtual_dom::VNode;
     use crate::{create_portal, html};
 

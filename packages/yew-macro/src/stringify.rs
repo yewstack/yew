@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote_spanned, ToTokens};
+use quote::{ToTokens, quote_spanned};
 use syn::spanned::Spanned;
 use syn::{Expr, Lit, LitStr};
 

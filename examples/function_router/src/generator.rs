@@ -170,7 +170,7 @@ fn title_case(word: &str) -> String {
 }
 
 pub trait Generated: Sized {
-    fn generate(gen: &mut Generator) -> Self;
+    fn generate(r#gen: &mut Generator) -> Self;
     fn generate_from_seed(seed: u32) -> Self {
         Self::generate(&mut Generator::from_seed(seed))
     }

@@ -4,8 +4,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use base64ct::{Base64, Encoding};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::functional::{Hook, HookContext, PreparedState};
 use crate::suspense::SuspensionResult;

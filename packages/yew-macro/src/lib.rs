@@ -57,8 +57,8 @@ mod use_prepared_state;
 mod use_transitive_state;
 
 use derive_props::DerivePropsInput;
-use function_component::{function_component_impl, FunctionComponent, FunctionComponentName};
-use hook::{hook_impl, HookFn};
+use function_component::{FunctionComponent, FunctionComponentName, function_component_impl};
+use hook::{HookFn, hook_impl};
 use html_tree::{HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::ToTokens;

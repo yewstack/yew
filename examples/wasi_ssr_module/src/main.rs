@@ -4,9 +4,9 @@
 mod router;
 
 use anyhow::Result;
-use router::{switch, Route};
-use yew::prelude::*;
+use router::{Route, switch};
 use yew::LocalServerRenderer;
+use yew::prelude::*;
 
 #[function_component]
 fn Content() -> Html {

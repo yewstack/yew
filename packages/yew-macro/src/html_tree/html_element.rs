@@ -1,6 +1,6 @@
-use proc_macro2::{Delimiter, Group, Span, TokenStream};
 use proc_macro_error::emit_warning;
-use quote::{quote, quote_spanned, ToTokens};
+use proc_macro2::{Delimiter, Group, Span, TokenStream};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -9,7 +9,7 @@ use syn::{Expr, Ident, Lit, LitStr, Token};
 use super::{HtmlChildrenTree, HtmlDashedName, TagTokens};
 use crate::props::{ElementProps, Prop, PropDirective};
 use crate::stringify::{Stringify, Value};
-use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
+use crate::{Peek, PeekValue, is_ide_completion, non_capitalized_ascii};
 
 fn is_normalised_element_name(name: &str) -> bool {
     match name {
@@ -99,7 +99,7 @@ impl Parse for HtmlElement {
                          to provide value to it, rewrite it as `<textarea value={x} />`. If you \
                          wish to set the default value, rewrite it as `<textarea defaultvalue={x} \
                          />`)",
-                    ))
+                    ));
                 }
 
                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input" | "link"
@@ -110,7 +110,7 @@ impl Parse for HtmlElement {
                             "the tag `<{name}>` is a void element and cannot have children (hint: \
                              rewrite this as `<{name} />`)",
                         ),
-                    ))
+                    ));
                 }
 
                 _ => {}
@@ -529,7 +529,7 @@ impl ToTokens for HtmlElement {
                     if ::yew::virtual_dom::VTag::children(&#vtag).is_some() &&
                        !::std::matches!(
                         ::yew::virtual_dom::VTag::children(&#vtag),
-                        ::std::option::Option::Some(::yew::virtual_dom::VNode::VList(ref #void_children)) if ::std::vec::Vec::is_empty(#void_children)
+                        ::std::option::Option::Some(::yew::virtual_dom::VNode::VList(#void_children)) if ::std::vec::Vec::is_empty(#void_children)
                     ) {
                         ::std::debug_assert!(
                             !::std::matches!(#vtag.tag().to_ascii_lowercase().as_str(),
@@ -656,7 +656,7 @@ impl HtmlElementOpen {
         self.tag.div.is_some()
     }
 
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.tag.to_spanned()
     }
 }
@@ -728,7 +728,7 @@ struct HtmlElementClose {
     _name: TagName,
 }
 impl HtmlElementClose {
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.tag.to_spanned()
     }
 }

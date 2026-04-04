@@ -2,7 +2,8 @@
 name = "js-framework-benchmark-yew"
 version = "1.0.0"
 authors = ["Isamu Mogi <isamu@leafytree.jp>"]
-edition = "2021"
+edition = "2024"
+rust-version.workspace = true
 
 [lib]
 crate-type = ["cdylib"]

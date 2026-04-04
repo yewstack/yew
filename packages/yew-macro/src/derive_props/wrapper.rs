@@ -1,5 +1,5 @@
 use proc_macro2::Ident;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{Attribute, Generics};
 
 use super::PropField;

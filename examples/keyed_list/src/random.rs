@@ -1,5 +1,5 @@
-use rand::distr::Bernoulli;
 use rand::Rng;
+use rand::distr::Bernoulli;
 
 /// `0 <= p <= 1`
 pub fn chance(p: f64) -> bool {
@@ -20,11 +20,7 @@ pub fn choose_two_distinct_mut<T>(items: &mut [T]) -> Option<(&mut T, &mut T)> {
             _ => {
                 let indexes = rand::seq::index::sample(&mut rand::rng(), items.len(), 2);
                 let (a, b) = (indexes.index(0), indexes.index(1));
-                if a < b {
-                    (a, b)
-                } else {
-                    (b, a)
-                }
+                if a < b { (a, b) } else { (b, a) }
             }
         }
     };
