@@ -155,7 +155,6 @@ Users can follow the [migration guide](https://yew.rs/docs/migration-guides/yew/
 
 ### 🛠 Fixes
 
-
  - Fix rust-analyzer non_camel_case_types warning. [[@Sean Bruton](https://github.com/Sean Bruton), [#3388](https://github.com/yewstack/yew/pull/3388)]
  - Fix incorrect text escaping during SSR. [[@Tim Kurdov](https://github.com/Tim Kurdov), [#3381](https://github.com/yewstack/yew/pull/3381)]
  - Fix top-level reconciliation in portals. [[@WorldSEnder](https://github.com/WorldSEnder), [#3020](https://github.com/yewstack/yew/pull/3020)]
