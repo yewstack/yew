@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775301011140,
+  "lastUpdate": 1775345034447,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -55649,6 +55649,178 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.23.0-keyed 43_first-paint",
             "value": 393.7,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Siyuan Yan",
+            "username": "Madoshakalaka",
+            "email": "44753941+Madoshakalaka@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "f34977879dd18e0d9e361dcc7bc004234334bfe9",
+          "message": "refactor!: Leverage Rust 1.78-1.84 APIs  (#4107)\n\n* refactor: leverage some Rust 1.78-1.84 APIs\n\n- Use Option::is_none_or (1.82) replacing match/map+unwrap_or patterns\n- Use inline const {} blocks (1.79) in VList::deref and thread_local! inits\n- Remove stale #[allow(ambiguous_wide_pointer_comparisons)] on Rc::ptr_eq (1.84)\n- Remove #[allow(clippy::incompatible_msrv)] and PanicInfo alias, use PanicHookInfo directly (1.81)\n- Remove redundant prelude imports (size_of, FromIterator, PartialEq)\n\n* refactor: const-init SCHEDULER thread_local via const fn constructors\n\nAdd const fn new() to FifoQueue, TopologicalQueue, and Scheduler so\nthe SCHEDULER thread_local can use const {} initialization, eliminating\nthe lazy-init check on every access to this hot-path global.\n\n* refactor: replace #[allow] with #[expect] and remove stale lint suppressions\n\nConvert active lint suppressions to #[expect] so the compiler warns if\nthey become unnecessary. Remove 7 stale #[allow] attributes that were\nnever firing (too_many_arguments on <7-param functions, cognitive_complexity,\nlarge_enum_variant, let_with_type_underscore, missing_debug_implementations\non private types, and missing_docs on doc-hidden items).\n\n* fix: preserve #[expect] attributes in derive(Properties) macro expansion\n\n* refactor: use finish_non_exhaustive() in Debug impls with hidden fields\n\nReplace .finish() with .finish_non_exhaustive() and f.write_str(\"Type\")\nwith f.debug_struct(\"Type\").finish_non_exhaustive() across all Debug\nimplementations that intentionally hide fields. This produces more\naccurate debug output (e.g. \"Type { .. }\" instead of \"Type {}\").\n\n* refactor: use associated type bounds to simplify where clauses\n\n* refactor!: remove AttributeOrProperty::Static workaround for Rust <1.72\n\nBREAKING CHANGE: removed the `Static` variant from the public\n`AttributeOrProperty` enum.",
+          "timestamp": "2026-04-04T23:10:46Z",
+          "url": "https://github.com/yewstack/yew/commit/f34977879dd18e0d9e361dcc7bc004234334bfe9"
+        },
+        "date": 1775345032699,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.23.0-keyed 01_run1k",
+            "value": 100.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 02_replace1k",
+            "value": 118.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 66.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 04_select1k",
+            "value": 39.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 05_swap1k",
+            "value": 74.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 06_remove-one-1k",
+            "value": 47.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 07_create10k",
+            "value": 1024.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 119.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 09_clear1k_x8",
+            "value": 46,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 21_ready-memory",
+            "value": 2.296088218688965,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 22_run-memory",
+            "value": 2.757571220397949,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 25_run-clear-memory",
+            "value": 5.177796363830566,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 41_size-uncompressed",
+            "value": 169.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 42_size-compressed",
+            "value": 54.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 43_first-paint",
+            "value": 406.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 01_run1k",
+            "value": 101.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 02_replace1k",
+            "value": 120.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 44,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 04_select1k",
+            "value": 14.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 05_swap1k",
+            "value": 48.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 06_remove-one-1k",
+            "value": 36.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 07_create10k",
+            "value": 1022.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 120.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 09_clear1k_x8",
+            "value": 45.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 21_ready-memory",
+            "value": 2.294142723083496,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 22_run-memory",
+            "value": 6.218079566955566,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 25_run-clear-memory",
+            "value": 5.095902442932129,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 41_size-uncompressed",
+            "value": 165.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 42_size-compressed",
+            "value": 53.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 43_first-paint",
+            "value": 371,
             "unit": ""
           }
         ]
