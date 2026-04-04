@@ -147,6 +147,29 @@ enum Route {
 
 有关路由语法和如何绑定参数的更多信息，请查看 [matchit](https://docs.rs/matchit/0.9/matchit/)。
 
+### 尾部斜杠
+
+路由区分尾部斜杠。`/about` 和 `/about/` 是不同的路由，不会互相匹配。这很重要，因为浏览器根据尾部斜杠的有无以不同的方式解析相对路径：
+
+| 地址栏中的 URL | 相对引用 `./image.jpg` 解析为 |
+|---|---|
+| `/about` | `/image.jpg` |
+| `/about/` | `/about/image.jpg` |
+
+如果您的组件使用相对资源路径，请确保路由定义和指向它的链接在尾部斜杠上保持一致。
+
+如果您需要两种 URL 都能工作，可以将两种形式定义为不同的枚举变体：
+
+```rust ,ignore
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/about")]
+    About,
+    #[at("/about/")]
+    AboutSlash,
+}
+```
+
 ### 位置 (Location)
 
 路由器通过上下文提供了一个通用的 `Location` 结构，可以用于访问路由信息。它们可以通过钩子或 `ctx.link()` 上的便捷函数来检索。

@@ -162,6 +162,32 @@ unmatched.
 For more information about the route syntax and how to bind parameters, check
 out [matchit](https://docs.rs/matchit/0.9/matchit/).
 
+### Trailing Slashes
+
+Routes are sensitive to trailing slashes. `/about` and `/about/` are distinct
+routes and will not match each other. This matters because browsers resolve
+relative paths differently depending on the trailing slash:
+
+| URL in address bar | Relative reference `./image.jpg` resolves to |
+|---|---|
+| `/about` | `/image.jpg` |
+| `/about/` | `/about/image.jpg` |
+
+If your component uses relative asset paths, make sure the route definition and
+the links pointing to it agree on the trailing slash.
+
+You can define both forms as separate variants if you need both URLs to work:
+
+```rust ,ignore
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/about")]
+    About,
+    #[at("/about/")]
+    AboutSlash,
+}
+```
+
 ### Location
 
 The router provides a universal `Location` struct via context which can be used to access routing information.

@@ -147,6 +147,29 @@ enum Route {
 
 有關路由語法和如何綁定參數的更多信息，請查看 [matchit](https://docs.rs/matchit/0.9/matchit/)。
 
+### 尾部斜線
+
+路由會區分尾部斜線。`/about` 和 `/about/` 是不同的路由，不會互相匹配。這很重要，因為瀏覽器根據尾部斜線的有無以不同的方式解析相對路徑：
+
+| 網址列中的 URL | 相對引用 `./image.jpg` 解析為 |
+|---|---|
+| `/about` | `/image.jpg` |
+| `/about/` | `/about/image.jpg` |
+
+如果您的元件使用相對資源路徑，請確保路由定義和指向它的連結在尾部斜線上保持一致。
+
+如果您需要兩種 URL 都能運作，可以將兩種形式定義為不同的列舉變體：
+
+```rust ,ignore
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/about")]
+    About,
+    #[at("/about/")]
+    AboutSlash,
+}
+```
+
 ### 位置 (Location)
 
 路由器透過上下文提供了一個通用的 `Location` 結構，可以用來存取路由資訊。它們可以透過鉤子或 `ctx.link()` 上的便捷函數來檢索。
