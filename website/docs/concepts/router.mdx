@@ -112,9 +112,9 @@ use yew_router::prelude::*;
 enum Route {
     #[at("/")]
     Home,
-    #[at("/post/:id")]
+    #[at("/post/{id}")]
     Post { id: String },
-    #[at("/*path")]
+    #[at("/{*path}")]
     Misc { path: String },
 }
 
@@ -145,7 +145,7 @@ Consider this example:
 ```rust ,ignore
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
-    #[at("/news/:id")]
+    #[at("/news/{id}")]
     News { id: u8 },
     #[not_found]
     #[at("/404")]
@@ -160,7 +160,7 @@ unmatched.
 ![router deserialization failure behavior](/img/router-deserialization-failure-behavior.gif)
 
 For more information about the route syntax and how to bind parameters, check
-out [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params).
+out [matchit](https://docs.rs/matchit/0.9/matchit/).
 
 ### Location
 
@@ -423,8 +423,8 @@ enum MainRoute {
     Contact,
     #[at("/settings")]
     SettingsRoot,
-    #[at("/settings/*")]
-    Settings,
+    #[at("/settings/{*_rest}")]
+    Settings { _rest: String },
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -448,7 +448,7 @@ fn switch_main(route: MainRoute) -> Html {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsRoot | MainRoute::Settings { .. } => html! { <Switch<SettingsRoute> render={switch_settings} /> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }

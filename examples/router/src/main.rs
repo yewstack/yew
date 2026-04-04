@@ -15,11 +15,11 @@ use yew::html::Scope;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/posts/:id")]
+    #[at("/posts/{id}")]
     Post { id: u64 },
     #[at("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[at("/authors/{id}")]
     Author { id: u64 },
     #[at("/authors")]
     Authors,
