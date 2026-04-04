@@ -3,13 +3,14 @@ use std::any::type_name;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use gloo_worker::{Bincode, Codec};
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Oneshot, OneshotBridge, OneshotSpawner};
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
-use crate::{Bincode, Codec, Reach};
+use crate::Reach;
 
 pub(crate) struct OneshotProviderState<T>
 where

@@ -151,6 +151,7 @@ Yew pinned to 0.23 now.
 
 ## ✨ yew **0.21.0** *(2023-09-23)*
 
+Users can follow the [migration guide](https://yew.rs/docs/migration-guides/yew/from-0_20_0-to-0_21_0) to migrate from 0.20.0 to 0.21.0.
 
 ### 🛠 Fixes
 

@@ -10,13 +10,12 @@
 
 extern crate self as yew_agent;
 
-pub mod codec;
 pub mod oneshot;
 pub mod reactor;
 pub mod worker;
-pub use codec::{Bincode, Codec};
-pub mod traits;
-pub use traits::{Registrable, Spawnable};
+
+#[doc(inline)]
+pub use gloo_worker::{Bincode, Codec, Registrable, Spawnable};
 
 mod reach;
 pub mod scope_ext;

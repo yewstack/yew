@@ -105,14 +105,14 @@ jobs:
       - name: Run tests - yew
         run: |
           cd packages/yew
-          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr,test --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr,test --target wasm32-unknown-unknown
+          CHROMEDRIVER="$(which chromedriver)" cargo test --features csr,hydration,ssr,test --target wasm32-unknown-unknown
+          GECKODRIVER="$(which geckodriver)" cargo test --features csr,hydration,ssr,test --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
           cd packages/yew-router
-          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown
+          CHROMEDRIVER="$(which chromedriver)" cargo test --target wasm32-unknown-unknown
+          GECKODRIVER="$(which geckodriver)" cargo test --target wasm32-unknown-unknown
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}

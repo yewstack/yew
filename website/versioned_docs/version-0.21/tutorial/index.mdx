@@ -62,9 +62,9 @@ cargo run
 ## Our first static page
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
-Update the files as follows:
+Add `yew` to the list of dependencies:
 
-```toml title="Cargo.toml" {7}
+```toml title=Cargo.toml {7}
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -73,6 +73,8 @@ edition = "2021"
 [dependencies]
 yew = { version = "0.21", features = ["csr"] }
 ```
+
+or using `cargo add yew@0.21 -F csr`.
 
 :::info
 
@@ -612,7 +614,7 @@ you can use it as a jumping-off point to explore more advanced topics.
 ### Styles
 
 Our apps look very ugly. There is no CSS or any kind of style.
-Unfortunately, Yew does not offer a built-in way to style components. See [Trunk's assets](https://trunkrs.dev/assets/)
+Unfortunately, Yew does not offer a built-in way to style components. See [Trunk's assets](https://trunk-rs.github.io/trunk/guide/assets/index.html)
 to learn how to add style sheets.
 
 ### More libraries

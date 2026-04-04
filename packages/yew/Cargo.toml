@@ -32,7 +32,7 @@ base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 tracing = "0.1.44"
-tokise = "0.2.0"
+tokise = "0.2.1"
 rustversion.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
