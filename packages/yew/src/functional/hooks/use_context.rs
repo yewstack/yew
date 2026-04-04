@@ -16,7 +16,7 @@ use crate::functional::{Hook, HookContext};
 /// # Example
 ///
 /// ```rust
-/// use yew::{ContextProvider, function_component, html, use_context, use_state, Html};
+/// use yew::{ContextProvider, component, html, use_context, use_state, Html};
 ///
 ///
 /// /// App theme
@@ -27,7 +27,7 @@ use crate::functional::{Hook, HookContext};
 /// }
 ///
 /// /// Main component
-/// #[function_component]
+/// #[component]
 /// pub fn App() -> Html {
 ///     let ctx = use_state(|| Theme {
 ///         foreground: "#000000".to_owned(),
@@ -47,7 +47,7 @@ use crate::functional::{Hook, HookContext};
 ///
 /// /// The toolbar.
 /// /// This component has access to the context
-/// #[function_component]
+/// #[component]
 /// pub fn Toolbar() -> Html {
 ///     html! {
 ///         <div>
@@ -58,7 +58,7 @@ use crate::functional::{Hook, HookContext};
 ///
 /// /// Button placed in `Toolbar`.
 /// /// As this component is a child of `ThemeContextProvider` in the component tree, it also has access to the context.
-/// #[function_component]
+/// #[component]
 /// pub fn ThemedButton() -> Html {
 ///     let theme = use_context::<Theme>().expect("no ctx found");
 ///

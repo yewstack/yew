@@ -1,4 +1,4 @@
-use rand::{distributions, Rng};
+use rand::{distr, Rng};
 use yew::prelude::*;
 
 use crate::components::author_card::AuthorCard;
@@ -75,8 +75,8 @@ impl Component for AuthorList {
 }
 
 fn random_author_seeds() -> Vec<u64> {
-    rand::thread_rng()
-        .sample_iter(distributions::Standard)
+    rand::rng()
+        .sample_iter(distr::StandardUniform)
         .take(2)
         .collect()
 }

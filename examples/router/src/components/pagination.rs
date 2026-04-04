@@ -80,7 +80,11 @@ impl Pagination {
                 </>
             }
         } else {
-            html! { for pages.map(|page| self.render_link(page, props)) }
+            html! {
+                for page in pages {
+                    {self.render_link(page, props)}
+                }
+            }
         }
     }
 
@@ -91,12 +95,12 @@ impl Pagination {
             page, total_pages, ..
         } = *props;
 
-        let pages_prev = page.checked_sub(1).unwrap_or_default() as usize;
+        let pages_prev = page.saturating_sub(1) as usize;
         let pages_next = (total_pages - page) as usize;
 
         let links_left = LINKS_PER_SIDE.min(pages_prev)
             // if there are less than `LINKS_PER_SIDE` to the right, we add some more on the left.
-            + LINKS_PER_SIDE.checked_sub(pages_next).unwrap_or_default();
+            + LINKS_PER_SIDE.saturating_sub(pages_next);
         let links_right = 2 * LINKS_PER_SIDE - links_left;
 
         html! {

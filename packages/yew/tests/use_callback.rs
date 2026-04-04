@@ -1,15 +1,13 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
 mod common;
 
-use std::time::Duration;
-
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -20,7 +18,7 @@ async fn use_callback_works() {
         callback: Callback<String, String>,
     }
 
-    #[function_component(MyComponent)]
+    #[component(MyComponent)]
     fn my_component(props: &Props) -> Html {
         let greeting = props.callback.emit("Yew".to_string());
 
@@ -39,7 +37,7 @@ async fn use_callback_works() {
         }
     }
 
-    #[function_component(UseCallbackComponent)]
+    #[component(UseCallbackComponent)]
     fn use_callback_comp() -> Html {
         let state = use_state(|| 0);
 
@@ -65,7 +63,7 @@ async fn use_callback_works() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
     assert_eq!(result.as_str(), "Hello, Yew!");

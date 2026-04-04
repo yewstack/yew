@@ -19,7 +19,7 @@
 //!     NotFound,
 //! }
 //!
-//! #[function_component(Secure)]
+//! #[component(Secure)]
 //! fn secure() -> Html {
 //!     let navigator = use_navigator().unwrap();
 //!
@@ -32,7 +32,7 @@
 //!     }
 //! }
 //!
-//! #[function_component(Main)]
+//! #[component(Main)]
 //! fn app() -> Html {
 //!     html! {
 //!         <BrowserRouter>
@@ -88,6 +88,12 @@ pub mod history {
         AnyHistory, BrowserHistory, HashHistory, History, HistoryError, HistoryResult, Location,
         MemoryHistory,
     };
+}
+
+pub mod query {
+    //! A module that provides custom query serialization & deserialization.
+
+    pub use gloo::history::query::{FromQuery, Raw, ToQuery};
 }
 
 pub mod prelude {

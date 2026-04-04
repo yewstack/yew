@@ -93,18 +93,20 @@ impl Component for App {
                 true
             }
             Msg::SwapRandom => {
-                let (a, b) = random::choose_two_distinct_mut(&mut self.persons).unwrap();
-                log::info!("Swapping {} and {}.", a.info().id, b.info().id);
-                std::mem::swap(a, b);
-                true
+                if let Some((a, b)) = random::choose_two_distinct_mut(&mut self.persons) {
+                    log::info!("Swapping {} and {}.", a.info().id, b.info().id);
+                    std::mem::swap(a, b);
+                    true
+                } else {
+                    false
+                }
             }
             Msg::ReverseList => {
                 self.persons.reverse();
                 true
             }
             Msg::SortById => {
-                self.persons
-                    .sort_unstable_by(|a, b| a.info().id.cmp(&b.info().id));
+                self.persons.sort_unstable_by_key(|a| a.info().id);
                 true
             }
             Msg::SortByName => {

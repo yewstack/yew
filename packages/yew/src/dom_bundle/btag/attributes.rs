@@ -8,8 +8,8 @@ use yew::AttrValue;
 
 use super::Apply;
 use crate::dom_bundle::BSubtree;
-use crate::virtual_dom::vtag::{InputFields, Value};
-use crate::virtual_dom::{ApplyAttributeAs, Attributes};
+use crate::virtual_dom::vtag::{InputFields, TextareaFields, Value};
+use crate::virtual_dom::{AttributeOrProperty, Attributes};
 
 impl<T: AccessValue> Apply for Value<T> {
     type Bundle = Self;
@@ -88,27 +88,43 @@ impl Apply for InputFields {
     }
 }
 
+impl Apply for TextareaFields {
+    type Bundle = Value<TextAreaElement>;
+    type Element = TextAreaElement;
+
+    fn apply(self, root: &BSubtree, el: &Self::Element) -> Self::Bundle {
+        if let Some(def) = self.defaultvalue {
+            _ = el.set_default_value(def.as_str());
+        }
+        self.value.apply(root, el)
+    }
+
+    fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self::Bundle) {
+        self.value.apply_diff(root, el, bundle)
+    }
+}
+
 impl Attributes {
     #[cold]
     fn apply_diff_index_maps(
         el: &Element,
-        new: &IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>,
-        old: &IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>,
+        new: &IndexMap<AttrValue, AttributeOrProperty>,
+        old: &IndexMap<AttrValue, AttributeOrProperty>,
     ) {
         for (key, value) in new.iter() {
             match old.get(key) {
                 Some(old_value) => {
                     if value != old_value {
-                        Self::set(el, key, value.0.as_ref(), value.1);
+                        Self::set(el, key, value);
                     }
                 }
-                None => Self::set(el, key, value.0.as_ref(), value.1),
+                None => Self::set(el, key, value),
             }
         }
 
-        for (key, (_, apply_as)) in old.iter() {
+        for (key, value) in old.iter() {
             if !new.contains_key(key) {
-                Self::remove(el, key, *apply_as);
+                Self::remove(el, key, value);
             }
         }
     }
@@ -117,26 +133,17 @@ impl Attributes {
     /// Works with any [Attributes] variants.
     #[cold]
     fn apply_diff_as_maps<'a>(el: &Element, new: &'a Self, old: &'a Self) {
-        fn collect(src: &Attributes) -> HashMap<&str, (&str, ApplyAttributeAs)> {
+        fn collect(src: &Attributes) -> HashMap<&str, &AttributeOrProperty> {
             use Attributes::*;
 
             match src {
-                Static(arr) => (*arr)
-                    .iter()
-                    .map(|(k, v, apply_as)| (*k, (*v, *apply_as)))
-                    .collect(),
+                Static(arr) => (*arr).iter().map(|(k, v)| (*k, v)).collect(),
                 Dynamic { keys, values } => keys
                     .iter()
                     .zip(values.iter())
-                    .filter_map(|(k, v)| {
-                        v.as_ref()
-                            .map(|(v, apply_as)| (*k, (v.as_ref(), *apply_as)))
-                    })
+                    .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v)))
                     .collect(),
-                IndexMap(m) => m
-                    .iter()
-                    .map(|(k, (v, apply_as))| (k.as_ref(), (v.as_ref(), *apply_as)))
-                    .collect(),
+                IndexMap(m) => m.iter().map(|(k, v)| (k.as_ref(), v)).collect(),
             }
         }
 
@@ -149,37 +156,39 @@ impl Attributes {
                 Some(old) => old != new,
                 None => true,
             } {
-                Self::set(el, k, new.0, new.1);
+                Self::set(el, k, new);
             }
         }
 
         // Remove missing
-        for (k, (_, apply_as)) in old.iter() {
+        for (k, old_value) in old.iter() {
             if !new.contains_key(k) {
-                Self::remove(el, k, *apply_as);
+                Self::remove(el, k, old_value);
             }
         }
     }
 
-    fn set(el: &Element, key: &str, value: &str, apply_as: ApplyAttributeAs) {
-        match apply_as {
-            ApplyAttributeAs::Attribute => el
+    fn set(el: &Element, key: &str, value: &AttributeOrProperty) {
+        match value {
+            AttributeOrProperty::Attribute(value) => el
                 .set_attribute(intern(key), value)
                 .expect("invalid attribute key"),
-            ApplyAttributeAs::Property => {
+            AttributeOrProperty::Static(value) => el
+                .set_attribute(intern(key), value)
+                .expect("invalid attribute key"),
+            AttributeOrProperty::Property(value) => {
                 let key = JsValue::from_str(key);
-                let value = JsValue::from_str(value);
-                js_sys::Reflect::set(el.as_ref(), &key, &value).expect("could not set property");
+                js_sys::Reflect::set(el.as_ref(), &key, value).expect("could not set property");
             }
         }
     }
 
-    fn remove(el: &Element, key: &str, apply_as: ApplyAttributeAs) {
-        match apply_as {
-            ApplyAttributeAs::Attribute => el
+    fn remove(el: &Element, key: &str, old_value: &AttributeOrProperty) {
+        match old_value {
+            AttributeOrProperty::Attribute(_) | AttributeOrProperty::Static(_) => el
                 .remove_attribute(intern(key))
                 .expect("could not remove attribute"),
-            ApplyAttributeAs::Property => {
+            AttributeOrProperty::Property(_) => {
                 let key = JsValue::from_str(key);
                 js_sys::Reflect::set(el.as_ref(), &key, &JsValue::UNDEFINED)
                     .expect("could not remove property");
@@ -195,20 +204,20 @@ impl Apply for Attributes {
     fn apply(self, _root: &BSubtree, el: &Element) -> Self {
         match &self {
             Self::Static(arr) => {
-                for (k, v, apply_as) in arr.iter() {
-                    Self::set(el, k, v, *apply_as);
+                for (k, v) in arr.iter() {
+                    Self::set(el, k, v);
                 }
             }
             Self::Dynamic { keys, values } => {
                 for (k, v) in keys.iter().zip(values.iter()) {
-                    if let Some((v, apply_as)) = v {
-                        Self::set(el, k, v, *apply_as)
+                    if let Some(v) = v {
+                        Self::set(el, k, v)
                     }
                 }
             }
             Self::IndexMap(m) => {
-                for (k, (v, apply_as)) in m.iter() {
-                    Self::set(el, k, v, *apply_as)
+                for (k, v) in m.iter() {
+                    Self::set(el, k, v)
                 }
             }
         }
@@ -248,7 +257,7 @@ impl Apply for Attributes {
                     }
                     macro_rules! set {
                         ($new:expr) => {
-                            Self::set(el, key!(), $new.0.as_ref(), $new.1)
+                            Self::set(el, key!(), $new)
                         };
                     }
 
@@ -260,7 +269,7 @@ impl Apply for Attributes {
                         }
                         (Some(new), None) => set!(new),
                         (None, Some(old)) => {
-                            Self::remove(el, key!(), old.1);
+                            Self::remove(el, key!(), old);
                         }
                         (None, None) => (),
                     }
@@ -279,9 +288,10 @@ impl Apply for Attributes {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
     use std::time::Duration;
 
     use gloo::utils::document;
@@ -289,7 +299,7 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::{function_component, html, Html};
+    use crate::{component, html, Html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -303,10 +313,11 @@ mod tests {
 
     #[test]
     fn properties_are_set() {
-        let attrs = Attributes::Static(&[
-            ("href", "https://example.com/", ApplyAttributeAs::Property),
-            ("alt", "somewhere", ApplyAttributeAs::Property),
-        ]);
+        let attrs = indexmap::indexmap! {
+            AttrValue::Static("href") => AttributeOrProperty::Property(JsValue::from_str("https://example.com/")),
+            AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
+        };
+        let attrs = Attributes::IndexMap(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -329,10 +340,11 @@ mod tests {
 
     #[test]
     fn respects_apply_as() {
-        let attrs = Attributes::Static(&[
-            ("href", "https://example.com/", ApplyAttributeAs::Attribute),
-            ("alt", "somewhere", ApplyAttributeAs::Property),
-        ]);
+        let attrs = indexmap::indexmap! {
+            AttrValue::Static("href") => AttributeOrProperty::Attribute(AttrValue::from("https://example.com/")),
+            AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
+        };
+        let attrs = Attributes::IndexMap(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -352,7 +364,7 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[("class", "thing", ApplyAttributeAs::Attribute)]);
+        let attrs = Attributes::Static(&[("class", AttributeOrProperty::Static("thing"))]);
 
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
@@ -361,12 +373,12 @@ mod tests {
 
     #[test]
     async fn macro_syntax_works() {
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
-            html! { <a href="https://example.com/" ~alt="abc" /> }
+            html! { <a href="https://example.com/" ~alt={"abc"} ~data-bool={JsValue::from_bool(true)} /> }
         }
 
-        let output = gloo::utils::document().get_element_by_id("output").unwrap();
+        let output = document().get_element_by_id("output").unwrap();
         yew::Renderer::<Comp>::with_root(output.clone()).render();
 
         gloo::timers::future::sleep(Duration::from_secs(1)).await;
@@ -382,6 +394,14 @@ mod tests {
                 .as_string()
                 .expect("not a string"),
             "abc",
+            "property `alt` not set properly"
+        );
+
+        assert!(
+            Reflect::get(element.as_ref(), &JsValue::from_str("data-bool"))
+                .expect("no alt")
+                .as_bool()
+                .expect("not a bool"),
             "property `alt` not set properly"
         );
     }

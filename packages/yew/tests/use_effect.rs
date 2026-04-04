@@ -1,15 +1,14 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::time::Duration;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -35,7 +34,7 @@ async fn use_effect_destroys_on_component_drop() {
         }
     }
 
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp(props: &FunctionProps) -> Html {
         let effect_called = props.effect_called.clone();
         let destroy_called = props.destroy_called.clone();
@@ -47,7 +46,7 @@ async fn use_effect_destroys_on_component_drop() {
         html! {}
     }
 
-    #[function_component(UseEffectWrapperComponent)]
+    #[component(UseEffectWrapperComponent)]
     fn use_effect_wrapper_comp(props: &WrapperProps) -> Html {
         let show = use_state(|| true);
         if *show {
@@ -72,14 +71,14 @@ async fn use_effect_destroys_on_component_drop() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     assert_eq!(1, *destroy_counter.borrow().deref());
 }
 
 #[wasm_bindgen_test]
 async fn use_effect_works_many_times() {
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
@@ -105,14 +104,14 @@ async fn use_effect_works_many_times() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "4");
 }
 
 #[wasm_bindgen_test]
 async fn use_effect_works_once() {
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let counter = use_state(|| 0);
         let counter_clone = counter.clone();
@@ -135,7 +134,7 @@ async fn use_effect_works_once() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
 
@@ -144,7 +143,7 @@ async fn use_effect_works_once() {
 
 #[wasm_bindgen_test]
 async fn use_effect_refires_on_dependency_change() {
-    #[function_component(UseEffectComponent)]
+    #[component(UseEffectComponent)]
     fn use_effect_comp() -> Html {
         let number_ref = use_mut_ref(|| 0);
         let number_ref_c = number_ref.clone();
@@ -181,7 +180,7 @@ async fn use_effect_refires_on_dependency_change() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result: String = obtain_result();
 
     assert_eq!(result.as_str(), "11");

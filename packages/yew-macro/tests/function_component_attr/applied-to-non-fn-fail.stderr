@@ -1,4 +1,4 @@
-error: `function_component` attribute can only be applied to functions
+error: `component` attribute can only be applied to functions
  --> $DIR/applied-to-non-fn-fail.rs:9:1
   |
 9 | struct Test;

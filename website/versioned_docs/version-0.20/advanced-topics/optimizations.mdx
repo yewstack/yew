@@ -81,9 +81,9 @@ implementation of the main page and render the component you are working on on t
 
 ## Reducing binary sizes
 
--   optimize Rust code
--   `cargo.toml` \( defining release profile \)
--   optimize wasm code using `wasm-opt`
+- optimize Rust code
+- `cargo.toml` \( defining release profile \)
+- optimize wasm code using `wasm-opt`
 
 **Note: more information about reducing binary sizes can be found in the
 [Rust Wasm Book](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size).**
@@ -138,8 +138,8 @@ Further more it is possible to optimize size of `wasm` code.
 The Rust Wasm Book has a section about reducing the size of Wasm binaries:
 [Shrinking .wasm size](https://rustwasm.github.io/book/game-of-life/code-size.html)
 
--   using `wasm-pack` which by default optimizes `wasm` code in release builds
--   using `wasm-opt` directly on `wasm` files.
+- using `wasm-pack` which by default optimizes `wasm` code in release builds
+- using `wasm-opt` directly on `wasm` files.
 
 ```text
 wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
@@ -157,7 +157,7 @@ Note: `wasm-pack` combines optimization for Rust and Wasm code. `wasm-bindgen` i
 
 ## Further reading:
 
--   [The Rust Book's chapter on smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
--   [Information from the Rust Wasm Book about reducing binary sizes](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
--   [Documentation about Rust profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
--   [binaryen project](https://github.com/WebAssembly/binaryen)
+- [The Rust Book's chapter on smart pointers](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Information from the Rust Wasm Book about reducing binary sizes](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Documentation about Rust profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen project](https://github.com/WebAssembly/binaryen)

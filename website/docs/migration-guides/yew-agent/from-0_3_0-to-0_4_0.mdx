@@ -1,0 +1,41 @@
+---
+title: 'From 0.3.0 to 0.4.0'
+---
+
+## MSRV raised to 1.84.0
+
+The minimum supported Rust version is now **1.84.0**. Update your toolchain:
+
+```bash
+rustup update stable
+```
+
+## gloo-worker vendored
+
+The external dependency on `gloo-worker` has been removed. All worker functionality is now built into `yew-agent`.
+
+### Update imports
+
+If you were importing types from `gloo-worker`, update to import from `yew_agent`:
+
+```rust ,ignore
+// Before
+use gloo_worker::{Spawnable, Worker, WorkerScope};
+
+// After
+use yew_agent::prelude::*;
+// or
+use yew_agent::{Spawnable, Worker, WorkerScope};
+```
+
+### Codec trait
+
+The `Codec` trait is now defined in `yew-agent`:
+
+```rust ,ignore
+// Before
+use gloo_worker::Codec;
+
+// After
+use yew_agent::Codec;
+```

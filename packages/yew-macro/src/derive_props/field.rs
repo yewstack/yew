@@ -5,14 +5,31 @@ use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
-use syn::{parse_quote, Attribute, Error, Expr, Field, GenericParam, Generics, Type, Visibility};
+use syn::{
+    parse_quote, Attribute, Error, Expr, Field, GenericArgument, GenericParam, Generics,
+    PathArguments, Type, Visibility,
+};
 
 use super::should_preserve_attr;
 use crate::derive_props::generics::push_type_param;
 
+fn is_option_type(ty: &Type) -> bool {
+    if let Type::Path(type_path) = ty {
+        if let Some(segment) = type_path.path.segments.last() {
+            if segment.ident == "Option" {
+                if let PathArguments::AngleBracketed(args) = &segment.arguments {
+                    return args.args.len() == 1
+                        && matches!(args.args.first(), Some(GenericArgument::Type(_)));
+                }
+            }
+        }
+    }
+    false
+}
+
 #[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
-enum PropAttr {
+pub enum PropAttr {
     Required { wrapped_name: Ident },
     PropOr(Expr),
     PropOrElse(Expr),
@@ -21,9 +38,9 @@ enum PropAttr {
 
 #[derive(Eq)]
 pub struct PropField {
-    ty: Type,
+    pub ty: Type,
     name: Ident,
-    attr: PropAttr,
+    pub attr: PropAttr,
     extra_attrs: Vec<Attribute>,
 }
 
@@ -57,7 +74,7 @@ impl PropField {
         props_name: &'a Ident,
         vis: &'a Visibility,
         token: &'a GenericParam,
-    ) -> PropFieldCheck<'_> {
+    ) -> PropFieldCheck<'a> {
         let check_struct = self.to_check_name(props_name);
         let check_arg = self.to_check_arg_name(props_name);
         PropFieldCheck {
@@ -130,9 +147,24 @@ impl PropField {
     ) -> proc_macro2::TokenStream {
         let Self { name, ty, attr, .. } = self;
         let token_ty = Ident::new("__YewTokenTy", Span::mixed_site());
+        let none_fn_name = format_ident!("{}_none", name, span = Span::mixed_site());
         let build_fn = match attr {
             PropAttr::Required { wrapped_name } => {
                 let check_struct = self.to_check_name(props_name);
+                let none_setter = if is_option_type(ty) {
+                    quote! {
+                        #[doc(hidden)]
+                        #vis fn #none_fn_name<#token_ty>(
+                            &mut self,
+                            token: #token_ty,
+                        ) -> #check_struct< #token_ty > {
+                            self.wrapped.#wrapped_name = ::std::option::Option::Some(::std::option::Option::None);
+                            #check_struct ( ::std::marker::PhantomData )
+                        }
+                    }
+                } else {
+                    quote! {}
+                };
                 quote! {
                     #[doc(hidden)]
                     #vis fn #name<#token_ty>(
@@ -143,9 +175,25 @@ impl PropField {
                         self.wrapped.#wrapped_name = ::std::option::Option::Some(value.into_prop_value());
                         #check_struct ( ::std::marker::PhantomData )
                     }
+
+                    #none_setter
                 }
             }
             _ => {
+                let none_setter = if is_option_type(ty) {
+                    quote! {
+                        #[doc(hidden)]
+                        #vis fn #none_fn_name<#token_ty>(
+                            &mut self,
+                            token: #token_ty,
+                        ) -> #token_ty {
+                            self.wrapped.#name = ::std::option::Option::Some(::std::option::Option::None);
+                            token
+                        }
+                    }
+                } else {
+                    quote! {}
+                };
                 quote! {
                     #[doc(hidden)]
                     #vis fn #name<#token_ty>(
@@ -156,6 +204,8 @@ impl PropField {
                         self.wrapped.#name = ::std::option::Option::Some(value.into_prop_value());
                         token
                     }
+
+                    #none_setter
                 }
             }
         };
@@ -200,7 +250,7 @@ pub struct PropFieldCheck<'a> {
     check_arg: GenericParam,
 }
 
-impl<'a> PropFieldCheck<'a> {
+impl PropFieldCheck<'_> {
     pub fn to_fake_prop_decl(&self) -> proc_macro2::TokenStream {
         let Self { this, .. } = self;
         if !this.is_required() {
@@ -245,9 +295,12 @@ impl<'a> PropFieldCheck<'a> {
             #vis struct #check_struct<How>(::std::marker::PhantomData<How>);
 
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B> ::yew::html::HasProp< #prop_name_mod :: #prop_check_name, #check_struct<B>>
                 for #check_struct<B> {}
+
             #[automatically_derived]
+            #[diagnostic::do_not_recommend]
             impl<B, P, How> ::yew::html::HasProp<P, &dyn ::yew::html::HasProp<P, How>>
                 for #check_struct<B>
                 where B: ::yew::html::HasProp<P, How> {}

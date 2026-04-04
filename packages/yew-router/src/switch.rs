@@ -24,7 +24,7 @@ where
 /// Otherwise `html! {}` is rendered and a message is logged to console
 /// stating that no route can be matched.
 /// See the [crate level document][crate] for more information.
-#[function_component]
+#[component]
 pub fn Switch<R>(props: &SwitchProps<R>) -> Html
 where
     R: Routable + 'static,

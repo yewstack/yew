@@ -22,8 +22,10 @@ pub mod vtag;
 pub mod vtext;
 
 use std::hint::unreachable_unchecked;
+use std::rc::Rc;
 
 use indexmap::IndexMap;
+use wasm_bindgen::JsValue;
 
 #[doc(inline)]
 pub use self::key::Key;
@@ -31,6 +33,8 @@ pub use self::key::Key;
 pub use self::listeners::*;
 #[doc(inline)]
 pub use self::vcomp::{VChild, VComp};
+#[doc(hidden)]
+pub use self::vlist::FullyKeyedState;
 #[doc(inline)]
 pub use self::vlist::VList;
 #[doc(inline)]
@@ -171,22 +175,29 @@ mod feat_ssr {
     }
 }
 
-/// Defines if the [`Attributes`] is set as element's attribute or property
+/// Defines if the [`Attributes`] is set as element's attribute or property and its value.
 #[allow(missing_docs)]
-#[derive(PartialEq, Eq, Copy, Clone, Debug)]
-pub enum ApplyAttributeAs {
-    Attribute,
-    Property,
+#[derive(PartialEq, Clone, Debug)]
+pub enum AttributeOrProperty {
+    // This exists as a workaround to support Rust <1.72
+    // Previous versions of Rust did not See
+    // `AttributeOrProperty::Attribute(AttrValue::Static(_))` as `'static` that html! macro
+    // used, and thus failed with "temporary value dropped while borrowed"
+    //
+    // See: https://github.com/yewstack/yew/pull/3458#discussion_r1350362215
+    Static(&'static str),
+    Attribute(AttrValue),
+    Property(JsValue),
 }
 
 /// A collection of attributes for an element
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Attributes {
     /// Static list of attributes.
     ///
     /// Allows optimizing comparison to a simple pointer equality check and reducing allocations,
     /// if the attributes do not change on a node.
-    Static(&'static [(&'static str, &'static str, ApplyAttributeAs)]),
+    Static(&'static [(&'static str, AttributeOrProperty)]),
 
     /// Static list of attribute keys with possibility to exclude attributes and dynamic attribute
     /// values.
@@ -199,12 +210,12 @@ pub enum Attributes {
 
         /// Attribute values. Matches [keys](Attributes::Dynamic::keys). Optional attributes are
         /// designated by setting [None].
-        values: Box<[Option<(AttrValue, ApplyAttributeAs)>]>,
+        values: Box<[Option<AttributeOrProperty>]>,
     },
 
     /// IndexMap is used to provide runtime attribute deduplication in cases where the html! macro
     /// was not used to guarantee it.
-    IndexMap(IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)>),
+    IndexMap(Rc<IndexMap<AttrValue, AttributeOrProperty>>),
 }
 
 impl Attributes {
@@ -215,25 +226,35 @@ impl Attributes {
 
     /// Return iterator over attribute key-value pairs.
     /// This function is suboptimal and does not inline well. Avoid on hot paths.
+    ///
+    /// This function only returns attributes
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a str, &'a str)> + 'a> {
         match self {
-            Self::Static(arr) => Box::new(arr.iter().map(|(k, v, _)| (*k, *v as &'a str))),
-            Self::Dynamic { keys, values } => Box::new(
-                keys.iter()
-                    .zip(values.iter())
-                    .filter_map(|(k, v)| v.as_ref().map(|(v, _)| (*k, v.as_ref()))),
-            ),
-            Self::IndexMap(m) => Box::new(m.iter().map(|(k, (v, _))| (k.as_ref(), v.as_ref()))),
+            Self::Static(arr) => Box::new(arr.iter().filter_map(|(k, v)| match v {
+                AttributeOrProperty::Attribute(v) => Some((*k, v.as_ref())),
+                AttributeOrProperty::Property(_) => None,
+                AttributeOrProperty::Static(v) => Some((*k, v)),
+            })),
+            Self::Dynamic { keys, values } => {
+                Box::new(keys.iter().zip(values.iter()).filter_map(|(k, v)| match v {
+                    Some(AttributeOrProperty::Attribute(v)) => Some((*k, v.as_ref())),
+                    _ => None,
+                }))
+            }
+            Self::IndexMap(m) => Box::new(m.iter().filter_map(|(k, v)| match v {
+                AttributeOrProperty::Attribute(v) => Some((k.as_ref(), v.as_ref())),
+                _ => None,
+            })),
         }
     }
 
     /// Get a mutable reference to the underlying `IndexMap`.
     /// If the attributes are stored in the `Vec` variant, it will be converted.
-    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, (AttrValue, ApplyAttributeAs)> {
+    pub fn get_mut_index_map(&mut self) -> &mut IndexMap<AttrValue, AttributeOrProperty> {
         macro_rules! unpack {
             () => {
                 match self {
-                    Self::IndexMap(m) => m,
+                    Self::IndexMap(m) => Rc::make_mut(m),
                     // SAFETY: unreachable because we set self to the `IndexMap` variant above.
                     _ => unsafe { unreachable_unchecked() },
                 }
@@ -241,23 +262,21 @@ impl Attributes {
         }
 
         match self {
-            Self::IndexMap(m) => m,
+            Self::IndexMap(m) => Rc::make_mut(m),
             Self::Static(arr) => {
-                *self = Self::IndexMap(
-                    arr.iter()
-                        .map(|(k, v, ty)| ((*k).into(), ((*v).into(), *ty)))
-                        .collect(),
-                );
+                *self = Self::IndexMap(Rc::new(
+                    arr.iter().map(|(k, v)| ((*k).into(), v.clone())).collect(),
+                ));
                 unpack!()
             }
             Self::Dynamic { keys, values } => {
-                *self = Self::IndexMap(
+                *self = Self::IndexMap(Rc::new(
                     std::mem::take(values)
                         .iter_mut()
                         .zip(keys.iter())
                         .filter_map(|(v, k)| v.take().map(|v| (AttrValue::from(*k), v)))
                         .collect(),
-                );
+                ));
                 unpack!()
             }
         }
@@ -268,9 +287,9 @@ impl From<IndexMap<AttrValue, AttrValue>> for Attributes {
     fn from(map: IndexMap<AttrValue, AttrValue>) -> Self {
         let v = map
             .into_iter()
-            .map(|(k, v)| (k, (v, ApplyAttributeAs::Attribute)))
+            .map(|(k, v)| (k, AttributeOrProperty::Attribute(v)))
             .collect();
-        Self::IndexMap(v)
+        Self::IndexMap(Rc::new(v))
     }
 }
 
@@ -278,9 +297,19 @@ impl From<IndexMap<&'static str, AttrValue>> for Attributes {
     fn from(v: IndexMap<&'static str, AttrValue>) -> Self {
         let v = v
             .into_iter()
-            .map(|(k, v)| (AttrValue::Static(k), (v, ApplyAttributeAs::Attribute)))
+            .map(|(k, v)| (AttrValue::Static(k), (AttributeOrProperty::Attribute(v))))
             .collect();
-        Self::IndexMap(v)
+        Self::IndexMap(Rc::new(v))
+    }
+}
+
+impl From<IndexMap<&'static str, JsValue>> for Attributes {
+    fn from(v: IndexMap<&'static str, JsValue>) -> Self {
+        let v = v
+            .into_iter()
+            .map(|(k, v)| (AttrValue::Static(k), (AttributeOrProperty::Property(v))))
+            .collect();
+        Self::IndexMap(Rc::new(v))
     }
 }
 

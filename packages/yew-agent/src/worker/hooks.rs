@@ -15,7 +15,7 @@ pub struct UseWorkerBridgeHandle<T>
 where
     T: Worker,
 {
-    inner: WorkerBridge<T>,
+    inner: Rc<WorkerBridge<T>>,
     ctr: UseReducerDispatcher<BridgeIdState>,
 }
 
@@ -84,7 +84,7 @@ where
 {
     let ctr = use_reducer(BridgeIdState::default);
 
-    let worker_state = use_context::<WorkerProviderState<T>>()
+    let worker_state = use_context::<Rc<WorkerProviderState<T>>>()
         .expect_throw("cannot find a provider for current agent.");
 
     let on_output = Rc::new(on_output);
@@ -106,7 +106,7 @@ where
     });
 
     UseWorkerBridgeHandle {
-        inner: (*bridge).clone(),
+        inner: bridge,
         ctr: ctr.dispatcher(),
     }
 }

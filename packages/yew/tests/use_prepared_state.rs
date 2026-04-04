@@ -1,4 +1,4 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #![cfg(feature = "hydration")]
 #![cfg_attr(nightly_yew, feature(async_closure))]
 
@@ -10,13 +10,13 @@ use common::obtain_result_by_id;
 use wasm_bindgen_test::*;
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::{Renderer, ServerRenderer};
+use yew::{scheduler, Renderer, ServerRenderer};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
 async fn use_prepared_state_works() {
-    #[function_component]
+    #[component]
     fn Comp() -> HtmlResult {
         let ctr = use_prepared_state!((), |_| -> u32 { 12345 })?.unwrap_or_default();
 
@@ -27,7 +27,7 @@ async fn use_prepared_state_works() {
         })
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {
             <Suspense fallback={Html::default()}>
@@ -42,7 +42,7 @@ async fn use_prepared_state_works() {
 
     assert_eq!(
         s,
-        r#"<!--<[use_prepared_state::use_prepared_state_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">ATkwAAAB</script><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::App]>-->"#
+        r#"<!--<[use_prepared_state::use_prepared_state_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">Afs5MAE=</script><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_works::{{closure}}::App]>-->"#
     );
 
     gloo::utils::document()
@@ -51,12 +51,12 @@ async fn use_prepared_state_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
 
     let result = obtain_result_by_id("output");
 
@@ -66,7 +66,7 @@ async fn use_prepared_state_works() {
 
 #[wasm_bindgen_test]
 async fn use_prepared_state_with_suspension_works() {
-    #[function_component]
+    #[component]
     fn Comp() -> HtmlResult {
         let ctr = use_prepared_state!((), async move |_| -> u32 { 12345 })?.unwrap_or_default();
 
@@ -77,7 +77,7 @@ async fn use_prepared_state_with_suspension_works() {
         })
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         html! {
             <Suspense fallback={Html::default()}>
@@ -92,7 +92,7 @@ async fn use_prepared_state_with_suspension_works() {
 
     assert_eq!(
         s,
-        r#"<!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">ATkwAAAB</script><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>-->"#
+        r#"<!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>--><!--<[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--<[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--<?>--><div><!--<[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--><div>12345</div><script type="application/x-yew-comp-state">Afs5MAE=</script><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::Comp]>--></div><!--</?>--><!--</[yew::suspense::component::feat_csr_ssr::BaseSuspense]>--><!--</[yew::suspense::component::feat_csr_ssr::Suspense]>--><!--</[use_prepared_state::use_prepared_state_with_suspension_works::{{closure}}::App]>-->"#
     );
 
     gloo::utils::document()
@@ -101,12 +101,12 @@ async fn use_prepared_state_with_suspension_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
 
     let result = obtain_result_by_id("output");
 

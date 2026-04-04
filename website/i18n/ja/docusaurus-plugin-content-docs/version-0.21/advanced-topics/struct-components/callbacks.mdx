@@ -1,35 +1,86 @@
 ---
-title: Callbacks
-description: ComponentLink and Callbacks
+title: 'Callbacks'
 ---
 
-”リンク”コンポーネントはコンポーネントがコールバックを登録できて自身を更新することができるメカニズムです。
+## Callbacks
 
-## ComponentLink API
+Callbacks are used to communicate with services, agents, and parent components within Yew.
+Internally their type is just `Fn` wrapped in `Rc` to allow them to be cloned.
 
-### callback
+They have an `emit` function that takes their `<IN>` type as an argument and converts that to a message expected by its destination. If a callback from a parent is provided in props to a child component, the child can call `emit` on the callback in its `update` lifecycle hook to send a message back to its parent. Closures or Functions provided as props inside the `html!` macro are automatically converted to Callbacks.
 
-実行時にコンポーネントの更新メカニズムにメッセージを送信するコールバックを登録します。
-これは、渡されたクロージャから返されるメッセージで `send_self` を呼び出します。
-`Fn(IN) -> Vec<COMP::Message>`が渡され、`Callback<IN>`が返されます。
+A simple use of a callback might look something like this:
 
-### send_message
+```rust
+use yew::{html, Component, Context, Html};
 
-現在のループが終了した直後にコンポーネントにメッセージを送信し、別の更新ループを開始します。
+enum Msg {
+    Clicked,
+}
 
-### send_message_batch
+struct Comp;
 
-実行時に一度に多数のメッセージを一括して送信するコールバックを登録します。
-メッセージによってコンポーネントが再レンダリングされる場合、バッチ内のすべてのメッセージが処理された後、コンポーネントは再レンダリングされます。
-`Fn(IN) -> COMP::Message`が渡され、`Callback<IN>`が返されます。
+impl Component for Comp {
 
-## コールバック
+    type Message = Msg;
+    type Properties = ();
 
-_\(This might need its own short page.\)_
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
 
-コールバックは、Yew 内のサービス、エージェント、親コンポーネントとの通信に使われます。
-これらは単に `Fn` を `Rc` でラップしただけであり、クローンを作成できるようにするためのものです。
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            // highlight-next-line
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
+}
+```
 
-これらの関数には `emit` 関数があり、`<IN>` 型を引数に取り、それをアドレスが欲しいメッセージに変換します。
-親からのコールバックが子コンポーネントに props で提供されている場合、子は `update` ライフサイクルフックで `emit` をコールバックに呼び出して親にメッセージを返すことができます。
-マクロ内で props として提供されたクロージャや関数は自動的にコールバックに変換されます。
+The function passed to `callback` must always take a parameter. For example, the `onclick` handler requires a function that takes a parameter of type `MouseEvent`. The handler can then decide what kind of message should be sent to the component. This message is scheduled for the next update loop unconditionally.
+
+If you need a callback that might not need to cause an update, use `batch_callback`.
+
+```rust
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
+
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+
+        html! {
+            <input type="text" {onkeypress} />
+        }
+        // highlight-end
+    }
+}
+```
+
+## Relevant examples
+
+- [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+- [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

@@ -1,6 +1,6 @@
 //! Yew's compatibility between JavaScript Runtime and Native Runtimes.
 //!
-//! This module is also published under the name [prokio] on crates.io.
+//! This module is also published under the name [tokise] on crates.io.
 //!
 //! # Rationale
 //!
@@ -45,4 +45,4 @@
 //! - `tokio` (non-WebAssembly targets)
 
 #[doc(inline)]
-pub use prokio::*;
+pub use tokise::*;

@@ -5,7 +5,7 @@ struct Props {
     a: usize,
 }
 
-#[function_component(Comp)]
+#[component(Comp)]
 fn comp<'a>(props: &'a Props) -> Html {
     html! {
         <p>

@@ -5,10 +5,10 @@ struct Props {
     a: usize,
 }
 
-#[function_component(Comp1)]
+#[component(Comp1)]
 fn comp_1(_props: &Props) {}
 
-#[function_component(Comp)]
+#[component(Comp)]
 fn comp(_props: &Props) -> u32 {
     1
 }

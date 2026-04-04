@@ -1,12 +1,13 @@
 use super::{Key, VNode};
+use crate::html::ImplicitClone;
 
 /// This struct represents a suspendable DOM fragment.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, ImplicitClone, Debug, PartialEq)]
 pub struct VSuspense {
     /// Child nodes.
-    pub(crate) children: Box<VNode>,
+    pub(crate) children: VNode,
     /// Fallback nodes when suspended.
-    pub(crate) fallback: Box<VNode>,
+    pub(crate) fallback: VNode,
     /// Whether the current status is suspended.
     pub(crate) suspended: bool,
     /// The Key.
@@ -16,8 +17,8 @@ pub struct VSuspense {
 impl VSuspense {
     pub fn new(children: VNode, fallback: VNode, suspended: bool, key: Option<Key>) -> Self {
         Self {
-            children: children.into(),
-            fallback: fallback.into(),
+            children,
+            fallback,
             suspended,
             key,
         }
@@ -58,7 +59,7 @@ mod feat_ssr {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(any(not(target_arch = "wasm32"), target_os = "wasi"))]
 #[cfg(feature = "ssr")]
 #[cfg(test)]
 mod ssr_tests {
@@ -73,6 +74,7 @@ mod ssr_tests {
     use crate::suspense::{Suspension, SuspensionResult};
     use crate::ServerRenderer;
 
+    #[cfg(not(target_os = "wasi"))]
     #[test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_suspense() {
         #[derive(PartialEq)]
@@ -120,13 +122,13 @@ mod ssr_tests {
             name: String,
         }
 
-        #[function_component]
+        #[component]
         fn Child(props: &ChildProps) -> HtmlResult {
             use_sleep()?;
             Ok(html! { <div>{"Hello, "}{&props.name}{"!"}</div> })
         }
 
-        #[function_component]
+        #[component]
         fn Comp() -> Html {
             let fallback = html! {"loading..."};
 

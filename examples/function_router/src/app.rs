@@ -12,13 +12,24 @@ use crate::pages::page_not_found::PageNotFound;
 use crate::pages::post::Post;
 use crate::pages::post_list::PostList;
 
+pub fn route_meta(route: &Route) -> (&'static str, &'static str) {
+    match route {
+        Route::Home => ("Home", "The best yew content on the web"),
+        Route::Posts => ("Posts", "Browse all posts"),
+        Route::Post { .. } => ("Post", "Read a post"),
+        Route::Authors => ("Authors", "Meet the authors"),
+        Route::Author { .. } => ("Author", "Author profile"),
+        Route::NotFound => ("Not Found", "Page not found"),
+    }
+}
+
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/posts/:id")]
+    #[at("/posts/{id}")]
     Post { id: u32 },
     #[at("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[at("/authors/{id}")]
     Author { id: u32 },
     #[at("/authors")]
     Authors,
@@ -29,7 +40,7 @@ pub enum Route {
     NotFound,
 }
 
-#[function_component]
+#[component]
 pub fn App() -> Html {
     html! {
         <BrowserRouter>
@@ -44,8 +55,6 @@ pub fn App() -> Html {
                     <a href="https://yew.rs">{ "Yew" }</a>
                     { " using " }
                     <a href="https://bulma.io">{ "Bulma" }</a>
-                    { " and images from " }
-                    <a href="https://unsplash.com">{ "Unsplash" }</a>
                 </div>
             </footer>
         </BrowserRouter>
@@ -58,7 +67,7 @@ pub struct ServerAppProps {
     pub queries: HashMap<String, String>,
 }
 
-#[function_component]
+#[component]
 pub fn ServerApp(props: &ServerAppProps) -> Html {
     let history = AnyHistory::from(MemoryHistory::new());
     history
@@ -78,8 +87,6 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
                     <a href="https://yew.rs">{ "Yew" }</a>
                     { " using " }
                     <a href="https://bulma.io">{ "Bulma" }</a>
-                    { " and images from " }
-                    <a href="https://unsplash.com">{ "Unsplash" }</a>
                 </div>
             </footer>
         </Router>

@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use crate::html::ImplicitClone;
+
 /// The [Listener] trait is an universal implementation of an event listener
 /// which is used to bind Rust-listener to JS-listener (DOM).
 pub trait Listener {
@@ -158,10 +160,11 @@ gen_listener_kinds! {
 }
 
 /// A list of event listeners
-#[derive(Debug)]
+#[derive(Debug, Clone, ImplicitClone, Default)]
 pub enum Listeners {
     /// No listeners registered or pending.
     /// Distinct from `Pending` with an empty slice to avoid an allocation.
+    #[default]
     None,
 
     /// Not yet added to the element or registry
@@ -183,9 +186,11 @@ impl PartialEq for Listeners {
                     lhs.iter()
                         .zip(rhs.iter())
                         .all(|(lhs, rhs)| match (lhs, rhs) {
-                            (Some(lhs), Some(rhs)) =>
-                            {
-                                #[allow(clippy::vtable_address_comparisons)]
+                            (Some(lhs), Some(rhs)) => {
+                                // We are okay with comparisons from different compilation units to
+                                // result in false not-equal results. This should only lead in the
+                                // worst-case to some unneeded re-renders.
+                                #[allow(ambiguous_wide_pointer_comparisons)]
                                 Rc::ptr_eq(lhs, rhs)
                             }
                             (None, None) => true,
@@ -193,22 +198,7 @@ impl PartialEq for Listeners {
                         })
                 }
             }
-            (None, Pending(pending)) | (Pending(pending), None) => pending.len() == 0,
+            (None, Pending(pending)) | (Pending(pending), None) => pending.is_empty(),
         }
-    }
-}
-
-impl Clone for Listeners {
-    fn clone(&self) -> Self {
-        match self {
-            Self::None => Self::None,
-            Self::Pending(v) => Self::Pending(v.clone()),
-        }
-    }
-}
-
-impl Default for Listeners {
-    fn default() -> Self {
-        Self::None
     }
 }

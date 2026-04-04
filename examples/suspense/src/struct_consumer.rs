@@ -59,7 +59,7 @@ impl Component for BaseAppContent {
         let on_take_a_break = ctx.link().callback(|_| Msg::TakeABreak);
         html! {
             <div class="content-area">
-                <textarea value={self.value.clone()} {oninput}></textarea>
+                <textarea value={self.value.clone()} {oninput} />
                 <div class="action-area">
                     <button onclick={on_take_a_break}>{"Take a break!"}</button>
                     <div class="hint">{"You can take a break at anytime"}<br />{"and your work will be preserved."}</div>

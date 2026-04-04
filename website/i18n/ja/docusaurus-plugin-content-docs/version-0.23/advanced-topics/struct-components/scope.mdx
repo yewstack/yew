@@ -1,0 +1,70 @@
+---
+title: 'スコープ'
+description: 'コンポーネントのスコープ'
+---
+
+## コンポーネントの `Scope<_>` インターフェース
+
+`Scope` は、メッセージを介してコールバックを作成し、自身を更新するメカニズムです。コンポーネントに渡されるコンテキストオブジェクトで `link()` を呼び出すことで、その参照を取得します。
+
+### `send_message`
+
+この関数は、コンポーネントにメッセージを送信できます。メッセージは `update` メソッドによって処理され、コンポーネントが再レンダリングするかどうかを決定します。
+
+### `send_message_batch`
+
+この関数は、コンポーネントに複数のメッセージを同時に送信できます。これは `send_message` に似ていますが、任意のメッセージが `update` メソッドで `true` を返す場合、バッチ内のすべてのメッセージの処理が完了した後にコンポーネントが再レンダリングされます。
+
+指定された引数ベクターが空の場合、この関数は何も実行しません。
+
+### `callback`
+
+コールバックを作成し、実行時にコンポーネントにメッセージを送信します。内部的には、提供されたクロージャが返すメッセージを使用して `send_message` を呼び出します。
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Text(String),
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // テキストを受け取り、それを `Msg::Text` メッセージバリアントとしてコンポーネントに送信するコールバックを作成します。
+        // highlight-next-line
+        let cb = ctx.link().callback(|text: String| Msg::Text(text));
+
+        // 上の行は冗長であり、より明確にするために次のように簡略化できます：
+        // highlight-next-line
+        let cb = ctx.link().callback(Msg::Text);
+
+        // `Msg::Text("Hello World!")` をコンポーネントに送信します。
+        // highlight-next-line
+        cb.emit("Hello World!".to_owned());
+
+        html! {
+            // ここに HTML を配置
+        }
+    }
+}
+```
+
+### `batch_callback`
+
+バッチメッセージを送信するコールバックを作成します。このメソッドに渡されるクロージャはメッセージを返す必要はありません。代わりに、クロージャは `Vec<Msg>` または `Option<Msg>` を返すことができます。ここで、`Msg` はコンポーネントのメッセージタイプです。
+
+`Vec<Msg>` はバッチメッセージとして扱われ、内部的に `send_message_batch` を使用します。
+
+`Option<Msg>` は値が `Some` の場合に `send_message` を呼び出します。値が `None` の場合は何も実行しません。これは、更新が不要な場合に使用できます。
+
+これは、これらの型に対してのみ実装された `SendAsMessage` トレイトを使用して実現されています。独自の型に対して `SendAsMessage` を実装することで、`batch_callback` でそれらを使用できるようになります。

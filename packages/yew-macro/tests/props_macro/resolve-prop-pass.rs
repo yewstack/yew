@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 
 // Shadow primitives
 #[allow(non_camel_case_types)]

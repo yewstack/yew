@@ -12,7 +12,7 @@ impl Generated for Author {
     fn generate(gen: &mut Generator) -> Self {
         let name = gen.human_name();
         let keywords = gen.keywords();
-        let image_url = gen.face_image_url((600, 600));
+        let image_url = gen.face_image_url((150, 150));
         Self {
             seed: gen.seed,
             name,
@@ -36,7 +36,7 @@ impl Generated for PostMeta {
         let title = gen.title();
         let author = Author::generate_from_seed(gen.new_seed());
         let keywords = gen.keywords();
-        let image_url = gen.image_url((1000, 500), &keywords);
+        let image_url = gen.image_url((300, 150), &keywords);
 
         Self {
             seed: gen.seed,
@@ -102,7 +102,7 @@ impl Generated for Section {
         let title = gen.title();
         let n_paragraphs = gen.range(PARAGRAPHS_MIN, PARAGRAPHS_MAX);
         let paragraphs = (0..n_paragraphs).map(|_| gen.paragraph()).collect();
-        let image_url = gen.image_url((600, 300), &[]);
+        let image_url = gen.image_url((200, 100), &[]);
 
         Self {
             title,

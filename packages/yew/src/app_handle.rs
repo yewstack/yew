@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use web_sys::Element;
 
-use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
+use crate::dom_bundle::{BSubtree, DomSlot};
 use crate::html::{BaseComponent, Scope, Scoped};
 
 /// An instance of an application.
@@ -34,13 +34,9 @@ where
             scope: Scope::new(None),
         };
         let hosting_root = BSubtree::create_root(&host);
-        app.scope.mount_in_place(
-            hosting_root,
-            host,
-            DomSlot::at_end(),
-            DynamicDomSlot::new_debug_trapped(),
-            props,
-        );
+        let _ = app
+            .scope
+            .mount_in_place(hosting_root, host, DomSlot::at_end(), props);
 
         app
     }
@@ -110,15 +106,17 @@ mod feat_hydration {
             let mut fragment = Fragment::collect_children(&host);
             let hosting_root = BSubtree::create_root(&host);
 
+            let mut previous_next_sibling = None;
             app.scope.hydrate_in_place(
                 hosting_root,
                 host.clone(),
                 &mut fragment,
-                DynamicDomSlot::new_debug_trapped(),
                 Rc::clone(&props),
+                &mut previous_next_sibling,
             );
-            #[cfg(debug_assertions)] // Fix trapped next_sibling at the root
-            app.scope.reuse(props, DomSlot::at_end());
+            if let Some(previous_next_sibling) = previous_next_sibling {
+                previous_next_sibling.reassign(DomSlot::at_end());
+            }
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.

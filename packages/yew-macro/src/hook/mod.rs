@@ -2,9 +2,10 @@ use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
 use syn::{
-    parse_file, parse_quote, visit_mut, Attribute, Ident, ItemFn, LitStr, ReturnType, Signature,
-    Type,
+    visit_mut, AttrStyle, Attribute, Block, Expr, ExprPath, File, Ident, Item, ItemFn, LitStr,
+    Meta, MetaNameValue, ReturnType, Signature, Stmt, Token, Type,
 };
 
 mod body;
@@ -51,16 +52,26 @@ impl Parse for HookFn {
 
 impl HookFn {
     fn doc_attr(&self) -> Attribute {
-        let vis = &self.inner.vis;
-        let sig = &self.inner.sig;
+        let span = self.inner.span();
 
-        let sig_s = quote! { #vis #sig {
-            __yew_macro_dummy_function_body__
-        } }
-        .to_string();
-
-        let sig_file = parse_file(&sig_s).unwrap();
-        let sig_formatted = prettyplease::unparse(&sig_file);
+        let sig_formatted = prettyplease::unparse(&File {
+            shebang: None,
+            attrs: vec![],
+            items: vec![Item::Fn(ItemFn {
+                block: Box::new(Block {
+                    brace_token: Default::default(),
+                    stmts: vec![Stmt::Expr(
+                        Expr::Path(ExprPath {
+                            attrs: vec![],
+                            qself: None,
+                            path: Ident::new("__yew_macro_dummy_function_body__", span).into(),
+                        }),
+                        None,
+                    )],
+                }),
+                ..self.inner.clone()
+            })],
+        });
 
         let literal = LitStr::new(
             &format!(
@@ -78,10 +89,22 @@ When used in function components and hooks, this hook is equivalent to:
                     "/* implementation omitted */"
                 )
             ),
-            Span::mixed_site(),
+            span,
         );
 
-        parse_quote!(#[doc = #literal])
+        Attribute {
+            pound_token: Default::default(),
+            style: AttrStyle::Outer,
+            bracket_token: Default::default(),
+            meta: Meta::NameValue(MetaNameValue {
+                path: Ident::new("doc", span).into(),
+                eq_token: Token![=](span),
+                value: Expr::Lit(syn::ExprLit {
+                    attrs: vec![],
+                    lit: literal.into(),
+                }),
+            }),
+        }
     }
 }
 
@@ -123,36 +146,46 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
     let inner_fn_ident = Ident::new("inner_fn", Span::mixed_site());
     let input_args = hook_sig.input_args();
 
-    // there might be some overridden lifetimes in the return type.
     let inner_fn_rt = match &sig.output {
         ReturnType::Default => None,
         ReturnType::Type(rarrow, _) => Some(quote! { #rarrow #output_type }),
     };
 
-    let inner_fn = quote! { fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block };
+    let output_is_impl_trait = matches!(hook_sig.output_type, Type::ImplTrait(_));
+
+    let inner_fn = if output_is_impl_trait {
+        quote! {}
+    } else {
+        quote! { fn #inner_fn_ident #generics (#ctx_ident: &mut ::yew::functional::HookContext, #inputs) #inner_fn_rt #where_clause #block }
+    };
 
     let inner_type_impl = if hook_sig.needs_boxing {
-        let with_output = !matches!(hook_sig.output_type, Type::ImplTrait(_),);
-        let inner_fn_rt = with_output.then_some(&inner_fn_rt);
-        let output_type = with_output.then_some(&output_type);
-
         let hook_lifetime = &hook_sig.hook_lifetime;
-        let hook_lifetime_plus = quote! { #hook_lifetime + };
-
         let boxed_inner_ident = Ident::new("boxed_inner", Span::mixed_site());
-        let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus ::std::ops::FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
 
-        let as_boxed_fn = with_output.then(|| quote! { as #boxed_fn_type });
+        if output_is_impl_trait {
+            quote! {
+                let #boxed_inner_ident = ::std::boxed::Box::new(
+                        move |#ctx_ident: &mut ::yew::functional::HookContext| #block
+                    );
 
-        // We need boxing implementation for `impl Trait` arguments.
-        quote! {
-            let #boxed_inner_ident = ::std::boxed::Box::new(
-                    move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
-                        #inner_fn_ident (#ctx_ident, #(#input_args,)*)
-                    }
-                ) #as_boxed_fn;
+                ::yew::functional::BoxedHook::<#hook_lifetime,>::new(#boxed_inner_ident)
+            }
+        } else {
+            let hook_lifetime_plus = quote! { #hook_lifetime + };
+            let boxed_fn_type = quote! { ::std::boxed::Box<dyn #hook_lifetime_plus ::std::ops::FnOnce(&mut ::yew::functional::HookContext) #inner_fn_rt> };
+            let as_boxed_fn = quote! { as #boxed_fn_type };
+            let generic_types = generics.type_params().map(|t| &t.ident);
 
-            ::yew::functional::BoxedHook::<#hook_lifetime, #output_type>::new(#boxed_inner_ident)
+            quote! {
+                let #boxed_inner_ident = ::std::boxed::Box::new(
+                        move |#ctx_ident: &mut ::yew::functional::HookContext| #inner_fn_rt {
+                            #inner_fn_ident :: <#(#generic_types,)*> (#ctx_ident, #(#input_args,)*)
+                        }
+                    ) #as_boxed_fn;
+
+                ::yew::functional::BoxedHook::<#hook_lifetime, #output_type>::new(#boxed_inner_ident)
+            }
         }
     } else {
         let input_types = hook_sig.input_types();

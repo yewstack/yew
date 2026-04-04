@@ -99,7 +99,7 @@ where
         W: Worker + 'static,
     {
         let inner = self
-            .context::<WorkerProviderState<W>>((|_| {}).into())
+            .context::<Rc<WorkerProviderState<W>>>((|_| {}).into())
             .expect_throw("failed to bridge to agent.")
             .0
             .create_bridge(callback);
