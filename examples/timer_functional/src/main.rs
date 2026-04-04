@@ -122,10 +122,8 @@ fn App() -> Html {
         timeout_handle: None,
     });
 
-    let (state_value, dispatcher) = state.into_inner();
-
     let mut key = 0;
-    let messages: Html = state_value
+    let messages: Html = state
         .messages
         .iter()
         .map(|message| {
@@ -134,35 +132,43 @@ fn App() -> Html {
         })
         .collect();
 
-    let has_job = state_value.interval_handle.is_some() || state_value.timeout_handle.is_some();
+    let has_job = state.interval_handle.is_some() || state.timeout_handle.is_some();
 
     let on_add_timeout = {
-        let dispatcher = dispatcher.clone();
+        let state = state.clone();
+
         Callback::from(move |_: MouseEvent| {
-            let done_dispatcher = dispatcher.clone();
+            let timeout_state = state.clone();
+            let message_state = state.clone();
             let t = Timeout::new(3000, move || {
-                done_dispatcher.dispatch(TimerAction::TimeoutDone);
+                message_state.dispatch(TimerAction::TimeoutDone);
             });
-            dispatcher.dispatch(TimerAction::SetTimeout(t));
+
+            timeout_state.dispatch(TimerAction::SetTimeout(t));
         })
     };
 
     let on_add_interval = {
-        let dispatcher = dispatcher.clone();
+        let state = state.clone();
+
         Callback::from(move |_: MouseEvent| {
-            let tick_dispatcher = dispatcher.clone();
+            let interval_state = state.clone();
+            let message_state = state.clone();
             let i = Interval::new(1000, move || {
-                tick_dispatcher.dispatch(TimerAction::Add("Tick.."));
+                message_state.dispatch(TimerAction::Add("Tick.."));
             });
-            dispatcher.dispatch(TimerAction::SetInterval(i));
+
+            interval_state.dispatch(TimerAction::SetInterval(i));
         })
     };
 
-    let on_cancel = {
-        Callback::from(move |_: MouseEvent| {
+    let on_cancel = Callback::from({
+        let (_, dispatcher) = state.into_inner();
+
+        move |_: MouseEvent| {
             dispatcher.dispatch(TimerAction::Cancel);
-        })
-    };
+        }
+    });
 
     html!(
         <>
