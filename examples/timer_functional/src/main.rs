@@ -122,8 +122,10 @@ fn App() -> Html {
         timeout_handle: None,
     });
 
+    let (state_value, dispatcher) = state.into_inner();
+
     let mut key = 0;
-    let messages: Html = state
+    let messages: Html = state_value
         .messages
         .iter()
         .map(|message| {
@@ -132,39 +134,33 @@ fn App() -> Html {
         })
         .collect();
 
-    let has_job = state.interval_handle.is_some() || state.timeout_handle.is_some();
+    let has_job = state_value.interval_handle.is_some() || state_value.timeout_handle.is_some();
 
     let on_add_timeout = {
-        let state = state.clone();
-
+        let dispatcher = dispatcher.clone();
         Callback::from(move |_: MouseEvent| {
-            let timeout_state = state.clone();
-            let message_state = state.clone();
+            let done_dispatcher = dispatcher.clone();
             let t = Timeout::new(3000, move || {
-                message_state.dispatch(TimerAction::TimeoutDone);
+                done_dispatcher.dispatch(TimerAction::TimeoutDone);
             });
-
-            timeout_state.dispatch(TimerAction::SetTimeout(t));
+            dispatcher.dispatch(TimerAction::SetTimeout(t));
         })
     };
 
     let on_add_interval = {
-        let state = state.clone();
-
+        let dispatcher = dispatcher.clone();
         Callback::from(move |_: MouseEvent| {
-            let interval_state = state.clone();
-            let message_state = state.clone();
+            let tick_dispatcher = dispatcher.clone();
             let i = Interval::new(1000, move || {
-                message_state.dispatch(TimerAction::Add("Tick.."));
+                tick_dispatcher.dispatch(TimerAction::Add("Tick.."));
             });
-
-            interval_state.dispatch(TimerAction::SetInterval(i));
+            dispatcher.dispatch(TimerAction::SetInterval(i));
         })
     };
 
     let on_cancel = {
         Callback::from(move |_: MouseEvent| {
-            state.dispatch(TimerAction::Cancel);
+            dispatcher.dispatch(TimerAction::Cancel);
         })
     };
 

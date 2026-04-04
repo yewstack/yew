@@ -17,6 +17,39 @@ title: '狀態'
 | [use_mut_ref]    | `T`                        | -                                | 組件內部實例             |
 | 全域靜態常數     | `T`                        | -                                | 全域，任何位置都可以使用 |
 
+## 存取句柄內部
+
+`UseStateHandle` 和 `UseReducerHandle` 都提供了直接存取其內部組成部分的方法。
+
+### `value_rc()`
+
+以 `Rc<T>` 的形式回傳當前值。與對句柄解參考（回傳繫結到句柄生命週期的 `&T`）不同，
+`value_rc()` 回傳一個擁有所有權的 `Rc<T>`，可以移動到閉包中或獨立儲存。
+
+```rust
+let counter = use_state(|| 0);
+let rc_value: Rc<i32> = counter.value_rc();
+```
+
+### `into_inner()`
+
+消耗句柄並回傳其兩個組成部分：當前值（`Rc<T>`）和 setter/dispatcher。
+當你想要在不克隆整個句柄的情況下將讀取與寫入分離時，這非常有用。
+
+對於 `UseReducerHandle`，回傳類型為 `(Rc<T>, UseReducerDispatcher<T>)`：
+
+```rust
+let state = use_reducer(CounterState::default);
+let (value, dispatcher) = state.into_inner();
+```
+
+對於 `UseStateHandle`，回傳類型為 `(Rc<T>, UseStateSetter<T>)`：
+
+```rust
+let state = use_state(|| 0);
+let (value, setter) = state.into_inner();
+```
+
 [use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html
 [use_state_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html
 [use_reducer]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html

@@ -124,7 +124,7 @@ impl<T> UseStateHandle<T> {
     pub fn value_rc(&self) -> Rc<T> {
         // SAFETY: `UseStateReducer<T>` is `repr(transparent)` over `T`, so
         // `Rc<UseStateReducer<T>>` and `Rc<T>` have identical layouts.
-        unsafe { transmute(self.inner.value_rc()) }
+        unsafe { transmute::<Rc<UseStateReducer<T>>, Rc<T>>(self.inner.value_rc()) }
     }
 
     /// Replaces the value
@@ -144,7 +144,10 @@ impl<T> UseStateHandle<T> {
     pub fn into_inner(self) -> (Rc<T>, UseStateSetter<T>) {
         let (data, inner) = self.inner.into_inner();
         // SAFETY: same repr(transparent) guarantee as `value_rc`.
-        (unsafe { transmute(data) }, UseStateSetter { inner })
+        (
+            unsafe { transmute::<Rc<UseStateReducer<T>>, Rc<T>>(data) },
+            UseStateSetter { inner },
+        )
     }
 }
 
