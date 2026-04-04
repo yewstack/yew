@@ -48,7 +48,7 @@ fn compile_pass() {
 
     let attr_val_none: ::std::option::Option<::yew::virtual_dom::AttrValue> = ::std::option::Option::None;
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <div>
             <div data-key="abc"></div>
             <div ref={&parent_ref}></div>
@@ -92,8 +92,7 @@ fn compile_pass() {
             </@>
 
             <@{
-                let tag = dyn_tag();
-                if tag == "test" {
+                if dyn_tag() == "test" {
                     "div"
                 } else {
                     "a"
@@ -113,17 +112,37 @@ fn compile_pass() {
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    ::yew::html! { <div>{children}</div> };
+    _ = ::yew::html! { <div>{children}</div> };
 
     // handle misleading angle brackets
-    ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
-    ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
+    _ = ::yew::html! { <div data-val={<::std::string::String as ::std::default::Default>::default()}></div> };
+    _ = ::yew::html! { <div><a data-val={<::std::string::String as ::std::default::Default>::default()} /></div> };
 
     // test for https://github.com/yewstack/yew/issues/2810
-    ::yew::html! {  <div data-type="date" data-as="calender" /> };
+    _ = ::yew::html! {  <div data-type="date" data-as="calender" /> };
 
     let option_vnode = ::std::option::Option::Some(::yew::html! {});
-    ::yew::html! { <div>{option_vnode}</div> };
+    _ = ::yew::html! { <div>{option_vnode}</div> };
+
+    let opt_string: ::std::option::Option<::std::string::String> =
+        ::std::option::Option::Some(::std::convert::From::from("hello"));
+    _ = ::yew::html! { <div>{opt_string}</div> };
+
+    let opt_attr: ::std::option::Option<::yew::AttrValue> =
+        ::std::option::Option::Some(::yew::AttrValue::Static("hello"));
+    _ = ::yew::html! { <div>{opt_attr}</div> };
+
+    let opt_none: ::std::option::Option<::std::string::String> = ::std::option::Option::None;
+    _ = ::yew::html! { <div>{opt_none}</div> };
+
+    let num = 42i32;
+    _ = ::yew::html! { <div>{&num}</div> };
+
+    let text = ::std::string::String::new();
+    _ = ::yew::html! { <div>{&text}</div> };
+
+    let sr: &::core::primitive::str = "hello";
+    _ = ::yew::html! { <div>{&sr}</div> };
 }
 
 fn main() {}

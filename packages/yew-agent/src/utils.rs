@@ -3,7 +3,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use yew::Reducible;
 
-/// Gets a unique worker id
 pub(crate) fn get_next_id() -> usize {
     static CTR: AtomicUsize = AtomicUsize::new(0);
 

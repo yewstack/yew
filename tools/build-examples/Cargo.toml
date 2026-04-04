@@ -1,0 +1,11 @@
+[package]
+name = "build-examples"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+reqwest = { workspace = true, features = ["blocking", "json"] }
+regex = "1.12.3"
+toml = "1.0.7"
+serde = { workspace = true, features = ["derive"] }

@@ -41,7 +41,8 @@ mod provider;
 
 #[doc(inline)]
 pub use gloo_worker::reactor::{
-    Reactor, ReactorBridge, ReactorRegistrar, ReactorScope, ReactorScoped, ReactorSpawner,
+    Reactor, ReactorBridge, ReactorBridgeSinkError, ReactorRegistrar, ReactorScope, ReactorScoped,
+    ReactorSpawner,
 };
 pub use hooks::{
     use_reactor_bridge, use_reactor_subscription, ReactorEvent, UseReactorBridgeHandle,

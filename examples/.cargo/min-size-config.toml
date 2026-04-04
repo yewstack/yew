@@ -1,0 +1,6 @@
+[unstable]
+build-std = ["core", "std", "panic_abort"]
+build-std-features = ["optimize_for_size"]
+
+[target.'cfg(target_arch = "wasm32")']
+rustflags = ["-Zunstable-options", "-Cpanic=immediate-abort", "--cfg", "nightly_yew"]

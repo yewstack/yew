@@ -10,7 +10,7 @@
 #   * doc-test
 #   * website-test
 #
-# packages/yew also contains `clippy-feature-soundness` to ensure everything is fine
+# packages/yew also contains `clippy-feature-soundness` (requires cargo-hack)
 # Run `cargo make --list-all-steps` for more details.
 #
 ######################

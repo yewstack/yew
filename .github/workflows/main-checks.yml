@@ -6,6 +6,8 @@ on:
       - ".github/workflows/main-checks.yml"
       - "ci/**"
       - "packages/**/*"
+      - "examples/**/*"
+      - "tools/**/*"
       - "Cargo.toml"
       - "Cargo.lock"
   push:
@@ -16,18 +18,15 @@ jobs:
     name: spellcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check spelling
-        run: |
-          sudo apt-get install aspell
-          ci/spellcheck.sh list
+        uses: crate-ci/typos@v1.44.0
 
   doc_tests:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@v6
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -35,15 +34,19 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: ./ci/install-wasm-bindgen-cli.sh
-
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: browser-actions/setup-geckodriver@latest
         with:
@@ -67,13 +70,11 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.84.0
           - stable
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@v6
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -81,15 +82,19 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install wasm-bindgen-cli
-        shell: bash
-        run: ./ci/install-wasm-bindgen-cli.sh
-
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
           targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
 
       - uses: browser-actions/setup-geckodriver@latest
         with:
@@ -100,14 +105,14 @@ jobs:
       - name: Run tests - yew
         run: |
           cd packages/yew
-          CHROMEDRIVER=$(which chromedriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --features csr,hydration,ssr --target wasm32-unknown-unknown
+          CHROMEDRIVER="$(which chromedriver)" cargo test --features csr,hydration,ssr,test --target wasm32-unknown-unknown
+          GECKODRIVER="$(which geckodriver)" cargo test --features csr,hydration,ssr,test --target wasm32-unknown-unknown
 
       - name: Run tests - yew-router
         run: |
           cd packages/yew-router
-          CHROMEDRIVER=$(which chromedriver) cargo test --target wasm32-unknown-unknown
-          GECKODRIVER=$(which geckodriver) cargo test --target wasm32-unknown-unknown
+          CHROMEDRIVER="$(which chromedriver)" cargo test --target wasm32-unknown-unknown
+          GECKODRIVER="$(which geckodriver)" cargo test --target wasm32-unknown-unknown
 
   unit_tests:
     name: Unit Tests on ${{ matrix.toolchain }}
@@ -116,14 +121,12 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.64.0
+          - 1.84.0
           - stable
           - nightly
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v6
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -131,13 +134,20 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run native tests
         env:
           # workaround for lack of ternary operator
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
-        run: ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
+        run: |
+          if [[ "${{ matrix.toolchain }}" == "1.84.0" ]]; then
+            cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router
+          else
+            ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
+          fi
 
       - name: Run native tests for yew
         env:
@@ -151,7 +161,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -159,8 +169,176 @@ jobs:
           toolchain: nightly
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run tests
         env:
           RUSTFLAGS: --cfg nightly_yew --cfg yew_lints
         run: cargo test -p yew-macro test_html_lints
+
+  macro_tests_discovery:
+    name: Discover macro tests
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        run: |
+          matrix=$(
+            find packages/*/tests -name '*_test.rs' ! -name 'html_lints_test.rs' -printf '%h/%f\n' \
+              | while IFS= read -r path; do
+                  pkg=$(echo "$path" | cut -d/ -f2)
+                  test=$(basename "$path" .rs)
+                  printf '{"package":"%s","test":"%s"}\n' "$pkg" "$test"
+                done \
+              | jq -sc '{include: .}'
+          )
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  macro_tests:
+    name: Macro Tests (${{ matrix.test }})
+    needs: macro_tests_discovery
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.macro_tests_discovery.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.84.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run ${{ matrix.test }}
+        run: cargo test -p ${{ matrix.package }} --test ${{ matrix.test }}
+
+  unit_tests_wasi:
+    name: Unit Tests (WASI) on ${{ matrix.toolchain }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - nightly
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: wasm32-wasip1
+
+      - name: Install wasmtime
+        run: |
+          wget https://github.com/bytecodealliance/wasmtime/releases/download/v24.0.0/wasmtime-v24.0.0-x86_64-linux.tar.xz
+          tar xf wasmtime-v24.0.0-x86_64-linux.tar.xz
+          mv wasmtime-v24.0.0-x86_64-linux/wasmtime ~/wasmtime
+          rm -rf wasmtime-v24.0.0-x86_64-linux.tar.xz wasmtime-v24.0.0-x86_64-linux
+          chmod +x ~/wasmtime
+          mv ~/wasmtime /usr/local/bin
+          source ~/.bashrc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run WASI tests for yew
+        run: |
+          RUST_LOG=info
+          cargo test --features ssr,hydration,test --target wasm32-wasip1 -p yew
+
+  example-runnable-tests-on-wasi:
+    name: Example Runnable Tests on WASI
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - wasi_ssr_module
+        toolchain:
+          - stable
+          - nightly
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          target: wasm32-wasip1
+
+      - name: Install wasmtime
+        run: |
+          wget https://github.com/bytecodealliance/wasmtime/releases/download/v24.0.0/wasmtime-v24.0.0-x86_64-linux.tar.xz
+          tar xf wasmtime-v24.0.0-x86_64-linux.tar.xz
+          mv wasmtime-v24.0.0-x86_64-linux/wasmtime ~/wasmtime
+          rm -rf wasmtime-v24.0.0-x86_64-linux.tar.xz wasmtime-v24.0.0-x86_64-linux
+          chmod +x ~/wasmtime
+          mv ~/wasmtime /usr/local/bin
+          source ~/.bashrc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Build and run ${{ matrix.package }}
+        run: |
+          cargo build --target wasm32-wasip1 -p ${{ matrix.package }}
+          wasmtime -W unknown-imports-trap=y target/wasm32-wasip1/debug/${{ matrix.package }}.wasm
+
+  ssr_e2e_tests:
+    name: SSR E2E Tests (${{ matrix.example }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - example: ssr_router
+            server_bin: ssr_router_server
+            trunk_dir: examples/ssr_router
+          - example: simple_ssr
+            server_bin: simple_ssr_server
+            trunk_dir: examples/simple_ssr
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
+
+      - name: Install trunk
+        uses: jetli/trunk-action@v0.5.1
+        with:
+          version: "latest"
+
+      - uses: browser-actions/setup-geckodriver@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run SSR E2E tests
+        run: |
+          GECKODRIVER=$(which geckodriver) cargo run -p ssr-e2e -- \
+            --trunk-dir ${{ matrix.trunk_dir }} \
+            --server-cmd "cargo run -p ${{ matrix.example }} --bin ${{ matrix.server_bin }} --features ssr -- --dir ${{ matrix.trunk_dir }}/dist" \
+            --health-url http://127.0.0.1:8080/ \
+            --test-pkg ${{ matrix.example }} \
+            -- --target wasm32-unknown-unknown --test e2e

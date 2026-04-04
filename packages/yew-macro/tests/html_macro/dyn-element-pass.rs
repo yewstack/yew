@@ -43,17 +43,16 @@ fn main() {
         move || ::std::option::Option::unwrap(::std::iter::Iterator::next(&mut it))
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <@{ dyn_tag() }>
             <@{ next_extra_tag() } class="extra-a"/>
             <@{ next_extra_tag() } class="extra-b"/>
         </@>
     };
 
-    ::yew::html! {
+    _ = ::yew::html! {
         <@{
-            let tag = dyn_tag();
-            if tag == "test" {
+            if dyn_tag() == "test" {
                 "div"
             } else {
                 "a"

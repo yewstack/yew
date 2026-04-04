@@ -1,3 +1,6 @@
+// TODO: remove the cfg after wasm-bindgen-test stops emitting the function unconditionally
+#![cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))]
+
 use std::time::Duration;
 
 use yew::platform::time::sleep;
@@ -13,11 +16,11 @@ wasm_bindgen_test_configure!(run_in_browser);
 enum AppRoute {
     #[at("/")]
     Root,
-    #[at("/search/:query")]
+    #[at("/search/{query}")]
     Search { query: String },
 }
 
-#[function_component]
+#[component]
 fn Comp() -> Html {
     let switch = move |routes: AppRoute| match routes {
         AppRoute::Root => html! {
@@ -37,7 +40,7 @@ fn Comp() -> Html {
     }
 }
 
-#[function_component(Root)]
+#[component(Root)]
 fn root() -> Html {
     html! {
         <BrowserRouter>

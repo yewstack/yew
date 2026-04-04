@@ -39,7 +39,7 @@
 //! #   }
 //! # }
 //! use my_worker_mod::MyWorker; // note that <MyWorker as yew_agent::Worker>::Output == WorkerResponseType
-//! #[function_component(UseWorkerBridge)]
+//! #[component(UseWorkerBridge)]
 //! fn bridge() -> Html {
 //!     let counter = use_state(|| 0);
 //!
@@ -69,6 +69,7 @@ mod provider;
 #[doc(inline)]
 pub use gloo_worker::{
     HandlerId, Worker, WorkerBridge, WorkerDestroyHandle, WorkerRegistrar, WorkerScope,
+    WorkerSpawner,
 };
 pub use hooks::{
     use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,

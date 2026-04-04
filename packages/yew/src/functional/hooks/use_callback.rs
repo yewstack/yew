@@ -20,7 +20,7 @@ use crate::functional::{hook, use_memo};
 ///     pub callback: Callback<String, String>,
 /// }
 ///
-/// #[function_component(MyComponent)]
+/// #[component(MyComponent)]
 /// fn my_component(props: &Props) -> Html {
 ///     let greeting = props.callback.emit("Yew".to_string());
 ///
@@ -29,7 +29,7 @@ use crate::functional::{hook, use_memo};
 ///     }
 /// }
 ///
-/// #[function_component(UseCallback)]
+/// #[component(UseCallback)]
 /// fn callback() -> Html {
 ///     let counter = use_state(|| 0);
 ///     let onclick = {

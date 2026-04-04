@@ -3,7 +3,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::{Expr, Lit};
+use syn::Lit;
 
 use super::ToNodeIterator;
 use crate::stringify::Stringify;
@@ -11,15 +11,25 @@ use crate::PeekValue;
 
 pub enum HtmlNode {
     Literal(Box<Lit>),
-    Expression(Box<Expr>),
+    Expression(Box<TokenStream>),
 }
 
 impl Parse for HtmlNode {
     fn parse(input: ParseStream) -> Result<Self> {
         let node = if HtmlNode::peek(input.cursor()).is_some() {
-            let lit: Lit = input.parse()?;
-            if matches!(lit, Lit::ByteStr(_) | Lit::Byte(_) | Lit::Verbatim(_)) {
-                return Err(syn::Error::new(lit.span(), "unsupported type"));
+            let lit = input.parse()?;
+            match lit {
+                Lit::ByteStr(lit) => {
+                    return Err(syn::Error::new(
+                        lit.span(),
+                        "byte-strings can't be converted to HTML text
+                         note: remove the `b` prefix or convert this to a `String`",
+                    ))
+                }
+                Lit::Verbatim(lit) => {
+                    return Err(syn::Error::new(lit.span(), "unsupported literal"))
+                }
+                _ => (),
             }
             HtmlNode::Literal(Box::new(lit))
         } else {
@@ -57,13 +67,20 @@ impl ToTokens for HtmlNode {
 impl ToNodeIterator for HtmlNode {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
-            HtmlNode::Literal(_) => None,
-            HtmlNode::Expression(expr) => {
+            Self::Literal(_) => None,
+            Self::Expression(expr) => {
                 // NodeSeq turns both Into<T> and Vec<Into<T>> into IntoIterator<Item = T>
                 Some(quote_spanned! {expr.span().resolved_at(Span::call_site())=>
                     ::std::convert::Into::<::yew::utils::NodeSeq<_, _>>::into(#expr)
                 })
             }
+        }
+    }
+
+    fn is_singular(&self) -> bool {
+        match self {
+            Self::Literal(_) => true,
+            Self::Expression(_) => false,
         }
     }
 }

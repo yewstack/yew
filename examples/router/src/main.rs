@@ -15,11 +15,11 @@ use yew::html::Scope;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/posts/:id")]
+    #[at("/posts/{id}")]
     Post { id: u64 },
     #[at("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[at("/authors/{id}")]
     Author { id: u64 },
     #[at("/authors")]
     Authors,
@@ -70,8 +70,6 @@ impl Component for App {
                         <a href="https://yew.rs">{ "Yew" }</a>
                         { " using " }
                         <a href="https://bulma.io">{ "Bulma" }</a>
-                        { " and images from " }
-                        <a href="https://unsplash.com">{ "Unsplash" }</a>
                     </div>
                 </footer>
             </BrowserRouter>

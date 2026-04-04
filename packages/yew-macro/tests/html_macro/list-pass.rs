@@ -37,15 +37,15 @@ pub struct u8;
 pub struct usize;
 
 fn main() {
-    ::yew::html! {};
-    ::yew::html! { <></> };
-    ::yew::html! {
+    _ = ::yew::html! {};
+    _ = ::yew::html! { <></> };
+    _ = ::yew::html! {
         <>
             <></>
             <></>
         </>
     };
-    ::yew::html! {
+    _ = ::yew::html! {
         <key={::std::string::ToString::to_string("key")}>
         </>
     };
@@ -54,5 +54,5 @@ fn main() {
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    ::yew::html! { <>{ children }</> };
+    _ = ::yew::html! { <>{ children }</> };
 }

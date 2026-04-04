@@ -7,6 +7,7 @@ mod use_prepared_state;
 mod use_reducer;
 mod use_ref;
 mod use_state;
+
 mod use_transitive_state;
 
 pub use use_callback::*;
@@ -27,6 +28,7 @@ use crate::functional::HookContext;
 /// Hooks are defined via the [`#[hook]`](crate::functional::hook) macro. It provides rewrites to
 /// hook invocations and ensures that hooks can only be called at the top-level of a function
 /// component or a hook. Please refer to its documentation on how to implement hooks.
+#[must_use = "hooks do nothing unless called inside a `#[hook]` or `#[component]` function"]
 pub trait Hook {
     /// The return type when a hook is run.
     type Output;

@@ -107,14 +107,12 @@ impl TagTokens {
             let next = input.parse()?;
             if let TokenTree::Punct(punct) = &next {
                 match punct.as_char() {
-                    '/' => {
-                        if angle_count == 1 && input.peek(Token![>]) {
-                            div = Some(syn::token::Slash {
-                                spans: [punct.span()],
-                            });
-                            gt = input.parse()?;
-                            break;
-                        }
+                    '/' if angle_count == 1 && input.peek(Token![>]) => {
+                        div = Some(syn::token::Slash {
+                            spans: [punct.span()],
+                        });
+                        gt = input.parse()?;
+                        break;
                     }
                     '>' => {
                         angle_count = angle_count.checked_sub(1).ok_or_else(|| {

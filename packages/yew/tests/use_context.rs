@@ -1,14 +1,13 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
 mod common;
 
 use std::rc::Rc;
-use std::time::Duration;
 
 use common::obtain_result_by_id;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -17,7 +16,7 @@ async fn use_context_scoping_works() {
     #[derive(Clone, Debug, PartialEq)]
     struct ExampleContext(String);
 
-    #[function_component]
+    #[component]
     fn ExpectNoContextComponent() -> Html {
         let example_context = use_context::<ExampleContext>();
 
@@ -32,7 +31,7 @@ async fn use_context_scoping_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn UseContextComponent() -> Html {
         type ExampleContextProvider = ContextProvider<ExampleContext>;
         html! {
@@ -56,7 +55,7 @@ async fn use_context_scoping_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn UseContextComponentInner() -> Html {
         let context = use_context::<ExampleContext>();
         html! {
@@ -69,7 +68,7 @@ async fn use_context_scoping_works() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result: String = obtain_result_by_id("result");
     assert_eq!("correct", result);
@@ -82,7 +81,7 @@ async fn use_context_works_with_multiple_types() {
     #[derive(Clone, Debug, PartialEq)]
     struct ContextB(u32);
 
-    #[function_component]
+    #[component]
     fn Test1() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -93,7 +92,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn Test2() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -104,7 +103,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn Test3() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -115,7 +114,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn Test4() -> Html {
         let ctx_a = use_context::<ContextA>();
         let ctx_b = use_context::<ContextB>();
@@ -126,7 +125,7 @@ async fn use_context_works_with_multiple_types() {
         html! {}
     }
 
-    #[function_component]
+    #[component]
     fn TestComponent() -> Html {
         type ContextAProvider = ContextProvider<ContextA>;
         type ContextBProvider = ContextProvider<ContextB>;
@@ -152,7 +151,7 @@ async fn use_context_works_with_multiple_types() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 }
 
 #[wasm_bindgen_test]
@@ -166,7 +165,7 @@ async fn use_context_update_works() {
         children: Children,
     }
 
-    #[function_component]
+    #[component]
     fn RenderCounter(props: &RenderCounterProps) -> Html {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
@@ -187,7 +186,7 @@ async fn use_context_update_works() {
         magic: usize,
     }
 
-    #[function_component]
+    #[component]
     fn ContextOutlet(props: &ContextOutletProps) -> Html {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
@@ -204,7 +203,7 @@ async fn use_context_update_works() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn TestComponent() -> Html {
         type MyContextProvider = ContextProvider<Rc<MyContext>>;
 
@@ -252,7 +251,7 @@ async fn use_context_update_works() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // 1 initial render + 1 magic
     assert_eq!(obtain_result_by_id("test-0"), "total: 2");

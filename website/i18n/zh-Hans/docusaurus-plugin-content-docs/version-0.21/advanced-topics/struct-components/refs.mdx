@@ -6,18 +6,48 @@ description: 超出界限的 DOM 访问
 `ref` 关键词可被用在任何 HTML 元素或组件内部以获得该项所附加到的 DOM 元素。这可被用于在 `view` 生命周期方法之外来对 DOM 进行更改。
 
 这对于获取 canvas 元素或者滚动到页面的不同部分是有用的。
+For example, using a `NodeRef` in a component's `rendered` method allows you to make draw calls to
+a canvas element after it has been rendered from `view`.
 
 语法如下：
 
 ```rust
-// 在 create 中
-self.node_ref = NodeRef::default();
+use web_sys::Element;
+use yew::{html, Component, Context, Html, NodeRef};
 
-// 在 view 中
-html! {
-    <div ref={self.node_ref.clone()}></div>
+struct Comp {
+    node_ref: NodeRef,
 }
 
-// 在 update 中
-let has_attributes = self.node_ref.cast::<Element>().unwrap().has_attributes();
+impl Component for Comp {
+    type Message = ();
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            // highlight-next-line
+            node_ref: NodeRef::default(),
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        html! {
+            // highlight-next-line
+            <div ref={self.node_ref.clone()}></div>
+        }
+    }
+
+    fn rendered(&mut self, _ctx: &Context<Self>, _first_render: bool) {
+        // highlight-start
+        let has_attributes = self.node_ref
+            .cast::<Element>()
+            .unwrap()
+            .has_attributes();
+        // highlight-end
+    }
+}
 ```
+
+## Relevant examples
+
+- [Node Refs](https://github.com/yewstack/yew/tree/master/examples/node_refs)

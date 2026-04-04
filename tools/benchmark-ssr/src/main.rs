@@ -14,6 +14,7 @@ use tokio::task::{spawn_local, LocalSet};
 use yew::platform::time::sleep;
 use yew::prelude::*;
 
+#[cfg(unix)]
 #[global_allocator]
 static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
@@ -140,8 +141,9 @@ async fn bench_concurrent_task() -> Duration {
 
     #[function_component]
     fn Comp() -> HtmlResult {
-        let _state = use_prepared_state!((), async move |_| -> () {
+        let _state = use_prepared_state!((), async move |_| -> usize {
             sleep(Duration::from_secs(1)).await;
+            42
         })?;
 
         Ok(Html::default())

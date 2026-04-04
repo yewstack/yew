@@ -1,30 +1,17 @@
 use std::collections::HashSet;
+use std::sync::LazyLock;
 
-use once_cell::sync::Lazy;
 use syn::parse::{Parse, ParseStream};
-use syn::{Expr, ExprTuple};
 
 use super::{Prop, Props, SpecialProps};
-
-pub enum ClassesForm {
-    Tuple(ExprTuple),
-    Single(Box<Expr>),
-}
-impl ClassesForm {
-    fn from_expr(expr: Expr) -> Self {
-        match expr {
-            Expr::Tuple(expr_tuple) => ClassesForm::Tuple(expr_tuple),
-            expr => ClassesForm::Single(Box::new(expr)),
-        }
-    }
-}
 
 pub struct ElementProps {
     pub attributes: Vec<Prop>,
     pub listeners: Vec<Prop>,
-    pub classes: Option<ClassesForm>,
+    pub classes: Option<Prop>,
     pub booleans: Vec<Prop>,
     pub value: Option<Prop>,
+    pub defaultvalue: Option<Prop>,
     pub checked: Option<Prop>,
     pub special: SpecialProps,
 }
@@ -42,11 +29,10 @@ impl Parse for ElementProps {
         let booleans =
             props.drain_filter(|prop| BOOLEAN_SET.contains(prop.label.to_string().as_str()));
 
-        let classes = props
-            .pop("class")
-            .map(|prop| ClassesForm::from_expr(prop.value));
+        let classes = props.pop("class");
         let value = props.pop("value");
         let checked = props.pop("checked");
+        let defaultvalue = props.pop("defaultvalue");
         let special = props.special;
 
         Ok(Self {
@@ -57,11 +43,12 @@ impl Parse for ElementProps {
             booleans: booleans.into_vec(),
             value,
             special,
+            defaultvalue,
         })
     }
 }
 
-static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
+static BOOLEAN_SET: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     [
         // Living Standard
         // From: https://html.spec.whatwg.org/#attributes-3
@@ -77,6 +64,7 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
         "disabled",
         "formnovalidate",
         "hidden",
+        "inert",
         "ismap",
         "itemscope",
         "loop",
@@ -97,7 +85,7 @@ static BOOLEAN_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
     .into()
 });
 
-static LISTENER_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
+static LISTENER_SET: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
     [
         // Living Standard
         // From: https://html.spec.whatwg.org/multipage/webappapis.html#globaleventhandlers
