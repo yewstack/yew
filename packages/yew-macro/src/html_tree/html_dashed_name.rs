@@ -9,7 +9,7 @@ use syn::spanned::Spanned;
 use syn::{LitStr, Token};
 
 use crate::stringify::Stringify;
-use crate::{non_capitalized_ascii, Peek};
+use crate::{DisplayExt, Peek};
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct HtmlDashedName {
@@ -18,17 +18,6 @@ pub struct HtmlDashedName {
 }
 
 impl HtmlDashedName {
-    /// Checks if this name is equal to the provided item (which can be anything implementing
-    /// `Into<String>`).
-    pub fn eq_ignore_ascii_case<S>(&self, other: S) -> bool
-    where
-        S: Into<String>,
-    {
-        let mut s = other.into();
-        s.make_ascii_lowercase();
-        s == self.to_ascii_lowercase_string()
-    }
-
     pub fn to_ascii_lowercase_string(&self) -> String {
         let mut s = self.to_string();
         s.make_ascii_lowercase();
@@ -53,7 +42,7 @@ impl fmt::Display for HtmlDashedName {
 impl Peek<'_, Self> for HtmlDashedName {
     fn peek(cursor: Cursor) -> Option<(Self, Cursor)> {
         let (name, cursor) = cursor.ident()?;
-        if !non_capitalized_ascii(&name.to_string()) {
+        if !name.is_non_capitalized_ascii() {
             return None;
         }
 

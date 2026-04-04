@@ -15,6 +15,8 @@ mod signature;
 pub use body::BodyRewriter;
 use signature::HookSignature;
 
+use crate::DisplayExt;
+
 #[derive(Clone)]
 pub struct HookFn {
     inner: ItemFn,
@@ -42,7 +44,7 @@ impl Parse for HookFn {
             emit_error!(sig.unsafety, "unsafe functions can't be hooks");
         }
 
-        if !sig.ident.to_string().starts_with("use_") {
+        if !sig.ident.starts_with("use_") {
             emit_error!(sig.ident, "hooks must have a name starting with `use_`");
         }
 

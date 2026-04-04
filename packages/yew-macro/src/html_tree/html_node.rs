@@ -7,7 +7,7 @@ use syn::Lit;
 
 use super::ToNodeIterator;
 use crate::stringify::Stringify;
-use crate::PeekValue;
+use crate::{DisplayExt, PeekValue};
 
 pub enum HtmlNode {
     Literal(Box<Lit>),
@@ -44,10 +44,7 @@ impl PeekValue<()> for HtmlNode {
     fn peek(cursor: Cursor) -> Option<()> {
         cursor.literal().map(|_| ()).or_else(|| {
             let (ident, _) = cursor.ident()?;
-            match ident.to_string().as_str() {
-                "true" | "false" => Some(()),
-                _ => None,
-            }
+            (ident.eq_str("true") || ident.eq_str("false")).then_some(())
         })
     }
 }
