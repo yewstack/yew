@@ -9,4 +9,4 @@ license = "MIT OR Apache-2.0"
 yew = { path = "../../packages/yew", features = ["csr"] }
 chrono.workspace = true
 futures.workspace = true
-gloo-net = "0.6"
+gloo-net = "0.7"

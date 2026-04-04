@@ -567,9 +567,7 @@ mod tests {
         assert_count(&el, 0);
         el.get()
             .unwrap()
-            .dyn_into::<HtmlElement>()
-            .unwrap()
-            .focus()
+            .dispatch_event(&FocusEvent::new("focus").unwrap().into())
             .unwrap();
         scheduler::start_now();
         assert_count(&el, 1);

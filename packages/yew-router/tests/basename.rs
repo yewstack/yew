@@ -24,7 +24,7 @@ struct Query {
 enum Routes {
     #[at("/")]
     Home,
-    #[at("/no/:id")]
+    #[at("/no/{id}")]
     No { id: u32 },
     #[at("/404")]
     NotFound,

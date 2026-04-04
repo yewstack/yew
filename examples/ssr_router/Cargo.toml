@@ -16,7 +16,6 @@ yew = { path = "../../packages/yew" }
 yew-link = { path = "../../packages/yew-link" }
 yew-router = { path = "../../packages/yew-router" }
 function_router = { path = "../function_router" }
-log = "0.4"
 rand = { workspace = true }
 getrandom = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -26,7 +25,8 @@ hyper-util = "0.1.20"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
-wasm-logger.workspace = true
+tracing-web.workspace = true
+tracing-subscriber.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }

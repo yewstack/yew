@@ -17,6 +17,63 @@ title: '状态'
 | [use_mut_ref]    | `T`                        | -                                | 组件内部实例             |
 | 全局静态常量     | `T`                        | -                                | 全局，任何位置都可以使用 |
 
+## 访问句柄内部
+
+`UseStateHandle` 和 `UseReducerHandle` 都提供了直接访问其内部组成部分的方法。
+
+### `value_rc()`
+
+以 `Rc<T>` 的形式返回当前值。与对句柄解引用（返回绑定到句柄生命周期的 `&T`）不同，
+`value_rc()` 返回一个拥有所有权的 `Rc<T>`，可以移动到闭包中或独立存储���
+
+```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
+let counter = use_state(|| 0);
+let rc_value: Rc<i32> = counter.value_rc();
+# html! {}
+# }
+```
+
+### `into_inner()`
+
+消耗句柄并返回其两个组成部分：当前值（`Rc<T>`）和 setter/dispatcher。
+当你想要在不克隆整个句柄的情况下将读取与写入分离时，这非常有用。
+
+对于 `UseReducerHandle`，返回类型为 `(Rc<T>, UseReducerDispatcher<T>)`：
+
+```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[derive(Default, PartialEq)]
+# struct CounterState { counter: i32 }
+# impl Reducible for CounterState {
+#     type Action = ();
+#     fn reduce(self: Rc<Self>, _: ()) -> Rc<Self> { self }
+# }
+# #[component]
+# fn Comp() -> Html {
+let state = use_reducer(CounterState::default);
+let (value, dispatcher) = state.into_inner();
+# html! {}
+# }
+```
+
+对于 `UseStateHandle`，返回类型为 `(Rc<T>, UseStateSetter<T>)`���
+
+```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
+let state = use_state(|| 0);
+let (value, setter) = state.into_inner();
+# html! {}
+# }
+```
+
 [use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html
 [use_state_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html
 [use_reducer]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html

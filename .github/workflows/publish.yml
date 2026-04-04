@@ -47,26 +47,25 @@ jobs:
           version: =1.1.1
 
       - name: Cargo login
-        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+        run: echo ${{ secrets.CRATES_IO_TOKEN }} | cargo login
 
-      - name: Build command
+      - name: Release yew
         shell: bash
         env:
           PACKAGES: ${{ github.event.inputs.packages }}
+          LEVEL: ${{ github.event.inputs.level }}
         run: |
-          output=""
-          for pkg in ${{ github.event.inputs.packages }}
-          do
-            output+="--package $pkg " 
+          arguments=()
+          for pkg in $PACKAGES; do
+            arguments+=("--package" "$pkg")
           done
-          echo "pkg=$output" >> $GITHUB_ENV
-
-      - name: Release yew
-        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm ${{ env.pkg }}
+          cargo release "$LEVEL" --execute --no-confirm "${arguments[@]}"
 
       - name: Collect release info
         id: releaseinfo
-        run: cargo run -p collect-release-info -- ${{ github.event.inputs.packages }}
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
+        run: cargo run -p collect-release-info -- $PACKAGES
 
       - name: Create a version branch
         if: github.event.inputs.level != 'patch'

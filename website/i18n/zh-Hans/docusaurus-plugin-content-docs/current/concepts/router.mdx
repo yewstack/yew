@@ -104,9 +104,9 @@ use yew_router::prelude::*;
 enum Route {
     #[at("/")]
     Home,
-    #[at("/post/:id")]
+    #[at("/post/{id}")]
     Post { id: String },
-    #[at("/*path")]
+    #[at("/{*path}")]
     Misc { path: String },
 }
 
@@ -132,7 +132,7 @@ fn switch(route: Route) -> Html {
 ```rust ,ignore
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
-    #[at("/news/:id")]
+    #[at("/news/{id}")]
     News { id: u8 },
     #[not_found]
     #[at("/404")]
@@ -145,7 +145,30 @@ enum Route {
 
 ![router deserialization failure behavior](/img/router-deserialization-failure-behavior.gif)
 
-有关路由语法和如何绑定参数的更多信息，请查看 [route-recognizer](https://docs.rs/route-recognizer/0.3.1/route_recognizer/#routing-params)。
+有关路由语法和如何绑定参数的更多信息，请查看 [matchit](https://docs.rs/matchit/0.9/matchit/)。
+
+### 尾部斜杠
+
+路由区分尾部斜杠。`/about` 和 `/about/` 是不同的路由，不会互相匹配。这很重要，因为浏览器根据尾部斜杠的有无以不同的方式解析相对路径：
+
+| 地址栏中的 URL | 相对引用 `./image.jpg` 解析为 |
+| -------------- | ----------------------------- |
+| `/about`       | `/image.jpg`                  |
+| `/about/`      | `/about/image.jpg`            |
+
+如果您的组件使用相对资源路径，请确保路由定义和指向它的链接在尾部斜杠上保持一致。
+
+如果您需要两种 URL 都能工作，可以将两种形式定义为不同的枚举变体：
+
+```rust ,ignore
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/about")]
+    About,
+    #[at("/about/")]
+    AboutSlash,
+}
+```
 
 ### 位置 (Location)
 
@@ -370,7 +393,7 @@ import ThemedImage from '@theme/ThemedImage'
     }}
 />
 
-嵌套的 `SettingsRouter` 处理所有以 `/settings` 开头的 URL。此外，它会将未匹配的 URL 重定向到主 `NotFound` 路由。因此，`/settings/gibberish` 将重定向到 `/404`。
+嵌套的 `SettingsRouter` 处理所有以 `/settings` 开头的 URL。外层路由器为 `/settings/` 定义了一个单独的 `SettingsSlash` 变体，并将其重定向到 `SettingsRoot`，因为内层 `SettingsRoute` 没有定义仅含尾部斜杠的路由（参见[尾部斜杠](#尾部斜杠)）。无法识别的子路径（如 `/settings/gibberish`）会重定向到主 `NotFound` 路由 `/404`。
 
 :::caution
 
@@ -396,8 +419,10 @@ enum MainRoute {
     Contact,
     #[at("/settings")]
     SettingsRoot,
-    #[at("/settings/*")]
-    Settings,
+    #[at("/settings/")]
+    SettingsSlash,
+    #[at("/settings/{*_rest}")]
+    Settings { _rest: String },
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -421,7 +446,8 @@ fn switch_main(route: MainRoute) -> Html {
         MainRoute::Home => html! {<h1>{"Home"}</h1>},
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
-        MainRoute::SettingsRoot | MainRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsRoot | MainRoute::Settings { .. } => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsSlash => html! { <Redirect<MainRoute> to={MainRoute::SettingsRoot}/> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }

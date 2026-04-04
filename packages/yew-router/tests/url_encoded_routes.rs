@@ -16,7 +16,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 enum AppRoute {
     #[at("/")]
     Root,
-    #[at("/search/:query")]
+    #[at("/search/{query}")]
     Search { query: String },
 }
 
