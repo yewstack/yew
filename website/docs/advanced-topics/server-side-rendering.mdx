@@ -148,7 +148,7 @@ The `yew-link` crate provides a higher-level abstraction that unifies all three 
 3. **Wrap** your app in `<LinkProvider>`.
 4. **Call** `use_linked_state::<MyData>(input)` in any component.
 
-```rust, ignore
+```rust ,ignore
 use yew_link::{linked_state, LinkedState};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -171,7 +171,7 @@ The macro generates the `LinkedState` and (server-only) `LinkedStateResolve` tra
 
 If `resolve` can fail, declare `type Error`:
 
-```rust, ignore
+```rust ,ignore
 #[linked_state]
 impl LinkedState for Post {
     type Context = DbPool;
@@ -199,7 +199,7 @@ Multiple components requesting the same `(T, Input)` concurrently share a single
 
 #### Server setup
 
-```rust, ignore
+```rust ,ignore
 use yew_link::Resolver;
 use axum::linked_state_handler;
 
@@ -218,7 +218,7 @@ but you can use actix in a similar way.
 
 #### Component usage
 
-```rust, ignore
+```rust ,ignore
 use yew_link::{use_linked_state, LinkProvider};
 
 #[component]
@@ -299,7 +299,7 @@ until `rendered()` method is called.
 
 ## Example
 
-```rust, ignore
+```rust ,ignore
 use yew::prelude::*;
 use yew::Renderer;
 
