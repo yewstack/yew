@@ -50,6 +50,12 @@ fn router_trailing_slash() {
         }),
         AppRoute::recognize("/category/cooking-recipes/")
     );
+
+    // Without trailing slash does NOT match a route defined with trailing slash
+    assert_eq!(
+        Some(AppRoute::NotFound),
+        AppRoute::recognize("/category/cooking-recipes")
+    );
 }
 
 #[test]
@@ -71,7 +77,7 @@ fn router_url_encoding() {
         Some(AppRoute::Search {
             query: "a/b".to_string()
         }),
-        AppRoute::recognize("/search/a%2Fb/")
+        AppRoute::recognize("/search/a%2Fb")
     );
 }
 
@@ -154,9 +160,9 @@ fn router_nested() {
         MainRoute::recognize("/settings")
     );
 
-    // Trailing slash also matches root via strip_slash_suffix
+    // Trailing slash is now distinct from no trailing slash
     assert_eq!(
-        Some(MainRoute::SettingsRoot),
+        Some(MainRoute::NotFound),
         MainRoute::recognize("/settings/")
     );
 
@@ -207,4 +213,44 @@ fn router_nested() {
         Some(MainRoute::NotFound),
         MainRoute::recognize("/other/path")
     );
+}
+
+#[test]
+fn router_trailing_slash_distinct_routes() {
+    #[derive(Routable, Debug, Clone, PartialEq)]
+    enum AppRoute {
+        #[at("/")]
+        Home,
+        #[at("/about")]
+        AboutNoSlash,
+        #[at("/about/")]
+        AboutWithSlash,
+        #[at("/404")]
+        #[not_found]
+        NotFound,
+    }
+
+    // Each form matches only its own variant
+    assert_eq!(Some(AppRoute::AboutNoSlash), AppRoute::recognize("/about"));
+    assert_eq!(
+        Some(AppRoute::AboutWithSlash),
+        AppRoute::recognize("/about/")
+    );
+
+    // to_path preserves trailing slash from the route definition
+    assert_eq!("/about", AppRoute::AboutNoSlash.to_path());
+    assert_eq!("/about/", AppRoute::AboutWithSlash.to_path());
+}
+
+#[test]
+fn router_root_not_affected() {
+    #[derive(Routable, Debug, Clone, PartialEq)]
+    enum AppRoute {
+        #[at("/")]
+        Home,
+        #[at("/other")]
+        Other,
+    }
+
+    assert_eq!(Some(AppRoute::Home), AppRoute::recognize("/"));
 }
