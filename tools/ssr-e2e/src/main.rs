@@ -145,6 +145,7 @@ async fn main() -> ExitCode {
     let test_result = Command::new("cargo")
         .args(&cargo_args)
         .env("WASM_BINDGEN_TEST_NO_ORIGIN_ISOLATION", "1")
+        .env("WASM_BINDGEN_TEST_NO_STREAM", "1")
         .status()
         .await;
 
