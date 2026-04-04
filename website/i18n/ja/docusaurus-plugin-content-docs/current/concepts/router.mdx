@@ -393,7 +393,7 @@ import ThemedImage from '@theme/ThemedImage'
     }}
 />
 
-ネストされた `SettingsRouter` は、すべての `/settings` で始まる URL を処理します。また、一致しない URL をメインの `NotFound` ルートにリダイレクトします。したがって、`/settings/gibberish` は `/404` にリダイレクトされます。
+ネストされた `SettingsRouter` は、すべての `/settings` で始まる URL を処理します。外側のルーターでは `/settings/` 用に別の `SettingsSlash` バリアントを定義し、`SettingsRoot` にリダイレクトします。これは、内側の `SettingsRoute` が末尾スラッシュのみのルートを定義していないためです（[末尾のスラッシュ](#末尾のスラッシュ) を参照）。`/settings/gibberish` のような認識されないサブパスは、メインの `NotFound` ルート `/404` にリダイレクトされます。
 
 :::caution
 
@@ -419,6 +419,8 @@ enum MainRoute {
     Contact,
     #[at("/settings")]
     SettingsRoot,
+    #[at("/settings/")]
+    SettingsSlash,
     #[at("/settings/{*_rest}")]
     Settings { _rest: String },
     #[not_found]
@@ -445,6 +447,7 @@ fn switch_main(route: MainRoute) -> Html {
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
         MainRoute::SettingsRoot | MainRoute::Settings { .. } => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsSlash => html! { <Redirect<MainRoute> to={MainRoute::SettingsRoot}/> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }

@@ -422,8 +422,11 @@ import ThemedImage from '@theme/ThemedImage'
     }}
 />
 
-The nested `SettingsRouter` handles all URLs that start with `/settings`. Additionally, it redirects URLs that are not
-matched to the main `NotFound` route. So `/settings/gibberish` will redirect to `/404`.
+The nested `SettingsRouter` handles all URLs that start with `/settings`. The outer router
+defines a separate `SettingsSlash` variant for `/settings/` and redirects it to `SettingsRoot`,
+because the inner `SettingsRoute` only defines routes without a bare trailing slash
+(see [Trailing Slashes](#trailing-slashes)). Unrecognized sub-paths like `/settings/gibberish`
+are redirected to the main `NotFound` route at `/404`.
 
 :::caution
 
@@ -449,6 +452,8 @@ enum MainRoute {
     Contact,
     #[at("/settings")]
     SettingsRoot,
+    #[at("/settings/")]
+    SettingsSlash,
     #[at("/settings/{*_rest}")]
     Settings { _rest: String },
     #[not_found]
@@ -475,6 +480,7 @@ fn switch_main(route: MainRoute) -> Html {
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
         MainRoute::SettingsRoot | MainRoute::Settings { .. } => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsSlash => html! { <Redirect<MainRoute> to={MainRoute::SettingsRoot}/> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }

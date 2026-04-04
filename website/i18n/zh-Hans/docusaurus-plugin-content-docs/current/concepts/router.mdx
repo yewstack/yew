@@ -393,7 +393,7 @@ import ThemedImage from '@theme/ThemedImage'
     }}
 />
 
-嵌套的 `SettingsRouter` 处理所有以 `/settings` 开头的 URL。此外，它会将未匹配的 URL 重定向到主 `NotFound` 路由。因此，`/settings/gibberish` 将重定向到 `/404`。
+嵌套的 `SettingsRouter` 处理所有以 `/settings` 开头的 URL。外层路由器为 `/settings/` 定义了一个单独的 `SettingsSlash` 变体，并将其重定向到 `SettingsRoot`，因为内层 `SettingsRoute` 没有定义仅含尾部斜杠的路由（参见[尾部斜杠](#尾部斜杠)）。无法识别的子路径（如 `/settings/gibberish`）会重定向到主 `NotFound` 路由 `/404`。
 
 :::caution
 
@@ -419,6 +419,8 @@ enum MainRoute {
     Contact,
     #[at("/settings")]
     SettingsRoot,
+    #[at("/settings/")]
+    SettingsSlash,
     #[at("/settings/{*_rest}")]
     Settings { _rest: String },
     #[not_found]
@@ -445,6 +447,7 @@ fn switch_main(route: MainRoute) -> Html {
         MainRoute::News => html! {<h1>{"News"}</h1>},
         MainRoute::Contact => html! {<h1>{"Contact"}</h1>},
         MainRoute::SettingsRoot | MainRoute::Settings { .. } => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        MainRoute::SettingsSlash => html! { <Redirect<MainRoute> to={MainRoute::SettingsRoot}/> },
         MainRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }
