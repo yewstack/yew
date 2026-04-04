@@ -8,3 +8,4 @@ dist/
 *.iml
 /.idea/
 /.vscode/
+.nvim.lua

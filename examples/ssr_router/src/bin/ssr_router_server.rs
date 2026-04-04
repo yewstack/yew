@@ -25,7 +25,8 @@ use tower::Service;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
-use yew_link::{linked_state_handler, Resolver, ResolverProp};
+use yew_link::axum::linked_state_handler;
+use yew_link::{Resolver, ResolverProp};
 use yew_router::prelude::Routable;
 
 // We use jemalloc as it produces better performance.

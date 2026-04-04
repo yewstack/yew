@@ -199,8 +199,8 @@ Multiple components requesting the same `(T, Input)` concurrently share a single
 
 #### Server setup
 
-```rust ,ignore
-use yew_link::{Resolver, linked_state_handler};
+```rust, ignore
+use yew_link::{Resolver, axum::linked_state_handler};
 
 let resolver = Arc::new(
     Resolver::new()
@@ -212,9 +212,12 @@ let app = axum::Router::new()
     .with_state(resolver);
 ```
 
+There is multiple service providers, this example shows how to use `axum`,
+but you can use actix in a similar way.
+
 #### Component usage
 
-```rust ,ignore
+```rust, ignore
 use yew_link::{use_linked_state, LinkProvider};
 
 #[component]
