@@ -32,7 +32,7 @@ tower = { version = "0.5", features = ["make"] }
 tower-http = { version = "0.6", features = ["fs", "cors"] }
 env_logger = "0.11"
 clap = { workspace = true }
-hyper = { version = "1.4", features = ["server", "http1"] }
+hyper = { version = "1.9", features = ["server", "http1"] }
 
 [target.'cfg(unix)'.dependencies]
 jemallocator = "0.5"
