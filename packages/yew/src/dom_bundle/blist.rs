@@ -283,7 +283,7 @@ impl BList {
         let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
 
         // BNode contains js objects that look suspicious to clippy but are harmless
-        #[allow(clippy::mutable_key_type)]
+        #[expect(clippy::mutable_key_type)]
         let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
         let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
         for (idx, r) in (&mut spliced_middle).enumerate() {

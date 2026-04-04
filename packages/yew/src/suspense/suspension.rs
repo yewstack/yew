@@ -11,7 +11,7 @@ use crate::platform::spawn_local;
 use crate::Callback;
 
 thread_local! {
-    static SUSPENSION_ID: RefCell<usize> = RefCell::default();
+    static SUSPENSION_ID: RefCell<usize> = const { RefCell::new(0) };
 }
 
 /// A Suspension.

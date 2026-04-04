@@ -194,7 +194,7 @@ where
 
     /// Children list is empty
     pub fn is_empty(&self) -> bool {
-        self.children.as_ref().map(|x| x.is_empty()).unwrap_or(true)
+        self.children.as_ref().is_none_or(|x| x.is_empty())
     }
 
     /// Number of children elements
@@ -243,7 +243,8 @@ impl<T> Default for ChildrenRenderer<T> {
 
 impl<T> fmt::Debug for ChildrenRenderer<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ChildrenRenderer<_>")
+        f.debug_struct("ChildrenRenderer<_>")
+            .finish_non_exhaustive()
     }
 }
 

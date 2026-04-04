@@ -173,9 +173,6 @@ impl Attributes {
             AttributeOrProperty::Attribute(value) => el
                 .set_attribute(intern(key), value)
                 .expect("invalid attribute key"),
-            AttributeOrProperty::Static(value) => el
-                .set_attribute(intern(key), value)
-                .expect("invalid attribute key"),
             AttributeOrProperty::Property(value) => {
                 let key = JsValue::from_str(key);
                 js_sys::Reflect::set(el.as_ref(), &key, value).expect("could not set property");
@@ -185,7 +182,7 @@ impl Attributes {
 
     fn remove(el: &Element, key: &str, old_value: &AttributeOrProperty) {
         match old_value {
-            AttributeOrProperty::Attribute(_) | AttributeOrProperty::Static(_) => el
+            AttributeOrProperty::Attribute(_) => el
                 .remove_attribute(intern(key))
                 .expect("could not remove attribute"),
             AttributeOrProperty::Property(_) => {
@@ -364,7 +361,10 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[("class", AttributeOrProperty::Static("thing"))]);
+        let attrs = Attributes::Static(&[(
+            "class",
+            AttributeOrProperty::Attribute(AttrValue::Static("thing")),
+        )]);
 
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);

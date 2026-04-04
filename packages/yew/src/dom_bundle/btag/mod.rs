@@ -380,8 +380,9 @@ mod feat_hydration {
 
                 // In HTML namespace (or no namespace), createElement is case-insensitive
                 // In other namespaces (SVG, MathML), createElementNS is case-sensitive
-                let should_compare_case_insensitive = parent_namespace.is_none()
-                    || parent_namespace.as_deref() == Some(HTML_NAMESPACE);
+                let should_compare_case_insensitive = parent_namespace
+                    .as_deref()
+                    .is_none_or(|ns| ns == HTML_NAMESPACE);
 
                 if should_compare_case_insensitive {
                     // Case-insensitive comparison for HTML elements

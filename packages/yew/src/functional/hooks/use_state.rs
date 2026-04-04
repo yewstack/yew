@@ -112,7 +112,7 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseStateHandle")
             .field("value", &format!("{:?}", **self))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -196,7 +196,7 @@ where
     T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseStateSetter").finish()
+        f.debug_struct("UseStateSetter").finish_non_exhaustive()
     }
 }
 

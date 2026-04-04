@@ -176,16 +176,9 @@ mod feat_ssr {
 }
 
 /// Defines if the [`Attributes`] is set as element's attribute or property and its value.
-#[allow(missing_docs)]
+#[expect(missing_docs)]
 #[derive(PartialEq, Clone, Debug)]
 pub enum AttributeOrProperty {
-    // This exists as a workaround to support Rust <1.72
-    // Previous versions of Rust did not See
-    // `AttributeOrProperty::Attribute(AttrValue::Static(_))` as `'static` that html! macro
-    // used, and thus failed with "temporary value dropped while borrowed"
-    //
-    // See: https://github.com/yewstack/yew/pull/3458#discussion_r1350362215
-    Static(&'static str),
     Attribute(AttrValue),
     Property(JsValue),
 }
@@ -233,7 +226,6 @@ impl Attributes {
             Self::Static(arr) => Box::new(arr.iter().filter_map(|(k, v)| match v {
                 AttributeOrProperty::Attribute(v) => Some((*k, v.as_ref())),
                 AttributeOrProperty::Property(_) => None,
-                AttributeOrProperty::Static(v) => Some((*k, v)),
             })),
             Self::Dynamic { keys, values } => {
                 Box::new(keys.iter().zip(values.iter()).filter_map(|(k, v)| match v {

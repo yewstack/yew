@@ -27,7 +27,6 @@ fn is_option_type(ty: &Type) -> bool {
     false
 }
 
-#[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
 pub enum PropAttr {
     Required { wrapped_name: Ident },

@@ -108,13 +108,8 @@ impl DomSlot {
     /// the end
     fn with_next_sibling_check_trap<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         let checkedf = |node: Option<&Node>| {
-            // MSRV 1.82 could rewrite this with `is_none_or`
-            let is_trapped = match node {
-                None => false,
-                Some(node) => trap_impl::is_trap(node),
-            };
             assert!(
-                !is_trapped,
+                node.is_none_or(|node| !trap_impl::is_trap(node)),
                 "Should not use a trapped DomSlot. Please report this as an internal bug in yew."
             );
             f(node)

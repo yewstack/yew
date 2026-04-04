@@ -28,7 +28,7 @@ pub struct AnyScope {
 
 impl fmt::Debug for AnyScope {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("AnyScope<_>")
+        f.debug_struct("AnyScope").finish_non_exhaustive()
     }
 }
 
@@ -106,7 +106,7 @@ pub struct Scope<COMP: BaseComponent> {
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("Scope<_>")
+        f.debug_struct("Scope<_>").finish_non_exhaustive()
     }
 }
 
@@ -228,8 +228,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// If the future panics, then the promise will not resolve, and will leak.
     pub fn send_future_batch<Fut>(&self, future: Fut)
     where
-        Fut: Future + 'static,
-        Fut::Output: SendAsMessage<COMP>,
+        Fut: Future<Output: SendAsMessage<COMP>> + 'static,
     {
         let link = self.clone();
         let js_future = async move {
