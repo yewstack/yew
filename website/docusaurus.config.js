@@ -13,6 +13,23 @@ module.exports = {
     favicon: 'img/logo.svg',
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
+    headTags: [
+        {
+            tagName: 'link',
+            attributes: {
+                rel: 'icon',
+                href: '/favicon.ico',
+                sizes: 'any',
+            },
+        },
+        {
+            tagName: 'link',
+            attributes: {
+                rel: 'apple-touch-icon',
+                href: '/apple-touch-icon.png',
+            },
+        },
+    ],
     themeConfig: {
         colorMode: {
             respectPrefersColorScheme: true,

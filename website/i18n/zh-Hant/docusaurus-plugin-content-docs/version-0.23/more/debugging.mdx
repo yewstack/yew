@@ -10,19 +10,26 @@ Yew 會自動在瀏覽器控制台中輸出意外終止日誌。
 
 在 JavaScript 中，`console.log()` 用於輸出到瀏覽器控制台。以下是一些 Yew 的選項。
 
-### [`wasm-logger`](https://crates.io/crates/wasm-logger)
+### [`tracing-web`](https://crates.io/crates/tracing-web) (recommended)
 
-`wasm-logger` crate 與 [`log`](https://crates.io/crates/log) crate 集成，以將日誌等級、來源行和檔案名稱傳送到瀏覽器控制台。
+`tracing-web` 可以與 [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber) 一起使用，將訊息輸出到瀏覽器控制台。
 
 ```rust ,ignore
-use log::info;
+use tracing_subscriber::prelude::*;
 use wasm_bindgen::JsValue;
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
+    let fmt_layer = tracing_subscriber::fmt::layer()
+        .with_ansi(false) // only partially supported across browsers
+        .without_time()   // browsers can show timestamps natively in the dev console
+        .with_writer(tracing_web::MakeWebConsoleWriter::new());
+
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .init();
 
     let object = JsValue::from("world");
-    info!("Hello {}", object.as_string().unwrap());
+    tracing::info!("Hello {}", object.as_string().unwrap());
 }
 ```
 
@@ -40,40 +47,25 @@ fn main() {
 }
 ```
 
-### [`tracing-web`](https://crates.io/crates/tracing-web)
+### [`wasm-logger`](https://crates.io/crates/wasm-logger) (unmaintained)
 
-`tracing-web` 可以與 [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber) 一起使用，將訊息輸出到瀏覽器控制台。
+`wasm-logger` crate 與 [`log`](https://crates.io/crates/log) crate 集成，以將日誌等級、來源行和檔案名稱傳送到瀏覽器控制台。
 
 ```rust ,ignore
-use tracing_subscriber::{
-    fmt::{
-        format::{FmtSpan, Pretty},
-        time::UtcTime,
-    },
-    prelude::*,
-};
+use log::info;
 use wasm_bindgen::JsValue;
 
 fn main() {
-    let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_ansi(false)
-        .with_timer(UtcTime::rfc_3339())
-        .with_writer(tracing_web::MakeConsoleWriter)
-        .with_span_events(FmtSpan::ACTIVE);
-    let perf_layer = tracing_web::performance_layer().with_details_from_fields(Pretty::default());
+    wasm_logger::init(wasm_logger::Config::default());
 
-    tracing_subscriber::registry()
-        .with(fmt_layer)
-        .with(perf_layer)
-        .init();
     let object = JsValue::from("world");
-    tracing::info!("Hello {}", object.as_string().unwrap());
+    info!("Hello {}", object.as_string().unwrap());
 }
 ```
 
 ## 偵錯元件生命週期
 
-[`tracing`](https://crates.io/crates/tracing) 可用於收集與組件生命週期相關的事件資訊。 `tracing` 還附帶一個 `log` 支援的特性標誌，可以與 `wasm-logger` 很好地整合。
+[`tracing`](https://crates.io/crates/tracing) 可用於收集與組件生命週期相關的事件資訊。 `tracing` 還附帶一個 `log` 支援的特性標誌，可以與 `tracing-web` 很好地整合。
 
 [編譯時過濾器](https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters) 可以用於調整詳細程度或停用日誌記錄，這應該會導致更小的Wasm 檔案。
 

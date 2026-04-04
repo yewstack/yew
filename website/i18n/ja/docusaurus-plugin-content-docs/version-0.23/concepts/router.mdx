@@ -372,12 +372,6 @@ import ThemedImage from '@theme/ThemedImage'
 
 ネストされた `SettingsRouter` は、すべての `/settings` で始まる URL を処理します。また、一致しない URL をメインの `NotFound` ルートにリダイレクトします。したがって、`/settings/gibberish` は `/404` にリダイレクトされます。
 
-:::caution
-
-このインターフェースはまだ開発中であり、このように記述する方法は最終決定されていません。
-
-:::
-
 以下のコードで実装できます：
 
 ```rust
@@ -444,6 +438,12 @@ pub fn app() -> Html {
     }
 }
 ```
+
+:::caution
+
+より使いやすいネストされたルーターのサポートをご希望の場合は、[ファーストクラスのネストルーティング RFC](https://github.com/yewstack/yew/discussions/4111) にコメントしてください。
+
+:::
 
 ### ベースパス (Basename)
 
