@@ -302,6 +302,33 @@ fn Greetings(
 // `is_loading` は値としてコンポーネントに渡され、`message` と `name` は定義に先行する `&` があるため参照として渡されます。
 ```
 
+独立したプロパティ構造体と比較して、`yew-autoprops` には未使用のプロパティを検出できるという追加の利点があります。
+
+```rust
+use yew::prelude::*;
+use yew_autoprops::autoprops;
+
+#[autoprops]
+#[component]
+// highlight-next-line
+pub fn Foo(bar0: AttrValue, bar1: AttrValue) -> Html {
+    // `bar1` は未使用変数に関するコンパイラ警告になります
+    html! {<div>{bar0}</div>}
+}
+
+#[derive(PartialEq, Properties, Clone)]
+pub struct BarProps {
+    bar0: AttrValue,
+    // このプロパティは未使用ですが、コンパイラはそれを検出できません
+    bar1: AttrValue,
+}
+
+#[component]
+pub fn Bar(props: &BarProps) -> Html {
+    html! {<div>{&props.bar0}</div>}
+}
+```
+
 ## 評価順序
 
 属性は指定された順序で評価されます。以下の例を参照してください：
@@ -333,7 +360,3 @@ fn main() {
    **なぜ悪いのか？** `Vec<T>` も `String` と同様にクローンのコストが高いです。`IArray<T>` は参照カウントされたスライス (`Rc<[T]>`) または `&'static [T]` であり、非常に安価にクローンできます。<br />
    **注意**：`IArray` は [implicit-clone](https://crates.io/crates/implicit-clone) からインポートできます。詳細はそのパッケージを参照してください。
 4. 新しい発見があるかもしれません。早く知っておきたかったエッジケースに遭遇しましたか？問題を作成するか、このドキュメントに修正のPRを提供してください。
-
-## yew-autoprops
-
-[yew-autoprops](https://crates.io/crates/yew-autoprops) は実験的なパッケージで、関数の引数に基づいて動的にProps構造体を作成することを可能にします。プロパティ構造体が再利用されない場合、これは有用かもしれません。
