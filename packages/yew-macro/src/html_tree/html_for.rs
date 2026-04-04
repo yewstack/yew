@@ -43,7 +43,7 @@ impl Parse for HtmlFor {
         braced!(body_stream in input);
 
         let body = HtmlChildrenTree::parse_delimited(&body_stream)?;
-        // TODO: more concise code by using if-let guards once MSRV is raised
+        // TODO: more concise code by using if-let guards (MSRV 1.95)
         for child in body.0.iter() {
             let HtmlTree::Element(element) = child else {
                 continue;
