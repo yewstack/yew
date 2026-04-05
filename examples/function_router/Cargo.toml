@@ -20,6 +20,7 @@ instant = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { workspace = true }
+getrandom_03 = { workspace = true }
 
 [[bin]]
 name = "function_router"

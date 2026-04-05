@@ -11,6 +11,7 @@ instant = { workspace = true }
 lipsum = { version = "0.9.1", git = "https://github.com/mgeisler/lipsum.git", rev = "233e48a" }
 log.workspace = true
 getrandom = { workspace = true }
+getrandom_03 = { workspace = true }
 rand.workspace = true
 rand_09 = { package = "rand", version = "0.9", features = ["small_rng"] }
 wasm-logger.workspace = true

@@ -1025,6 +1025,7 @@ dependencies = [
 name = "function_router"
 version = "0.1.0"
 dependencies = [
+ "getrandom 0.3.4",
  "getrandom 0.4.2",
  "gloo",
  "image",
@@ -2939,6 +2940,7 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "function_router",
+ "getrandom 0.3.4",
  "getrandom 0.4.2",
  "gloo",
  "instant",
