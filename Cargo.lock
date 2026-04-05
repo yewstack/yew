@@ -309,7 +309,7 @@ name = "boids"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "gloo",
  "rand 0.10.0",
  "serde",
@@ -1010,7 +1010,7 @@ dependencies = [
 name = "function_memory_game"
 version = "0.1.0"
 dependencies = [
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "gloo",
  "nanoid",
  "rand 0.10.0",
@@ -1025,7 +1025,7 @@ dependencies = [
 name = "function_router"
 version = "0.1.0"
 dependencies = [
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "gloo",
  "image",
  "instant",
@@ -1143,7 +1143,7 @@ dependencies = [
 name = "game_of_life"
 version = "0.1.4"
 dependencies = [
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "gloo",
  "log",
  "rand 0.10.0",
@@ -1195,11 +1195,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de51e6874e94e7bf76d726fc5d13ba782deca734ff60d5bb2fb2607c7406555"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "r-efi 6.0.0",
  "rand_core 0.10.0",
  "wasip2",
  "wasip3",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -2078,7 +2080,7 @@ dependencies = [
 name = "js-framework-benchmark-yew"
 version = "1.0.0"
 dependencies = [
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "rand 0.10.0",
  "wasm-bindgen",
  "web-sys",
@@ -2089,7 +2091,7 @@ dependencies = [
 name = "js-framework-benchmark-yew-hooks"
 version = "1.0.0"
 dependencies = [
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "rand 0.10.0",
  "wasm-bindgen",
  "web-sys",
@@ -2123,7 +2125,7 @@ name = "keyed_list"
 version = "0.1.0"
 dependencies = [
  "fake",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "instant",
  "log",
  "rand 0.10.0",
@@ -2937,7 +2939,7 @@ name = "router"
 version = "0.1.0"
 dependencies = [
  "function_router",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "gloo",
  "instant",
  "lipsum",
