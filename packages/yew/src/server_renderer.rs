@@ -1,5 +1,4 @@
 use std::fmt;
-use std::future::Future;
 
 use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};
@@ -61,8 +60,7 @@ where
 
 impl<COMP> Default for LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     fn default() -> Self {
         Self::with_props(COMP::Properties::default())
@@ -71,8 +69,7 @@ where
 
 impl<COMP> LocalServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     /// Creates a [LocalServerRenderer] with default properties.
     pub fn new() -> Self {
@@ -145,7 +142,6 @@ where
     // These implementations should be merged once https://github.com/tokio-rs/tracing/issues/2503 is resolved.
 
     /// Renders Yew Application into a string Stream
-    #[allow(clippy::let_with_type_underscore)]
     #[tracing::instrument(
         level = tracing::Level::DEBUG,
         name = "render_stream",
@@ -179,14 +175,13 @@ where
     COMP: BaseComponent,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("ServerRenderer<_>")
+        f.debug_struct("ServerRenderer<_>").finish_non_exhaustive()
     }
 }
 
 impl<COMP> Default for ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     fn default() -> Self {
         Self::with_props(Default::default)
@@ -195,8 +190,7 @@ where
 
 impl<COMP> ServerRenderer<COMP>
 where
-    COMP: BaseComponent,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default>,
 {
     /// Creates a [ServerRenderer] with default properties.
     pub fn new() -> Self {

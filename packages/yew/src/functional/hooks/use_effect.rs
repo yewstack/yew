@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use crate::functional::{hook, Effect, Hook, HookContext};
+use crate::functional::{Effect, Hook, HookContext, hook};
 
 /// Trait describing the destructor of [`use_effect`] hook.
 pub trait TearDown: Sized + 'static {
@@ -186,7 +186,7 @@ where
 /// # Example
 ///
 /// ```rust
-/// use yew::{component, html, use_effect_with, Html, Properties};
+/// use yew::{Html, Properties, component, html, use_effect_with};
 /// # use gloo::console::log;
 ///
 /// #[derive(Properties, PartialEq)]
@@ -216,7 +216,7 @@ where
 /// render of a component.
 ///
 /// ```rust
-/// use yew::{component, html, use_effect_with, Html};
+/// use yew::{Html, component, html, use_effect_with};
 /// # use gloo::console::log;
 ///
 /// #[component]
@@ -235,7 +235,7 @@ where
 /// It will only get called when the component is removed from view / gets destroyed.
 ///
 /// ```rust
-/// use yew::{component, html, use_effect_with, Html};
+/// use yew::{Html, component, html, use_effect_with};
 /// # use gloo::console::log;
 ///
 /// #[component]

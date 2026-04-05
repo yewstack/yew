@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::future::Future;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -7,11 +6,11 @@ use std::task::{Context, Poll};
 
 use thiserror::Error;
 
-use crate::platform::spawn_local;
 use crate::Callback;
+use crate::platform::spawn_local;
 
 thread_local! {
-    static SUSPENSION_ID: RefCell<usize> = RefCell::default();
+    static SUSPENSION_ID: RefCell<usize> = const { RefCell::new(0) };
 }
 
 /// A Suspension.

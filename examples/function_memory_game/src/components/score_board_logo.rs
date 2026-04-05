@@ -1,4 +1,4 @@
-use yew::{function_component, html, Html};
+use yew::{Html, function_component, html};
 
 #[function_component]
 pub fn Logo() -> Html {

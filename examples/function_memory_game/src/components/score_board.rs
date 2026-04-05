@@ -1,4 +1,4 @@
-use yew::{function_component, html, Html, Properties};
+use yew::{Html, Properties, function_component, html};
 
 use crate::components::score_board_best_score::BestScore;
 use crate::components::score_board_logo::Logo;

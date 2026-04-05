@@ -6,9 +6,9 @@ use std::rc::Rc;
 
 use implicit_clone::ImplicitClone;
 
-use crate::functional::{hook, Hook, HookContext};
-use crate::html::IntoPropValue;
 use crate::Callback;
+use crate::functional::{Hook, HookContext, hook};
+use crate::html::IntoPropValue;
 
 type DispatchFn<T> = Rc<dyn Fn(<T as Reducible>::Action)>;
 
@@ -48,6 +48,14 @@ impl<T> UseReducerHandle<T>
 where
     T: Reducible,
 {
+    /// Returns the current value of the handle as an `Rc`.
+    ///
+    /// Unlike [`Deref`], this gives you an owned `Rc<T>` that can be moved
+    /// into closures or stored without borrowing the handle.
+    pub fn value_rc(&self) -> Rc<T> {
+        self.current_state.borrow().clone()
+    }
+
     /// Dispatch the given action to the reducer.
     pub fn dispatch(&self, value: T::Action) {
         (self.dispatch)(value)
@@ -58,6 +66,17 @@ where
         UseReducerDispatcher {
             dispatch: self.dispatch.clone(),
         }
+    }
+
+    /// Destructures the handle into its two parts: the current value as an
+    /// `Rc<T>`, and the dispatcher for applying actions.
+    pub fn into_inner(self) -> (Rc<T>, UseReducerDispatcher<T>) {
+        (
+            self.current_state.borrow().clone(),
+            UseReducerDispatcher {
+                dispatch: self.dispatch,
+            },
+        )
     }
 }
 
@@ -125,18 +144,21 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = if let Ok(rc_ref) = self.current_state.try_borrow() {
-            format!("{:?}", *rc_ref)
-        } else {
-            let history = self.deref_history.borrow();
-            format!(
-                "{:?}",
-                **history.last().expect("deref_history is never empty")
-            )
+        let value = match self.current_state.try_borrow() {
+            Ok(rc_ref) => {
+                format!("{:?}", *rc_ref)
+            }
+            _ => {
+                let history = self.deref_history.borrow();
+                format!(
+                    "{:?}",
+                    **history.last().expect("deref_history is never empty")
+                )
+            }
         };
         f.debug_struct("UseReducerHandle")
             .field("value", &value)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -177,7 +199,8 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseReducerDispatcher").finish()
+        f.debug_struct("UseReducerDispatcher")
+            .finish_non_exhaustive()
     }
 }
 
@@ -189,7 +212,6 @@ where
         // We are okay with comparisons from different compilation units to result in false
         // not-equal results. This should only lead in the worst-case to some unneeded
         // re-renders.
-        #[allow(ambiguous_wide_pointer_comparisons)]
         Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
     }
 }

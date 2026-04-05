@@ -7,7 +7,7 @@ use std::ops::Deref;
 
 use web_sys::Element;
 
-use super::{test_log, BNode, BSubtree, DomSlot};
+use super::{BNode, BSubtree, DomSlot, test_log};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::utils::RcExt;
@@ -306,7 +306,7 @@ impl BList {
         let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
 
         // BNode contains js objects that look suspicious to clippy but are harmless
-        #[allow(clippy::mutable_key_type)]
+        #[expect(clippy::mutable_key_type)]
         let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
         let mut spliced_middle = bundles.splice(bundle_middle, std::iter::empty());
         for (idx, r) in (&mut spliced_middle).enumerate() {
@@ -378,41 +378,44 @@ impl BList {
                     }
                 }
             }
-            let bundle = if let Some(KeyedEntry(idx, mut r_bundle)) = ancestor {
-                match current_run.as_mut() {
-                    // hot path
-                    // We know that idx <= run.end_idx, so this node doesn't need to shift
-                    Some(run) => run.end_idx = idx,
-                    None => {
-                        if let Some(b) = barrier_idx {
-                            match idx.cmp(&b) {
-                                // peep hole optimization, don't start a run as the element is
-                                // already where it should be
-                                Ordering::Equal => barrier_idx = idx.checked_sub(1),
-                                // shift the node unconditionally, don't start a run
-                                Ordering::Greater => writer.shift(&r_bundle),
-                                // start a run
-                                Ordering::Less => {
-                                    current_run = Some(RunInformation {
-                                        start_writer: writer.clone(),
-                                        start_idx: replacements.len(),
-                                        end_idx: idx,
-                                    })
+            let bundle = match ancestor {
+                Some(KeyedEntry(idx, mut r_bundle)) => {
+                    match current_run.as_mut() {
+                        // hot path
+                        // We know that idx <= run.end_idx, so this node doesn't need to shift
+                        Some(run) => run.end_idx = idx,
+                        None => {
+                            if let Some(b) = barrier_idx {
+                                match idx.cmp(&b) {
+                                    // peep hole optimization, don't start a run as the element is
+                                    // already where it should be
+                                    Ordering::Equal => barrier_idx = idx.checked_sub(1),
+                                    // shift the node unconditionally, don't start a run
+                                    Ordering::Greater => writer.shift(&r_bundle),
+                                    // start a run
+                                    Ordering::Less => {
+                                        current_run = Some(RunInformation {
+                                            start_writer: writer.clone(),
+                                            start_idx: replacements.len(),
+                                            end_idx: idx,
+                                        })
+                                    }
                                 }
+                            } else {
+                                // Everything to the right has been committed; must shift
+                                writer.shift(&r_bundle);
                             }
-                        } else {
-                            // Everything to the right has been committed; must shift
-                            writer.shift(&r_bundle);
                         }
                     }
+                    writer = writer.patch(l, &mut r_bundle);
+                    r_bundle
                 }
-                writer = writer.patch(l, &mut r_bundle);
-                r_bundle
-            } else {
-                // Even if there is an active run, we don't have to modify it
-                let (next_writer, bundle) = writer.add(l);
-                writer = next_writer;
-                bundle
+                _ => {
+                    // Even if there is an active run, we don't have to modify it
+                    let (next_writer, bundle) = writer.add(l);
+                    writer = next_writer;
+                    bundle
+                }
             };
             replacements.push(bundle);
         }
@@ -564,7 +567,7 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -641,9 +644,9 @@ mod layout_tests_keys {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::Node;
 
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
     use crate::virtual_dom::VNode;
-    use crate::{html, Children, Component, Context, Html, Properties};
+    use crate::{Children, Component, Context, Html, Properties, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -1527,7 +1530,7 @@ mod node_identity_tests {
 
     use crate::dom_bundle::{BSubtree, Bundle, DomSlot};
     use crate::html::AnyScope;
-    use crate::{html, scheduler, Html};
+    use crate::{Html, html, scheduler};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

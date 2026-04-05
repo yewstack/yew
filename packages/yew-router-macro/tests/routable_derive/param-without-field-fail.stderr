@@ -1,0 +1,5 @@
+error: route parameter `_rest` does not have a corresponding field in variant `Settings`
+ --> tests/routable_derive/param-without-field-fail.rs:5:10
+  |
+5 |     #[at("/settings/{*_rest}")]
+  |          ^^^^^^^^^^^^^^^^^^^^

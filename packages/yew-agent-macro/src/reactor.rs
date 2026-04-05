@@ -38,7 +38,7 @@ impl AgentFnType for ReactorFn {
                 return Err(syn::Error::new_spanned(
                     ty,
                     "reactor agents cannot return any value",
-                ))
+                ));
             }
         }
 

@@ -55,6 +55,56 @@ html! {
 };
 ```
 
+## 動態屬性名
+
+與動態標籤名類似，屬性名也可以在執行時確定。這對於使用包含冒號的屬性（例如 `hx-on:click`）的 HTMX 等函式庫，或屬性名在編譯時未知的任何情況都很有用。
+
+動態屬性名有兩種語法：字串字面量和表達式。
+
+### 字串字面量屬性名
+
+直接使用字串字面量作為屬性名：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div "hx-on:click"="alert('Clicked!')" />
+};
+```
+
+也可以使用大括號包裹的值：
+
+```rust
+use yew::prelude::*;
+
+let handler = "alert('Clicked!')";
+
+html! {
+    <div "hx-on:click"={handler} />
+};
+```
+
+### 表達式屬性名
+
+將任意表達式用大括號包裹來動態計算屬性名：
+
+```rust
+use yew::prelude::*;
+
+let attr_name = format!("hx-on:{}", "click");
+
+html! {
+    <div { attr_name }={ "alert('Clicked!')" } />
+};
+```
+
+表達式必須計算為實現了 `Into<AttrValue>` 的型別（例如 `String`、`&str`、`AttrValue`）。
+
+:::note
+動態屬性名僅支援 HTML 元素。元件屬性需要靜態的 Rust 識別符號。請參閱[元件屬性](../function-components/properties.mdx)。
+:::
+
 ## 邏輯值屬性
 
 一些內容屬性（例如 checked、hidden、required）被稱為邏輯值屬性。在 Yew 中，邏輯值屬性需要設定為布林值：

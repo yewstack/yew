@@ -6,7 +6,7 @@ pub enum Route {
     #[at("/")]
     Portal,
 
-    #[at("/t/:id")]
+    #[at("/t/{id}")]
     Thread { id: String },
 
     #[not_found]

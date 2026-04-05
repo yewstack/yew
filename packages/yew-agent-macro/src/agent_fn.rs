@@ -91,7 +91,7 @@ where
                         "`{}` attribute can only be applied to functions",
                         F::attr_name()
                     ),
-                ))
+                ));
             }
         };
 

@@ -82,7 +82,9 @@ impl Reconcilable for VText {
 
 impl std::fmt::Debug for BText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BText").field("text", &self.text).finish()
+        f.debug_struct("BText")
+            .field("text", &self.text)
+            .finish_non_exhaustive()
     }
 }
 
@@ -113,29 +115,30 @@ mod feat_hydration {
                 DomSlot::create(next_sibling).insert(parent, &text_node);
                 BText { text, text_node }
             };
-            let btext = if let Some(m) = fragment.front().cloned() {
-                if m.node_type() == Node::TEXT_NODE {
-                    let m = m.unchecked_into::<TextNode>();
-                    // pop current node.
-                    fragment.pop_front();
+            let btext = match fragment.front().cloned() {
+                Some(m) => {
+                    if m.node_type() == Node::TEXT_NODE {
+                        let m = m.unchecked_into::<TextNode>();
+                        // pop current node.
+                        fragment.pop_front();
 
-                    // TODO: It may make sense to assert the text content in the text node
-                    // against the VText when #[cfg(debug_assertions)]
-                    // is true, but this may be complicated.
-                    // We always replace the text value for now.
-                    //
-                    // Please see the next comment for a detailed explanation.
-                    m.set_node_value(Some(self.text.as_ref()));
+                        // TODO: It may make sense to assert the text content in the text node
+                        // against the VText when #[cfg(debug_assertions)]
+                        // is true, but this may be complicated.
+                        // We always replace the text value for now.
+                        //
+                        // Please see the next comment for a detailed explanation.
+                        m.set_node_value(Some(self.text.as_ref()));
 
-                    BText {
-                        text: self.text,
-                        text_node: m,
+                        BText {
+                            text: self.text,
+                            text_node: m,
+                        }
+                    } else {
+                        create_at(Some(m), self.text)
                     }
-                } else {
-                    create_at(Some(m), self.text)
                 }
-            } else {
-                create_at(fragment.sibling_at_end().cloned(), self.text)
+                _ => create_at(fragment.sibling_at_end().cloned(), self.text),
             };
             if let Some(previous_next_sibling) = previous_next_sibling {
                 previous_next_sibling.reassign(DomSlot::at(btext.text_node.clone().into()));
@@ -178,7 +181,7 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

@@ -1,7 +1,8 @@
 [package]
 name = "wasi_ssr_module"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version.workspace = true
 authors = ["langyo <langyo.china@gmail.com>"]
 
 [dependencies]

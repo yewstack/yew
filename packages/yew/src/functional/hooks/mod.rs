@@ -39,13 +39,12 @@ pub trait Hook {
 
 /// The blanket implementation of boxed hooks.
 #[doc(hidden)]
-#[allow(missing_debug_implementations, missing_docs)]
+#[expect(missing_debug_implementations)]
 pub struct BoxedHook<'hook, T> {
     inner: Box<dyn 'hook + FnOnce(&mut HookContext) -> T>,
 }
 
 impl<'hook, T> BoxedHook<'hook, T> {
-    #[allow(missing_docs)]
     pub fn new(inner: Box<dyn 'hook + FnOnce(&mut HookContext) -> T>) -> Self {
         Self { inner }
     }

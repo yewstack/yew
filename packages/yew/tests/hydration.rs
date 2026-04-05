@@ -14,9 +14,9 @@ use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::suspense::{use_future, Suspension, SuspensionResult};
+use yew::suspense::{Suspension, SuspensionResult, use_future};
 use yew::virtual_dom::VNode;
-use yew::{component, scheduler, Renderer, ServerRenderer};
+use yew::{Renderer, ServerRenderer, component, scheduler};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

@@ -55,6 +55,56 @@ html! {
 };
 ```
 
+## 动态属性名
+
+与动态标签名类似，属性名也可以在运行时确定。这对于使用包含冒号的属性（例如 `hx-on:click`）的 HTMX 等库，或属性名在编译时未知的任何情况都很有用。
+
+动态属性名有两种语法：字符串字面量和表达式。
+
+### 字符串字面量属性名
+
+直接使用字符串字面量作为属性名：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div "hx-on:click"="alert('Clicked!')" />
+};
+```
+
+也可以使用大括号包裹的值：
+
+```rust
+use yew::prelude::*;
+
+let handler = "alert('Clicked!')";
+
+html! {
+    <div "hx-on:click"={handler} />
+};
+```
+
+### 表达式属性名
+
+将任意表达式用大括号包裹来动态计算属性名：
+
+```rust
+use yew::prelude::*;
+
+let attr_name = format!("hx-on:{}", "click");
+
+html! {
+    <div { attr_name }={ "alert('Clicked!')" } />
+};
+```
+
+表达式必须计算为实现了 `Into<AttrValue>` 的类型（例如 `String`、`&str`、`AttrValue`）。
+
+:::note
+动态属性名仅支持 HTML 元素。组件属性需要静态的 Rust 标识符。请参阅[组件属性](../function-components/properties.mdx)。
+:::
+
 ## 逻辑值属性
 
 一些内容属性（例如 checked、hidden、required）被称为逻辑值属性。在 Yew 中，逻辑值属性需要设置为布尔值：

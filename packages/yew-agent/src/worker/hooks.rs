@@ -55,7 +55,7 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(type_name::<Self>())
             .field("inner", &self.inner)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -154,14 +154,13 @@ where
 
 impl<T> fmt::Debug for UseWorkerSubscriptionHandle<T>
 where
-    T: Worker,
-    T::Output: fmt::Debug,
+    T: Worker<Output: fmt::Debug>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(type_name::<Self>())
             .field("bridge", &self.bridge)
             .field("outputs", &self.outputs)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 

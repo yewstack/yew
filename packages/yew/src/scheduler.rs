@@ -9,7 +9,7 @@ mod flush_wakers {
     use std::task::Waker;
 
     thread_local! {
-        static FLUSH_WAKERS: RefCell<Vec<Waker>> = Default::default();
+        static FLUSH_WAKERS: RefCell<Vec<Waker>> = const { RefCell::new(Vec::new()) };
     }
 
     #[cfg(all(
@@ -51,6 +51,10 @@ struct FifoQueue {
 }
 
 impl FifoQueue {
+    const fn new() -> Self {
+        Self { inner: Vec::new() }
+    }
+
     fn push(&mut self, task: Box<dyn Runnable>) {
         self.inner.push(QueueEntry { task });
     }
@@ -68,6 +72,12 @@ struct TopologicalQueue {
 }
 
 impl TopologicalQueue {
+    const fn new() -> Self {
+        Self {
+            inner: BTreeMap::new(),
+        }
+    }
+
     #[cfg(any(feature = "ssr", feature = "csr"))]
     fn push(&mut self, component_id: usize, task: Box<dyn Runnable>) {
         self.inner.insert(component_id, QueueEntry { task });
@@ -92,7 +102,6 @@ impl TopologicalQueue {
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Default)]
-#[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
     main: FifoQueue,
@@ -112,6 +121,23 @@ struct Scheduler {
     rendered: TopologicalQueue,
 }
 
+impl Scheduler {
+    const fn new() -> Self {
+        Self {
+            main: FifoQueue::new(),
+            destroy: FifoQueue::new(),
+            create: FifoQueue::new(),
+            props_update: FifoQueue::new(),
+            update: FifoQueue::new(),
+            render: TopologicalQueue::new(),
+            render_first: TopologicalQueue::new(),
+            render_priority: TopologicalQueue::new(),
+            rendered_first: TopologicalQueue::new(),
+            rendered: TopologicalQueue::new(),
+        }
+    }
+}
+
 /// Execute closure with a mutable reference to the scheduler
 #[inline]
 fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
@@ -120,7 +146,7 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
         ///
         /// Exclusivity of mutable access is controlled by only accessing it through a set of public
         /// functions.
-        static SCHEDULER: RefCell<Scheduler> = Default::default();
+        static SCHEDULER: RefCell<Scheduler> = const { RefCell::new(Scheduler::new()) };
     }
 
     SCHEDULER.with(|s| f(&mut s.borrow_mut()))
@@ -229,7 +255,7 @@ pub(crate) fn start_now() {
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
         // `start()` method is being called recursively as part of a `runnable.run()`.
-        static LOCK: RefCell<()> = Default::default();
+        static LOCK: RefCell<()> = const { RefCell::new(()) };
     }
 
     LOCK.with(|l| {
@@ -273,7 +299,7 @@ mod arch {
     const YIELD_DEADLINE_MS: f64 = 16.0;
 
     #[wasm_bindgen]
-    extern "C" {
+    unsafe extern "C" {
         #[wasm_bindgen(js_name = setTimeout)]
         fn set_timeout(handler: &js_sys::Function, timeout: i32) -> i32;
     }
@@ -481,7 +507,7 @@ mod tests {
         use std::cell::Cell;
 
         thread_local! {
-            static FLAG: Cell<bool> = Default::default();
+            static FLAG: Cell<bool> = const { Cell::new(false) };
         }
 
         struct Test;
