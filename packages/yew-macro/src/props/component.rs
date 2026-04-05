@@ -8,6 +8,7 @@ use syn::token::DotDot;
 use syn::Expr;
 
 use super::{Prop, PropLabel, Props, SpecialProps, CHILDREN_LABEL};
+use crate::html_tree::HtmlDashedName;
 
 fn is_none_expr(expr: &Expr) -> bool {
     matches!(
@@ -112,8 +113,9 @@ impl ComponentProps {
                 };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     if is_none_expr(value) {
+                        let name = <&HtmlDashedName>::try_from(label).unwrap();
                         let none_setter = Ident::new(
-                            &format!("{}_none", label),
+                            &format!("{}_none", name),
                             label.span().resolved_at(Span::mixed_site()),
                         );
                         quote_spanned! {value.span()=>

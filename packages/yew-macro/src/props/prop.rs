@@ -88,10 +88,10 @@ impl PartialEq<PropLabel> for PropLabel {
 
 impl ToTokens for PropLabel {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(match self {
-            PropLabel::Static(dashed_name) => quote! {#dashed_name},
-            PropLabel::Dynamic(expr) => quote! {#expr}, // FIXME this probably wanted its group back
-        });
+        match self {
+            Self::Static(name) => name.to_tokens(tokens),
+            Self::Dynamic(expr) => expr.to_tokens(tokens),
+        }
     }
 }
 

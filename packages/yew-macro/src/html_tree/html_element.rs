@@ -215,10 +215,10 @@ impl ToTokens for HtmlElement {
 
             impl ToTokens for Key {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    tokens.extend(match self {
-                        Key::Static(dashed_name) => quote! { #dashed_name },
-                        Key::Dynamic(expr) => quote! { #expr },
-                    });
+                    match self {
+                        Key::Static(dashed_name) => dashed_name.to_tokens(tokens),
+                        Key::Dynamic(expr) => expr.to_tokens(tokens),
+                    }
                 }
             }
 
@@ -411,7 +411,6 @@ impl ToTokens for HtmlElement {
                             ::std::iter::Iterator::collect(
                                 ::std::iter::Iterator::filter_map(
                                     ::std::iter::IntoIterator::into_iter([#(#results),*]),
-                                    // FIXME verify if i understood it correctly
                                     |(k, v)| v.map(|v| (k, v))
                                 )
                             )
