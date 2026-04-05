@@ -6,7 +6,7 @@ pub mod agent;
 use web_sys::HtmlInputElement;
 use yew::platform::spawn_local;
 use yew::prelude::*;
-use yew_agent::oneshot::{use_oneshot_runner, OneshotProvider};
+use yew_agent::oneshot::{OneshotProvider, use_oneshot_runner};
 
 use crate::agent::{FibonacciTask, Postcard};
 

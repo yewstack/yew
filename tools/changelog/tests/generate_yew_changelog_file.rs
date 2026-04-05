@@ -4,9 +4,9 @@ use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
 use anyhow::Result;
+use changelog::Cli;
 use changelog::new_version_level::NewVersionLevel;
 use changelog::yew_package::YewPackage;
-use changelog::Cli;
 use chrono::Utc;
 
 struct FileDeleteOnDrop;

@@ -219,8 +219,8 @@ mod test {
         for value in values {
             cb.emit(value);
         }
-        let x = result.lock().unwrap().clone();
-        x
+
+        result.lock().unwrap().clone()
     }
 
     #[test]

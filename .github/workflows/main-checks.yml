@@ -70,7 +70,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.84.0
+          - 1.85.0
           - stable
 
     steps:
@@ -121,7 +121,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - 1.84.0
+          - 1.85.0
           - stable
           - nightly
 
@@ -143,7 +143,7 @@ jobs:
           # see https://github.com/orgs/community/discussions/25725
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
         run: |
-          if [[ "${{ matrix.toolchain }}" == "1.84.0" ]]; then
+          if [[ "${{ matrix.toolchain }}" == "1.85.0" ]]; then
             cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router
           else
             ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
@@ -211,7 +211,7 @@ jobs:
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.84.0
+          toolchain: 1.85.0
 
       - uses: Swatinem/rust-cache@v2
         with:

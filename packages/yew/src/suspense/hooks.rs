@@ -1,6 +1,5 @@
 use std::cell::Cell;
 use std::fmt;
-use std::future::Future;
 use std::ops::Deref;
 use std::rc::Rc;
 

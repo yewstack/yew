@@ -36,7 +36,7 @@ impl Parse for TransitiveState {
                     &closure,
                     "You must specify a return type for this closure. This is used when the \
                      closure is omitted from the client side rendering bundle.",
-                ))
+                ));
             }
             ReturnType::Type(_rarrow, ty) => *ty.to_owned(),
         };

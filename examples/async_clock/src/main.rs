@@ -2,7 +2,7 @@ use chrono::{DateTime, Local};
 use futures::{FutureExt, StreamExt};
 use services::compute_fun_score;
 use yew::platform::pinned::mpsc::UnboundedSender;
-use yew::{html, AttrValue, Component, Context, Html};
+use yew::{AttrValue, Component, Context, Html, html};
 
 use crate::services::{emit_jokes, initialize_atomic_clocks, stream_time};
 

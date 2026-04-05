@@ -1,10 +1,10 @@
 use std::sync::OnceLock;
 
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use yew::prelude::*;
-use yew::suspense::{use_future, SuspensionResult};
+use yew::suspense::{SuspensionResult, use_future};
 
 mod bindings;
 

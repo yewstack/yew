@@ -2,7 +2,7 @@ use settings::Settings;
 use simulation::Simulation;
 use slider::Slider;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html};
+use yew::{Component, Context, Html, html};
 
 mod boid;
 mod math;

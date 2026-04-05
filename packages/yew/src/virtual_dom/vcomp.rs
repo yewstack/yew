@@ -290,8 +290,8 @@ mod feat_ssr {
 mod ssr_tests {
     use tokio::test;
 
-    use crate::prelude::*;
     use crate::ServerRenderer;
+    use crate::prelude::*;
 
     #[test]
     async fn test_props() {

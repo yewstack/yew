@@ -1,6 +1,6 @@
 use wasm_bindgen::JsCast;
 use web_sys::{Element, ShadowRootInit, ShadowRootMode};
-use yew::{create_portal, html, Component, Context, Html, NodeRef, Properties};
+use yew::{Component, Context, Html, NodeRef, Properties, create_portal, html};
 
 #[derive(Properties, PartialEq)]
 pub struct ShadowDOMProps {
@@ -49,10 +49,11 @@ impl Component for ShadowDOMHost {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let contents = if let Some(ref inner_host) = self.inner_host {
-            create_portal(ctx.props().children.clone(), inner_host.clone())
-        } else {
-            html! { <></> }
+        let contents = match self.inner_host {
+            Some(ref inner_host) => create_portal(ctx.props().children.clone(), inner_host.clone()),
+            _ => {
+                html! { <></> }
+            }
         };
         html! {
             <div ref={self.host_ref.clone()}>

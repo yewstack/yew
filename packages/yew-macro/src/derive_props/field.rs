@@ -6,8 +6,8 @@ use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{
-    parse_quote, Attribute, Error, Expr, Field, GenericArgument, GenericParam, Generics,
-    PathArguments, Type, Visibility,
+    Attribute, Error, Expr, Field, GenericArgument, GenericParam, Generics, PathArguments, Type,
+    Visibility, parse_quote,
 };
 
 use super::should_preserve_attr;

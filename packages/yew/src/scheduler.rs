@@ -299,7 +299,7 @@ mod arch {
     const YIELD_DEADLINE_MS: f64 = 16.0;
 
     #[wasm_bindgen]
-    extern "C" {
+    unsafe extern "C" {
         #[wasm_bindgen(js_name = setTimeout)]
         fn set_timeout(handler: &js_sys::Function, timeout: i32) -> i32;
     }

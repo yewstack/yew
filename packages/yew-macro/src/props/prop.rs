@@ -2,13 +2,13 @@ use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
 use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
 use syn::{
-    braced, parse_quote, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, LitStr, Stmt,
-    Token,
+    Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, LitStr, Stmt, Token, braced,
+    parse_quote,
 };
 
 use crate::html_tree::HtmlDashedName;
@@ -240,16 +240,16 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
     if input.peek(Brace) {
         strip_braces(input.parse()?)
     } else {
-        let expr = if let Some(ExprRange {
-            start: Some(start), ..
-        }) = range_expression_peek(input)
-        {
-            // If a range expression is seen, treat the left-side expression as the value
-            // and leave the right-side expression to be parsed as a base expression
-            advance_until_next_dot2(input)?;
-            *start
-        } else {
-            input.parse()?
+        let expr = match range_expression_peek(input) {
+            Some(ExprRange {
+                start: Some(start), ..
+            }) => {
+                // If a range expression is seen, treat the left-side expression as the value
+                // and leave the right-side expression to be parsed as a base expression
+                advance_until_next_dot2(input)?;
+                *start
+            }
+            _ => input.parse()?,
         };
 
         match &expr {
@@ -395,11 +395,7 @@ impl PropList {
         self.0.windows(2).filter_map(|pair| {
             let (a, b) = (&pair[0], &pair[1]);
 
-            if a.label == b.label {
-                Some(b)
-            } else {
-                None
-            }
+            if a.label == b.label { Some(b) } else { None }
         })
     }
 

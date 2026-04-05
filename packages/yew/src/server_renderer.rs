@@ -1,5 +1,4 @@
 use std::fmt;
-use std::future::Future;
 
 use futures::pin_mut;
 use futures::stream::{Stream, StreamExt};

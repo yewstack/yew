@@ -8,7 +8,7 @@ use std::convert::TryInto;
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Pair;
 use syn::visit_mut::VisitMut;

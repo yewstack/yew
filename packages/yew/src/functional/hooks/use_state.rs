@@ -5,10 +5,10 @@ use std::rc::Rc;
 
 use implicit_clone::ImplicitClone;
 
-use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
+use super::{Reducible, UseReducerDispatcher, UseReducerHandle, use_reducer, use_reducer_eq};
+use crate::Callback;
 use crate::functional::hook;
 use crate::html::IntoPropValue;
-use crate::Callback;
 
 #[repr(transparent)]
 struct UseStateReducer<T> {

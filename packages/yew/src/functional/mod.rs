@@ -27,10 +27,10 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
+use crate::Properties;
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
-use crate::Properties;
 
 mod hooks;
 pub use hooks::*;

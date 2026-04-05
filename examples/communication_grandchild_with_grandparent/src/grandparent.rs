@@ -37,10 +37,11 @@ impl Component for GrandParent {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let app_state = self.state.clone();
 
-        let detail_msg = if let Some(last_clicked) = &self.state.last_clicked {
-            format!("The last child you clicked was {last_clicked}.")
-        } else {
-            "Waiting for you to click a grandchild...".to_string()
+        let detail_msg = match &self.state.last_clicked {
+            Some(last_clicked) => {
+                format!("The last child you clicked was {last_clicked}.")
+            }
+            _ => "Waiting for you to click a grandchild...".to_string(),
         };
 
         html! {
