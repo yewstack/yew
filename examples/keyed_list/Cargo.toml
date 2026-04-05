@@ -7,7 +7,7 @@ rust-version.workspace = true
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-fake = "4.0.0"
+fake = "5"
 getrandom = { workspace = true }
 instant = { workspace = true }
 log.workspace = true
