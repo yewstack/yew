@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
-use syn::{parse_macro_input, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, Pat, PatType};
+use syn::{FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, Pat, PatType, parse_macro_input};
 
 /// Derive a [`LinkedState`] implementation from an impl block that declares
 /// `type Context`, `type Input`, and `async fn resolve`.
