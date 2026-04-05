@@ -172,6 +172,19 @@ html! { <my-element ~property="abc" /> };
 
 :::
 
+属性名は文字列リテラルや式を使用して動的に設定することもできます。これは `hx-on:click` のような有効な Rust 識別子ではない属性に便利です：
+
+```rust
+use yew::prelude::*;
+
+html! { <div "hx-on:click"="alert('Clicked!')" /> };
+html! { <div { String::from("hx-on:click") }={ "alert('Clicked!')" } /> };
+```
+
+:::info
+詳細は[動的な属性名](./html/elements#dynamic-attribute-names)を参照してください。
+:::
+
 :::note コンポーネント属性
 コンポーネント属性は Rust オブジェクトとして渡され、ここで説明されている要素のパラメータ (Attributes) / 属性 (Properties) とは異なります。
 [コンポーネント属性](../function-components/properties.mdx)で詳細を確認してください。
