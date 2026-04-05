@@ -1,13 +1,13 @@
 use std::convert::TryFrom;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
+use syn::Expr;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::DotDot;
-use syn::Expr;
 
-use super::{Prop, PropLabel, Props, SpecialProps, CHILDREN_LABEL};
+use super::{CHILDREN_LABEL, Prop, PropLabel, Props, SpecialProps};
 use crate::html_tree::HtmlDashedName;
 
 fn is_none_expr(expr: &Expr) -> bool {

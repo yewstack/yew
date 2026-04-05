@@ -1,7 +1,6 @@
 use core::fmt;
 use std::any::type_name;
 use std::cell::RefCell;
-use std::future::Future;
 use std::rc::Rc;
 
 use gloo_worker::{Bincode, Codec};
@@ -9,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Oneshot, OneshotBridge, OneshotSpawner};
+use crate::Reach;
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
-use crate::Reach;
 
 pub(crate) struct OneshotProviderState<T>
 where

@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
+use fake::Fake;
 use fake::faker::address::raw::*;
 use fake::faker::name::raw::*;
 use fake::locales::*;
-use fake::Fake;
-use yew::{html, Component, Context, Html, Properties};
+use yew::{Component, Context, Html, Properties, html};
 
 use crate::random;
 

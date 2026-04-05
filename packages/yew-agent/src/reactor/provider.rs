@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Reactor, ReactorBridge, ReactorScoped, ReactorSpawner};
+use crate::Reach;
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
-use crate::Reach;
 
 pub(crate) struct ReactorProviderState<T>
 where

@@ -2,7 +2,7 @@ use wasm_bindgen::JsValue;
 use web_sys::{
     CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlInputElement, InputEvent,
 };
-use yew::{html, Component, Context, Html, TargetCast};
+use yew::{Component, Context, Html, TargetCast, html};
 
 pub enum Msg {
     UpdateName(String),

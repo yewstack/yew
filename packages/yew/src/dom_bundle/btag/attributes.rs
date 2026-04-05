@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::ops::Deref;
 
 use indexmap::IndexMap;
-use wasm_bindgen::{intern, JsValue};
+use wasm_bindgen::{JsValue, intern};
 use web_sys::{Element, HtmlInputElement as InputElement, HtmlTextAreaElement as TextAreaElement};
 use yew::AttrValue;
 
@@ -296,7 +296,7 @@ mod tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::{component, html, Html};
+    use crate::{Html, component, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

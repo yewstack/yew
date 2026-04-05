@@ -10,6 +10,9 @@ default-members = [
 ]
 resolver = "3"
 
+[workspace.package]
+rust-version = "1.85"
+
 [profile.release]
 lto = true
 codegen-units = 1
@@ -50,8 +53,9 @@ log = "0.4"
 wasm-logger = "0.2"
 tracing-web = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }
-rand = "0.9"
-getrandom = { version = "0.3", features = ["wasm_js"] }
+rand = "0.10"
+getrandom = { version = "0.4", features = ["wasm_js"] }
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 rustversion = "1"
 strum = "0.28"

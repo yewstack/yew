@@ -6,9 +6,9 @@ use std::{fmt, mem};
 use web_sys::Node;
 
 use super::{Key, VChild, VComp, VList, VPortal, VSuspense, VTag, VText};
+use crate::AttrValue;
 use crate::html::{BaseComponent, ImplicitClone};
 use crate::virtual_dom::VRaw;
-use crate::AttrValue;
 
 /// Bind virtual element to a DOM reference.
 #[derive(Clone, ImplicitClone, PartialEq)]
@@ -87,7 +87,7 @@ impl VNode {
     /// # Example
     ///
     /// ```rust
-    /// use yew::{html, AttrValue, Html};
+    /// use yew::{AttrValue, Html, html};
     /// # fn _main() {
     /// let parsed = Html::from_html_unchecked(AttrValue::from("<div>content</div>"));
     /// let _: Html = html! {

@@ -1,7 +1,6 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
-use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -9,9 +8,9 @@ use std::{fmt, iter};
 
 use futures::{Stream, StreamExt};
 
+use super::BaseComponent;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
-use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::platform::spawn_local;

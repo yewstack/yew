@@ -13,8 +13,8 @@ use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::suspense::{use_future, use_future_with, Suspension, SuspensionResult};
-use yew::{scheduler, UseStateHandle};
+use yew::suspense::{Suspension, SuspensionResult, use_future, use_future_with};
+use yew::{UseStateHandle, scheduler};
 
 wasm_bindgen_test_configure!(run_in_browser);
 

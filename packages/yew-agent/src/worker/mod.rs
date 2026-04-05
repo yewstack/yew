@@ -72,7 +72,7 @@ pub use gloo_worker::{
     WorkerSpawner,
 };
 pub use hooks::{
-    use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle, UseWorkerSubscriptionHandle,
+    UseWorkerBridgeHandle, UseWorkerSubscriptionHandle, use_worker_bridge, use_worker_subscription,
 };
 pub(crate) use provider::WorkerProviderState;
 pub use provider::{WorkerProvider, WorkerProviderProps};

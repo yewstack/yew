@@ -6,9 +6,9 @@ use std::rc::Rc;
 
 use implicit_clone::ImplicitClone;
 
-use crate::functional::{hook, Hook, HookContext};
-use crate::html::IntoPropValue;
 use crate::Callback;
+use crate::functional::{Hook, HookContext, hook};
+use crate::html::IntoPropValue;
 
 type DispatchFn<T> = Rc<dyn Fn(<T as Reducible>::Action)>;
 
@@ -144,14 +144,17 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = if let Ok(rc_ref) = self.current_state.try_borrow() {
-            format!("{:?}", *rc_ref)
-        } else {
-            let history = self.deref_history.borrow();
-            format!(
-                "{:?}",
-                **history.last().expect("deref_history is never empty")
-            )
+        let value = match self.current_state.try_borrow() {
+            Ok(rc_ref) => {
+                format!("{:?}", *rc_ref)
+            }
+            _ => {
+                let history = self.deref_history.borrow();
+                format!(
+                    "{:?}",
+                    **history.last().expect("deref_history is never empty")
+                )
+            }
         };
         f.debug_struct("UseReducerHandle")
             .field("value", &value)

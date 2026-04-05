@@ -253,7 +253,7 @@ mod feat_ssr {
     use std::task::Poll;
 
     use futures::stream::StreamExt;
-    use futures::{join, pin_mut, poll, FutureExt};
+    use futures::{FutureExt, join, pin_mut, poll};
 
     use super::*;
     use crate::feat_ssr::VTagKind;
@@ -352,8 +352,8 @@ mod feat_ssr {
 mod ssr_tests {
     use tokio::test;
 
-    use crate::prelude::*;
     use crate::LocalServerRenderer as ServerRenderer;
+    use crate::prelude::*;
 
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]

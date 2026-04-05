@@ -1,6 +1,6 @@
 use gloo::timers::callback::Interval;
 use yew::html::Scope;
-use yew::{classes, html, Component, Context, Html};
+use yew::{Component, Context, Html, classes, html};
 
 mod conway;
 

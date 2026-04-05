@@ -44,13 +44,13 @@ impl Parse for Routable {
                 return Err(syn::Error::new(
                     s.struct_token.span(),
                     "expected enum, found struct",
-                ))
+                ));
             }
             Data::Union(u) => {
                 return Err(syn::Error::new(
                     u.union_token.span(),
                     "expected enum, found union",
-                ))
+                ));
             }
         };
 
@@ -93,13 +93,13 @@ fn parse_variants_attributes(
                 return Err(syn::Error::new(
                     variant.span(),
                     format!("{AT_ATTR_IDENT} attribute must be present on every variant"),
-                ))
+                ));
             }
             _ => {
                 return Err(syn::Error::new_spanned(
                     quote! { #(#at_attrs)* },
                     format!("only one {AT_ATTR_IDENT} attribute must be present"),
-                ))
+                ));
             }
         };
 

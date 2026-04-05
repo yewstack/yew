@@ -7,7 +7,7 @@ use std::ops::Deref;
 
 use web_sys::Element;
 
-use super::{test_log, BNode, BSubtree, DomSlot};
+use super::{BNode, BSubtree, DomSlot, test_log};
 use crate::dom_bundle::{Reconcilable, ReconcileTarget};
 use crate::html::AnyScope;
 use crate::utils::RcExt;
@@ -354,34 +354,37 @@ impl BList {
                     }
                 }
             }
-            let bundle = if let Some(KeyedEntry(idx, mut r_bundle)) = ancestor {
-                match current_run.as_mut() {
-                    // hot path
-                    // We know that idx >= run.end_idx, so this node doesn't need to shift
-                    Some(run) => run.end_idx = idx,
-                    None => match idx.cmp(&barrier_idx) {
-                        // peep hole optimization, don't start a run as the element is already where
-                        // it should be
-                        Ordering::Equal => barrier_idx += 1,
-                        // shift the node unconditionally, don't start a run
-                        Ordering::Less => writer.shift(&r_bundle),
-                        // start a run
-                        Ordering::Greater => {
-                            current_run = Some(RunInformation {
-                                start_writer: writer.clone(),
-                                start_idx: replacements.len(),
-                                end_idx: idx,
-                            })
-                        }
-                    },
+            let bundle = match ancestor {
+                Some(KeyedEntry(idx, mut r_bundle)) => {
+                    match current_run.as_mut() {
+                        // hot path
+                        // We know that idx >= run.end_idx, so this node doesn't need to shift
+                        Some(run) => run.end_idx = idx,
+                        None => match idx.cmp(&barrier_idx) {
+                            // peep hole optimization, don't start a run as the element is already
+                            // where it should be
+                            Ordering::Equal => barrier_idx += 1,
+                            // shift the node unconditionally, don't start a run
+                            Ordering::Less => writer.shift(&r_bundle),
+                            // start a run
+                            Ordering::Greater => {
+                                current_run = Some(RunInformation {
+                                    start_writer: writer.clone(),
+                                    start_idx: replacements.len(),
+                                    end_idx: idx,
+                                })
+                            }
+                        },
+                    }
+                    writer = writer.patch(l, &mut r_bundle);
+                    r_bundle
                 }
-                writer = writer.patch(l, &mut r_bundle);
-                r_bundle
-            } else {
-                // Even if there is an active run, we don't have to modify it
-                let (next_writer, bundle) = writer.add(l);
-                writer = next_writer;
-                bundle
+                _ => {
+                    // Even if there is an active run, we don't have to modify it
+                    let (next_writer, bundle) = writer.add(l);
+                    writer = next_writer;
+                    bundle
+                }
             };
             replacements.push(bundle);
         }
@@ -534,7 +537,7 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -611,9 +614,9 @@ mod layout_tests_keys {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
     use web_sys::Node;
 
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
     use crate::virtual_dom::VNode;
-    use crate::{html, Children, Component, Context, Html, Properties};
+    use crate::{Children, Component, Context, Html, Properties, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

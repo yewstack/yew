@@ -33,16 +33,16 @@ pub mod prelude {
     //! Prelude module to be imported when working with `yew-agent`.
     //!
     //! This module re-exports the frequently used types from the crate.
-    pub use crate::oneshot::{oneshot, use_oneshot_runner, UseOneshotRunnerHandle};
+    pub use crate::oneshot::{UseOneshotRunnerHandle, oneshot, use_oneshot_runner};
     pub use crate::reach::Reach;
     pub use crate::reactor::{
-        reactor, use_reactor_bridge, use_reactor_subscription, ReactorEvent, ReactorScope,
-        UseReactorBridgeHandle, UseReactorSubscriptionHandle,
+        ReactorEvent, ReactorScope, UseReactorBridgeHandle, UseReactorSubscriptionHandle, reactor,
+        use_reactor_bridge, use_reactor_subscription,
     };
     pub use crate::scope_ext::{AgentScopeExt, ReactorBridgeHandle, WorkerBridgeHandle};
     pub use crate::worker::{
-        use_worker_bridge, use_worker_subscription, UseWorkerBridgeHandle,
-        UseWorkerSubscriptionHandle, WorkerScope,
+        UseWorkerBridgeHandle, UseWorkerSubscriptionHandle, WorkerScope, use_worker_bridge,
+        use_worker_subscription,
     };
     pub use crate::{Registrable, Spawnable};
 }

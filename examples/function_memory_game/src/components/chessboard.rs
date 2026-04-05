@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew::{function_component, html, Properties};
+use yew::{Properties, function_component, html};
 
 use crate::components::chessboard_card::ChessboardCard;
 use crate::state::{Card, RawCard};
