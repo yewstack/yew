@@ -4,6 +4,7 @@ use std::process::Command;
 use std::{env, fs};
 
 use anyhow::{Context, Result, bail};
+use regex::Regex;
 use serde_json::json;
 
 fn parse_tag(tag: &str) -> Result<(&str, &str)> {
@@ -70,6 +71,15 @@ fn extract_section(content: &str, package: &str, version: &str) -> Result<String
     }
 
     Ok(trimmed.to_string())
+}
+
+fn changelog_to_release_notes(body: &str) -> String {
+    let author_re = Regex::new(r"\[@[^\]]*\]\(https://github\.com/([^)]+)\)").unwrap();
+    let issue_re = Regex::new(r"\[(#\d+)\]\([^)]+\)").unwrap();
+
+    let result = author_re.replace_all(body, "@$1");
+    let result = issue_re.replace_all(&result, "$1");
+    result.into_owned()
 }
 
 fn find_latest_tag(package: &str) -> Result<String> {
@@ -171,7 +181,7 @@ fn main() -> Result<()> {
             json!({
                 "tag": r.tag,
                 "name": format!("{} v{}", r.package, r.version),
-                "body": r.body,
+                "body": changelog_to_release_notes(&r.body),
             })
         })
         .collect();
@@ -300,6 +310,42 @@ mod tests {
 - A change
 ";
         assert!(extract_section(content, "yew", "0.23.0").is_err());
+    }
+
+    #[test]
+    fn test_changelog_to_release_notes_single_contributor() {
+        let input = "### 🛠 Fixes\n\n- No more broken child re-renders while setting parents' \
+                      states. [[@Siyuan Yan](https://github.com/Madoshakalaka), \
+                      [#4060](https://github.com/yewstack/yew/pull/4060)]";
+        let expected = "### 🛠 Fixes\n\n- No more broken child re-renders while setting parents' \
+                        states. [@Madoshakalaka, #4060]";
+        assert_eq!(changelog_to_release_notes(input), expected);
+    }
+
+    #[test]
+    fn test_changelog_to_release_notes_multiple_contributors() {
+        let input = "- Better ImplicitClone ergonomics. [[@Cecile \
+                      Tonglet](https://github.com/cecton), \
+                      [#3508](https://github.com/yewstack/yew/pull/3508), \
+                      [#3431](https://github.com/yewstack/yew/pull/3431)] [[@Siyuan \
+                      Yan](https://github.com/Madoshakalaka), \
+                      [#3892](https://github.com/yewstack/yew/pull/3878)]";
+        let expected =
+            "- Better ImplicitClone ergonomics. [@cecton, #3508, #3431] [@Madoshakalaka, #3892]";
+        assert_eq!(changelog_to_release_notes(input), expected);
+    }
+
+    #[test]
+    fn test_changelog_to_release_notes_preserves_non_link_text() {
+        let input = "NOTE: See [the migration guide](https://yew.rs/docs/next/migration-guides) \
+                     for details.";
+        assert_eq!(changelog_to_release_notes(input), input);
+    }
+
+    #[test]
+    fn test_changelog_to_release_notes_no_links() {
+        let input = "- Updated rust dependencies.";
+        assert_eq!(changelog_to_release_notes(input), input);
     }
 
     #[test]
