@@ -1,6 +1,5 @@
 //! The client-and-server-side rendering variant.
 
-use std::future::Future;
 use std::rc::Rc;
 
 use serde::Serialize;

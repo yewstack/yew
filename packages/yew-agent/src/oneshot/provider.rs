@@ -1,7 +1,6 @@
 use core::fmt;
 use std::any::type_name;
 use std::cell::RefCell;
-use std::future::Future;
 use std::rc::Rc;
 
 use gloo_worker::{Bincode, Codec};

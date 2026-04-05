@@ -1,7 +1,6 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
-use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;

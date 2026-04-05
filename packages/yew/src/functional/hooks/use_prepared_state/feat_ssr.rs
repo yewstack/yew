@@ -1,6 +1,5 @@
 //! The server-side rendering variant. This is used for server side rendering.
 
-use std::future::Future;
 use std::marker::PhantomData;
 use std::rc::Rc;
 
