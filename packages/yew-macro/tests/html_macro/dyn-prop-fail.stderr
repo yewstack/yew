@@ -1,0 +1,69 @@
+error: components expect valid Rust identifiers for their property names
+  --> tests/html_macro/dyn-prop-fail.rs:66:32
+   |
+66 |     _ = ::yew::html! { <Simple "test"="" /> };
+   |                                ^^^^^^
+
+error: components expect valid Rust identifiers for their property names
+  --> tests/html_macro/dyn-prop-fail.rs:67:32
+   |
+67 |     _ = ::yew::html! { <Simple "test"={ "" } /> };
+   |                                ^^^^^^
+
+error: components expect valid Rust identifiers for their property names
+  --> tests/html_macro/dyn-prop-fail.rs:68:34
+   |
+68 |     _ = ::yew::html! { <Simple { "test" }={ "" } /> };
+   |                                  ^^^^^^
+
+error: components expect valid Rust identifiers for their property names
+  --> tests/html_macro/dyn-prop-fail.rs:69:34
+   |
+69 |     _ = ::yew::html! { <Simple { dyn_prop() }={ "" } /> };
+   |                                  ^^^^^^^^^^
+
+error[E0433]: failed to resolve: use of undeclared crate or module `diagnostic`
+  --> tests/html_macro/dyn-prop-fail.rs:39:10
+   |
+39 | #[derive(::yew::Properties, ::std::cmp::PartialEq)]
+   |          ^^^^^^^^^^^^^^^^^ use of undeclared crate or module `diagnostic`
+   |
+   = note: this error originates in the derive macro `::yew::Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<Fail>` is not satisfied
+  --> tests/html_macro/dyn-prop-fail.rs:63:32
+   |
+63 |     _ = ::yew::html! { <span { Fail }={ "" } /> };
+   |         -----------------------^^^^--------------
+   |         |                      |
+   |         |                      the trait `From<Fail>` is not implemented for `implicit_clone::unsync::string::IString`
+   |         required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `From<T>`:
+             `implicit_clone::unsync::string::IString` implements `From<&Classes>`
+             `implicit_clone::unsync::string::IString` implements `From<&implicit_clone::unsync::string::IString>`
+             `implicit_clone::unsync::string::IString` implements `From<&str>`
+             `implicit_clone::unsync::string::IString` implements `From<Arguments<'_>>`
+             `implicit_clone::unsync::string::IString` implements `From<Cow<'_, str>>`
+             `implicit_clone::unsync::string::IString` implements `From<Rc<str>>`
+             `implicit_clone::unsync::string::IString` implements `From<String>`
+   = note: required for `Fail` to implement `Into<implicit_clone::unsync::string::IString>`
+
+error[E0277]: the trait bound `implicit_clone::unsync::string::IString: From<Fail>` is not satisfied
+  --> tests/html_macro/dyn-prop-fail.rs:64:32
+   |
+64 |     _ = ::yew::html! { <span { dyn_prop() }={ "" } /> };
+   |         -----------------------^^^^^^^^^^--------------
+   |         |                      |
+   |         |                      the trait `From<Fail>` is not implemented for `implicit_clone::unsync::string::IString`
+   |         required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `From<T>`:
+             `implicit_clone::unsync::string::IString` implements `From<&Classes>`
+             `implicit_clone::unsync::string::IString` implements `From<&implicit_clone::unsync::string::IString>`
+             `implicit_clone::unsync::string::IString` implements `From<&str>`
+             `implicit_clone::unsync::string::IString` implements `From<Arguments<'_>>`
+             `implicit_clone::unsync::string::IString` implements `From<Cow<'_, str>>`
+             `implicit_clone::unsync::string::IString` implements `From<Rc<str>>`
+             `implicit_clone::unsync::string::IString` implements `From<String>`
+   = note: required for `Fail` to implement `Into<implicit_clone::unsync::string::IString>`

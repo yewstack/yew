@@ -20,7 +20,8 @@ pub fn write_changelog(changelog_path: &str, version_changelog: &[u8]) -> Result
 
     new_changelog.write_all(version_changelog)?;
 
-    for old_line in old_changelog_reader.lines().skip(2) {
+    // The `.skip` skips the title and link to the migration guide
+    for old_line in old_changelog_reader.lines().skip(4) {
         writeln!(new_changelog, "{}", old_line?)?;
     }
 

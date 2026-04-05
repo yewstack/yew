@@ -2,11 +2,14 @@ use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
 
 use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
-use quote::{quote, quote_spanned};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token, braced};
+use syn::{
+    Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, LitStr, Stmt, Token, braced,
+    parse_quote,
+};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
@@ -16,9 +19,85 @@ pub enum PropDirective {
     ApplyAsProperty(Token![~]),
 }
 
+pub enum PropLabel {
+    Static(HtmlDashedName),
+    Dynamic(Expr),
+}
+
+impl From<HtmlDashedName> for PropLabel {
+    fn from(value: HtmlDashedName) -> Self {
+        Self::Static(value)
+    }
+}
+
+impl From<LitStr> for PropLabel {
+    fn from(value: LitStr) -> Self {
+        Self::Dynamic(parse_quote! { #value })
+    }
+}
+
+impl TryFrom<PropLabel> for HtmlDashedName {
+    type Error = ();
+
+    fn try_from(value: PropLabel) -> Result<Self, Self::Error> {
+        use PropLabel::*;
+        match value {
+            Static(dashed_name) => Ok(dashed_name),
+            Dynamic(_) => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a PropLabel> for &'a HtmlDashedName {
+    type Error = ();
+
+    fn try_from(value: &'a PropLabel) -> Result<Self, Self::Error> {
+        use PropLabel::*;
+        match value {
+            Static(dashed_name) => Ok(dashed_name),
+            Dynamic(_) => Err(()),
+        }
+    }
+}
+
+impl TryFrom<PropLabel> for String {
+    type Error = ();
+
+    fn try_from(value: PropLabel) -> Result<Self, Self::Error> {
+        HtmlDashedName::try_from(value).map(|dashed_name| dashed_name.to_string())
+    }
+}
+
+impl TryFrom<&PropLabel> for String {
+    type Error = ();
+
+    fn try_from(value: &PropLabel) -> Result<Self, Self::Error> {
+        <&HtmlDashedName>::try_from(value).map(|dashed_name| dashed_name.to_string())
+    }
+}
+
+impl PartialEq<PropLabel> for PropLabel {
+    fn eq(&self, other: &PropLabel) -> bool {
+        match (self, other) {
+            (Self::Static(l), Self::Static(r)) => l == r,
+            // NOTE: Dynamic props may repeat
+            _ => false,
+        }
+    }
+}
+
+impl ToTokens for PropLabel {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            Self::Static(name) => name.to_tokens(tokens),
+            Self::Dynamic(expr) => expr.to_tokens(tokens),
+        }
+    }
+}
+
 pub struct Prop {
     pub directive: Option<PropDirective>,
-    pub label: HtmlDashedName,
+    pub label: PropLabel,
     /// Punctuation between `label` and `value`.
     pub value: Expr,
 }
@@ -30,7 +109,9 @@ impl Parse for Prop {
             .map(PropDirective::ApplyAsProperty)
             .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input, directive)
+            Self::parse_shorthand_or_expr_dynamic_prop_assignment(input, directive)
+        } else if input.peek(LitStr) {
+            Self::parse_literal_dynamic_prop_assignment(input, directive)
         } else {
             Self::parse_prop_assignment(input, directive)
         }
@@ -39,43 +120,87 @@ impl Parse for Prop {
 
 /// Helpers for parsing props
 impl Prop {
-    /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`
-    /// This only allows for labels with no hyphens, as it would otherwise create
-    /// an ambiguity in the syntax
-    fn parse_shorthand_prop_assignment(
+    /// Parse a prop using the shorthand syntax `{value}`, short for `value={value}`,
+    /// or using the `{label}={value}` dynamic label syntax.
+    ///
+    /// Shorthand syntax only allows for labels with no hyphens,
+    /// as it would otherwise create an ambiguity in the syntax.
+    fn parse_shorthand_or_expr_dynamic_prop_assignment(
         input: ParseStream,
         directive: Option<PropDirective>,
     ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
         let expr = value.parse::<Expr>()?;
-        let label = match expr {
-            Expr::Path(ExprPath {
-                ref attrs,
-                qself: None,
-                ref path,
-            }) => {
-                if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
-                    Ok(HtmlDashedName::from(ident.clone()))
-                } else {
-                    Err(syn::Error::new_spanned(
-                        path,
-                        "only simple identifiers are allowed in the shorthand property syntax",
-                    ))
-                }
+
+        // dynamic here
+        if input.peek(Token![=]) {
+            input.parse::<Token![=]>().unwrap();
+            let value = parse_prop_value(input)?;
+            return Ok(Self {
+                label: PropLabel::Dynamic(expr),
+                value,
+                directive,
+            });
+        }
+        // otherwise, shorthand
+
+        let label = if let Expr::Path(ExprPath {
+            ref attrs,
+            qself: None,
+            ref path,
+        }) = expr
+        {
+            if let (Some(ident), true) = (path.get_ident(), attrs.is_empty()) {
+                Ok(HtmlDashedName::from(ident.clone()))
+            } else {
+                Err(syn::Error::new_spanned(
+                    path,
+                    "only simple identifiers are allowed in the shorthand property syntax",
+                ))
             }
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    expr,
-                    "missing label for property value. If trying to use the shorthand property \
-                     syntax, only identifiers may be used",
-                ));
-            }
+        } else {
+            return Err(syn::Error::new_spanned(
+                expr,
+                "missing label for property value. If trying to use the shorthand property \
+                 syntax, only identifiers may be used",
+            ));
         }?;
 
         Ok(Self {
-            label,
+            label: label.into(),
             value: expr,
+            directive,
+        })
+    }
+
+    /// Parse a prop of the form `"label"={value}`
+    fn parse_literal_dynamic_prop_assignment(
+        input: ParseStream,
+        directive: Option<PropDirective>,
+    ) -> syn::Result<Self> {
+        let label = input.parse::<LitStr>()?;
+        let equals = input.parse::<Token![=]>().map_err(|_| {
+            let display = label.stringify();
+            syn::Error::new_spanned(
+                &label,
+                format!(
+                    "`{display}` doesn't have a value. (hint: set the value to `true` or `false` \
+                     for boolean attributes)"
+                ),
+            )
+        })?;
+        if input.is_empty() {
+            return Err(syn::Error::new_spanned(
+                equals,
+                "expected an expression following this equals sign",
+            ));
+        }
+
+        let value = parse_prop_value(input)?;
+        Ok(Self {
+            label: label.into(),
+            value,
             directive,
         })
     }
@@ -104,7 +229,7 @@ impl Prop {
 
         let value = parse_prop_value(input)?;
         Ok(Self {
-            label,
+            label: label.into(),
             value,
             directive,
         })
@@ -228,12 +353,16 @@ impl PropList {
     }
 
     fn position(&self, key: &str) -> Option<usize> {
-        self.0.iter().position(|it| it.label.to_string() == key)
+        self.0.iter().position(
+            |it| matches!(String::try_from(&it.label), Ok(dashed_name) if dashed_name == key),
+        )
     }
 
     /// Get the first prop with the given key.
     pub fn get_by_label(&self, key: &str) -> Option<&Prop> {
-        self.0.iter().find(|it| it.label.to_string() == key)
+        self.0
+            .iter()
+            .find(|it| matches!(String::try_from(&it.label), Ok(dashed_name) if dashed_name == key))
     }
 
     /// Pop the first prop with the given key.
@@ -290,7 +419,7 @@ impl PropList {
                 &prop.label,
                 format!(
                     "`{}` can only be specified once but is given here again",
-                    prop.label
+                    String::try_from(&prop.label).unwrap()
                 ),
             )
         }))
