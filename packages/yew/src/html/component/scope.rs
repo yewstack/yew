@@ -580,6 +580,19 @@ mod feat_csr {
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomSlot) {
+            if let Some(state) = self.state.borrow_mut().as_mut() {
+                match &state.render_state {
+                    ComponentRenderState::Render { sibling_slot, .. } => {
+                        sibling_slot.reassign(slot.clone());
+                    }
+                    #[cfg(feature = "hydration")]
+                    ComponentRenderState::Hydration { sibling_slot, .. } => {
+                        sibling_slot.reassign(slot.clone());
+                    }
+                    #[cfg(feature = "ssr")]
+                    ComponentRenderState::Ssr { .. } => {}
+                }
+            }
             schedule_props_update(self.state.clone(), props, slot)
         }
     }
