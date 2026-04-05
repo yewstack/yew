@@ -18,7 +18,7 @@ macro_rules! e {
 }
 
 macro_rules! assert {
-    ($condition:expr_2021, $($fmt:tt),* $(,)?) => {
+    ($condition:expr, $($fmt:tt),* $(,)?) => {
         if !$condition { e!($($fmt),*) }
     };
 }

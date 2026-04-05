@@ -10,7 +10,7 @@ use std::rc::Rc;
 use crate::html::ImplicitClone;
 
 macro_rules! generate_callback_impls {
-    ($callback:ident, $in_ty:ty, $out_var:ident => $out_val:expr_2021) => {
+    ($callback:ident, $in_ty:ty, $out_var:ident => $out_val:expr) => {
         impl<IN, OUT, F: Fn($in_ty) -> OUT + 'static> From<F> for $callback<IN, OUT> {
             fn from(func: F) -> Self {
                 $callback { cb: Rc::new(func) }

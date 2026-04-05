@@ -194,7 +194,7 @@ impl BList {
         rev_bundles: &mut Vec<BNode>,
     ) -> DomSlot {
         macro_rules! key {
-            ($v:expr_2021) => {
+            ($v:expr) => {
                 $v.key().expect("unkeyed child in fully keyed list")
             };
         }

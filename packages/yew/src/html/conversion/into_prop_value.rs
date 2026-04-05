@@ -216,7 +216,7 @@ impl<T: IntoPropValue<VNode>> IntoPropValue<VNode> for Option<T> {
 }
 
 macro_rules! impl_into_prop {
-    (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr_2021 }) => {
+    (|$value:ident: $from_ty:ty| -> $to_ty:ty { $conversion:expr }) => {
         // implement V -> T
         impl IntoPropValue<$to_ty> for $from_ty {
             #[inline]

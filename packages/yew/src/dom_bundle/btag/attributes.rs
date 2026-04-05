@@ -253,7 +253,7 @@ impl Apply for Attributes {
                         };
                     }
                     macro_rules! set {
-                        ($new:expr_2021) => {
+                        ($new:expr) => {
                             Self::set(el, key!(), $new)
                         };
                     }
