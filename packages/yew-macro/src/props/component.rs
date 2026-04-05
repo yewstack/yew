@@ -7,7 +7,8 @@ use syn::spanned::Spanned;
 use syn::token::DotDot;
 use syn::Expr;
 
-use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
+use super::{Prop, PropLabel, Props, SpecialProps, CHILDREN_LABEL};
+use crate::html_tree::HtmlDashedName;
 
 fn is_none_expr(expr: &Expr) -> bool {
     matches!(
@@ -112,8 +113,9 @@ impl ComponentProps {
                 };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
                     if is_none_expr(value) {
+                        let name = <&HtmlDashedName>::try_from(label).unwrap();
                         let none_setter = Ident::new(
-                            &format!("{}_none", label),
+                            &format!("{}_none", name),
                             label.span().resolved_at(Span::mixed_site()),
                         );
                         quote_spanned! {value.span()=>
@@ -217,15 +219,12 @@ impl TryFrom<Props> for ComponentProps {
 
 fn validate(props: Props) -> Result<Props, syn::Error> {
     props.check_no_duplicates()?;
-    props.check_all(|prop| {
-        if !prop.label.extended.is_empty() {
-            Err(syn::Error::new_spanned(
-                &prop.label,
-                "expected a valid Rust identifier",
-            ))
-        } else {
-            Ok(())
-        }
+    props.check_all(|prop| match &prop.label {
+        PropLabel::Static(dashed_name) if dashed_name.extended.is_empty() => Ok(()),
+        _ => Err(syn::Error::new_spanned(
+            &prop.label,
+            "components expect valid Rust identifiers for their property names",
+        )),
     })?;
 
     Ok(props)

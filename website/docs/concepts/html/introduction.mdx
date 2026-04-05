@@ -184,6 +184,20 @@ and thus must be enclosed in curly-braces `{-6}`
 
 :::
 
+Attribute names can also be set dynamically using string literals or expressions. This is useful for
+attributes that are not valid Rust identifiers, such as `hx-on:click`:
+
+```rust
+use yew::prelude::*;
+
+html! { <div "hx-on:click"="alert('Clicked!')" /> };
+html! { <div { String::from("hx-on:click") }={ "alert('Clicked!')" } /> };
+```
+
+:::info
+Read more at [Dynamic attribute names](./html/elements#dynamic-attribute-names)
+:::
+
 :::note Component properties
 Component properties are passed as Rust objects and are different from the element attributes/properties described here.
 Read more about them at [Component Properties](../function-components/properties.mdx)
