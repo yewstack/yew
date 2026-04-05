@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Reactor, ReactorBridge, ReactorScoped, ReactorSpawner};
+use crate::Reach;
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
-use crate::Reach;
 
 pub(crate) struct ReactorProviderState<T>
 where
@@ -27,7 +27,7 @@ where
     T: Reactor,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(type_name::<Self>())
+        f.debug_struct(type_name::<Self>()).finish_non_exhaustive()
     }
 }
 
@@ -89,11 +89,13 @@ where
 #[component]
 pub fn ReactorProvider<R, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
-    R: 'static + Reactor,
-    <<R as Reactor>::Scope as ReactorScoped>::Input:
-        Serialize + for<'de> Deserialize<'de> + 'static,
-    <<R as Reactor>::Scope as ReactorScoped>::Output:
-        Serialize + for<'de> Deserialize<'de> + 'static,
+    R: 'static
+        + Reactor<
+            Scope: ReactorScoped<
+                Input: Serialize + for<'de> Deserialize<'de> + 'static,
+                Output: Serialize + for<'de> Deserialize<'de> + 'static,
+            >,
+        >,
     C: Codec + 'static,
 {
     let WorkerProviderProps {

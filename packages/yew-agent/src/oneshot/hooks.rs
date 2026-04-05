@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
-use super::provider::OneshotProviderState;
 use super::Oneshot;
+use super::provider::OneshotProviderState;
 
 /// Hook handle for [`use_oneshot_runner`]
 #[derive(Debug)]

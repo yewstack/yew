@@ -58,14 +58,13 @@ where
     W: Worker,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(type_name::<Self>())
+        f.debug_struct(type_name::<Self>()).finish_non_exhaustive()
     }
 }
 
 impl<W> WorkerProviderState<W>
 where
-    W: Worker,
-    W::Output: 'static,
+    W: Worker<Output: 'static>,
 {
     fn get_held_bridge(&self) -> Rc<WorkerBridge<W>> {
         let mut held_bridge = self.held_bridge.borrow_mut();
@@ -107,9 +106,10 @@ where
 #[component]
 pub fn WorkerProvider<W, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
-    W: Worker + 'static,
-    W::Input: Serialize + for<'de> Deserialize<'de> + 'static,
-    W::Output: Serialize + for<'de> Deserialize<'de> + 'static,
+    W: Worker<
+            Input: Serialize + for<'de> Deserialize<'de> + 'static,
+            Output: Serialize + for<'de> Deserialize<'de> + 'static,
+        > + 'static,
     C: Codec + 'static,
 {
     let WorkerProviderProps {

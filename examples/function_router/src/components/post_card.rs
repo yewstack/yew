@@ -3,9 +3,9 @@ use std::rc::Rc;
 use yew::prelude::*;
 use yew_router::components::Link;
 
+use crate::Route;
 use crate::content::PostMeta;
 use crate::generator::Generated;
-use crate::Route;
 
 #[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {

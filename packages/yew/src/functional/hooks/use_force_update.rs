@@ -12,7 +12,7 @@ pub struct UseForceUpdateHandle {
 
 impl fmt::Debug for UseForceUpdateHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseForceUpdate").finish()
+        f.debug_struct("UseForceUpdate").finish_non_exhaustive()
     }
 }
 

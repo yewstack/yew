@@ -1,8 +1,10 @@
 [package]
 name = "collect-release-info"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+regex = "1"
 serde_json.workspace = true

@@ -1,11 +1,11 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Comma, Fn};
 use syn::{
-    parse_quote, parse_quote_spanned, visit_mut, Attribute, Block, FnArg, Generics, Ident, Item,
-    ItemFn, LitStr, ReturnType, Type, Visibility,
+    Attribute, Block, FnArg, Generics, Ident, Item, ItemFn, LitStr, ReturnType, Type, Visibility,
+    parse_quote, parse_quote_spanned, visit_mut,
 };
 
 use crate::hook::BodyRewriter;
@@ -36,7 +36,7 @@ impl Parse for FunctionComponent {
                 return Err(syn::Error::new_spanned(
                     item,
                     "`component` attribute can only be applied to functions",
-                ))
+                ));
             }
         };
 
@@ -80,7 +80,7 @@ impl Parse for FunctionComponent {
                 return Err(syn::Error::new_spanned(
                     sig,
                     "function components must return `yew::Html` or `yew::HtmlResult`",
-                ))
+                ));
             }
             ReturnType::Type(_, ty) => ty,
         };
@@ -242,12 +242,12 @@ impl FunctionComponent {
     fn print_inner_fn(&self) -> TokenStream {
         let name = self.inner_fn_ident();
         let FunctionComponent {
-            ref fn_token,
-            ref attrs,
-            ref block,
-            ref return_type,
-            ref generics,
-            ref arg,
+            fn_token,
+            attrs,
+            block,
+            return_type,
+            generics,
+            arg,
             ..
         } = self;
         let mut block = *block.clone();

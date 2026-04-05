@@ -260,7 +260,7 @@ impl PartialEq for VComp {
 
 impl<COMP: BaseComponent> fmt::Debug for VChild<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("VChild<_>")
+        f.debug_struct("VChild<_>").finish_non_exhaustive()
     }
 }
 
@@ -290,8 +290,8 @@ mod feat_ssr {
 mod ssr_tests {
     use tokio::test;
 
-    use crate::prelude::*;
     use crate::ServerRenderer;
+    use crate::prelude::*;
 
     #[test]
     async fn test_props() {

@@ -55,6 +55,56 @@ html! {
 };
 ```
 
+## 動的な属性名
+
+動的なタグ名と同様に、属性名も実行時に決定できます。これは HTMX のようなコロンを含む属性（例: `hx-on:click`）を使用するライブラリや、属性名がコンパイル時に不明な場合に便利です。
+
+動的な属性名には、文字列リテラルと式の 2 つの構文があります。
+
+### 文字列リテラルの属性名
+
+文字列リテラルを属性名として直接使用します：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div "hx-on:click"="alert('Clicked!')" />
+};
+```
+
+中括弧で囲んだ値でも使用できます：
+
+```rust
+use yew::prelude::*;
+
+let handler = "alert('Clicked!')";
+
+html! {
+    <div "hx-on:click"={handler} />
+};
+```
+
+### 式の属性名
+
+任意の式を中括弧で囲んで、属性名を動的に計算します：
+
+```rust
+use yew::prelude::*;
+
+let attr_name = format!("hx-on:{}", "click");
+
+html! {
+    <div { attr_name }={ "alert('Clicked!')" } />
+};
+```
+
+式は `Into<AttrValue>` を実装する型（例: `String`、`&str`、`AttrValue`）に評価される必要があります。
+
+:::note
+動的な属性名は HTML 要素でのみサポートされています。コンポーネントのプロパティには静的な Rust 識別子が必要です。[コンポーネントプロパティ](../function-components/properties.mdx)を参照してください。
+:::
+
 ## 論理値属性
 
 いくつかのコンテンツ属性（例えば、checked、hidden、required）は論理値属性と呼ばれます。Yew では、論理値属性はブール値に設定する必要があります：

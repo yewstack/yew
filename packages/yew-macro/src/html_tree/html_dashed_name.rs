@@ -1,7 +1,7 @@
 use std::fmt;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
@@ -9,7 +9,7 @@ use syn::spanned::Spanned;
 use syn::{LitStr, Token};
 
 use crate::stringify::Stringify;
-use crate::{non_capitalized_ascii, Peek};
+use crate::{Peek, non_capitalized_ascii};
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct HtmlDashedName {

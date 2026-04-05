@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::{IArray, IMap};
 
 use crate::callback::Callback;
 use crate::html::{BaseComponent, ChildrenRenderer, Component, Scope};

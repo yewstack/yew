@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use tokio::process::{Child, Command};
-use tokio::time::{sleep, Instant};
+use tokio::time::{Instant, sleep};
 
 #[derive(Parser)]
 struct Args {

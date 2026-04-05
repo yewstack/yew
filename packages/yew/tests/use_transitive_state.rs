@@ -9,7 +9,7 @@ use common::obtain_result_by_id;
 use wasm_bindgen_test::*;
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::{scheduler, Renderer, ServerRenderer};
+use yew::{Renderer, ServerRenderer, scheduler};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

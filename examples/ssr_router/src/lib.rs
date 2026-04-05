@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
-use function_router::content;
 #[cfg(not(target_arch = "wasm32"))]
 use function_router::Generated;
+use function_router::content;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
-use yew_link::{linked_state, use_linked_state, LinkProvider, ResolverProp};
+use yew_link::{LinkProvider, ResolverProp, linked_state, use_linked_state};
 use yew_router::prelude::*;
 
 pub const LINK_ENDPOINT: &str = "/api/link";
@@ -326,7 +327,7 @@ fn LinkedPostList() -> Html {
 #[component]
 fn LinkedAuthorList() -> Html {
     let seeds = use_state(|| {
-        use rand::{distr, Rng};
+        use rand::distr;
         rand::rng()
             .sample_iter(distr::StandardUniform)
             .take(2)
@@ -336,7 +337,7 @@ fn LinkedAuthorList() -> Html {
     let on_complete = {
         let seeds = seeds.clone();
         Callback::from(move |_| {
-            use rand::{distr, Rng};
+            use rand::distr;
             seeds.set(
                 rand::rng()
                     .sample_iter(distr::StandardUniform)
