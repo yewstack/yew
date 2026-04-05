@@ -1,4 +1,4 @@
-use rand::{Rng, distr};
+use rand::{RngExt, distr};
 use yew::prelude::*;
 
 use crate::components::author_card::AuthorCard;

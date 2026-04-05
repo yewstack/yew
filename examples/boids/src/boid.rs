@@ -1,7 +1,7 @@
 use std::fmt::Write;
 use std::iter;
 
-use rand::Rng;
+use rand::RngExt;
 use yew::{Html, html};
 
 use crate::math::{self, Mean, Vector2D, WeightedMean};

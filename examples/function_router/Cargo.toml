@@ -9,7 +9,8 @@ license = "MIT OR Apache-2.0"
 image = { version = "0.25", default-features = false, features = ["png"] }
 lipsum = { version = "0.9.1", git = "https://github.com/mgeisler/lipsum.git", rev = "233e48a" }
 log.workspace = true
-rand = { workspace = true, features = ["small_rng"] }
+rand.workspace = true
+rand_09 = { package = "rand", version = "0.9", features = ["small_rng"] }
 yew = { path = "../../packages/yew" }
 yew-router = { path = "../../packages/yew-router" }
 serde = { workspace = true, features = ["derive"] }

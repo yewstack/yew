@@ -9,7 +9,7 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-rand = { workspace = true, features = ["small_rng"] }
+rand.workspace = true
 getrandom = { workspace = true }
 wasm-bindgen.workspace = true
 web-sys = { workspace = true, features = ["Window"]}

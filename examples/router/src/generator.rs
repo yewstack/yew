@@ -1,10 +1,10 @@
 use std::sync::LazyLock;
 
 use lipsum::MarkovChain;
-use rand::distr::Bernoulli;
-use rand::rngs::SmallRng;
-use rand::seq::IteratorRandom;
-use rand::{Rng, SeedableRng};
+use rand_09::distr::Bernoulli;
+use rand_09::rngs::SmallRng;
+use rand_09::seq::IteratorRandom;
+use rand_09::{Rng, SeedableRng};
 
 const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");

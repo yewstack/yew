@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 use rand::distr::Bernoulli;
 
 /// `0 <= p <= 1`
