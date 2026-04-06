@@ -1,6 +1,6 @@
 use std::sync::{LazyLock, Mutex};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use git2::{Error, Oid, Repository};
 use regex::Regex;
 

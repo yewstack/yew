@@ -1,5 +1,5 @@
 use proc_macro2::Delimiter;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::{braced, token};

@@ -172,6 +172,19 @@ html! { <my-element ~property="abc" /> };
 
 :::
 
+屬性名也可以使用字串字面量或表達式動態設定。這對於不是有效 Rust 識別符號的屬性（如 `hx-on:click`）很有用：
+
+```rust
+use yew::prelude::*;
+
+html! { <div "hx-on:click"="alert('Clicked!')" /> };
+html! { <div { String::from("hx-on:click") }={ "alert('Clicked!')" } /> };
+```
+
+:::info
+詳情請參閱[動態屬性名](./html/elements#dynamic-attribute-names)
+:::
+
 :::note 元件屬性
 元件屬性以 Rust 物件傳遞，與此處所述的元素參數 (Attributes) / 屬性 (Properties) 不同。
 在[元件屬性](../function-components/properties.mdx)中了解更多。

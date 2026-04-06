@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use yew::{function_component, html, Properties};
+use yew::{Properties, function_component, html};
 
 use crate::constant::Status;
 

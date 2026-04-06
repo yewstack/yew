@@ -1,12 +1,12 @@
 use proc_macro2::{Delimiter, Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{braced, token, Token};
+use syn::{Token, braced, token};
 
-use crate::{is_ide_completion, PeekValue};
+use crate::{PeekValue, is_ide_completion};
 
 mod html_block;
 mod html_component;
@@ -260,17 +260,21 @@ impl HtmlChildrenTree {
         }
 
         let vec_ident = Ident::new("__yew_v", Span::mixed_site());
-        let add_children_streams = children.iter().map(|child| {
-            if let Some(node_iterator_stream) = child.to_node_iterator_stream() {
-                quote! {
-                    ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
-                }
-            } else {
-                quote_spanned! {child.span()=>
-                    #vec_ident.push(::std::convert::Into::into(#child));
-                }
-            }
-        });
+        let add_children_streams =
+            children
+                .iter()
+                .map(|child| match child.to_node_iterator_stream() {
+                    Some(node_iterator_stream) => {
+                        quote! {
+                            ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
+                        }
+                    }
+                    _ => {
+                        quote_spanned! {child.span()=>
+                            #vec_ident.push(::std::convert::Into::into(#child));
+                        }
+                    }
+                });
 
         quote! {
             {
@@ -357,11 +361,12 @@ impl HtmlChildrenTree {
         for child in self.0.iter() {
             match child {
                 HtmlTree::Block(block) => {
-                    return if let BlockContent::Node(node) = &block.content {
-                        matches!(&**node, HtmlNode::Literal(_)).then_some(false)
-                    } else {
-                        None
-                    }
+                    return match &block.content {
+                        BlockContent::Node(node) => {
+                            matches!(&**node, HtmlNode::Literal(_)).then_some(false)
+                        }
+                        _ => None,
+                    };
                 }
                 HtmlTree::Component(comp) => {
                     if comp.props.props.special.key.is_none() {

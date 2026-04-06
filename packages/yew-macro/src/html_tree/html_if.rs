@@ -1,9 +1,9 @@
 use proc_macro2::TokenStream;
-use quote::{quote_spanned, ToTokens};
+use quote::{ToTokens, quote_spanned};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{parse_quote, Expr, Token};
+use syn::{Expr, Token, parse_quote};
 
 use super::HtmlRootBraced;
 use crate::PeekValue;
@@ -31,7 +31,7 @@ impl Parse for HtmlIf {
                 return Err(syn::Error::new(
                     cond.span(),
                     "missing condition for `if` expression",
-                ))
+                ));
             }
             _ => {}
         }

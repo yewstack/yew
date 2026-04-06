@@ -101,12 +101,12 @@ pub mod prelude {
     //!
     //! This module re-exports the frequently used types from the crate.
 
+    #[doc(no_inline)]
+    pub use crate::Routable;
     pub use crate::components::{Link, Redirect};
     pub use crate::history::Location;
     pub use crate::hooks::*;
     pub use crate::navigator::{NavigationError, NavigationResult, Navigator};
     pub use crate::scope_ext::{LocationHandle, NavigatorHandle, RouterScopeExt};
-    #[doc(no_inline)]
-    pub use crate::Routable;
     pub use crate::{BrowserRouter, HashRouter, Router, Switch};
 }

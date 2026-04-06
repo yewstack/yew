@@ -1,7 +1,7 @@
 pub mod agent;
 use agent::{ControlSignal, PrimeReactor};
 use yew::prelude::*;
-use yew_agent::reactor::{use_reactor_subscription, ReactorProvider};
+use yew_agent::reactor::{ReactorProvider, use_reactor_subscription};
 
 #[function_component]
 fn Main() -> Html {

@@ -1,5 +1,5 @@
 use gloo::timers::callback::Interval;
-use yew::{html, Component, Context, Html, Properties};
+use yew::{Component, Context, Html, Properties, html};
 
 use crate::boid::Boid;
 use crate::math::Vector2D;

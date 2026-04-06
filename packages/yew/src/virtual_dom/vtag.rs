@@ -1,6 +1,5 @@
 //! This module contains the implementation of a virtual element node [VTag].
 
-use std::cmp::PartialEq;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Deref, DerefMut};
@@ -178,7 +177,6 @@ impl VTag {
     /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
     /// fields.
     #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
     pub fn __new_input(
         value: Option<AttrValue>,
         checked: Option<bool>,
@@ -211,7 +209,6 @@ impl VTag {
     /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
     /// fields.
     #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
     pub fn __new_textarea(
         value: Option<AttrValue>,
         defaultvalue: Option<AttrValue>,
@@ -240,7 +237,6 @@ impl VTag {
     /// higher instruction parallelism by reducing data dependency and avoids `memcpy` of Vtag
     /// fields.
     #[doc(hidden)]
-    #[allow(clippy::too_many_arguments)]
     pub fn __new_other(
         tag: AttrValue,
         node_ref: NodeRef,
@@ -261,7 +257,6 @@ impl VTag {
 
     /// Constructs a [VTag] from [VTagInner] and fields common to all [VTag] kinds
     #[inline]
-    #[allow(clippy::too_many_arguments)]
     fn new_base(
         inner: VTagInner,
         node_ref: NodeRef,
@@ -563,8 +558,8 @@ mod feat_ssr {
 mod ssr_tests {
     use tokio::test;
 
-    use crate::prelude::*;
     use crate::LocalServerRenderer as ServerRenderer;
+    use crate::prelude::*;
 
     #[cfg_attr(not(target_os = "wasi"), test)]
     #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]

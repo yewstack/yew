@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{window, HtmlCanvasElement, WebGlRenderingContext as GL, WebGlRenderingContext};
-use yew::{html, Component, Context, Html, NodeRef};
+use wasm_bindgen::prelude::*;
+use web_sys::{HtmlCanvasElement, WebGlRenderingContext as GL, WebGlRenderingContext, window};
+use yew::{Component, Context, Html, NodeRef, html};
 
 // Wrap gl in Rc (Arc for multi-threaded) so it can be injected into the render-loop closure.
 pub struct App {

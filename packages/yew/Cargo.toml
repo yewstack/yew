@@ -1,7 +1,7 @@
 [package]
 name = "yew"
 version = "0.23.0"
-edition = "2021"
+edition = "2024"
 authors = [
   "Denis Kolodin <deniskolodin@gmail.com>",
   "Justin Starry <justin@yew.rs>",
@@ -14,7 +14,7 @@ keywords = ["web", "webasm", "javascript"]
 categories = ["gui", "wasm", "web-programming"]
 description = "A framework for creating reliable and efficient web applications"
 readme = "../../README.md"
-rust-version = "1.84.0"
+rust-version.workspace = true
 
 [dependencies]
 console_error_panic_hook = "0.1"
@@ -32,7 +32,7 @@ base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 tracing = "0.1.44"
-tokise = "0.2.1"
+tokise = "0.3"
 rustversion.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

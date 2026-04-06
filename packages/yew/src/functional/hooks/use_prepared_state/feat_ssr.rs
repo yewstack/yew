@@ -1,14 +1,13 @@
 //! The server-side rendering variant. This is used for server side rendering.
 
-use std::future::Future;
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use super::PreparedStateBase;
-use crate::functional::{use_memo, use_state, Hook, HookContext};
+use crate::functional::{Hook, HookContext, use_memo, use_state};
 use crate::platform::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 

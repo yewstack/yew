@@ -6,11 +6,11 @@
 //! `build()` method.
 
 use proc_macro2::{Ident, Span};
-use quote::{format_ident, quote, ToTokens};
-use syn::{parse_quote_spanned, Attribute, GenericParam};
+use quote::{ToTokens, format_ident, quote};
+use syn::{Attribute, GenericParam, parse_quote_spanned};
 
-use super::generics::to_arguments;
 use super::DerivePropsInput;
+use super::generics::to_arguments;
 use crate::derive_props::generics::push_type_param;
 
 pub struct PropsBuilder<'a> {

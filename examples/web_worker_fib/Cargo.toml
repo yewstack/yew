@@ -1,7 +1,8 @@
 [package]
 name = "yew-worker-fib"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version.workspace = true
 authors = ["Shrey Somaiya", "Zac Kologlu"]
 
 [dependencies]

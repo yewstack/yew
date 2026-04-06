@@ -6,8 +6,8 @@ use quote::{format_ident, quote, quote_spanned};
 use syn::parse::Result;
 use syn::spanned::Spanned;
 use syn::{
-    parse_quote, Attribute, Error, Expr, Field, GenericArgument, GenericParam, Generics,
-    PathArguments, Type, Visibility,
+    Attribute, Error, Expr, Field, GenericArgument, GenericParam, Generics, PathArguments, Type,
+    Visibility, parse_quote,
 };
 
 use super::should_preserve_attr;
@@ -27,7 +27,6 @@ fn is_option_type(ty: &Type) -> bool {
     false
 }
 
-#[allow(clippy::large_enum_variant)]
 #[derive(PartialEq, Eq)]
 pub enum PropAttr {
     Required { wrapped_name: Ident },

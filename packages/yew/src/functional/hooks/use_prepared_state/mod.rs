@@ -101,8 +101,8 @@ mod feat_any_hydration_ssr {
     #[cfg(feature = "ssr")]
     use std::rc::Rc;
 
-    use serde::de::DeserializeOwned;
     use serde::Serialize;
+    use serde::de::DeserializeOwned;
 
     use crate::functional::PreparedState;
 

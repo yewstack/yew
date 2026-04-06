@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use gloo_timers::callback::Timeout;
-use web_sys::wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
+use web_sys::wasm_bindgen::JsCast;
 use yew::*;
 
 #[component]

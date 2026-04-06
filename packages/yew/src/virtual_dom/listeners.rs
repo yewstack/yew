@@ -33,8 +33,8 @@ macro_rules! gen_listener_kinds {
         // Using instead of strings to optimise registry collection performance by simplifying
         // hashmap hash calculation.
         #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-        #[allow(non_camel_case_types)]
-        #[allow(missing_docs)]
+        #[expect(non_camel_case_types)]
+        #[expect(missing_docs)]
         pub enum ListenerKind {
             $( $kind, )*
             other(std::borrow::Cow<'static, str>),
@@ -190,7 +190,6 @@ impl PartialEq for Listeners {
                                 // We are okay with comparisons from different compilation units to
                                 // result in false not-equal results. This should only lead in the
                                 // worst-case to some unneeded re-renders.
-                                #[allow(ambiguous_wide_pointer_comparisons)]
                                 Rc::ptr_eq(lhs, rhs)
                             }
                             (None, None) => true,

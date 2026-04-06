@@ -5,10 +5,10 @@ use std::rc::Rc;
 
 use implicit_clone::ImplicitClone;
 
-use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
+use super::{Reducible, UseReducerDispatcher, UseReducerHandle, use_reducer, use_reducer_eq};
+use crate::Callback;
 use crate::functional::hook;
 use crate::html::IntoPropValue;
-use crate::Callback;
 
 #[repr(transparent)]
 struct UseStateReducer<T> {
@@ -112,7 +112,7 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseStateHandle")
             .field("value", &format!("{:?}", **self))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -196,7 +196,7 @@ where
     T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseStateSetter").finish()
+        f.debug_struct("UseStateSetter").finish_non_exhaustive()
     }
 }
 
