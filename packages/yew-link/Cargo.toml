@@ -26,8 +26,9 @@ actix-web = { version = "4.13", optional = true }
 default = []
 ssr = ["yew/ssr"]
 hydration = ["yew/hydration"]
-axum = ["dep:axum"]
-actix = ["dep:actix-web"]
+axum = ["dep:axum", "services"]
+actix = ["dep:actix-web", "services"]
+services = []
 
 [lints]
 workspace = true

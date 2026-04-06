@@ -290,7 +290,7 @@ impl Eq for CacheKey {}
 fn eq_inputs<I: PartialEq + 'static>(a: &dyn Any, b: &dyn Any) -> bool {
     a.downcast_ref::<I>()
         .zip(b.downcast_ref::<I>())
-        .map_or(false, |(a, b)| a == b)
+        .is_some_and(|(a, b)| a == b)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -679,8 +679,8 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "services"))]
 mod services;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "services"))]
 pub use services::*;
