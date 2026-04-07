@@ -1,11 +1,11 @@
 #![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
+use actix_ssr_router::{App, AppProps, LINK_ENDPOINT};
 use gloo::utils::document;
 use ssr_e2e_harness::{
     clear_resource_timings, fetch_ssr_html, output_element, resource_request_count, setup_ssr_page,
     wait_for,
 };
-use ssr_router::{App, AppProps, LINK_ENDPOINT};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use yew::Renderer;
