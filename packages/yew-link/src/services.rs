@@ -45,7 +45,7 @@ pub mod axum {
 }
 
 #[cfg(feature = "actix")]
-pub mod actix_web {
+pub mod actix {
     use actix_web::HttpResponse;
     use actix_web::web::{Data, Json};
 

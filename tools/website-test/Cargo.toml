@@ -10,16 +10,19 @@ rust-version.workspace = true
 yew-agent = { path = "../../packages/yew-agent/" }
 
 [dev-dependencies]
+actix-web = { workspace = true }
 derive_more = { version = "2.1", features = ["from"] }
 gloo.workspace = true
 gloo-net = "0.7"
 js-sys.workspace = true
 serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 weblog = "0.3.0"
 yew = { path = "../../packages/yew/", features = ["ssr", "csr", "serde"] }
 yew-autoprops = "0.5.0"
+yew-link = { path = "../../packages/yew-link/", features = ["actix"] }
 yew-router = { path = "../../packages/yew-router/" }
 tokio = { workspace = true, features = ["rt", "macros"] }
 

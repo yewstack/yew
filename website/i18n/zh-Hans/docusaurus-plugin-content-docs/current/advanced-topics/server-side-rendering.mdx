@@ -84,13 +84,162 @@ Yew 采用了一种不同的方法，通过 `<Suspense />` 来解决这个问题
 
 通过这种方法，开发人员可以轻松构建一个准备好进行服务端渲染的、与客户端无关的应用程序，并进行数据获取。
 
+### 低层钩子
+
+Yew 提供了两个低层钩子，用于将服务端计算出的状态传递到客户端：
+
+- **`use_prepared_state!`** 在 SSR 期间运行一个（可选 async 的）闭包，将结果序列化，并在水合期间传递到客户端。适合获取组件首次渲染所需的数据。
+- **`use_transitive_state!`** 类似，但闭包会在组件的 SSR 输出生成 _之后_ 才运行。适合收集缓存或汇总状态。
+
+两者底层都使用 `bincode` 加 `base64`，并以 `<script>` 标签的形式嵌入到 HTML 中。
+
+### `yew-link`：统一的数据获取
+
+低层钩子能处理 **首次页面加载**（从 SSR 到水合），但水合之后的客户端导航需要一条独立的数据获取路径（例如 `use_future_with` 加上一个 HTTP 客户端）。这意味着同一份数据逻辑要写两遍。
+
+`yew-link` crate 提供了一个更高层的抽象，将所有三条路径（SSR、水合和客户端导航）统一在同一个钩子背后：
+
+1. 使用 `#[linked_state]` 属性宏 **定义** 你的数据类型。
+2. 在服务端 **注册** 一个 resolver。
+3. 用 `<LinkProvider>` **包裹** 你的应用。
+4. 在任意组件中 **调用** `use_linked_state::<MyData>(input)`。
+
+```rust ,ignore
+use yew_link::{linked_state, LinkedState};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Post { pub title: String, pub body: String }
+
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+        ctx.get_post(*id).await
+    }
+}
+```
+
+该宏会生成 `LinkedState` 以及（仅服务端的）`LinkedStateResolve` trait 实现。`resolve` 函数体会自动从 WASM 包中剥离。
+
+#### 类型化错误
+
+如果 `resolve` 可能失败，可以声明 `type Error`：
+
+```rust ,ignore
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+    type Error = ApiError;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Result<Self, ApiError> {
+        ctx.get_post(*id).await.map_err(ApiError::from)
+    }
+}
+```
+
+省略 `type Error` 时，错误类型默认为不可实例化的 `Never`，并且 `resolve` 函数体会被自动包装在 `Ok(…)` 中。
+
+`use_linked_state` 返回 `SuspensionResult<LinkedStateHandle<T>>`。外层用于挂起（加载中）。该句柄提供：
+
+- **`.data()`** 返回解析后的 `Rc<T>`，遇到错误时会 panic。
+- **`.as_result()`** 借用底层的 `Result<Rc<T>, LinkError<T::Error>>`，方便进行模式匹配。
+- **`.refresh()`** 触发后台重新拉取，同时仍然显示之前（旧）的值（stale-while-revalidate）。
+- **`.is_refreshing()`** 当后台刷新进行中时返回 `true`，便于在旧数据旁边显示加载指示器。
+
+`LinkError` 区分了应用层错误（`LinkError::Resolve`）与基础设施错误（`LinkError::Internal`）。
+
+如果多个组件并发请求相同的 `(T, Input)`，它们会自动共用同一个进行中的请求。
+
+#### 服务端设置
+
+```rust ,ignore
+use yew_link::{Resolver, axum::linked_state_handler};
+
+let resolver = Arc::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+let app = axum::Router::new()
+    .route("/api/link", axum::routing::post(linked_state_handler))
+    .with_state(resolver);
+```
+
+上面的例子使用了 `axum` 特性。`yew-link` 也提供了一个 `actix` 特性，将相同的 handler 暴露在 `yew_link::actix::linked_state_handler` 之下：
+
+```rust ,ignore
+use actix_web::{App, HttpServer, web::{Data, post}};
+use yew_link::{Resolver, actix::linked_state_handler};
+
+let resolver = Data::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+HttpServer::new(move || {
+    App::new()
+        .app_data(resolver.clone())
+        .route("/api/link", post().to(linked_state_handler))
+})
+.bind(("0.0.0.0", 8080))?
+.run()
+.await
+```
+
+<details>
+<summary>为什么 `actix-web` 被锁定在 4.12，以及如何为其他服务器框架实现 handler</summary>
+
+`actix` 特性被锁定在 `actix-web 4.12.x`，因为 Yew 的 MSRV 为 `1.85`，而 `actix-web 4.13` 及更高版本要求 `rustc 1.88`。这一版本约束仅存在于 `yew-link` 内部，目的是让 workspace 的其他部分仍能在受支持的工具链上构建；它不会影响你在自己应用程序的其他地方使用哪个版本的 `actix-web`。
+
+如果你需要更新版本的 `actix-web`（或者任何其他 web 框架），并且不想启用内置的特性，这个 handler 足够小，完全可以自己内联实现。你需要用到的全部公开 API 只有 `Resolver::resolve_request` 以及表示传输格式的 `LinkRequest` 类型：
+
+```rust
+use actix_web::HttpResponse;
+use actix_web::web::{Data, Json};
+use serde_json::json;
+use yew_link::{LinkRequest, Resolver};
+
+pub async fn linked_state_handler(
+    resolver: Data<Resolver>,
+    Json(req): Json<LinkRequest>,
+) -> HttpResponse {
+    match resolver.resolve_request(&req).await {
+        Ok(val) => HttpResponse::Ok().json(json!({ "ok": val })),
+        Err(err) => HttpResponse::UnprocessableEntity().json(json!({ "error": err })),
+    }
+}
+```
+
+同样的写法适用于 `axum`、`warp`、`rocket`，或任何能够将 JSON 反序列化为 `LinkRequest`、调用一个 async 函数并将结果序列化为 JSON 响应的框架。使用 `serde_json::json!` 构造响应的传输格式，可以避免让 yew-link 内部的 `LinkResponse` 类型出现在你的依赖范围中。
+
+</details>
+
+#### 组件中的使用
+
+```rust ,ignore
+use yew_link::{use_linked_state, LinkProvider};
+
+#[component]
+fn PostPage(props: &PostPageProps) -> HtmlResult {
+    let post = use_linked_state::<Post>(props.id)?.data();
+    Ok(html! { <h1>{ &post.title }</h1> })
+}
+```
+
+在 SSR 期间，状态会通过 `Resolver` 在本地解析，并通过 `use_prepared_state` 嵌入到 HTML 中。水合时客户端会直接读取嵌入的状态，无需任何网络请求。在之后的客户端导航中，该钩子会自动从 `LinkProvider` 的 endpoint URL 拉取数据。
+
+参见 [`axum_ssr_router`](https://github.com/yewstack/yew/tree/master/examples/axum_ssr_router) 与 [`actix_ssr_router`](https://github.com/yewstack/yew/tree/master/examples/actix_ssr_router) 示例查看完整可运行的演示。
+
 ## 渲染 `<head>` 标签
 
 SSR 中的一个常见需求是渲染动态 `<head>` 内容（例如 `<title>`、`<meta>`），使爬虫和社交预览在首次加载时能看到正确的元数据。
 
 `ServerRenderer` 只渲染组件树（通常对应文档的 body 部分），无法访问 `<head>`。因此，head 标签必须**在服务端、Yew 之外**生成，并在发送给客户端之前拼接到 HTML 模板中。
 
-[`ssr_router` 示例](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) 演示了这一模式：服务端从请求 URL 识别路由，生成适当的 `<title>` 和 `<meta>` 标签，并将它们注入到 Trunk 生成的 `index.html` 的 `</head>` 之前。
+[`axum_ssr_router` 示例](https://github.com/yewstack/yew/blob/master/examples/axum_ssr_router/src/bin/ssr_router_server.rs) 演示了这一模式：服务端从请求 URL 识别路由，生成适当的 `<title>` 和 `<meta>` 标签，并将它们注入到 Trunk 生成的 `index.html` 的 `</head>` 之前。
 
 :::info
 
@@ -138,7 +287,8 @@ fn main() {
 ```
 
 示例: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
-示例: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+示例: [axum_ssr_router](https://github.com/yewstack/yew/tree/master/examples/axum_ssr_router)
+示例: [actix_ssr_router](https://github.com/yewstack/yew/tree/master/examples/actix_ssr_router)
 
 ## 单线程模式
 

@@ -14,7 +14,7 @@ use bytes::Bytes;
 use clap::Parser;
 use function_router::{Route, route_meta};
 use futures::stream::{self, StreamExt};
-use yew_link::actix_web::linked_state_handler;
+use yew_link::actix::linked_state_handler;
 use yew_link::{Resolver, ResolverProp};
 use yew_router::prelude::Routable;
 

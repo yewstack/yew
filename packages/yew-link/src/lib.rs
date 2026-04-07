@@ -511,6 +511,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
     let link_ctx =
         use_context::<LinkContextInner>().expect("use_linked_state requires a LinkProvider");
 
+    #[cfg(any(feature = "ssr", target_arch = "wasm32"))]
     type Prepared<T, E> = Result<T, LinkError<E>>;
 
     #[cfg(feature = "ssr")]
@@ -540,9 +541,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
 
     #[cfg(all(not(feature = "ssr"), not(target_arch = "wasm32")))]
     {
-        yew::functional::use_prepared_state_with_suspension::<Prepared<T, T::Error>, T::Input>(
-            input,
-        )?;
+        let _ = input;
         Ok(LinkedStateHandle {
             result: Err(LinkError::Internal(
                 "yew-link requires the `ssr` feature (server) or a wasm32 target (client)".into(),
@@ -678,8 +677,8 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
     }
 }
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "services"))]
+#[cfg(all(not(target_arch = "wasm32"), any(feature = "axum", feature = "actix")))]
 mod services;
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "services"))]
+#[cfg(all(not(target_arch = "wasm32"), any(feature = "axum", feature = "actix")))]
 pub use services::*;

@@ -20,15 +20,14 @@ wasm-bindgen-futures = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { workspace = true, optional = true }
-actix-web = { version = "4.13", optional = true }
+actix-web = { workspace = true, optional = true }
 
 [features]
 default = []
 ssr = ["yew/ssr"]
 hydration = ["yew/hydration"]
-axum = ["dep:axum", "services"]
-actix = ["dep:actix-web", "services"]
-services = []
+axum = ["dep:axum"]
+actix = ["dep:actix-web"]
 
 [lints]
 workspace = true
