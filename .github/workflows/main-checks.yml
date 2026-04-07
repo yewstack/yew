@@ -301,9 +301,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - example: ssr_router
+          - example: axum_ssr_router
             server_bin: ssr_router_server
-            trunk_dir: examples/ssr_router
+            trunk_dir: examples/axum_ssr_router
+          - example: actix_ssr_router
+            server_bin: ssr_router_server
+            trunk_dir: examples/actix_ssr_router
           - example: simple_ssr
             server_bin: simple_ssr_server
             trunk_dir: examples/simple_ssr
