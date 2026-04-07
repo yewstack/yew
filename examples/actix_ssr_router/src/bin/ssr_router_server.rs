@@ -68,14 +68,16 @@ async fn render(
         resolver,
     });
 
-    HttpResponse::Ok().streaming(
-        stream::once(async move { Bytes::from(before) })
-            .chain(renderer.render_stream().map(Bytes::from))
-            .chain(stream::once(async move {
-                Bytes::from(state.index_html_after.clone())
-            }))
-            .map(Ok::<Bytes, Error>),
-    )
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .streaming(
+            stream::once(async move { Bytes::from(before) })
+                .chain(renderer.render_stream().map(Bytes::from))
+                .chain(stream::once(async move {
+                    Bytes::from(state.index_html_after.clone())
+                }))
+                .map(Ok::<Bytes, Error>),
+        )
 }
 
 #[actix_web::main]
@@ -92,14 +94,17 @@ async fn main() -> IoResult<()> {
     index_html_before.push_str("<body>");
     let index_html_after = index_html_after.to_owned();
 
+    let resolver_prop: ResolverProp = Resolver::new()
+        .register_linked::<LinkedPost>(())
+        .register_linked::<LinkedAuthor>(())
+        .register_linked::<LinkedPostMeta>(())
+        .into();
+    let resolver_data = Data::from(resolver_prop.0.clone());
+
     let app_state = Data::new(AppState {
         index_html_before,
         index_html_after,
-        resolver: Resolver::new()
-            .register_linked::<LinkedPost>(())
-            .register_linked::<LinkedAuthor>(())
-            .register_linked::<LinkedPostMeta>(())
-            .into(),
+        resolver: resolver_prop,
     });
 
     let dir = opts.dir.clone();
@@ -107,6 +112,7 @@ async fn main() -> IoResult<()> {
         App::new()
             .wrap(Cors::permissive())
             .app_data(app_state.clone())
+            .app_data(resolver_data.clone())
             .route(LINK_ENDPOINT, post().to(linked_state_handler))
             .service(
                 Files::new("/", &dir)
