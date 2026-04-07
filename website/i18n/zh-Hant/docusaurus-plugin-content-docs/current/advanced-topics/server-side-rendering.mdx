@@ -104,7 +104,10 @@ Yew 提供了兩個低階鉤子，用於將伺服器端計算出的狀態傳遞�
 3. 用 `<LinkProvider>` **包裹** 你的應用程式。
 4. 在任意元件中 **呼叫** `use_linked_state::<MyData>(input)`。
 
-```rust ,ignore
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# pub struct DbPool;
+# impl DbPool { async fn get_post(&self, _id: u32) -> Post { unreachable!() } }
 use yew_link::{linked_state, LinkedState};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -127,7 +130,20 @@ impl LinkedState for Post {
 
 如果 `resolve` 可能失敗，可以宣告 `type Error`：
 
-```rust ,ignore
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone, Debug, Serialize, Deserialize)]
+# pub struct ApiError;
+# impl std::fmt::Display for ApiError {
+#     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "ApiError") }
+# }
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Result<Post, ApiError> { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
 #[linked_state]
 impl LinkedState for Post {
     type Context = DbPool;
@@ -155,7 +171,27 @@ impl LinkedState for Post {
 
 #### 伺服器端設定
 
-```rust ,ignore
+```rust ,ignore-wasm32
+# use std::sync::Arc;
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone)]
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# fn main() {
+# let db_pool = DbPool;
 use yew_link::{Resolver, axum::linked_state_handler};
 
 let resolver = Arc::new(
@@ -163,14 +199,36 @@ let resolver = Arc::new(
         .register_linked::<Post>(db_pool.clone())
 );
 
-let app = axum::Router::new()
-    .route("/api/link", axum::routing::post(linked_state_handler))
-    .with_state(resolver);
+let app: axum::Router = axum::Router::new().route(
+    "/api/link",
+    axum::routing::post(linked_state_handler).with_state(resolver),
+);
+# let _ = app;
+# }
 ```
 
 上面的範例使用了 `axum` 特性。`yew-link` 也提供一個 `actix` 特性，將相同的 handler 暴露在 `yew_link::actix::linked_state_handler` 之下：
 
-```rust ,ignore
+```rust ,no_run,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone)]
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# async fn run() -> std::io::Result<()> {
+# let db_pool = DbPool;
 use actix_web::{App, HttpServer, web::{Data, post}};
 use yew_link::{Resolver, actix::linked_state_handler};
 
@@ -187,6 +245,8 @@ HttpServer::new(move || {
 .bind(("0.0.0.0", 8080))?
 .run()
 .await
+# }
+# fn main() {}
 ```
 
 <details>
@@ -196,7 +256,7 @@ HttpServer::new(move || {
 
 如果你需要更新版本的 `actix-web`（或其他任何 web 框架），並且不想啟用內建的特性，這個 handler 已經足夠小，完全可以自己內聯實作。你需要用到的全部公開 API 只有 `Resolver::resolve_request` 以及表示傳輸格式的 `LinkRequest` 型別：
 
-```rust
+```rust ,ignore-wasm32
 use actix_web::HttpResponse;
 use actix_web::web::{Data, Json};
 use serde_json::json;
@@ -219,7 +279,27 @@ pub async fn linked_state_handler(
 
 #### 元件中的使用
 
-```rust ,ignore
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew::prelude::*;
+# use yew_link::{linked_state, LinkedState};
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# #[derive(Properties, PartialEq)]
+# pub struct PostPageProps { pub id: u32 }
+#[allow(unused_imports)]
 use yew_link::{use_linked_state, LinkProvider};
 
 #[component]
@@ -269,7 +349,7 @@ SSR 中的一個常見需求是渲染動態 `<head>` 內容（例如 `<title>`�
 
 ## 範例
 
-```rust ,ignore
+```rust ,no_run
 use yew::prelude::*;
 use yew::Renderer;
 
