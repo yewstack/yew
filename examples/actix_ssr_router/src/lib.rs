@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use function_router::content;
 #[cfg(not(target_arch = "wasm32"))]
 use function_router::Generated;
+use function_router::content;
 use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
-use yew_link::{linked_state, use_linked_state, LinkProvider, ResolverProp};
+use yew_link::{LinkProvider, ResolverProp, linked_state, use_linked_state};
 use yew_router::prelude::*;
 
 pub const LINK_ENDPOINT: &str = "/api/link";

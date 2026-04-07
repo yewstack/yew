@@ -3,14 +3,14 @@ use std::io::Result as IoResult;
 use std::path::PathBuf;
 
 use actix_ssr_router::{
-    LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps, LINK_ENDPOINT,
+    LINK_ENDPOINT, LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps,
 };
 use actix_web::http::Uri;
-use actix_web::web::{get, post, Data, Query};
+use actix_web::web::{Data, Query, get, post};
 use actix_web::{App, Error, HttpResponse, HttpServer};
 use bytes::Bytes;
 use clap::Parser;
-use function_router::{route_meta, Route};
+use function_router::{Route, route_meta};
 use futures::stream::{self, StreamExt};
 use yew_link::actix_web::linked_state_handler;
 use yew_link::{Resolver, ResolverProp};
