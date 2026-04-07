@@ -3745,6 +3745,7 @@ dependencies = [
  "gloo",
  "wasm-bindgen",
  "web-sys",
+ "yew",
 ]
 
 [[package]]
