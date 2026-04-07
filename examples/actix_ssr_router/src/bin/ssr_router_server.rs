@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::io::Result as IoResult;
 use std::path::PathBuf;
 
+use actix_cors::Cors;
+use actix_files::Files;
 use actix_ssr_router::{
     LINK_ENDPOINT, LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps,
 };
@@ -100,11 +102,17 @@ async fn main() -> IoResult<()> {
             .into(),
     });
 
+    let dir = opts.dir.clone();
     HttpServer::new(move || {
         App::new()
+            .wrap(Cors::permissive())
             .app_data(app_state.clone())
             .route(LINK_ENDPOINT, post().to(linked_state_handler))
-            .default_service(get().to(render))
+            .service(
+                Files::new("/", &dir)
+                    .index_file("__no_index__")
+                    .default_handler(get().to(render)),
+            )
     })
     .bind(("0.0.0.0", 8080))?
     .run()

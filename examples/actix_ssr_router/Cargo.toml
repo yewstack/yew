@@ -34,6 +34,8 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"
 env_logger = "0.11"
 clap = { workspace = true }
 actix-web = "4.13.0"
+actix-cors = "0.7"
+actix-files = "0.6"
 
 [target.'cfg(unix)'.dependencies]
 jemallocator = "0.5"
