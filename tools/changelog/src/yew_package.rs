@@ -15,7 +15,7 @@ impl YewPackage {
             YewPackage::Yew => &["A-yew", "A-yew-macro", "macro"],
             YewPackage::YewAgent => &["A-yew-agent"],
             YewPackage::YewRouter => &["A-yew-router", "A-yew-router-macro"],
-            YewPackage::YewLink => &["A-yew-link"],
+            YewPackage::YewLink => &["A-yew-link", "A-yew-link-macro"],
         }
     }
 }

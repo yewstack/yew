@@ -4,7 +4,6 @@ use std::collections::HashMap;
 #[cfg(target_arch = "wasm32")]
 use std::collections::HashSet;
 use std::fmt;
-use std::future::Future;
 use std::hash::Hash;
 #[cfg(target_arch = "wasm32")]
 use std::num::NonZeroUsize;
@@ -14,8 +13,8 @@ use std::sync::Arc;
 
 #[cfg(target_arch = "wasm32")]
 use lru::LruCache;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use yew::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use yew::suspense::Suspension;

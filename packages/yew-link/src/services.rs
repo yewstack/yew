@@ -2,10 +2,10 @@
 pub mod axum {
     use std::sync::Arc;
 
+    use axum::Json;
     use axum::extract::State;
     use axum::http::StatusCode;
     use axum::response::IntoResponse;
-    use axum::Json;
 
     use crate::{LinkRequest, LinkResponse, Resolver};
 
@@ -46,8 +46,8 @@ pub mod axum {
 
 #[cfg(feature = "actix")]
 pub mod actix_web {
-    use actix_web::web::{Data, Json};
     use actix_web::HttpResponse;
+    use actix_web::web::{Data, Json};
 
     use crate::{LinkRequest, LinkResponse, Resolver};
 
