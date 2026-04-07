@@ -44,7 +44,7 @@ jobs:
         if: matrix.profile == 'dev'
         run: >-
           cargo hack clippy
-          -p yew -p yew-agent -p yew-router
+          -p yew -p yew-agent -p yew-router -p yew-link
           --feature-powerset --no-dev-deps
           --keep-going
           -- -D warnings
@@ -53,7 +53,7 @@ jobs:
         if: matrix.profile == 'release'
         run: >-
           cargo hack clippy
-          -p yew -p yew-agent -p yew-router
+          -p yew -p yew-agent -p yew-router -p yew-link
           --feature-powerset --no-dev-deps
           --keep-going --release
           -- -D warnings

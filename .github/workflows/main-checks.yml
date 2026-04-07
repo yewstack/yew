@@ -144,7 +144,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
         run: |
           if [[ "${{ matrix.toolchain }}" == "1.85.0" ]]; then
-            cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router
+            cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router -p yew-link -p yew-link-macro
           else
             ls packages | grep -v "^yew$" | xargs -I {} cargo test --all-targets -p {}
           fi
@@ -301,9 +301,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - example: ssr_router
+          - example: axum_ssr_router
             server_bin: ssr_router_server
-            trunk_dir: examples/ssr_router
+            trunk_dir: examples/axum_ssr_router
+          - example: actix_ssr_router
+            server_bin: ssr_router_server
+            trunk_dir: examples/actix_ssr_router
           - example: simple_ssr
             server_bin: simple_ssr_server
             trunk_dir: examples/simple_ssr

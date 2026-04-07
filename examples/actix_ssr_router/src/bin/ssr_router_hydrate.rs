@@ -1,4 +1,4 @@
-use ssr_router::{App, AppProps, LINK_ENDPOINT};
+use actix_ssr_router::{App, AppProps, LINK_ENDPOINT};
 
 fn main() {
     #[cfg(target_arch = "wasm32")]

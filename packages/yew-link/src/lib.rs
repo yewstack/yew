@@ -289,7 +289,7 @@ impl Eq for CacheKey {}
 fn eq_inputs<I: PartialEq + 'static>(a: &dyn Any, b: &dyn Any) -> bool {
     a.downcast_ref::<I>()
         .zip(b.downcast_ref::<I>())
-        .map_or(false, |(a, b)| a == b)
+        .is_some_and(|(a, b)| a == b)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -511,6 +511,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
     let link_ctx =
         use_context::<LinkContextInner>().expect("use_linked_state requires a LinkProvider");
 
+    #[cfg(any(feature = "ssr", target_arch = "wasm32"))]
     type Prepared<T, E> = Result<T, LinkError<E>>;
 
     #[cfg(feature = "ssr")]
@@ -540,9 +541,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
 
     #[cfg(all(not(feature = "ssr"), not(target_arch = "wasm32")))]
     {
-        yew::functional::use_prepared_state_with_suspension::<Prepared<T, T::Error>, T::Input>(
-            input,
-        )?;
+        let _ = input;
         Ok(LinkedStateHandle {
             result: Err(LinkError::Internal(
                 "yew-link requires the `ssr` feature (server) or a wasm32 target (client)".into(),
@@ -678,51 +677,8 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
     }
 }
 
-#[cfg(all(feature = "axum", not(target_arch = "wasm32")))]
-pub mod service {
-    use std::sync::Arc;
+#[cfg(all(not(target_arch = "wasm32"), any(feature = "axum", feature = "actix")))]
+mod services;
 
-    use axum::Json;
-    use axum::extract::State;
-    use axum::http::StatusCode;
-    use axum::response::IntoResponse;
-
-    use super::{LinkRequest, LinkResponse, Resolver};
-
-    /// Axum handler that resolves [`LinkRequest`]s.
-    ///
-    /// ```ignore
-    /// let resolver = Arc::new(
-    ///     Resolver::new()
-    ///         .register::<Post>(|id| async move { db::get_post(id).await })
-    /// );
-    ///
-    /// let app = axum::Router::new()
-    ///     .route("/api/link", axum::routing::post(linked_state_handler))
-    ///     .with_state(resolver);
-    /// ```
-    pub async fn linked_state_handler(
-        State(resolver): State<Arc<Resolver>>,
-        Json(req): Json<LinkRequest>,
-    ) -> impl IntoResponse {
-        match resolver.resolve_request(&req).await {
-            Ok(val) => (
-                StatusCode::OK,
-                Json(LinkResponse {
-                    ok: Some(val),
-                    error: None,
-                }),
-            ),
-            Err(err_val) => (
-                StatusCode::UNPROCESSABLE_ENTITY,
-                Json(LinkResponse {
-                    ok: None,
-                    error: Some(err_val),
-                }),
-            ),
-        }
-    }
-}
-
-#[cfg(all(feature = "axum", not(target_arch = "wasm32")))]
-pub use service::linked_state_handler;
+#[cfg(all(not(target_arch = "wasm32"), any(feature = "axum", feature = "actix")))]
+pub use services::*;

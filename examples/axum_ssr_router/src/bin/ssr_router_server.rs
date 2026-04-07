@@ -10,21 +10,22 @@ use axum::handler::HandlerWithoutStateExt;
 use axum::http::Uri;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
+use axum_ssr_router::{
+    LINK_ENDPOINT, LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps,
+};
 use clap::Parser;
 use function_router::{Route, route_meta};
 use futures::stream::{self, StreamExt};
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
 use hyper_util::server;
-use ssr_router::{
-    LINK_ENDPOINT, LinkedAuthor, LinkedPost, LinkedPostMeta, ServerApp, ServerAppProps,
-};
 use tokio::net::TcpListener;
 use tower::Service;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use yew::platform::Runtime;
-use yew_link::{Resolver, ResolverProp, linked_state_handler};
+use yew_link::axum::linked_state_handler;
+use yew_link::{Resolver, ResolverProp};
 use yew_router::prelude::Routable;
 
 // We use jemalloc as it produces better performance.
