@@ -1,6 +1,5 @@
 //! This module contains fragments bundles, a [BList]
 use std::borrow::Borrow;
-use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
@@ -237,20 +236,18 @@ impl BList {
         // If keys match from the front for the entire shorter list, items were
         // only added or removed at the back. apply_unkeyed handles this since
         // it pairs front-to-front.
-        {
-            let front_match = matching_len(
-                left_vdoms.iter().map(|v| key!(v)),
-                bundles.iter().map(|v| key!(v)),
-            );
-            if front_match == std::cmp::min(left_vdoms.len(), bundles.len()) {
-                return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, bundles);
-            }
+        let matching_len_start = matching_len(
+            left_vdoms.iter().map(|v| key!(v)),
+            bundles.iter().map(|v| key!(v)),
+        );
+        if matching_len_start == std::cmp::min(left_vdoms.len(), bundles.len()) {
+            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, bundles);
         }
 
         // Find first key mismatch from the back of render order
         let matching_len_end = matching_len(
-            left_vdoms.iter().map(|v| key!(v)).rev(),
-            bundles.iter().map(|v| key!(v)).rev(),
+            left_vdoms.iter().rev().map(|v| key!(v)),
+            bundles.iter().rev().map(|v| key!(v)),
         );
 
         // We partially drain the new vnodes in several steps.
@@ -274,23 +271,17 @@ impl BList {
 
         // Step 2. Diff matching children in the middle, that is between the first and last key
         // mismatch. Find first key mismatch from the front.
-        let mut matching_len_start = matching_len(
-            lefts.iter().map(|v| key!(v)),
-            bundles.iter().map(|v| key!(v)),
-        );
-
-        // Step 2.1. Splice out the existing middle part and build a lookup by key
-        let mut bundle_middle = matching_len_start..bundles_from;
-        if bundle_middle.start > bundle_middle.end {
-            // If this range is "inverted", this implies that the incoming nodes in lefts contain a
-            // duplicate key!
+        let bundle_middle = if bundles_from >= matching_len_start {
+            matching_len_start..bundles_from
+        } else {
+            // If this range in the other branch is "inverted", this implies that the incoming nodes
+            // in lefts contain a duplicate key!
             // Pictogram:
-            //                                         v lefts_to
+            //                              v lefts_to
             // lefts:   | SSSSSSSS | ------ | EEEEEEEE |
             //                     ↕ matching_len_start
             // bundles: | SSS | ?? | EEE |
-            //                     ^ matching_len_start
-            //                          ^ bundles_from
+            //                ^ bundles_from
             // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a
             // key in the ? portion of bundles. Since the former can't overlap, a key
             // must be duplicate. Duplicates might lead to us forgetting about some
@@ -300,10 +291,10 @@ impl BList {
             // With debug_assertions we can never reach this. For production code, hope for the best
             // by pretending. We still need to adjust some things so splicing doesn't
             // panic:
-            matching_len_start = 0;
-            bundle_middle = 0..bundles_from;
-        }
-        let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
+            bundles_from..bundles_from
+        };
+        let matching_len_start = bundle_middle.start;
+        // Step 2.1. Splice out the existing middle part and build a lookup by key
 
         // BNode contains js objects that look suspicious to clippy but are harmless
         #[expect(clippy::mutable_key_type)]
@@ -319,6 +310,7 @@ impl BList {
                 duplicate_in_bundle(root, parent, dup);
             }
         }
+        let middle_count = spare_bundles.len();
 
         // Step 2.2. Put the middle part back together in the new key order
         let mut replacements: Vec<BNode> = Vec::with_capacity((matching_len_start..lefts_to).len());
@@ -332,14 +324,18 @@ impl BList {
         //
         // Indices are in render order (idx 0 = leftmost). Processing goes right-to-left, so we
         // expect decreasing indices for nodes already in the right relative order.
-        //
-        // `barrier_idx` is the next expected index when scanning right-to-left.
-        // `None` means every remaining node is in the committed region and must be shifted.
-        let middle_count = spare_bundles.len();
-        let mut barrier_idx: Option<usize> = middle_count.checked_sub(1);
+
+        // The node with `idx + 1 == barrier_idx` is already correctly placed if there is no run
+        // active.
+        // Nodes with `idx >= barrier_idx` are shifted unconditionally.
+        // Also serves as the next expected node index if the order has not changed, and of the
+        // position of ``
+        let mut barrier_idx = middle_count;
         struct RunInformation<'a> {
             start_writer: NodeWriter<'a>,
+            // Index in `replacements` where this run started
             start_idx: usize,
+            // Index of the left-most (in render-order) bundle that is part of the run.
             end_idx: usize,
         }
         let mut current_run: Option<RunInformation<'_>> = None;
@@ -359,15 +355,13 @@ impl BList {
                         // nodes we have to shift if we move this run:
                         let run_length = replacements.len() - run.start_idx;
                         // A very crude estimate of the amount of nodes we will have to shift if we
-                        // commit the run: Note nodes of the current run
-                        // should not be counted here!
-                        let barrier_val = barrier_idx.unwrap_or(run.end_idx);
-                        let estimated_skipped_nodes = idx.min(barrier_val) - run.end_idx;
+                        // commit the run. Note: nodes of the current run are counted here too.
+                        let estimated_skipped_nodes = idx.min(barrier_idx) - run.end_idx;
                         // double run_length to counteract that the run is part of the
                         // estimated_skipped_nodes
                         if 2 * run_length > estimated_skipped_nodes {
                             // less work to commit to this run
-                            barrier_idx = run.end_idx.checked_sub(1);
+                            barrier_idx = run.end_idx;
                         } else {
                             // Less work to shift this run
                             for r in replacements[run.start_idx..].iter_mut().rev() {
@@ -384,28 +378,21 @@ impl BList {
                         // hot path
                         // We know that idx <= run.end_idx, so this node doesn't need to shift
                         Some(run) => run.end_idx = idx,
-                        None => {
-                            if let Some(b) = barrier_idx {
-                                match idx.cmp(&b) {
-                                    // peep hole optimization, don't start a run as the element is
-                                    // already where it should be
-                                    Ordering::Equal => barrier_idx = idx.checked_sub(1),
-                                    // shift the node unconditionally, don't start a run
-                                    Ordering::Greater => writer.shift(&r_bundle),
-                                    // start a run
-                                    Ordering::Less => {
-                                        current_run = Some(RunInformation {
-                                            start_writer: writer.clone(),
-                                            start_idx: replacements.len(),
-                                            end_idx: idx,
-                                        })
-                                    }
-                                }
-                            } else {
-                                // Everything to the right has been committed; must shift
-                                writer.shift(&r_bundle);
+                        None => match () {
+                            // peep hole optimization, don't start a run as the element is
+                            // already where it should be
+                            _ if idx + 1 == barrier_idx => barrier_idx = idx,
+                            // shift the node unconditionally, don't start a run
+                            _ if idx >= barrier_idx => writer.shift(&r_bundle),
+                            // start a run
+                            _ => {
+                                current_run = Some(RunInformation {
+                                    start_writer: writer.clone(),
+                                    start_idx: replacements.len(),
+                                    end_idx: idx,
+                                })
                             }
-                        }
+                        },
                     }
                     writer = writer.patch(l, &mut r_bundle);
                     r_bundle
