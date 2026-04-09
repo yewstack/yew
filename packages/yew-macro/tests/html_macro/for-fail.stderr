@@ -24,42 +24,31 @@ error: unexpected end of input, expected curly braces
 
 error: duplicate key for a node in a `for`-loop
        this will create elements with duplicate keys if the loop iterates more than once
-  --> tests/html_macro/for-fail.rs:18:18
+  --> tests/html_macro/for-fail.rs:14:18
    |
-18 |         <div key="duplicate" />
+14 |         <div key="duplicate" />
    |                  ^^^^^^^^^^^
 
 error: duplicate key for a node in a `for`-loop
        this will create elements with duplicate keys if the loop iterates more than once
-  --> tests/html_macro/for-fail.rs:22:19
+  --> tests/html_macro/for-fail.rs:18:19
    |
-22 |         <div key={smth::KEY} />
+18 |         <div key={smth::KEY} />
    |                   ^^^^
 
 error: unnecessary `<>...</>`. Children can be placed directly in the body
-  --> tests/html_macro/for-fail.rs:27:9
+  --> tests/html_macro/for-fail.rs:23:9
    |
-27 |         <><span>{"a"}</span><span>{"b"}</span></>
+23 |         <><span>{"a"}</span><span>{"b"}</span></>
    |         ^^
-
-error[E0267]: `break` inside of a closure
-  --> tests/html_macro/for-fail.rs:14:16
-   |
-13 |       _ = ::yew::html!{for _ in 0 .. 10 {
-   |  _________-
-14 | |         <span>{break}</span>
-   | |                ^^^^^ cannot `break` inside of a closure
-15 | |     }};
-   | |______- enclosing closure
 
 error[E0308]: mismatched types
  --> tests/html_macro/for-fail.rs:9:26
   |
 9 |     _ = ::yew::html!{for (x, y) in 0 .. 10 {
-  |                          ^^^^^^
+  |                          ^^^^^^    ------- this is an iterator with items of type `{integer}`
   |                          |
   |                          expected integer, found `(_, _)`
-  |                          expected due to this
   |
   = note: expected type `{integer}`
             found tuple `(_, _)`

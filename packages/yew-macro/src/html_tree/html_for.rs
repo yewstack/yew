@@ -130,10 +130,9 @@ impl ToTokens for HtmlFor {
 
         tokens.extend(quote!({
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
-            ::std::iter::Iterator::for_each(
-                ::std::iter::IntoIterator::into_iter(#iter),
-                |#pat| { #(#let_stmts)* #alloc_opt; #(#body);* }
-            );
+            for #pat in #iter {
+                #(#let_stmts)* #alloc_opt; #(#body);*
+            }
             #vlist_gen
         }))
     }

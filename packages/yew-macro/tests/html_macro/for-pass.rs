@@ -118,4 +118,24 @@ fn main() {
             <hr/>
         }
     };
+
+    // break in for loop
+    _ = ::yew::html!{
+        for i in 0..10 {
+            if i > 5 {
+                break
+            }
+            <span>{i}</span>
+        }
+    };
+
+    // continue in for loop
+    _ = ::yew::html!{
+        for i in 0..10 {
+            if i % 2 == 0 {
+                continue
+            }
+            <span>{i}</span>
+        }
+    };
 }
