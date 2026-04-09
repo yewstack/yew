@@ -1,4 +1,12 @@
-use proc_macro_error::emit_error;
+macro_rules! emit_deprecated {
+    ($($tt:tt)*) => {{
+        #[cfg(yew_macro_nightly)]
+        proc_macro_error::emit_warning!($($tt)*);
+        #[cfg(not(yew_macro_nightly))]
+        proc_macro_error::emit_error!($($tt)*);
+    }};
+}
+pub(crate) use emit_deprecated;
 use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
@@ -472,12 +480,12 @@ impl Parse for HtmlRootBraced {
     }
 }
 
-/// Emit an error when a braced body contains a single keyless fragment, since the children
+/// Lint when a braced body contains a single keyless fragment, since the children
 /// can be placed directly in the body without the `<>...</>` wrapper.
 pub(super) fn check_unnecessary_fragment(children: &HtmlChildrenTree) {
     if let [HtmlTree::List(list)] = &children.0[..] {
         if list.open.props.key.is_none() {
-            emit_error!(
+            emit_deprecated!(
                 list.open_spanned(),
                 "unnecessary `<>...</>`. Children can be placed directly in the body"
             );

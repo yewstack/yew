@@ -1,4 +1,3 @@
-use proc_macro_error::emit_error;
 use proc_macro2::{Delimiter, TokenStream};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
@@ -207,7 +206,7 @@ fn check_arm_html_macro_call(body: &HtmlMatchArmBody) {
         if let super::HtmlTree::Node(node) = tree {
             if let HtmlNode::Expression(expr) = node.as_ref() {
                 if let Some(span) = html_macro_call_span(expr) {
-                    emit_error!(
+                    super::emit_deprecated!(
                         span,
                         "`html!` is not needed in `match` arms. Use bare elements directly"
                     );

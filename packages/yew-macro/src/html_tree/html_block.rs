@@ -1,4 +1,3 @@
-use proc_macro_error::emit_error;
 use proc_macro2::Delimiter;
 use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
@@ -49,7 +48,7 @@ fn check_deprecated_html_call(expr: &Expr) {
     if let Expr::Match(match_expr) = expr {
         for arm in &match_expr.arms {
             if let Some(span) = html_macro_call_span(&arm.body) {
-                emit_error!(
+                super::emit_deprecated!(
                     span,
                     "Use bare elements in arms directly \n\nmatch value {\n    pattern => \
                      <Element />,\n}"
@@ -67,7 +66,7 @@ fn check_deprecated_html_call(expr: &Expr) {
             .last()
             .and_then(stmt_tail_html_macro_span)
         {
-            emit_error!(
+            super::emit_deprecated!(
                 span,
                 "`html!` is not needed inside expression blocks. Use `let` bindings and bare \
                  elements directly"

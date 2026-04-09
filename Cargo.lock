@@ -4767,6 +4767,7 @@ dependencies = [
  "rustversion",
  "syn 2.0.117",
  "trybuild",
+ "version_check",
  "yew",
 ]
 
