@@ -285,14 +285,14 @@ impl PartialEq for CacheKey {
 
 impl Eq for CacheKey {}
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
 fn eq_inputs<I: PartialEq + 'static>(a: &dyn Any, b: &dyn Any) -> bool {
     a.downcast_ref::<I>()
         .zip(b.downcast_ref::<I>())
         .is_some_and(|(a, b)| a == b)
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
 fn cache_key<T: LinkedState>(input: &T::Input) -> CacheKey {
     use std::hash::Hasher;
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
@@ -345,7 +345,7 @@ impl PartialEq for LinkContextInner {
 }
 
 impl LinkContextInner {
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
     async fn fetch_remote<T: LinkedState>(
         &self,
         input: &T::Input,
