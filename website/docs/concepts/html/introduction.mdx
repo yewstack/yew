@@ -13,10 +13,9 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 
 **Important notes**
 
-1. The `html!` macro accepts any number of root nodes, including zero. An empty
-   `html! {}` invocation is valid and will not render anything.
-2. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
-3. The `html!` macro will make all tag names lowercase. To use upper case characters (which are required for some SVG elements) use [dynamic tag names](concepts/html/elements.mdx#dynamic-tag-names): `html! { <@{"myTag"}></@> }`
+1. The `html!` macro accepts any number of root nodes. An empty `html! {}` invocation will not render anything.
+2. String literals need to be quoted and usually needs to be wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`.
+3. Bool types and number types can be used directly: `html!{ <span>{1}</span> <span>{true}</span> }`
 
 :::note
 The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors,

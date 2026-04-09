@@ -426,12 +426,6 @@ because the inner `SettingsRoute` only defines routes without a bare trailing sl
 (see [Trailing Slashes](#trailing-slashes)). Unrecognized sub-paths like `/settings/gibberish`
 are redirected to the main `NotFound` route at `/404`.
 
-:::caution
-
-Though note that this is still a work in progress so the way we do this is not final
-
-:::
-
 It can be implemented with the following code:
 
 ```rust
@@ -501,6 +495,12 @@ pub fn app() -> Html {
     }
 }
 ```
+
+:::caution
+
+If you want more ergonomic nested router support. Please comment under [the first-class nested routing RFC](https://github.com/yewstack/yew/discussions/4111).
+
+:::
 
 ### Basename
 

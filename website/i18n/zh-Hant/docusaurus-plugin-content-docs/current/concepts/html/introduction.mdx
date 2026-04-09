@@ -12,9 +12,9 @@ import TabItem from '@theme/TabItem'
 
 **重要提示**
 
-1. `html!` 巨集可以接受任意數量的根節點，包括零個。空的 `html! {}` 呼叫是有效的，不會渲染任何內容。
-2. 字面量必須永遠用引號引起來並用大括號括起來：`html! { <p>{ "Hello, World" }</p> }`
-3. `html!` 巨集會將所有標籤名稱轉換為小寫。若要使用大寫字元（某些SVG 元素所需的字元）請使用[動態標籤名稱](concepts/html/elements.mdx#dynamic-tag-names)：`html! { <@{"myTag"}>< /@> }`
+1. `html!` 巨集可以接受任意數量的根節點。空的 `html! {}` 呼叫不會渲染任何內容。
+2. 字串字面量需要用引號引起來，並且通常需要用大括號包裹：`html! { <p>{ "Hello, World" }</p> }`。
+3. Bool 型別和數值型別可以直接使用：`html!{ <span>{1}</span> <span>{true}</span> }`
 
 :::note
 `html!` 巨集可能會達到編譯器的預設遞歸限制。如果遇到編譯錯誤，請在 crate 根目錄中新增類似 `#![recursion_limit="1024"]` 的屬性以解決問題。
