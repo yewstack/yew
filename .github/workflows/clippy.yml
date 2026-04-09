@@ -25,6 +25,9 @@ jobs:
         profile:
           - dev
           - release
+        target:
+          - host
+          - wasm32
     steps:
       - uses: actions/checkout@v6
 
@@ -33,6 +36,7 @@ jobs:
         with:
           toolchain: stable
           components: clippy
+          targets: ${{ case(matrix.target == 'wasm32', 'wasm32-unknown-unknown', null) }}
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -41,21 +45,16 @@ jobs:
       - uses: taiki-e/install-action@cargo-hack
 
       - name: Lint feature soundness
-        if: matrix.profile == 'dev'
+        env:
+          RELEASE_FLAG: ${{ case(matrix.profile == 'release', '--release', null) }}
+          TARGET_FLAGS: ${{ case(matrix.target == 'wasm32', '--target wasm32-unknown-unknown', null) }}
         run: >-
           cargo hack clippy
           -p yew -p yew-agent -p yew-router
           --feature-powerset --no-dev-deps
           --keep-going
-          -- -D warnings
-
-      - name: Lint feature soundness
-        if: matrix.profile == 'release'
-        run: >-
-          cargo hack clippy
-          -p yew -p yew-agent -p yew-router
-          --feature-powerset --no-dev-deps
-          --keep-going --release
+          $RELEASE_FLAG
+          $TARGET_FLAGS
           -- -D warnings
 
   clippy:
