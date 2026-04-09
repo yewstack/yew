@@ -72,5 +72,50 @@ fn main() {
                 }}
             </div>
         }
-    }
+    };
+
+    // Single let binding in for body
+    _ = ::yew::html!{
+        for i in 0 .. 10 {
+            let doubled = i * 2;
+            <span>{doubled}</span>
+        }
+    };
+
+    // Multiple let bindings
+    _ = ::yew::html!{
+        for i in 0 .. 10 {
+            let doubled = i * 2;
+            let label = "item";
+            <span>{label}</span>
+            <span>{doubled}</span>
+        }
+    };
+
+    // Let with pattern destructuring
+    _ = ::yew::html!{
+        for (a, b) in ::std::iter::Iterator::map(0..5, |i| (i, i * 2)) {
+            let sum = a + b;
+            <span>{sum}</span>
+        }
+    };
+
+    // Let with type annotation
+    _ = ::yew::html!{
+        for i in 0..10 {
+            let x: ::std::primitive::i32 = i * 3;
+            <span>{x}</span>
+        }
+    };
+
+    // Let binding with multiple bare children
+    _ = ::yew::html!{
+        for i in 0..5 {
+            let doubled = i * 2;
+            let label = "val";
+            <span>{label}</span>
+            <span>{doubled}</span>
+            <hr/>
+        }
+    };
 }

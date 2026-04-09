@@ -13,11 +13,10 @@ The `html!` macro allows you to write HTML and SVG code declaratively. It is sim
 
 **Important notes**
 
-1. The `html!` macro only accepts one root html node (you can counteract this by using
-   [fragments](./fragments.mdx) or [iterators](./../html/lists.mdx))
-2. An empty `html! {}` invocation is valid and will not render anything
-3. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
-4. The `html!` macro will make all tag names lowercase. To use upper case characters (which are required for some SVG elements) use [dynamic tag names](concepts/html/elements.mdx#dynamic-tag-names): `html! { <@{"myTag"}></@> }`
+1. The `html!` macro accepts any number of root nodes, including zero. An empty
+   `html! {}` invocation is valid and will not render anything.
+2. Literals must always be quoted and wrapped in braces: `html! { <p>{ "Hello, World" }</p> }`
+3. The `html!` macro will make all tag names lowercase. To use upper case characters (which are required for some SVG elements) use [dynamic tag names](concepts/html/elements.mdx#dynamic-tag-names): `html! { <@{"myTag"}></@> }`
 
 :::note
 The `html!` macro can reach the default recursion limit of the compiler. If you encounter compilation errors,
@@ -224,13 +223,11 @@ It is also possible to use Rust style comments as part of the HTML structure:
 use yew::prelude::*;
 
 html! {
-  <>
-    <h1>{ "My heading" }</h1>
-    // here comes the content
-    <main>
-      { "…" }
-    </main>
-  </>
+  <h1>{ "My heading" }</h1>
+  // here comes the content
+  <main>
+    { "…" }
+  </main>
 };
 ```
 
@@ -238,8 +235,7 @@ Comments will be dropped during the parsing process and will not end up in the f
 
 ## Conditional Rendering
 
-Markup can be rendered conditionally by using Rust's conditional structures. ' +
-'Currently only `if` and `if let` are supported.
+Markup can be rendered conditionally by using Rust's `if`, `if let`, and `match` expressions directly inside `html!`.
 
 ```rust
 use yew::prelude::*;

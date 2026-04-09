@@ -11,12 +11,12 @@ struct DisplayProps {
 #[function_component]
 fn Display(props: &DisplayProps) -> Html {
     html! {
-        <>
         <p>{"Hello to:"}</p>
         <ul>
-        { for props.values.iter().map(|(i, s)| html!(<li>{i}{" => "}{s}</li>)) }
+        for (i, s) in props.values.iter() {
+            <li>{i}{" => "}{s}</li>
+        }
         </ul>
-        </>
     }
 }
 
@@ -73,12 +73,10 @@ impl Component for MapExample {
         });
 
         html! {
-            <>
             <h2>{"Input"}</h2>
             <input {onkeyup} />
             <h2>{"Output"}</h2>
             <Display values={&self.values} />
-            </>
         }
     }
 }

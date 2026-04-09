@@ -13,10 +13,8 @@ fn Content() -> Html {
     use yew_router::prelude::*;
 
     html! {
-        <>
-            <h1>{"Yew WASI SSR demo"}</h1>
-            <Switch<Route> render={switch} />
-        </>
+        <h1>{"Yew WASI SSR demo"}</h1>
+        <Switch<Route> render={switch} />
     }
 }
 

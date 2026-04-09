@@ -184,7 +184,7 @@ mod layout_tests {
                     {VNode::VRef(first_target.clone().into())}
                     {VNode::VRef(second_target.clone().into())}
                     {VNode::VPortal(Rc::new(VPortal::new(
-                        html! { <> {"PORTAL"} <b /> </> },
+                        html! { {"PORTAL"} <b /> },
                         second_target.clone(),
                     )))}
                     {"AFTER"}

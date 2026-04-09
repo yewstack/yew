@@ -27,7 +27,7 @@ struct Props {
 fn MyComponentWithProps(props: &Props) -> Html {
     let Props { user_first_name, user_last_name } = props;
     html! {
-        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+        {"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}
     }
 }
 
@@ -37,19 +37,17 @@ let props = Props {
 };
 
 html!{
-    <>
-        // 沒有屬性
-        <MyComponent />
+    // 沒有屬性
+    <MyComponent />
 
-        // 使用屬性
-        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
+    // 使用屬性
+    <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
-        // 一次提供所有屬性
-        <MyComponentWithProps ..props.clone() />
+    // 一次提供所有屬性
+    <MyComponentWithProps ..props.clone() />
 
-        // 使用變數中的屬性，並覆寫特定值
-        <MyComponentWithProps user_last_name="Elm" ..props />
-    </>
+    // 使用變數中的屬性，並覆寫特定值
+    <MyComponentWithProps user_last_name="Elm" ..props />
 };
 ```
 

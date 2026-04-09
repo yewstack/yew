@@ -25,6 +25,20 @@ html! {
 };
 ```
 
+`for` loop bodies also support `let` bindings before the html children:
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    for item in items {
+        let label = format!("{}: {}", item.id, item.name);
+        let class = if item.active { "active" } else { "inactive" };
+        <div class={class}>{label}</div>
+    }
+};
+```
+
   </TabItem>
   <TabItem value="`for` block" label="`for` block">
 An alternative is to use the `for` keyword, which is not native Rust syntax and instead is used by

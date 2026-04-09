@@ -44,19 +44,17 @@ impl Component for CounterModel {
         let destroy_callback = ctx.props().destroy_callback.clone();
 
         html! {
-            <>
-                // Display the current value of the counter
-                <p class="counter">
-                    { "App has lived for " }
-                    { self.counter }
-                    { " ticks" }
-                </p>
+            // Display the current value of the counter
+            <p class="counter">
+                { "App has lived for " }
+                { self.counter }
+                { " ticks" }
+            </p>
 
-                // Add button to send a destroy command to the parent app
-                <button class="destroy" onclick={Callback::from(move |_| destroy_callback.emit(()))}>
-                    { "Destroy this app" }
-                </button>
-            </>
+            // Add button to send a destroy command to the parent app
+            <button class="destroy" onclick={Callback::from(move |_| destroy_callback.emit(()))}>
+                { "Destroy this app" }
+            </button>
         }
     }
 

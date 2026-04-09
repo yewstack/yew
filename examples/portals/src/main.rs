@@ -49,15 +49,11 @@ impl Component for ShadowDOMHost {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let contents = match self.inner_host {
-            Some(ref inner_host) => create_portal(ctx.props().children.clone(), inner_host.clone()),
-            _ => {
-                html! { <></> }
-            }
-        };
         html! {
             <div ref={self.host_ref.clone()}>
-                {contents}
+                if let Some(inner_host) = &self.inner_host {
+                    create_portal(ctx.props().children.clone(), inner_host.clone())
+                }
             </div>
         }
     }
@@ -119,7 +115,6 @@ impl Component for App {
             self.title_element.clone(),
         );
         html! {
-            <>
             {self.style_html.clone()}
             {title}
             <p>{"This paragraph is colored red, and its style is mounted into "}<pre>{"document.head"}</pre>{" with a portal"}</p>
@@ -131,7 +126,6 @@ impl Component for App {
                 </ShadowDOMHost>
                 <p>{format!("The button has been clicked {} times. This is also reflected in the title of the tab!", self.counter)}</p>
             </div>
-            </>
         }
     }
 }

@@ -51,13 +51,13 @@ fn main() {
     let empty = empty_vec();
     _ = ::yew::html! { {for empty} };
 
-    _ = ::yew::html! {<>
+    _ = ::yew::html! {
         {for empty_vec()}
-    </>};
-    _ = ::yew::html! {<>
+    };
+    _ = ::yew::html! {
         {for ::std::iter::IntoIterator::into_iter(empty_vec())}
-    </>};
-    _ = ::yew::html! {<>
+    };
+    _ = ::yew::html! {
         {for ::std::iter::Iterator::map(0..3, |num| { ::yew::html! { <span>{ num }</span> } })}
-    </>};
+    };
 }

@@ -404,12 +404,10 @@ where
 ///     };
 ///
 ///     html! {
-///         <>
-///             <div id="result">{ counter.counter }</div>
+///         <div id="result">{ counter.counter }</div>
 ///
-///             <button onclick={double_onclick}>{ "Double" }</button>
-///             <button onclick={square_onclick}>{ "Square" }</button>
-///         </>
+///         <button onclick={double_onclick}>{ "Double" }</button>
+///         <button onclick={square_onclick}>{ "Square" }</button>
 ///     }
 /// }
 /// ```

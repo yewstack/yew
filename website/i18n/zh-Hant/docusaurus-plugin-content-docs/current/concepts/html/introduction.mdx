@@ -12,10 +12,9 @@ import TabItem from '@theme/TabItem'
 
 **重要提示**
 
-1. `html! {}` 巨集只能接受一個根HTML 節點（您可以透過使用[fragments](./fragments.mdx) 或[iterators](./../html/lists.mdx) 來規避這一點）
-2. 空的 `html! {}` 呼叫是有效的，不會渲染任何內容
-3. 字面量必須永遠用引號引起來並用大括號括起來：`html! { <p>{ "Hello, World" }</p> }`
-4. `html!` 巨集會將所有標籤名稱轉換為小寫。若要使用大寫字元（某些SVG 元素所需的字元）請使用[動態標籤名稱](concepts/html/elements.mdx#dynamic-tag-names)：`html! { <@{"myTag"}>< /@> }`
+1. `html!` 巨集可以接受任意數量的根節點，包括零個。空的 `html! {}` 呼叫是有效的，不會渲染任何內容。
+2. 字面量必須永遠用引號引起來並用大括號括起來：`html! { <p>{ "Hello, World" }</p> }`
+3. `html!` 巨集會將所有標籤名稱轉換為小寫。若要使用大寫字元（某些SVG 元素所需的字元）請使用[動態標籤名稱](concepts/html/elements.mdx#dynamic-tag-names)：`html! { <@{"myTag"}>< /@> }`
 
 :::note
 `html!` 巨集可能會達到編譯器的預設遞歸限制。如果遇到編譯錯誤，請在 crate 根目錄中新增類似 `#![recursion_limit="1024"]` 的屬性以解決問題。
@@ -204,7 +203,7 @@ html! { <div { String::from("hx-on:click") }={ "alert('Clicked!')" } /> };
 
 ## 條件渲染
 
-可以透過使用 Rust 的條件結構來條件性地渲染標記。目前只支援 `if` 和 `if let`。
+可以使用 Rust 的 `if`、`if let` 和 `match` 運算式直接在 `html!` 中條件性地渲染標記。
 
 ```rust
 use yew::prelude::*;

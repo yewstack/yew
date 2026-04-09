@@ -169,39 +169,33 @@ fn compile_pass() {
     _ = ::yew::html! { <Child int=1 r#fn=1 /> };
 
     _ = ::yew::html! {
-        <>
-            <Child int=1 />
-            <scoped::Child int=1 />
-        </>
+        <Child int=1 />
+        <scoped::Child int=1 />
     };
 
     let props = <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     _ = ::yew::html! {
-        <>
-            <Child ..::std::clone::Clone::clone(&props) />
-            <Child int={1} ..props />
-            <Child r#ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child int=3 r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
-            <Child r#ref={&node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
-            <Child r#ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
-        </>
+        <Child ..::std::clone::Clone::clone(&props) />
+        <Child int={1} ..props />
+        <Child r#ref={::std::clone::Clone::clone(&node_ref)} int={2} ..::yew::props!(Child::Properties { int: 5 }) />
+        <Child int=3 r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+        <Child r#ref={::std::clone::Clone::clone(&node_ref)} ..::yew::props!(Child::Properties { int: 5 }) />
+        <Child r#ref={&node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
+        <Child r#ref={node_ref} ..<<Child as ::yew::Component>::Properties as ::std::default::Default>::default() />
     };
 
     _ = ::yew::html! {
-        <>
-            <Child int=1 string="child" />
-            <Child int=1 />
-            <Child int={1+1} />
-            <Child int=1 vec={::std::vec![1]} />
-            <Child string={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
+        <Child int=1 string="child" />
+        <Child int=1 />
+        <Child int={1+1} />
+        <Child int=1 vec={::std::vec![1]} />
+        <Child string={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
 
-            <Child opt_str="child" int=1 />
-            <Child opt_str={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
-            <Child opt_str={::std::option::Option::Some("child")} int=1 />
-            <Child opt_str={::std::option::Option::Some(<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child"))} int=1 />
-        </>
+        <Child opt_str="child" int=1 />
+        <Child opt_str={<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child")} int=1 />
+        <Child opt_str={::std::option::Option::Some("child")} int=1 />
+        <Child opt_str={::std::option::Option::Some(<::std::string::String as ::std::convert::From<&'static ::std::primitive::str>>::from("child"))} int=1 />
     };
 
     let name_expr = "child";
@@ -216,82 +210,72 @@ fn compile_pass() {
     };
 
     _ = ::yew::html! {
-        <>
-            <Child int=1 />
-            <Child int=1 optional_callback={::std::option::Option::Some(<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ()))} />
-            <Child int=1 optional_callback={<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ())} />
-            <Child int=1 optional_callback={::std::option::Option::None::<::yew::Callback<_>>} />
-        </>
+        <Child int=1 />
+        <Child int=1 optional_callback={::std::option::Option::Some(<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ()))} />
+        <Child int=1 optional_callback={<::yew::Callback<()> as ::std::convert::From<_>>::from(|_| ())} />
+        <Child int=1 optional_callback={::std::option::Option::None::<::yew::Callback<_>>} />
     };
 
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     _ = ::yew::html! {
-        <>
-            <Child int=1 r#ref={node_ref} />
-        </>
+        <Child int=1 r#ref={node_ref} />
     };
 
     let int = 1;
     let node_ref = <::yew::NodeRef as ::std::default::Default>::default();
     _ = ::yew::html! {
-        <>
-            <Child {int} r#ref={node_ref} />
-        </>
+        <Child {int} r#ref={node_ref} />
     };
 
     let props = <<Container as ::yew::Component>::Properties as ::std::default::Default>::default();
     let child_props =
         <<Child as ::yew::Component>::Properties as ::std::default::Default>::default();
     _ = ::yew::html! {
-        <>
-            <Container int=1 />
-            <Container int=1></Container>
+        <Container int=1 />
+        <Container int=1></Container>
 
-            <Container ..::std::clone::Clone::clone(&props)>
-                <div>{ "hello world" }</div>
-            </Container>
+        <Container ..::std::clone::Clone::clone(&props)>
+            <div>{ "hello world" }</div>
+        </Container>
 
-            <Container int=1 ..::std::clone::Clone::clone(&props)>
-                <div>{ "hello world" }</div>
-            </Container>
+        <Container int=1 ..::std::clone::Clone::clone(&props)>
+            <div>{ "hello world" }</div>
+        </Container>
 
-            <Container int=1 ..::std::clone::Clone::clone(&props)>
-                <Child int=2 opt_str="hello" ..::std::clone::Clone::clone(&child_props) />
-            </Container>
+        <Container int=1 ..::std::clone::Clone::clone(&props)>
+            <Child int=2 opt_str="hello" ..::std::clone::Clone::clone(&child_props) />
+        </Container>
 
-            <Container int=1 ..::std::clone::Clone::clone(&props)>
-                <Child int=2 vec={::std::vec![0]} ..::std::clone::Clone::clone(&child_props) />
-            </Container>
+        <Container int=1 ..::std::clone::Clone::clone(&props)>
+            <Child int=2 vec={::std::vec![0]} ..::std::clone::Clone::clone(&child_props) />
+        </Container>
 
 
-            <Container int=1 ..props>
-                <Child int=2 string="hello" ..child_props />
-            </Container>
+        <Container int=1 ..props>
+            <Child int=2 string="hello" ..child_props />
+        </Container>
 
-            <Container int=1>
-                <Child int=2 />
-            </Container>
+        <Container int=1>
+            <Child int=2 />
+        </Container>
 
-            <scoped::Container int=1>
-                <scoped::Container int=2/>
-            </scoped::Container>
+        <scoped::Container int=1>
+            <scoped::Container int=2/>
+        </scoped::Container>
 
-            <Container int=1 children={::yew::html::ChildrenRenderer::new(
-                ::std::vec![::yew::html!{ "::std::string::String" }]
-            )} />
-            <Container int=1 header={::yew::html!{
-                <Child int=2 />
-            }} />
-        </>
+        <Container int=1 children={::yew::html::ChildrenRenderer::new(
+            ::std::vec![::yew::html!{ "::std::string::String" }]
+        )} />
+        <Container int=1 header={::yew::html!{
+            <Child int=2 />
+        }} />
     };
 
     _ = ::yew::html! {
-        <>
-            <ChildContainer int=1 />
-            <ChildContainer int=1></ChildContainer>
-            <ChildContainer int=1><Child int = 2 /></ChildContainer>
-            <ChildContainer int=1><Child int = 2 /><Child int = 2 /></ChildContainer>
-        </>
+        <ChildContainer int=1 />
+        <ChildContainer int=1></ChildContainer>
+        <ChildContainer int=1><Child int = 2 /></ChildContainer>
+        <ChildContainer int=1><Child int = 2 /><Child int = 2 /></ChildContainer>
     };
 
     _ = ::yew::html! {
@@ -342,32 +326,30 @@ fn compile_pass() {
     };
 
     _ = ::yew::html! {
-        <>
+        {
+            ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
+                ::std::iter::Iterator::filter(
+                    ::std::iter::IntoIterator::into_iter(variants()),
+                    |c| match c {
+                        ChildrenVariants::Child(_) => true,
+                        _ => false,
+                    }
+                )
+            )
+        }
+        <div>
             {
                 ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
                     ::std::iter::Iterator::filter(
                         ::std::iter::IntoIterator::into_iter(variants()),
                         |c| match c {
-                            ChildrenVariants::Child(_) => true,
+                            ChildrenVariants::AltChild(_) => true,
                             _ => false,
                         }
                     )
                 )
             }
-            <div>
-                {
-                    ::std::iter::Iterator::collect::<::yew::virtual_dom::VNode>(
-                        ::std::iter::Iterator::filter(
-                            ::std::iter::IntoIterator::into_iter(variants()),
-                            |c| match c {
-                                ChildrenVariants::AltChild(_) => true,
-                                _ => false,
-                            }
-                        )
-                    )
-                }
-            </div>
-        </>
+        </div>
     };
 
     _ = ::yew::html_nested! { 1 };
@@ -405,12 +387,10 @@ impl ::yew::Component for HtmlPassedAsPropContainer {
 
     fn view(&self, _ctx: &::yew::Context<Self>) -> ::yew::Html {
         ::yew::html! {
-            <>
             <HtmlPassedAsProp value={::yew::html!()} />
             <HtmlPassedAsProp value="string literal" />
             <HtmlPassedAsProp value={::std::format!("string")} />
             <HtmlPassedAsProp value={::yew::AttrValue::Static("attr value")} />
-            </>
         }
     }
 }

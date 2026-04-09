@@ -202,10 +202,8 @@ mod layout_tests {
         let layout3 = TestLayout {
             name: "3",
             node: html! {
-                <>
-                    {"a"}
-                    {"b"}
-                </>
+                {"a"}
+                {"b"}
             },
             expected: "ab",
         };
@@ -213,10 +211,8 @@ mod layout_tests {
         let layout4 = TestLayout {
             name: "4",
             node: html! {
-                <>
-                    {"b"}
-                    {"a"}
-                </>
+                {"b"}
+                {"a"}
             },
             expected: "ba",
         };

@@ -37,7 +37,7 @@ use crate::html::{BaseComponent, ChildrenProps, Html};
 /// # fn Provider(props: &ChildrenProps) -> Html {
 /// #     let children = props.children.clone();
 /// #
-/// #     html! { <>{children}</> }
+/// #     html! { {children} }
 /// # }
 /// # type Provider1 = Provider;
 /// # type Provider2 = Provider;
@@ -94,7 +94,7 @@ use crate::html::{BaseComponent, ChildrenProps, Html};
 /// # fn Provider(props: &ChildrenProps) -> Html {
 /// #     let children = props.children.clone();
 /// #
-/// #     html! { <>{children}</> }
+/// #     html! { {children} }
 /// # }
 /// # type Provider1 = Provider;
 /// # type Provider2 = Provider;

@@ -58,7 +58,7 @@ pub struct Props {
 
 #[component]
 fn HelloWorld(&Props { is_loading }: &Props) -> Html {
-    html! { <>{"Am I loading? - "}{is_loading}</> }
+    html! { {"Am I loading? - "}{is_loading} }
 }
 
 // そしてプロパティを提供します
@@ -163,7 +163,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
     } else {
-        html! { <>{"Hello "}{name} </>}
+        html! { {"Hello "}{name} }
     }
 }
 
@@ -207,7 +207,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
     } else {
-        html! { <>{"Hello "}{name}</> }
+        html! { {"Hello "}{name} }
     }
 }
 
@@ -256,7 +256,7 @@ fn Hello(&Props { is_loading, ref name }: &Props) -> Html {
     if is_loading {
         html! { "Loading" }
     } else {
-        html! { <>{"Hello "}{name}</> }
+        html! { {"Hello "}{name} }
     }
 }
 
@@ -293,7 +293,7 @@ fn Greetings(
     if is_loading {
         html! { "Loading" }
     } else {
-        html! { <>{message}{" "}{name}</> }
+        html! { {message}{" "}{name} }
     }
 }
 

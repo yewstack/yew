@@ -17,8 +17,6 @@ fn compile_fail() {
     html! { <div></span> };
     html! { <tag-a></tag-b> };
 
-    // multiple root
-    html! { <div></div><div></div> };
     // invalid child content
     html! { <div>Invalid</div> };
 

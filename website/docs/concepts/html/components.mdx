@@ -27,7 +27,7 @@ struct Props {
 fn MyComponentWithProps(props: &Props) -> Html {
     let Props { user_first_name, user_last_name } = props;
     html! {
-        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+        {"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}
     }
 }
 
@@ -37,19 +37,17 @@ let props = Props {
 };
 
 html!{
-    <>
-        // No properties
-        <MyComponent />
+    // No properties
+    <MyComponent />
 
-        // With Properties
-        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
+    // With Properties
+    <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
-        // With the whole set of props provided at once
-        <MyComponentWithProps ..props.clone() />
+    // With the whole set of props provided at once
+    <MyComponentWithProps ..props.clone() />
 
-        // With Properties from a variable and specific values overridden
-        <MyComponentWithProps user_last_name="Elm" ..props />
-    </>
+    // With Properties from a variable and specific values overridden
+    <MyComponentWithProps user_last_name="Elm" ..props />
 };
 ```
 

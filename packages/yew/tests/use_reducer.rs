@@ -102,13 +102,11 @@ async fn use_reducer_eq_works() {
         let add_content_b = Callback::from(move |_| content.dispatch("B".to_string()));
 
         html! {
-            <>
-                <div>
-                    {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
-                </div>
-                <button onclick={add_content_a} id="add-a">{"Add A to Content"}</button>
-                <button onclick={add_content_b} id="add-b">{"Add B to Content"}</button>
-            </>
+            <div>
+                {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
+            </div>
+            <button onclick={add_content_a} id="add-a">{"Add A to Content"}</button>
+            <button onclick={add_content_b} id="add-b">{"Add B to Content"}</button>
         }
     }
 
@@ -213,13 +211,11 @@ async fn use_reducer_does_not_rerender_when_rc_is_reused() {
         let change_state = Callback::from(move |_| state.dispatch(SometimesChangeAction::Change));
 
         html! {
-            <>
-                <div>
-                    {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
-                </div>
-                <button onclick={keep_state} id="keep-state">{"Keep State"}</button>
-                <button onclick={change_state} id="change-state">{"Change State"}</button>
-            </>
+            <div>
+                {"This component has been rendered: "}<span id="result">{render_count}</span>{" Time(s)."}
+            </div>
+            <button onclick={keep_state} id="keep-state">{"Keep State"}</button>
+            <button onclick={change_state} id="change-state">{"Change State"}</button>
         }
     }
 

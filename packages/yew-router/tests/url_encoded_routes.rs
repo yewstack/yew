@@ -24,12 +24,10 @@ enum AppRoute {
 fn Comp() -> Html {
     let switch = move |routes: AppRoute| match routes {
         AppRoute::Root => html! {
-            <>
-                <h1>{ "Root" }</h1>
-                <Link<AppRoute> to={AppRoute::Search { query: "a/b".to_string() }}>
-                    {"Click me"}
-                </Link<AppRoute>>
-            </>
+            <h1>{ "Root" }</h1>
+            <Link<AppRoute> to={AppRoute::Search { query: "a/b".to_string() }}>
+                {"Click me"}
+            </Link<AppRoute>>
         },
         AppRoute::Search { query } => html! {
             <p id="q">{ query }</p>

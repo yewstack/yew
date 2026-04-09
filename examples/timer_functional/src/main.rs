@@ -171,19 +171,17 @@ fn App() -> Html {
     });
 
     html!(
-        <>
-            <div id="buttons">
-                <button disabled={has_job} onclick={on_add_timeout}>{ "Start Timeout" }</button>
-                <button disabled={has_job} onclick={on_add_interval}>{ "Start Interval" }</button>
-                <button disabled={!has_job} onclick={on_cancel}>{ "Cancel"}</button>
+        <div id="buttons">
+            <button disabled={has_job} onclick={on_add_timeout}>{ "Start Timeout" }</button>
+            <button disabled={has_job} onclick={on_add_interval}>{ "Start Interval" }</button>
+            <button disabled={!has_job} onclick={on_cancel}>{ "Cancel"}</button>
+        </div>
+        <div id="wrapper">
+            <Clock />
+            <div id="messages">
+                { messages }
             </div>
-            <div id="wrapper">
-                <Clock />
-                <div id="messages">
-                    { messages }
-                </div>
-            </div>
-        </>
+        </div>
     )
 }
 

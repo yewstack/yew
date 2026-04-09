@@ -55,18 +55,16 @@ fn Main() -> Html {
     };
 
     html! {
-        <>
-            <h1>{ "Web worker demo" }</h1>
-            <p>{ "Submit a value to calculate, then increase the counter on the main thread!"} </p>
-            <p>{ "Large numbers will take some time!" }</p>
-            <h3>{ "Output: " } { &*output }</h3>
-            <br />
-            <input type="number" value={input_value.to_string()} max="50" oninput={on_input_change} />
-            <button onclick={calculate}>{ "submit" }</button>
-            <br /> <br />
-            <h3>{ "Main thread value: " } { *clicker_value }</h3>
-            <button onclick={inc_clicker}>{ "click!" }</button>
-        </>
+        <h1>{ "Web worker demo" }</h1>
+        <p>{ "Submit a value to calculate, then increase the counter on the main thread!"} </p>
+        <p>{ "Large numbers will take some time!" }</p>
+        <h3>{ "Output: " } { &*output }</h3>
+        <br />
+        <input type="number" value={input_value.to_string()} max="50" oninput={on_input_change} />
+        <button onclick={calculate}>{ "submit" }</button>
+        <br /> <br />
+        <h3>{ "Main thread value: " } { *clicker_value }</h3>
+        <button onclick={inc_clicker}>{ "click!" }</button>
     }
 }
 

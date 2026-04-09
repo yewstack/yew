@@ -29,24 +29,22 @@ pub fn RelNavButtons(props: &Props) -> Html {
     } = props.clone();
 
     html! {
-        <>
-            <Link<Route, PageQuery>
-                classes={classes!("pagination-previous")}
-                disabled={page==1}
-                query={Some(PageQuery{page: page - 1})}
-                to={to.clone()}
-            >
-                { "Previous" }
-            </Link<Route, PageQuery>>
-            <Link<Route, PageQuery>
-                classes={classes!("pagination-next")}
-                disabled={page==total_pages}
-                query={Some(PageQuery{page: page + 1})}
-                {to}
-            >
-                { "Next page" }
-            </Link<Route, PageQuery>>
-        </>
+        <Link<Route, PageQuery>
+            classes={classes!("pagination-previous")}
+            disabled={page==1}
+            query={Some(PageQuery{page: page - 1})}
+            to={to.clone()}
+        >
+            { "Previous" }
+        </Link<Route, PageQuery>>
+        <Link<Route, PageQuery>
+            classes={classes!("pagination-next")}
+            disabled={page==total_pages}
+            query={Some(PageQuery{page: page + 1})}
+            {to}
+        >
+            { "Next page" }
+        </Link<Route, PageQuery>>
     }
 }
 
@@ -70,18 +68,13 @@ pub fn RenderLinks(props: &RenderLinksProps) -> Html {
     let mut range = range;
 
     if len > max_links {
-        let last_link =
-            html! {<RenderLink to_page={range.next_back().unwrap()} props={props.clone()} />};
-        // remove 1 for the ellipsis and 1 for the last link
-        let links = range
-            .take(max_links - 2)
-            .map(|page| html! {<RenderLink to_page={page} props={props.clone()} />});
+        let last_page = range.next_back().unwrap();
         html! {
-            <>
-                { for links }
-                <li><span class="pagination-ellipsis">{ ELLIPSIS }</span></li>
-                { last_link }
-            </>
+            for page in range.take(max_links - 2) {
+                <RenderLink to_page={page} props={props.clone()} />
+            }
+            <li><span class="pagination-ellipsis">{ ELLIPSIS }</span></li>
+            <RenderLink to_page={last_page} props={props.clone()} />
         }
     } else {
         html! {
@@ -140,11 +133,9 @@ pub fn Links(props: &Props) -> Html {
     let links_right = 2 * LINKS_PER_SIDE - links_left;
 
     html! {
-        <>
-            <RenderLinks range={ 1..page } len={pages_prev} max_links={links_left} props={props.clone()} />
-            <RenderLink to_page={page} props={props.clone()} />
-            <RenderLinks range={ page + 1..total_pages + 1 } len={pages_next} max_links={links_right} props={props.clone()} />
-        </>
+        <RenderLinks range={ 1..page } len={pages_prev} max_links={links_left} props={props.clone()} />
+        <RenderLink to_page={page} props={props.clone()} />
+        <RenderLinks range={ page + 1..total_pages + 1 } len={pages_next} max_links={links_right} props={props.clone()} />
     }
 }
 

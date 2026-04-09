@@ -17,17 +17,26 @@ use yew::prelude::*;
 
 let text = "lorem ipsum";
 html!{
-    <>
-        <div>{text}</div>
-        <div>{"dolor sit"}</div>
-        <span>{42}</span>
-    </>
+    <div>{text}</div>
+    <div>{"dolor sit"}</div>
+    <span>{42}</span>
 };
 ```
 
 ## Expressions
 
-You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html`
+You can insert expressions in your HTML using `{}` blocks, as long as they resolve to `Html`:
+
+```rust
+use yew::prelude::*;
+
+let name = "Yew";
+html! {
+  <div>{ format!("Hello, {name}!") }</div>
+};
+```
+
+For conditional rendering, use `if`/`else` and `match` directly in `html!` instead of wrapping them in expression blocks with nested `html!` calls:
 
 ```rust
 use yew::prelude::*;
@@ -36,20 +45,14 @@ let show_link = true;
 
 html! {
   <div>
-    {
-      if show_link {
-        html! {
-          <a href="https://example.com">{"Link"}</a>
-        }
-      } else {
-        html! {}
-      }
+    if show_link {
+      <a href="https://example.com">{"Link"}</a>
     }
   </div>
 };
 ```
 
-It often makes sense to extract these expressions into functions or closures to optimize for readability:
+It often makes sense to extract complex logic into functions or closures:
 
 ```rust
 use yew::prelude::*;
