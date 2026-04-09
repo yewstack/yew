@@ -70,11 +70,9 @@ html! {
 ```
 
   </TabItem>
-</Tabs>
+  <TabItem value="if-let-bindings" label="let 綁定">
 
-### let 綁定和多子節點
-
-`if`/`else`、`match` 和 `for` 的大括號主體都支援在 html 子節點前使用 `let` 綁定，以及無需片段包裝的多個子節點：
+大括號主體支援在 html 子節點前使用 `let` 綁定，以及多個子節點：
 
 ```rust , ignore
 use yew::prelude::*;
@@ -91,6 +89,9 @@ html! {
 ```
 
 `let` 綁定必須出現在所有 html 子節點之前，不能與它們交錯。
+
+  </TabItem>
+</Tabs>
 
 ## Match 區塊
 

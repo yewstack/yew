@@ -70,11 +70,9 @@ html! {
 ```
 
   </TabItem>
-</Tabs>
+  <TabItem value="if-let-bindings" label="Let bindings">
 
-### Let bindings and multiple children
-
-Braced bodies in `if`/`else`, `match`, and `for` all support `let` bindings before html children, as well as multiple children directly:
+Braced bodies support `let` bindings before html children, as well as multiple children directly:
 
 ```rust , ignore
 use yew::prelude::*;
@@ -91,6 +89,9 @@ html! {
 ```
 
 `let` bindings must appear before any html children and cannot be interleaved with them.
+
+  </TabItem>
+</Tabs>
 
 ## Match blocks
 

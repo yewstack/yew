@@ -70,11 +70,9 @@ html! {
 ```
 
   </TabItem>
-</Tabs>
+  <TabItem value="if-let-bindings" label="let バインディング">
 
-### let バインディングと複数の子要素
-
-`if`/`else`、`match`、`for` のブレース付き本体はすべて、html 子要素の前に `let` バインディングを使用でき、フラグメントで囲まずに複数の子要素を記述できます：
+ブレース付き本体では、html 子要素の前に `let` バインディングを使用でき、複数の子要素を直接記述できます：
 
 ```rust , ignore
 use yew::prelude::*;
@@ -91,6 +89,9 @@ html! {
 ```
 
 `let` バインディングはすべての html 子要素の前に記述する必要があり、交互に配置することはできません。
+
+  </TabItem>
+</Tabs>
 
 ## Match ブロック
 
