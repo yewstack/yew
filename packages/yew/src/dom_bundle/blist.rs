@@ -1,6 +1,5 @@
 //! This module contains fragments bundles, a [BList]
 use std::borrow::Borrow;
-use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Deref;
@@ -16,8 +15,8 @@ use crate::virtual_dom::{Key, VList, VNode};
 /// This struct represents a mounted [VList]
 #[derive(Debug)]
 pub(super) struct BList {
-    /// The reverse (render order) list of child [BNode]s
-    rev_children: Vec<BNode>,
+    /// Child [BNode]s in render order
+    children: Vec<BNode>,
     /// All [BNode]s in the BList have keys
     fully_keyed: bool,
     key: Option<Key>,
@@ -41,7 +40,7 @@ impl Deref for BList {
     type Target = Vec<BNode>;
 
     fn deref(&self) -> &Self::Target {
-        &self.rev_children
+        &self.children
     }
 }
 
@@ -119,7 +118,7 @@ impl BNode {
                     _ => unreachable!("just been set to the variant"),
                 };
                 let key = b.key().cloned();
-                self_list.rev_children.push(b);
+                self_list.children.push(b);
                 self_list.fully_keyed = key.is_some();
                 self_list.key = key;
                 self_list
@@ -132,7 +131,7 @@ impl BList {
     /// Create a new empty [BList]
     pub const fn new() -> BList {
         BList {
-            rev_children: vec![],
+            children: vec![],
             fully_keyed: true,
             key: None,
         }
@@ -144,6 +143,10 @@ impl BList {
     }
 
     /// Diff and patch unkeyed child lists
+    ///
+    /// Pairs children front-to-front by render-order position so that leading
+    /// nodes are always reconciled with themselves when the list grows or
+    /// shrinks at the tail.
     fn apply_unkeyed(
         root: &BSubtree,
         parent_scope: &AnyScope,
@@ -159,7 +162,7 @@ impl BList {
             slot,
         };
 
-        // Remove extra nodes
+        // Remove excess old nodes from the end of render order.
         if lefts.len() < rights.len() {
             for r in rights.drain(lefts.len()..) {
                 test_log!("removing: {:?}", r);
@@ -167,17 +170,29 @@ impl BList {
             }
         }
 
-        let mut lefts_it = lefts.into_iter().rev();
-        for (r, l) in rights.iter_mut().zip(&mut lefts_it) {
-            writer = writer.patch(l, r);
-        }
+        let paired_count = rights.len(); // min(left_len, old_len)
+        let left_len = lefts.len();
+        let mut lefts_rev = lefts.into_iter().rev();
 
-        // Add missing nodes
-        for l in lefts_it {
+        // Add excess new nodes at the tail of render order (rightmost first
+        // for the NodeWriter).
+        let excess_start = rights.len();
+        for l in lefts_rev
+            .by_ref()
+            .take(left_len.saturating_sub(paired_count))
+        {
             let (next_writer, el) = writer.add(l);
             rights.push(el);
             writer = next_writer;
         }
+        // Items were pushed right-to-left; flip to render order.
+        rights[excess_start..].reverse();
+
+        // Patch paired nodes right-to-left.
+        for (l, r) in lefts_rev.zip(rights[..paired_count].iter_mut().rev()) {
+            writer = writer.patch(l, r);
+        }
+
         writer.slot
     }
 
@@ -191,7 +206,7 @@ impl BList {
         parent: &Element,
         slot: DomSlot,
         left_vdoms: Vec<VNode>,
-        rev_bundles: &mut Vec<BNode>,
+        bundles: &mut Vec<BNode>,
     ) -> DomSlot {
         macro_rules! key {
             ($v:expr) => {
@@ -206,12 +221,6 @@ impl BList {
             a.zip(b).take_while(|(a, b)| a == b).count()
         }
 
-        // Find first key mismatch from the back
-        let matching_len_end = matching_len(
-            left_vdoms.iter().map(|v| key!(v)).rev(),
-            rev_bundles.iter().map(|v| key!(v)),
-        );
-
         if cfg!(debug_assertions) {
             let mut keys = HashSet::with_capacity(left_vdoms.len());
             for (idx, n) in left_vdoms.iter().enumerate() {
@@ -224,12 +233,22 @@ impl BList {
             }
         }
 
-        // If there is no key mismatch, apply the unkeyed approach
-        // Corresponds to adding or removing items from the back of the list
-        if matching_len_end == std::cmp::min(left_vdoms.len(), rev_bundles.len()) {
-            // No key changes
-            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, rev_bundles);
+        // If keys match from the front for the entire shorter list, items were
+        // only added or removed at the back. apply_unkeyed handles this since
+        // it pairs front-to-front.
+        let matching_len_start = matching_len(
+            left_vdoms.iter().map(|v| key!(v)),
+            bundles.iter().map(|v| key!(v)),
+        );
+        if matching_len_start == std::cmp::min(left_vdoms.len(), bundles.len()) {
+            return Self::apply_unkeyed(root, parent_scope, parent, slot, left_vdoms, bundles);
         }
+
+        // Find first key mismatch from the back of render order
+        let matching_len_end = matching_len(
+            left_vdoms.iter().rev().map(|v| key!(v)),
+            bundles.iter().rev().map(|v| key!(v)),
+        );
 
         // We partially drain the new vnodes in several steps.
         let mut lefts = left_vdoms;
@@ -239,35 +258,30 @@ impl BList {
             parent,
             slot,
         };
-        // Step 1. Diff matching children at the end
+        // Step 1. Diff matching children at the end of render order
         let lefts_to = lefts.len() - matching_len_end;
+        let bundles_from = bundles.len() - matching_len_end;
         for (l, r) in lefts
             .drain(lefts_to..)
             .rev()
-            .zip(rev_bundles[..matching_len_end].iter_mut())
+            .zip(bundles[bundles_from..].iter_mut().rev())
         {
             writer = writer.patch(l, r);
         }
 
         // Step 2. Diff matching children in the middle, that is between the first and last key
-        // mismatch Find first key mismatch from the front
-        let mut matching_len_start = matching_len(
-            lefts.iter().map(|v| key!(v)),
-            rev_bundles.iter().map(|v| key!(v)).rev(),
-        );
-
-        // Step 2.1. Splice out the existing middle part and build a lookup by key
-        let rights_to = rev_bundles.len() - matching_len_start;
-        let mut bundle_middle = matching_len_end..rights_to;
-        if bundle_middle.start > bundle_middle.end {
-            // If this range is "inverted", this implies that the incoming nodes in lefts contain a
-            // duplicate key!
+        // mismatch. Find first key mismatch from the front.
+        let bundle_middle = if bundles_from >= matching_len_start {
+            matching_len_start..bundles_from
+        } else {
+            // If this range in the other branch is "inverted", this implies that the incoming nodes
+            // in lefts contain a duplicate key!
             // Pictogram:
-            //                                         v lefts_to
-            // lefts:              | SSSSSSSS | ------ | EEEEEEEE |
-            //                                ↕ matching_len_start
-            // rev_bundles.rev():  | SSS | ?? | EEE |
-            //                           ^ rights_to
+            //                              v lefts_to
+            // lefts:   | SSSSSSSS | ------ | EEEEEEEE |
+            //                     ↕ matching_len_start
+            // bundles: | SSS | ?? | EEE |
+            //                ^ bundles_from
             // Both a key from the (S)tarting portion and (E)nding portion of lefts has matched a
             // key in the ? portion of bundles. Since the former can't overlap, a key
             // must be duplicate. Duplicates might lead to us forgetting about some
@@ -277,15 +291,15 @@ impl BList {
             // With debug_assertions we can never reach this. For production code, hope for the best
             // by pretending. We still need to adjust some things so splicing doesn't
             // panic:
-            matching_len_start = 0;
-            bundle_middle = matching_len_end..rev_bundles.len();
-        }
-        let (matching_len_start, bundle_middle) = (matching_len_start, bundle_middle);
+            bundles_from..bundles_from
+        };
+        let matching_len_start = bundle_middle.start;
+        // Step 2.1. Splice out the existing middle part and build a lookup by key
 
         // BNode contains js objects that look suspicious to clippy but are harmless
         #[expect(clippy::mutable_key_type)]
         let mut spare_bundles: HashSet<KeyedEntry> = HashSet::with_capacity(bundle_middle.len());
-        let mut spliced_middle = rev_bundles.splice(bundle_middle, std::iter::empty());
+        let mut spliced_middle = bundles.splice(bundle_middle, std::iter::empty());
         for (idx, r) in (&mut spliced_middle).enumerate() {
             #[cold]
             fn duplicate_in_bundle(root: &BSubtree, parent: &Element, r: BNode) {
@@ -296,6 +310,7 @@ impl BList {
                 duplicate_in_bundle(root, parent, dup);
             }
         }
+        let middle_count = spare_bundles.len();
 
         // Step 2.2. Put the middle part back together in the new key order
         let mut replacements: Vec<BNode> = Vec::with_capacity((matching_len_start..lefts_to).len());
@@ -304,19 +319,23 @@ impl BList {
         // We handle runs of in-order nodes. When we encounter one out-of-order, we decide whether:
         // - to shift all nodes in the current run to the position after the node before of the run,
         //   or to
-        // - "commit" to the current run, shift all nodes before the end of the run that we might
+        // - "commit" to the current run, shift all nodes after the end of the run that we might
         //   encounter in the future, and then start a new run.
-        // Example of a run:
-        //               barrier_idx --v                   v-- end_idx
-        // spliced_middle  [ ... , M , N , C , D , E , F , G , ... ] (original element order)
-        //                                 ^---^-----------^ the nodes that are part of the current
-        // run                           v start_writer
-        // replacements    [ ... , M , C , D , G ]                   (new element order)
-        //                             ^-- start_idx
-        let mut barrier_idx = 0; // nodes from spliced_middle[..barrier_idx] are shifted unconditionally
+        //
+        // Indices are in render order (idx 0 = leftmost). Processing goes right-to-left, so we
+        // expect decreasing indices for nodes already in the right relative order.
+
+        // The node with `idx + 1 == barrier_idx` is already correctly placed if there is no run
+        // active.
+        // Nodes with `idx >= barrier_idx` are shifted unconditionally.
+        // Also serves as the next expected node index if the order has not changed, and of the
+        // position of ``
+        let mut barrier_idx = middle_count;
         struct RunInformation<'a> {
             start_writer: NodeWriter<'a>,
+            // Index in `replacements` where this run started
             start_idx: usize,
+            // Index of the left-most (in render-order) bundle that is part of the run.
             end_idx: usize,
         }
         let mut current_run: Option<RunInformation<'_>> = None;
@@ -330,20 +349,19 @@ impl BList {
             if let Some(run) = current_run.as_mut() {
                 if let Some(KeyedEntry(idx, _)) = ancestor {
                     // If there are only few runs, this is a cold path
-                    if idx < run.end_idx {
+                    if idx > run.end_idx {
                         // Have to decide whether to shift or commit the current run. A few
                         // calculations: A perfect estimate of the amount of
                         // nodes we have to shift if we move this run:
                         let run_length = replacements.len() - run.start_idx;
                         // A very crude estimate of the amount of nodes we will have to shift if we
-                        // commit the run: Note nodes of the current run
-                        // should not be counted here!
-                        let estimated_skipped_nodes = run.end_idx - idx.max(barrier_idx);
+                        // commit the run. Note: nodes of the current run are counted here too.
+                        let estimated_skipped_nodes = idx.min(barrier_idx) - run.end_idx;
                         // double run_length to counteract that the run is part of the
                         // estimated_skipped_nodes
                         if 2 * run_length > estimated_skipped_nodes {
                             // less work to commit to this run
-                            barrier_idx = 1 + run.end_idx;
+                            barrier_idx = run.end_idx;
                         } else {
                             // Less work to shift this run
                             for r in replacements[run.start_idx..].iter_mut().rev() {
@@ -358,16 +376,16 @@ impl BList {
                 Some(KeyedEntry(idx, mut r_bundle)) => {
                     match current_run.as_mut() {
                         // hot path
-                        // We know that idx >= run.end_idx, so this node doesn't need to shift
+                        // We know that idx <= run.end_idx, so this node doesn't need to shift
                         Some(run) => run.end_idx = idx,
-                        None => match idx.cmp(&barrier_idx) {
-                            // peep hole optimization, don't start a run as the element is already
-                            // where it should be
-                            Ordering::Equal => barrier_idx += 1,
+                        None => match () {
+                            // peep hole optimization, don't start a run as the element is
+                            // already where it should be
+                            _ if idx + 1 == barrier_idx => barrier_idx = idx,
                             // shift the node unconditionally, don't start a run
-                            Ordering::Less => writer.shift(&r_bundle),
+                            _ if idx >= barrier_idx => writer.shift(&r_bundle),
                             // start a run
-                            Ordering::Greater => {
+                            _ => {
                                 current_run = Some(RunInformation {
                                     start_writer: writer.clone(),
                                     start_idx: replacements.len(),
@@ -390,7 +408,9 @@ impl BList {
         }
         // drop the splice iterator and immediately replace the range with the reordered elements
         drop(spliced_middle);
-        rev_bundles.splice(matching_len_end..matching_len_end, replacements);
+        // replacements was built right-to-left; reverse to render order
+        replacements.reverse();
+        bundles.splice(matching_len_start..matching_len_start, replacements);
 
         // Step 2.3. Remove any extra rights
         for KeyedEntry(_, r) in spare_bundles.drain() {
@@ -399,11 +419,10 @@ impl BList {
         }
 
         // Step 3. Diff matching children at the start
-        let rights_to = rev_bundles.len() - matching_len_start;
         for (l, r) in lefts
             .drain(..) // matching_len_start.. has been drained already
             .rev()
-            .zip(rev_bundles[rights_to..].iter_mut())
+            .zip(bundles[..matching_len_start].iter_mut().rev())
         {
             writer = writer.patch(l, r);
         }
@@ -414,13 +433,13 @@ impl BList {
 
 impl ReconcileTarget for BList {
     fn detach(self, root: &BSubtree, parent: &Element, parent_to_detach: bool) {
-        for child in self.rev_children.into_iter() {
+        for child in self.children.into_iter() {
             child.detach(root, parent, parent_to_detach);
         }
     }
 
     fn shift(&self, next_parent: &Element, mut slot: DomSlot) -> DomSlot {
-        for node in self.rev_children.iter() {
+        for node in self.children.iter().rev() {
             slot = node.shift(next_parent, slot);
         }
 
@@ -475,7 +494,7 @@ impl Reconcilable for VList {
         // i.e. the current DOM list element that we want to replace with self.
         let (key, fully_keyed, lefts) = self.split_for_blist();
 
-        let rights = &mut blist.rev_children;
+        let rights = &mut blist.children;
         test_log!("lefts: {:?}", lefts);
         test_log!("rights: {:?}", rights);
 
@@ -518,10 +537,8 @@ mod feat_hydration {
                 children.push(child);
             }
 
-            children.reverse();
-
             BList {
-                rev_children: children,
+                children,
                 fully_keyed,
                 key,
             }
@@ -1488,5 +1505,244 @@ mod layout_tests_keys {
         });
 
         diff_layouts(layouts);
+    }
+}
+
+#[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
+#[cfg(test)]
+mod node_identity_tests {
+    extern crate self as yew;
+
+    use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
+
+    use crate::dom_bundle::{BSubtree, Bundle, DomSlot};
+    use crate::html::AnyScope;
+    use crate::{Html, html, scheduler};
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[test]
+    fn for_iterable_preserves_sibling_identity() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let items: Vec<Html> = vec![];
+        let vnode = html! { <><div id="stable"/>{for items}</> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), r#"<div id="stable"></div>END"#);
+
+        let div_node = parent.first_child().expect("should have a child");
+        assert_eq!(div_node.node_name(), "DIV");
+
+        let items: Vec<Html> = vec![html! { <span/> }];
+        let vnode = html! { <><div id="stable"/>{for items}</> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(
+            parent.inner_html(),
+            r#"<div id="stable"></div><span></span>END"#
+        );
+
+        let first = parent.first_child().expect("should have children");
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "the <div> DOM node should be reused, not recreated (got <{}>, the old <div> was \
+             destroyed by {{for}} flattening)",
+            first.node_name(),
+        );
+    }
+
+    #[test]
+    fn vec_expression_preserves_sibling_identity() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let items: Vec<Html> = vec![];
+        let vnode = html! { <><div id="stable"/>{items}</> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), r#"<div id="stable"></div>END"#);
+
+        let div_node = parent.first_child().expect("should have a child");
+        assert_eq!(div_node.node_name(), "DIV");
+
+        let items: Vec<Html> = vec![html! { <span/> }];
+        let vnode = html! { <><div id="stable"/>{items}</> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(
+            parent.inner_html(),
+            r#"<div id="stable"></div><span></span>END"#
+        );
+
+        let first = parent.first_child().expect("should have children");
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "the <div> DOM node should be reused, not recreated (got <{}>, the old <div> was \
+             destroyed by Vec flattening)",
+            first.node_name(),
+        );
+    }
+
+    #[test]
+    fn option_expression_preserves_sibling_identity() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let maybe: Option<Html> = None;
+        let vnode = html! { <><div id="stable"/>{maybe}</> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), r#"<div id="stable"></div>END"#);
+
+        let div_node = parent.first_child().expect("should have a child");
+        assert_eq!(div_node.node_name(), "DIV");
+
+        let maybe: Option<Html> = Some(html! { <span/> });
+        let vnode = html! { <><div id="stable"/>{maybe}</> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(
+            parent.inner_html(),
+            r#"<div id="stable"></div><span></span>END"#
+        );
+
+        let first = parent.first_child().expect("should have children");
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "the <div> DOM node should be reused, not recreated (got <{}>, the old <div> was \
+             destroyed by Option flattening)",
+            first.node_name(),
+        );
+    }
+
+    #[test]
+    fn unkeyed_grow_preserves_leading_nodes() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let vnode = html! { <><div/><span/></> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span>END");
+
+        let div_node = parent.first_child().unwrap();
+        assert_eq!(div_node.node_name(), "DIV");
+        let span_node = div_node.next_sibling().unwrap();
+        assert_eq!(span_node.node_name(), "SPAN");
+
+        let vnode = html! { <><div/><span/><p/></> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span><p></p>END");
+
+        let first = parent.first_child().unwrap();
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "growing a list should not recreate leading <div>",
+        );
+        let second = first.next_sibling().unwrap();
+        assert!(
+            second.is_same_node(Some(&span_node)),
+            "growing a list should not recreate leading <span>",
+        );
+    }
+
+    #[test]
+    fn unkeyed_shrink_preserves_leading_nodes() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let vnode = html! { <><div/><span/><p/></> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span><p></p>END");
+
+        let div_node = parent.first_child().unwrap();
+        let span_node = div_node.next_sibling().unwrap();
+
+        let vnode = html! { <><div/><span/></> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<div></div><span></span>END");
+
+        let first = parent.first_child().unwrap();
+        assert!(
+            first.is_same_node(Some(&div_node)),
+            "shrinking a list should not recreate leading <div>",
+        );
+        let second = first.next_sibling().unwrap();
+        assert!(
+            second.is_same_node(Some(&span_node)),
+            "shrinking a list should not recreate leading <span>",
+        );
+    }
+
+    #[test]
+    fn keyed_prepend_preserves_trailing_nodes() {
+        let document = gloo::utils::document();
+        let scope: AnyScope = AnyScope::test();
+        let parent = document.create_element("div").unwrap();
+        let root = BSubtree::create_root(&parent);
+        let end = document.create_text_node("END");
+        parent.append_child(&end).unwrap();
+        let slot = DomSlot::at(end.into());
+
+        let vnode = html! { <><i key="i"/><e key="e"/></> };
+        let mut bundle = Bundle::new();
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<i></i><e></e>END");
+
+        let i_node = parent.first_child().unwrap();
+        let e_node = i_node.next_sibling().unwrap();
+
+        let vnode = html! { <><p key="p"/><i key="i"/><e key="e"/></> };
+        bundle.reconcile(&root, &scope, &parent, slot.clone(), vnode);
+        scheduler::start_now();
+        assert_eq!(parent.inner_html(), "<p></p><i></i><e></e>END");
+
+        let children = parent.child_nodes();
+        let second = children.get(1).unwrap();
+        let third = children.get(2).unwrap();
+        assert!(
+            second.is_same_node(Some(&i_node)),
+            "prepending to a keyed list should preserve trailing <i>",
+        );
+        assert!(
+            third.is_same_node(Some(&e_node)),
+            "prepending to a keyed list should preserve trailing <e>",
+        );
     }
 }
