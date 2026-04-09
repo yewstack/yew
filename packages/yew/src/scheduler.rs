@@ -237,6 +237,13 @@ mod feat_hydration {
 pub(crate) use feat_hydration::*;
 
 /// Execute any pending [Runnable]s
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    target_os = "wasi",
+    feature = "not_browser_env",
+    test,
+    feature = "test"
+))]
 pub(crate) fn start_now() {
     #[tracing::instrument(level = tracing::Level::DEBUG)]
     fn scheduler_loop() {
