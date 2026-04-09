@@ -1146,9 +1146,6 @@ mod tests_without_browser {
     use crate::html;
     use crate::virtual_dom::{VList, VNode};
 
-    /// Build a root-level `if`-equivalent: a VList wrapping the given children.
-    /// This is what `HtmlRootBraced` produces and what `<>...</>` used to express
-    /// before root fragments were denied.
     fn vlist(children: Vec<VNode>) -> VNode {
         VNode::VList(Rc::new(VList::with_children(children, None)))
     }
@@ -1165,8 +1162,7 @@ mod tests_without_browser {
         );
         assert_eq!(html! { if false { <div class="foo" /> } }, vlist(vec![]),);
 
-        // non-root: `if` inside an element produces a ChildrenRenderer-wrapped
-        // VList, which matches a fragment (`<>...</>`) at the same position.
+        // non-root tests
         assert_eq!(
             html! {
                 <div>

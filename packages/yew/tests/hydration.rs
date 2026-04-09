@@ -638,16 +638,14 @@ async fn hydration_node_ref_works() {
         }
     }
 
-    #[component(List)]
-    fn list(props: &ListProps) -> Html {
+    #[component]
+    fn List(props: &ListProps) -> Html {
         let elems = 0..props.size;
 
         html! {
-            { for elems.map(|_|
-                html! {
-                    <Test2/>
-                }
-            )}
+            for _ in elems{
+                <Tests2/>
+            }
         }
     }
 
@@ -691,16 +689,14 @@ async fn hydration_node_ref_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_list_order_works() {
-    #[component(App)]
-    pub fn app() -> Html {
+    #[component]
+    pub fn App() -> Html {
         let elems = 0..10;
 
         html! {
-            { for elems.map(|number|
-                html! {
-                    <ToSuspendOrNot {number}/>
-                }
-            )}
+            for number in elems{
+                <ToSuspendOrNot {number}/>
+            }
         }
     }
 
