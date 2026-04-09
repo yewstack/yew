@@ -644,7 +644,7 @@ async fn hydration_node_ref_works() {
 
         html! {
             for _ in elems{
-                <Tests2/>
+                <Test2/>
             }
         }
     }
