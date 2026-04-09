@@ -75,10 +75,10 @@ error[E0277]: `()` is not an iterator
   --> tests/html_macro/iterable-fail.rs:15:5
    |
 15 | /     html! {
-16 | |         <>
+16 | |         <div>
 17 | |             <div/>
 18 | |             { for () }
-19 | |         </>
+19 | |         </div>
 20 | |     };
    | |_____^ `()` is not an iterator
    |

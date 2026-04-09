@@ -38,15 +38,16 @@ pub struct usize;
 
 fn main() {
     _ = ::yew::html! {};
-    _ = ::yew::html! { <></> };
-    _ = ::yew::html! {
-        <>
-            <></>
-            <></>
-        </>
-    };
+    // keyed root fragments are still allowed
     _ = ::yew::html! {
         <key={::std::string::ToString::to_string("key")}>
+        </>
+    };
+    // nested fragments as children of another fragment are still allowed
+    _ = ::yew::html! {
+        <key="outer">
+            <></>
+            <></>
         </>
     };
 
@@ -54,5 +55,5 @@ fn main() {
         ::yew::html! { <span>{ "Hello" }</span> },
         ::yew::html! { <span>{ "World" }</span> },
     ];
-    _ = ::yew::html! { <>{ children }</> };
+    _ = ::yew::html! { { for children } };
 }

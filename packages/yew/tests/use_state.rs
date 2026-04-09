@@ -439,15 +439,13 @@ async fn toggle_conditional_with_empty_component_no_crash() {
         };
 
         html! {
-            <>
-                if *toggled {
-                    <span></span>
-                }
-                <Empty />
-                if !*toggled { <div>{"old"}</div> }
-                <button id="toggle-btn" {onclick}>{"Toggle"}</button>
-                <div id="result">{ if *toggled { "toggled" } else { "initial" } }</div>
-            </>
+            if *toggled {
+                <span></span>
+            }
+            <Empty />
+            if !*toggled { <div>{"old"}</div> }
+            <button id="toggle-btn" {onclick}>{"Toggle"}</button>
+            <div id="result">{ if *toggled { "toggled" } else { "initial" } }</div>
         }
     }
 

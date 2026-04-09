@@ -65,7 +65,7 @@ impl fmt::Display for Hovered {
 
 impl IntoPropValue<Html> for &Hovered {
     fn into_prop_value(self) -> Html {
-        html! {<>{self.to_string()}</>}
+        html! {self.to_string()}
     }
 }
 

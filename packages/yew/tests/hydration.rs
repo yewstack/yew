@@ -643,13 +643,11 @@ async fn hydration_node_ref_works() {
         let elems = 0..props.size;
 
         html! {
-            <>
             { for elems.map(|_|
                 html! {
                     <Test2/>
                 }
             )}
-            </>
         }
     }
 
@@ -698,13 +696,11 @@ async fn hydration_list_order_works() {
         let elems = 0..10;
 
         html! {
-            <>
             { for elems.map(|number|
                 html! {
                     <ToSuspendOrNot {number}/>
                 }
             )}
-            </>
         }
     }
 
@@ -1044,16 +1040,14 @@ async fn hydrate_empty() {
     }
     #[component]
     fn Empty() -> Html {
-        html! { <></> }
+        html! {}
     }
     #[component]
     fn App() -> Html {
         html! {
-            <>
-                <Updating />
-                <Empty />
-                <Updating />
-            </>
+            <Updating />
+            <Empty />
+            <Updating />
         }
     }
     let s = ServerRenderer::<App>::new().render().await;
@@ -1092,17 +1086,13 @@ async fn hydrate_flicker() {
         if is_first {
             trigger.set(true);
             html! {
-                <>
-                    <InnerComp key="1" text="1" />
-                    <InnerComp key="2" text="2" />
-                </>
+                <InnerComp key="1" text="1" />
+                <InnerComp key="2" text="2" />
             }
         } else {
             html! {
-                <>
-                    <InnerComp key="2" text="2" />
-                    <InnerComp key="1" text="1" />
-                </>
+                <InnerComp key="2" text="2" />
+                <InnerComp key="1" text="1" />
             }
         }
     }

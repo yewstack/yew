@@ -73,11 +73,9 @@ impl Pagination {
                 .take(max_links - 2)
                 .map(|page| self.render_link(page, props));
             html! {
-                <>
-                    { for links }
-                    <li><span class="pagination-ellipsis">{ ELLIPSIS }</span></li>
-                    { last_link }
-                </>
+                { for links }
+                <li><span class="pagination-ellipsis">{ ELLIPSIS }</span></li>
+                { last_link }
             }
         } else {
             html! {
@@ -104,11 +102,9 @@ impl Pagination {
         let links_right = 2 * LINKS_PER_SIDE - links_left;
 
         html! {
-            <>
-                { self.render_links(1..page, pages_prev, links_left, props) }
-                <li>{ self.render_link(page, props) }</li>
-                { self.render_links(page + 1..=total_pages, pages_next, links_right, props) }
-            </>
+            { self.render_links(1..page, pages_prev, links_left, props) }
+            <li>{ self.render_link(page, props) }</li>
+            { self.render_links(page + 1..=total_pages, pages_next, links_right, props) }
         }
     }
 
@@ -120,24 +116,22 @@ impl Pagination {
         } = props.clone();
 
         html! {
-            <>
-                <Link<Route, PageQuery>
-                    classes={classes!("pagination-previous")}
-                    disabled={page==1}
-                    query={Some(PageQuery{page: page - 1})}
-                    to={to.clone()}
-                >
-                    { "Previous" }
-                </Link<Route, PageQuery>>
-                <Link<Route, PageQuery>
-                    classes={classes!("pagination-next")}
-                    disabled={page==total_pages}
-                    query={Some(PageQuery{page: page + 1})}
-                    {to}
-                >
-                    { "Next page" }
-                </Link<Route, PageQuery>>
-            </>
+            <Link<Route, PageQuery>
+                classes={classes!("pagination-previous")}
+                disabled={page==1}
+                query={Some(PageQuery{page: page - 1})}
+                to={to.clone()}
+            >
+                { "Previous" }
+            </Link<Route, PageQuery>>
+            <Link<Route, PageQuery>
+                classes={classes!("pagination-next")}
+                disabled={page==total_pages}
+                query={Some(PageQuery{page: page + 1})}
+                {to}
+            >
+                { "Next page" }
+            </Link<Route, PageQuery>>
         }
     }
 }

@@ -143,7 +143,7 @@ Yew 利用了 Rust 的過程宏，並為我們提供了一種類似於 JSX（Jav
 由於我們已經對我們的網站長什麼樣子有了一個很好的想法，我們可以簡單地將我們的草稿轉換為與 `html!` 相容的表示。如果您習慣於編寫簡單的 HTML，那麼您在 `html!` 中編寫標記時應該沒有問題。要注意的是，這個巨集與 HTML 有一些不同之處：
 
 1. 表達式必須用大括號（`{ }`）括起來
-2. 只能有一個根節點。如果您想要在不將它們包裝在容器中的情況下擁有多個元素，可以使用空標籤/片段（`<> ... </>`）
+2. 可以傳回任意數量的根節點，它們會被自動組合。
 3. 元素必須正確關閉。
 
 我們想要建立一個佈局，原始 HTML 如下：
@@ -170,20 +170,18 @@ Yew 利用了 Rust 的過程宏，並為我們提供了一種類似於 JSX（Jav
 
 ```rust ,ignore
 html! {
-    <>
-        <h1>{ "RustConf Explorer" }</h1>
-        <div>
-            <h3>{"Videos to watch"}</h3>
-            <p>{ "John Doe: Building and breaking things" }</p>
-            <p>{ "Jane Smith: The development process" }</p>
-            <p>{ "Matt Miller: The Web 7.0" }</p>
-            <p>{ "Tom Jerry: Mouseless development" }</p>
-        </div>
-        <div>
-            <h3>{ "John Doe: Building and breaking things" }</h3>
-            <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
-        </div>
-    </>
+    <h1>{ "RustConf Explorer" }</h1>
+    <div>
+        <h3>{"Videos to watch"}</h3>
+        <p>{ "John Doe: Building and breaking things" }</p>
+        <p>{ "Jane Smith: The development process" }</p>
+        <p>{ "Matt Miller: The Web 7.0" }</p>
+        <p>{ "Tom Jerry: Mouseless development" }</p>
+    </div>
+    <div>
+        <h3>{ "John Doe: Building and breaking things" }</h3>
+        <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+    </div>
 }
 ```
 
@@ -253,20 +251,18 @@ let videos = videos.iter().map(|video| html! {
 
 最後，我們需要用從資料建立的 `Html` 取代硬編碼的影片清單：
 
-```rust ,ignore {6-10}
+```rust ,ignore {5-9}
 html! {
-    <>
-        <h1>{ "RustConf Explorer" }</h1>
-        <div>
-            <h3>{ "Videos to watch" }</h3>
--           <p>{ "John Doe: Building and breaking things" }</p>
--           <p>{ "Jane Smith: The development process" }</p>
--           <p>{ "Matt Miller: The Web 7.0" }</p>
--           <p>{ "Tom Jerry: Mouseless development" }</p>
-+           { videos }
-        </div>
-        // ...
-    </>
+    <h1>{ "RustConf Explorer" }</h1>
+    <div>
+        <h3>{ "Videos to watch" }</h3>
+-       <p>{ "John Doe: Building and breaking things" }</p>
+-       <p>{ "Jane Smith: The development process" }</p>
+-       <p>{ "Matt Miller: The Web 7.0" }</p>
+-       <p>{ "Tom Jerry: Mouseless development" }</p>
++       { videos }
+    </div>
+    // ...
 }
 ```
 
@@ -326,7 +322,7 @@ struct Video {
 
 現在，我們可以更新我們的 `App` 元件以使用 `VideosList` 元件。
 
-```rust ,ignore {4-7,13-14}
+```rust ,ignore {4-7,12-13}
 #[component(App)]
 fn app() -> Html {
     // ...
@@ -335,15 +331,13 @@ fn app() -> Html {
 -    }).collect::<Html>();
 -
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{"Videos to watch"}</h3>
--               { videos }
-+               <VideosList videos={videos} />
-            </div>
-            // ...
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+-           { videos }
++           <VideosList videos={videos} />
+        </div>
+        // ...
     }
 }
 ```
@@ -428,19 +422,17 @@ fn app() -> Html {
 +    });
 
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{"Videos to watch"}</h3>
--               <VideosList videos={videos} />
-+               <VideosList videos={videos} on_click={on_video_select.clone()} />
-            </div>
-+            { for details }
--            <div>
--                <h3>{ "John Doe: Building and breaking things" }</h3>
--                <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
--            </div>
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+-           <VideosList videos={videos} />
++           <VideosList videos={videos} on_click={on_video_select.clone()} />
+        </div>
++       { for details }
+-       <div>
+-           <h3>{ "John Doe: Building and breaking things" }</h3>
+-           <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-       </div>
     }
 }
 ```
@@ -527,15 +519,13 @@ fn app() -> Html {
     // ...
 
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{"Videos to watch"}</h3>
--                <VideosList videos={videos} on_click={on_video_select.clone()} />
-+                <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
-            </div>
-            { for details }
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{"Videos to watch"}</h3>
+-           <VideosList videos={videos} on_click={on_video_select.clone()} />
++           <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
+        </div>
+        { for details }
     }
 }
 ```

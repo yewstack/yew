@@ -170,12 +170,10 @@ async fn use_context_update_works() {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
         html! {
-            <>
-                <div id={props.id.clone()}>
-                    { format!("total: {}", counter.borrow()) }
-                </div>
-                { props.children.clone() }
-            </>
+            <div id={props.id.clone()}>
+                { format!("total: {}", counter.borrow()) }
+            </div>
+            { props.children.clone() }
         }
     }
 
@@ -194,12 +192,10 @@ async fn use_context_update_works() {
         let ctx = use_context::<Rc<MyContext>>().expect("context not passed down");
 
         html! {
-            <>
-                <div>{ format!("magic: {}\n", props.magic) }</div>
-                <div id={props.id.clone()}>
-                    { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
-                </div>
-            </>
+            <div>{ format!("magic: {}\n", props.magic) }</div>
+            <div id={props.id.clone()}>
+                { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
+            </div>
         }
     }
 

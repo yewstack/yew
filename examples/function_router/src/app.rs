@@ -94,24 +94,14 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
 }
 
 fn switch(routes: Route) -> Html {
-    match routes {
-        Route::Post { id } => {
-            html! { <Post seed={id} /> }
-        }
-        Route::Posts => {
-            html! { <PostList /> }
-        }
-        Route::Author { id } => {
-            html! { <Author seed={id} /> }
-        }
-        Route::Authors => {
-            html! { <AuthorList /> }
-        }
-        Route::Home => {
-            html! { <Home /> }
-        }
-        Route::NotFound => {
-            html! { <PageNotFound /> }
+    html! {
+        match routes {
+            Route::Post { id } => <Post seed={id} />,
+            Route::Posts => <PostList />,
+            Route::Author { id } => <Author seed={id} />,
+            Route::Authors => <AuthorList />,
+            Route::Home => <Home />,
+            Route::NotFound => <PageNotFound />,
         }
     }
 }

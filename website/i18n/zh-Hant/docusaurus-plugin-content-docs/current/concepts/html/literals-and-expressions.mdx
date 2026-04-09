@@ -17,17 +17,26 @@ use yew::prelude::*;
 
 let text = "lorem ipsum";
 html!{
-    <>
-        <div>{text}</div>
-        <div>{"dolor sit"}</div>
-        <span>{42}</span>
-    </>
+    <div>{text}</div>
+    <div>{"dolor sit"}</div>
+    <span>{42}</span>
 };
 ```
 
 ## 表達式
 
-您可以使用 `{}` 區塊在 HTML 中插入表達式，只要它們解析為 `Html`
+您可以使用 `{}` 區塊在 HTML 中插入表達式，只要它們解析為 `Html`：
+
+```rust
+use yew::prelude::*;
+
+let name = "Yew";
+html! {
+  <div>{ format!("Hello, {name}!") }</div>
+};
+```
+
+對於條件渲染，請直接在 `html!` 中使用 `if`/`else` 和 `match`，而不是在表達式區塊中巢狀 `html!` 呼叫：
 
 ```rust
 use yew::prelude::*;
@@ -36,20 +45,14 @@ let show_link = true;
 
 html! {
   <div>
-    {
-      if show_link {
-        html! {
-          <a href="https://example.com">{"Link"}</a>
-        }
-      } else {
-        html! {}
-      }
+    if show_link {
+      <a href="https://example.com">{"Link"}</a>
     }
   </div>
 };
 ```
 
-通常將這些表達式提取到函數或閉包中以優化可讀性是有意義的：
+通常將複雜邏輯提取到函式或閉包中是有意義的：
 
 ```rust
 use yew::prelude::*;

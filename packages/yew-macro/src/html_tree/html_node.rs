@@ -1,9 +1,9 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, quote, quote_spanned};
-use syn::Lit;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
+use syn::{Expr, Lit};
 
 use super::ToNodeIterator;
 use crate::PeekValue;
@@ -11,7 +11,7 @@ use crate::stringify::Stringify;
 
 pub enum HtmlNode {
     Literal(Box<Lit>),
-    Expression(Box<TokenStream>),
+    Expression(Box<Expr>),
 }
 
 impl Parse for HtmlNode {
