@@ -95,7 +95,10 @@ function Features() {
 export default function Index() {
     const { siteConfig } = useDocusaurusContext()
     return (
-        <Layout description={siteConfig.tagline}>
+        <Layout
+            title="Yew | The Rust Frontend Framework"
+            description={siteConfig.tagline}
+        >
             <Hero />
             <Features />
         </Layout>
