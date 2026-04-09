@@ -6,7 +6,7 @@ rust-version.workspace = true
 
 [dependencies]
 clap = { workspace = true }
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process", "time", "signal"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process", "time"] }
 reqwest = { workspace = true }
 
 [target.'cfg(unix)'.dependencies]

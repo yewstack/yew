@@ -1,10 +1,8 @@
 [package]
-name = "ssr_router"
+name = "actix_ssr_router"
 version = "0.1.0"
 edition = "2024"
 rust-version.workspace = true
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
 name = "ssr_router_hydrate"
@@ -16,9 +14,15 @@ required-features = ["ssr"]
 
 [dependencies]
 yew = { path = "../../packages/yew" }
+yew-link = { path = "../../packages/yew-link" }
+yew-router = { path = "../../packages/yew-router" }
 function_router = { path = "../function_router" }
+rand = { workspace = true }
+getrandom = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 futures = { workspace = true, features = ["std"] }
-hyper-util = "0.1.20"
+bytes = "1.11.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures.workspace = true
@@ -26,26 +30,27 @@ tracing-web.workspace = true
 tracing-subscriber.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-yew-router = { path = "../../packages/yew-router" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
-axum = "0.8"
-tower = { version = "0.5", features = ["make"] }
-tower-http = { version = "0.6", features = ["fs", "cors"] }
 env_logger = "0.11"
 clap = { workspace = true }
-hyper = { version = "1.4", features = ["server", "http1"] }
+actix-web = { workspace = true }
+actix-cors = "0.7"
+actix-files = "0.6"
 
 [target.'cfg(unix)'.dependencies]
 jemallocator = "0.5"
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true }
 gloo = { workspace = true }
 ssr-e2e-harness = { path = "../../tools/ssr-e2e-harness" }
 
 [dev-dependencies]
-yew = { path = "../../packages/yew", features = ["hydration"] }
+yew = { path = "../../packages/yew", features = ["hydration", "test"] }
+yew-link = { path = "../../packages/yew-link", features = ["hydration"] }
 
 [features]
-ssr = ["yew/ssr"]
-hydration = ["yew/hydration"]
+ssr = ["yew/ssr", "yew-link/ssr", "yew-link/actix"]
+hydration = ["yew/hydration", "yew-link/hydration"]

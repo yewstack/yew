@@ -128,6 +128,247 @@ suspended.
 With this approach, developers can build a client-agnostic, SSR-ready
 application with data fetching with very little effort.
 
+### Low-level hooks
+
+Yew ships two low-level hooks for carrying server-computed state to the client:
+
+- **`use_prepared_state!`** runs an (optionally async) closure during SSR, serializes the result, and delivers it to the client during hydration. Ideal for fetching data that the component needs on first render.
+- **`use_transitive_state!`** is similar, but the closure runs _after_ the component's SSR output is produced. Useful for collecting caches or aggregated state.
+
+Both use `bincode` + `base64` under the hood and are embedded in the HTML as `<script>` tags.
+
+### `yew-link`: unified data fetching
+
+The low-level hooks handle the **initial page load** (SSR → hydration), but after hydration, client-side navigation requires a separate data-fetching path (e.g. `use_future_with` + an HTTP client). This means writing the same data logic twice.
+
+The `yew-link` crate provides a higher-level abstraction that unifies all three paths (SSR, hydration, and client-side navigation) behind a single hook:
+
+1. **Define** your data type with the `#[linked_state]` attribute macro.
+2. **Register** a resolver on the server.
+3. **Wrap** your app in `<LinkProvider>`.
+4. **Call** `use_linked_state::<MyData>(input)` in any component.
+
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# pub struct DbPool;
+# impl DbPool { async fn get_post(&self, _id: u32) -> Post { unreachable!() } }
+use yew_link::{linked_state, LinkedState};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Post { pub title: String, pub body: String }
+
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+        ctx.get_post(*id).await
+    }
+}
+```
+
+The macro generates the `LinkedState` and (server-only) `LinkedStateResolve` trait impls. The resolve body is stripped from WASM bundles automatically.
+
+#### Typed errors
+
+If `resolve` can fail, declare `type Error`:
+
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone, Debug, Serialize, Deserialize)]
+# pub struct ApiError;
+# impl std::fmt::Display for ApiError {
+#     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "ApiError") }
+# }
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Result<Post, ApiError> { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+    type Error = ApiError;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Result<Self, ApiError> {
+        ctx.get_post(*id).await.map_err(ApiError::from)
+    }
+}
+```
+
+When `type Error` is omitted, the error type defaults to an uninhabited `Never` type and the resolve body is wrapped in `Ok(…)`.
+
+`use_linked_state` returns `SuspensionResult<LinkedStateHandle<T>>`. The outer layer is for suspense (loading). The handle provides:
+
+- **`.data()`** returns the resolved `Rc<T>`, panicking on error.
+- **`.as_result()`** borrows the underlying `Result<Rc<T>, LinkError<T::Error>>` for pattern matching.
+- **`.refresh()`** triggers a background re-fetch while keeping the previous (stale) value visible (stale-while-revalidate).
+- **`.is_refreshing()`** returns `true` while a refresh is in progress, so you can show a loading indicator alongside the stale data.
+
+`LinkError` distinguishes application errors (`LinkError::Resolve`) from infrastructure failures (`LinkError::Internal`).
+
+Multiple components requesting the same `(T, Input)` concurrently share a single in-flight request automatically.
+
+#### Server setup
+
+```rust ,ignore-wasm32
+# use std::sync::Arc;
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone)]
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# fn main() {
+# let db_pool = DbPool;
+use yew_link::{Resolver, axum::linked_state_handler};
+
+let resolver = Arc::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+let app: axum::Router = axum::Router::new().route(
+    "/api/link",
+    axum::routing::post(linked_state_handler).with_state(resolver),
+);
+# let _ = app;
+# }
+```
+
+The example above uses the `axum` feature. `yew-link` also ships an `actix`
+feature that exposes the same handler under `yew_link::actix::linked_state_handler`:
+
+```rust ,no_run,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone)]
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# async fn run() -> std::io::Result<()> {
+# let db_pool = DbPool;
+use actix_web::{App, HttpServer, web::{Data, post}};
+use yew_link::{Resolver, actix::linked_state_handler};
+
+let resolver = Data::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+HttpServer::new(move || {
+    App::new()
+        .app_data(resolver.clone())
+        .route("/api/link", post().to(linked_state_handler))
+})
+.bind(("0.0.0.0", 8080))?
+.run()
+.await
+# }
+# fn main() {}
+```
+
+<details>
+<summary>Why `actix-web` is pinned to 4.12, and how to implement a handler for other server frameworks</summary>
+
+The `actix` feature is pinned to `actix-web 4.12.x` because Yew's MSRV is
+`1.85`, while `actix-web 4.13` and newer require `rustc 1.88`. This pin lives
+inside `yew-link` only so the rest of the workspace stays buildable on the
+supported toolchain; it does not constrain what version of `actix-web` you
+use elsewhere in your own application.
+
+If you need a newer `actix-web` (or any other web framework) and do not want
+to enable the bundled feature, the handler is small enough to inline
+yourself. The only public surface you need is `Resolver::resolve_request`
+and the wire-format type `LinkRequest`:
+
+```rust ,ignore-wasm32
+use actix_web::HttpResponse;
+use actix_web::web::{Data, Json};
+use serde_json::json;
+use yew_link::{LinkRequest, Resolver};
+
+pub async fn linked_state_handler(
+    resolver: Data<Resolver>,
+    Json(req): Json<LinkRequest>,
+) -> HttpResponse {
+    match resolver.resolve_request(&req).await {
+        Ok(val) => HttpResponse::Ok().json(json!({ "ok": val })),
+        Err(err) => HttpResponse::UnprocessableEntity().json(json!({ "error": err })),
+    }
+}
+```
+
+The same shape works for `axum`, `warp`, `rocket`, or any framework that can
+deserialize JSON into `LinkRequest`, call an async function, and serialize a
+JSON response. Construct the response wire format with `serde_json::json!`
+to keep yew-link's internal `LinkResponse` type out of your dependency
+surface.
+
+</details>
+
+#### Component usage
+
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew::prelude::*;
+# use yew_link::{linked_state, LinkedState};
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# #[derive(Properties, PartialEq)]
+# pub struct PostPageProps { pub id: u32 }
+#[allow(unused_imports)]
+use yew_link::{use_linked_state, LinkProvider};
+
+#[component]
+fn PostPage(props: &PostPageProps) -> HtmlResult {
+    let post = use_linked_state::<Post>(props.id)?.data();
+    Ok(html! { <h1>{ &post.title }</h1> })
+}
+```
+
+During SSR the state is resolved locally via the `Resolver` and embedded in the HTML through `use_prepared_state`. On hydration the client reads the embedded state with zero network requests. On subsequent client-side navigations the hook fetches from the `LinkProvider`'s endpoint URL automatically.
+
+See the [`axum_ssr_router`](https://github.com/yewstack/yew/tree/master/examples/axum_ssr_router) and [`actix_ssr_router`](https://github.com/yewstack/yew/tree/master/examples/actix_ssr_router) examples for full working demos.
+
 ## Rendering `<head>` Tags
 
 A common need with SSR is rendering dynamic `<head>` content (e.g. `<title>`,
@@ -138,7 +379,7 @@ load.
 it has no access to `<head>`. Head tags must therefore be generated **on the server, outside of
 Yew**, and spliced into the HTML template before it is sent to the client.
 
-The [`ssr_router` example](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
+The [`axum_ssr_router` example](https://github.com/yewstack/yew/blob/master/examples/axum_ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
 route from the request URL, generates the appropriate `<title>` and `<meta>`
 tags, and injects them into the Trunk-generated `index.html` before
 `</head>`.
@@ -195,7 +436,7 @@ until `rendered()` method is called.
 
 ## Example
 
-```rust ,ignore
+```rust ,no_run
 use yew::prelude::*;
 use yew::Renderer;
 
@@ -214,7 +455,8 @@ fn main() {
 ```
 
 Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
-Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+Example: [axum_ssr_router](https://github.com/yewstack/yew/tree/master/examples/axum_ssr_router)
+Example: [actix_ssr_router](https://github.com/yewstack/yew/tree/master/examples/actix_ssr_router)
 
 ## Single thread mode
 

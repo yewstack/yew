@@ -1,4 +1,4 @@
-use function_router::App;
+use actix_ssr_router::{App, AppProps, LINK_ENDPOINT};
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -11,5 +11,8 @@ fn main() {
         use tracing_subscriber::prelude::*;
         tracing_subscriber::registry().with(fmt_layer).init();
     }
-    yew::Renderer::<App>::new().hydrate();
+    yew::Renderer::<App>::with_props(AppProps {
+        endpoint: LINK_ENDPOINT.into(),
+    })
+    .hydrate();
 }
