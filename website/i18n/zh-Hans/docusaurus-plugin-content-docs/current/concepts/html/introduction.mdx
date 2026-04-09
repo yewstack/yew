@@ -12,9 +12,9 @@ import TabItem from '@theme/TabItem'
 
 **重要提示**
 
-1. `html! {}` 宏只能接受一个根 HTML 节点（您可以通过使用 [fragments](./fragments.mdx) 或 [iterators](./../html/lists.mdx) 来规避这一点）
-2. 空的 `html! {}` 调用是有效的，不会渲染任何内容
-3. 字面量必须始终用引号引起来并用大括号括起来：`html! { <p>{ "Hello, World" }</p> }`
+1. `html!` 宏可以接受任意数量的根节点。空的 `html! {}` 调用不会渲染任何内容。
+2. 字符串字面量需要用引号引起来，并且通常需要用大括号包裹：`html! { <p>{ "Hello, World" }</p> }`。
+3. Bool 类型和数值类型可以直接使用：`html!{ <span>{1}</span> <span>{true}</span> }`
 
 :::note
 `html!` 宏可能会达到编译器的默认递归限制。如果遇到编译错误，请在 crate 根目录添加类似 `#![recursion_limit="1024"]` 的属性以解决问题。
@@ -171,6 +171,19 @@ html! { <my-element ~property="abc" /> };
 
 :::
 
+属性名也可以使用字符串字面量或表达式动态设置。这对于不是有效 Rust 标识符的属性（如 `hx-on:click`）很有用：
+
+```rust
+use yew::prelude::*;
+
+html! { <div "hx-on:click"="alert('Clicked!')" /> };
+html! { <div { String::from("hx-on:click") }={ "alert('Clicked!')" } /> };
+```
+
+:::info
+详情请参阅[动态属性名](./html/elements#dynamic-attribute-names)
+:::
+
 :::note 组件属性
 组件属性作为 Rust 对象传递，与此处描述的元素参数 (Attributes) / 属性 (Properties) 不同。
 在[组件属性](../function-components/properties.mdx)中了解更多信息。
@@ -190,7 +203,7 @@ html! { <my-element ~property="abc" /> };
 
 ## 条件渲染
 
-可以通过使用 Rust 的条件结构来条件性地渲染标记。目前只支持 `if` 和 `if let`。
+可以使用 Rust 的 `if`、`if let` 和 `match` 表达式直接在 `html!` 中条件性地渲染标记。
 
 ```rust
 use yew::prelude::*;

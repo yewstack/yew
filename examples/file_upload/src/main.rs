@@ -1,12 +1,12 @@
 extern crate base64;
 use std::collections::HashMap;
 
-use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use gloo::file::callbacks::FileReader;
 use web_sys::{DragEvent, Event, HtmlInputElement};
 use yew::html::TargetCast;
-use yew::{html, Callback, Component, Context, Html};
+use yew::{Callback, Component, Context, Html, html};
 
 pub struct FileDetails {
     name: String,

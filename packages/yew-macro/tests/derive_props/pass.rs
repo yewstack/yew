@@ -265,10 +265,10 @@ mod value_into_some_value_in_props {
 
     #[::yew::component]
     fn Main() -> ::yew::html::Html {
-        ::yew::html! {<>
+        ::yew::html! {
             <Inner required=3 optional=5/>
             <Inner required={::std::option::Option::Some(6)}/>
-        </>}
+        }
     }
 }
 

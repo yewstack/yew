@@ -1,39 +1,33 @@
-error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
- --> tests/html_macro/node-fail.rs:4:21
-  |
-4 |     html! { "valid" "invalid" };
-  |                     ^^^^^^^^^
-
 error: unexpected token, expected `}`
- --> tests/html_macro/node-fail.rs:5:29
+ --> tests/html_macro/node-fail.rs:4:29
   |
-5 |     html! { <span>{ "valid" "invalid" }</span> };
+4 |     html! { <span>{ "valid" "invalid" }</span> };
   |                             ^^^^^^^^^
 
 error: byte-strings can't be converted to HTML text
                                 note: remove the `b` prefix or convert this to a `String`
-  --> tests/html_macro/node-fail.rs:11:14
+  --> tests/html_macro/node-fail.rs:10:14
    |
-11 |     html! {  b"str" };
+10 |     html! {  b"str" };
    |              ^^^^^^
 
 error: byte-strings can't be converted to HTML text
                                 note: remove the `b` prefix or convert this to a `String`
-  --> tests/html_macro/node-fail.rs:13:22
+  --> tests/html_macro/node-fail.rs:12:22
    |
-13 |     html! {  <span>{ b"str" }</span> };
+12 |     html! {  <span>{ b"str" }</span> };
    |                      ^^^^^^
 
 error[E0425]: cannot find value `invalid` in this scope
- --> tests/html_macro/node-fail.rs:7:13
+ --> tests/html_macro/node-fail.rs:6:13
   |
-7 |     html! { invalid };
+6 |     html! { invalid };
   |             ^^^^^^^ not found in this scope
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
- --> tests/html_macro/node-fail.rs:6:13
+ --> tests/html_macro/node-fail.rs:5:13
   |
-6 |     html! { () };
+5 |     html! { () };
   |             ^^ `()` cannot be formatted with the default formatter
   |
   = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -53,9 +47,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> tests/html_macro/node-fail.rs:17:9
+  --> tests/html_macro/node-fail.rs:16:9
    |
-17 |         not_node()
+16 |         not_node()
    |         ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`

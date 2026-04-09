@@ -2,8 +2,8 @@
 
 use std::rc::Rc;
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use super::{feat_hydration, feat_ssr};
 use crate::functional::{Hook, HookContext};

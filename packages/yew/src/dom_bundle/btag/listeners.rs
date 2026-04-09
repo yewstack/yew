@@ -3,16 +3,16 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::wasm_bindgen;
 use web_sys::{Element, Event, EventTarget as HtmlEventTarget};
 
 use super::Apply;
-use crate::dom_bundle::{test_log, BSubtree, EventDescriptor};
+use crate::dom_bundle::{BSubtree, EventDescriptor, test_log};
 use crate::virtual_dom::{Listener, Listeners};
 
 #[wasm_bindgen]
-extern "C" {
+unsafe extern "C" {
     // Duck-typing, not a real class on js-side. On rust-side, use impls of EventTarget below
     type EventTargetable;
     #[wasm_bindgen(method, getter = __yew_listener_id, structural)]
@@ -63,7 +63,7 @@ impl Apply for Listeners {
         use Listeners::*;
 
         match (self, bundle) {
-            (Pending(pending), Registered(ref id)) => {
+            (Pending(pending), &mut Registered(ref id)) => {
                 // Reuse the ID
                 test_log!("reusing listeners for {}", id);
                 root.with_listener_registry(|reg| reg.patch(root, id, &pending));
@@ -80,7 +80,7 @@ impl Apply for Listeners {
             }
             (None, bundle @ Registered(_)) => {
                 let id = match bundle {
-                    ListenerRegistration::Registered(ref id) => id,
+                    &mut ListenerRegistration::Registered(ref id) => id,
                     _ => unreachable!(),
                 };
                 test_log!("unregistering listeners for {}", id);
@@ -135,7 +135,7 @@ impl Registry {
         registry: &RefCell<Registry>,
         listening: &dyn EventListening,
         desc: &EventDescriptor,
-    ) -> Option<impl FnOnce(&Event)> {
+    ) -> Option<impl FnOnce(&Event) + use<>> {
         // The tricky part is that we want to drop the reference to the registry before
         // calling any actual listeners (since that might end up running lifecycle methods
         // and modify the registry). So we clone the current listeners and return a closure
@@ -212,7 +212,7 @@ mod tests {
     use crate::html::TargetCast;
     use crate::virtual_dom::VNode;
     use crate::{
-        create_portal, html, scheduler, AppHandle, Component, Context, Html, NodeRef, Properties,
+        AppHandle, Component, Context, Html, NodeRef, Properties, create_portal, html, scheduler,
     };
 
     #[derive(Clone)]
@@ -597,16 +597,14 @@ mod tests {
                 let portal_target = ctx.props().wrapped.host.clone();
                 let onclick = ctx.link().callback(|_| Message::Action);
                 html! {
-                    <>
-                        <div onclick={onclick}>
-                            {create_portal(html! {
-                                <a ref={&ctx.props().state_ref}>
-                                    {state.action}
-                                </a>
-                            }, portal_target.clone())}
-                        </div>
-                        {VNode::VRef(portal_target.into())}
-                    </>
+                    <div onclick={onclick}>
+                        {create_portal(html! {
+                            <a ref={&ctx.props().state_ref}>
+                                {state.action}
+                            </a>
+                        }, portal_target.clone())}
+                    </div>
+                    {VNode::VRef(portal_target.into())}
                 }
             }
         }

@@ -108,7 +108,9 @@ mod feat_csr_ssr {
 
         fn view(&self, ctx: &Context<Self>) -> Html {
             let BaseSuspenseProps { children, fallback } = (*ctx.props()).clone();
-            let children = html! {<>{children}</>};
+            let children = VNode::VList(::std::rc::Rc::new(
+                crate::virtual_dom::VList::with_children(vec![children], None),
+            ));
 
             match fallback {
                 Some(fallback) => {

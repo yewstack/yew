@@ -17,6 +17,63 @@ title: '状態'
 | [use_mut_ref]      | `T`                        | -                                          | コンポーネントインスタンス内 |
 | グローバル静的定数 | `T`                        | -                                          | グローバル、どこでも使用可能 |
 
+## ハンドルの内部へのアクセス
+
+`UseStateHandle` と `UseReducerHandle` の両方に、内部パーツに直接アクセスするためのメソッドが用意されています。
+
+### `value_rc()`
+
+現在の値を `Rc<T>` で返します。ハンドルの参照外し（ハンドルのライフタイムに束縛された `&T` を返す）とは
+異なり、`value_rc()` はクロージャに移動させたり、独立して保持できる所有された `Rc<T>` を返します。
+
+```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
+let counter = use_state(|| 0);
+let rc_value: Rc<i32> = counter.value_rc();
+# html! {}
+# }
+```
+
+### `into_inner()`
+
+ハンドルを消費し、現在の値（`Rc<T>`）とセッター/ディスパッチャーの2つの部分を返します。
+ハンドル全体をクローンせずに、読み取りと書き込みを分離したい場合に便利です。
+
+`UseReducerHandle` の場合、返り値の型は `(Rc<T>, UseReducerDispatcher<T>)` です：
+
+```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[derive(Default, PartialEq)]
+# struct CounterState { counter: i32 }
+# impl Reducible for CounterState {
+#     type Action = ();
+#     fn reduce(self: Rc<Self>, _: ()) -> Rc<Self> { self }
+# }
+# #[component]
+# fn Comp() -> Html {
+let state = use_reducer(CounterState::default);
+let (value, dispatcher) = state.into_inner();
+# html! {}
+# }
+```
+
+`UseStateHandle` の場合、返り値の型は `(Rc<T>, UseStateSetter<T>)` です：
+
+```rust
+# use std::rc::Rc;
+# use yew::prelude::*;
+# #[component]
+# fn Comp() -> Html {
+let state = use_state(|| 0);
+let (value, setter) = state.into_inner();
+# html! {}
+# }
+```
+
 [use_state]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state.html
 [use_state_eq]: https://yew-rs-api.web.app/next/yew/functional/fn.use_state_eq.html
 [use_reducer]: https://yew-rs-api.web.app/next/yew/functional/fn.use_reducer.html

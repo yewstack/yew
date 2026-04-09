@@ -1,6 +1,6 @@
 ---
 title: 'Conditional rendering'
-description: 'Rendering nodes conditionally in html!'
+description: 'Rendering nodes conditionally with if, if let, and match in html!'
 ---
 
 import Tabs from '@theme/Tabs'
@@ -70,4 +70,89 @@ html! {
 ```
 
   </TabItem>
+  <TabItem value="if-let-bindings" label="Let bindings">
+
+Braced bodies support `let` bindings before html children, as well as multiple children directly:
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    if condition {
+        let label = format!("count: {count}");
+        <h2>{"Result"}</h2>
+        <span>{label}</span>
+    } else {
+        "nothing"
+    }
+};
+```
+
+`let` bindings must appear before any html children and cannot be interleaved with them.
+
+  </TabItem>
 </Tabs>
+
+## Match blocks
+
+`match` expressions work directly in `html!`, following the same pattern as `if`/`else`:
+
+<Tabs>
+  <TabItem value="match" label="match">
+
+```rust
+use yew::prelude::*;
+
+let value: Option<String> = Some("hello".into());
+
+html! {
+    match value {
+        Some(text) => <p>{text}</p>,
+        None => <p>{"Nothing here"}</p>,
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="match-guards" label="If guards">
+
+```rust
+use yew::prelude::*;
+
+let value: i32 = 42;
+
+html! {
+    match value {
+        x if x > 10 => <p>{"Big"}</p>,
+        x if x > 0 => <p>{"Small"}</p>,
+        _ => <p>{"Non-positive"}</p>,
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="match-let" label="Let bindings">
+
+Braced arm bodies support `let` bindings and multiple children:
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    match data {
+        Some(item) => {
+            let label = format!("Item: {}", item.name);
+            let class = if item.important { "highlight" } else { "normal" };
+            <p class={class}>{label}</p>
+        }
+        None => <p>{"No data"}</p>,
+    }
+};
+```
+
+  </TabItem>
+</Tabs>
+
+Arms with a single element can omit braces. Arms with multiple children or `let` bindings require braces.
+
+`match` supports all standard Rust patterns including OR-patterns (`A | B`), destructuring, and `if` guards. Exhaustiveness is checked by the Rust compiler.

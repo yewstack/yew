@@ -1,6 +1,6 @@
 use wasm_bindgen::JsCast;
 use web_sys::{Element, ShadowRootInit, ShadowRootMode};
-use yew::{create_portal, html, Component, Context, Html, NodeRef, Properties};
+use yew::{Component, Context, Html, NodeRef, Properties, create_portal, html};
 
 #[derive(Properties, PartialEq)]
 pub struct ShadowDOMProps {
@@ -49,14 +49,11 @@ impl Component for ShadowDOMHost {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let contents = if let Some(ref inner_host) = self.inner_host {
-            create_portal(ctx.props().children.clone(), inner_host.clone())
-        } else {
-            html! { <></> }
-        };
         html! {
             <div ref={self.host_ref.clone()}>
-                {contents}
+                if let Some(inner_host) = &self.inner_host {
+                    create_portal(ctx.props().children.clone(), inner_host.clone())
+                }
             </div>
         }
     }
@@ -118,7 +115,6 @@ impl Component for App {
             self.title_element.clone(),
         );
         html! {
-            <>
             {self.style_html.clone()}
             {title}
             <p>{"This paragraph is colored red, and its style is mounted into "}<pre>{"document.head"}</pre>{" with a portal"}</p>
@@ -130,7 +126,6 @@ impl Component for App {
                 </ShadowDOMHost>
                 <p>{format!("The button has been clicked {} times. This is also reflected in the title of the tab!", self.counter)}</p>
             </div>
-            </>
         }
     }
 }

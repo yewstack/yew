@@ -1,5 +1,5 @@
-use crate::html::ImplicitClone;
 use crate::AttrValue;
+use crate::html::ImplicitClone;
 
 /// A raw HTML string to be used in VDOM.
 #[derive(Clone, ImplicitClone, Debug, PartialEq, Eq)]

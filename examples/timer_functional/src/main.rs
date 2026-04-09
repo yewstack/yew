@@ -162,26 +162,26 @@ fn App() -> Html {
         })
     };
 
-    let on_cancel = {
-        Callback::from(move |_: MouseEvent| {
-            state.dispatch(TimerAction::Cancel);
-        })
-    };
+    let on_cancel = Callback::from({
+        let (_, dispatcher) = state.into_inner();
+
+        move |_: MouseEvent| {
+            dispatcher.dispatch(TimerAction::Cancel);
+        }
+    });
 
     html!(
-        <>
-            <div id="buttons">
-                <button disabled={has_job} onclick={on_add_timeout}>{ "Start Timeout" }</button>
-                <button disabled={has_job} onclick={on_add_interval}>{ "Start Interval" }</button>
-                <button disabled={!has_job} onclick={on_cancel}>{ "Cancel"}</button>
+        <div id="buttons">
+            <button disabled={has_job} onclick={on_add_timeout}>{ "Start Timeout" }</button>
+            <button disabled={has_job} onclick={on_add_interval}>{ "Start Interval" }</button>
+            <button disabled={!has_job} onclick={on_cancel}>{ "Cancel"}</button>
+        </div>
+        <div id="wrapper">
+            <Clock />
+            <div id="messages">
+                { messages }
             </div>
-            <div id="wrapper">
-                <Clock />
-                <div id="messages">
-                    { messages }
-                </div>
-            </div>
-        </>
+        </div>
     )
 }
 

@@ -1,6 +1,6 @@
 ---
 title: '条件レンダリング'
-description: 'HTMLで条件付きノードをレンダリングする！'
+description: 'html! で if、if let、match を使った条件付きレンダリング'
 ---
 
 import Tabs from '@theme/Tabs'
@@ -70,4 +70,89 @@ html! {
 ```
 
   </TabItem>
+  <TabItem value="if-let-bindings" label="let バインディング">
+
+ブレース付き本体では、html 子要素の前に `let` バインディングを使用でき、複数の子要素を直接記述できます：
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    if condition {
+        let label = format!("count: {count}");
+        <h2>{"Result"}</h2>
+        <span>{label}</span>
+    } else {
+        "nothing"
+    }
+};
+```
+
+`let` バインディングはすべての html 子要素の前に記述する必要があり、交互に配置することはできません。
+
+  </TabItem>
 </Tabs>
+
+## Match ブロック
+
+`match` 式は `html!` 内で直接使用でき、`if`/`else` と同じパターンに従います：
+
+<Tabs>
+  <TabItem value="match" label="match">
+
+```rust
+use yew::prelude::*;
+
+let value: Option<String> = Some("hello".into());
+
+html! {
+    match value {
+        Some(text) => <p>{text}</p>,
+        None => <p>{"Nothing here"}</p>,
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="match-guards" label="if ガード">
+
+```rust
+use yew::prelude::*;
+
+let value: i32 = 42;
+
+html! {
+    match value {
+        x if x > 10 => <p>{"Big"}</p>,
+        x if x > 0 => <p>{"Small"}</p>,
+        _ => <p>{"Non-positive"}</p>,
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="match-let" label="let バインディング">
+
+ブレース付きのアーム本体では、`let` バインディングと複数の子要素を使用できます：
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    match data {
+        Some(item) => {
+            let label = format!("Item: {}", item.name);
+            let class = if item.important { "highlight" } else { "normal" };
+            <p class={class}>{label}</p>
+        }
+        None => <p>{"No data"}</p>,
+    }
+};
+```
+
+  </TabItem>
+</Tabs>
+
+単一要素のアームはブレースを省略できます。複数の子要素や `let` バインディングを持つアームにはブレースが必要です。
+
+`match` は OR パターン（`A | B`）、分割代入、`if` ガードを含む、すべての標準的な Rust パターンをサポートします。網羅性は Rust コンパイラによってチェックされます。

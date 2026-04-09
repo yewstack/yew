@@ -4,9 +4,9 @@ use std::io::{BufRead, BufReader};
 use std::str::FromStr;
 
 use anyhow::Result;
+use changelog::Cli;
 use changelog::new_version_level::NewVersionLevel;
 use changelog::yew_package::YewPackage;
-use changelog::Cli;
 use chrono::Utc;
 
 struct FileDeleteOnDrop;
@@ -62,7 +62,7 @@ fn generate_yew_changelog_file() -> Result<()> {
     let lines = expected_reader_lines.zip(after_reader_lines);
 
     for (i, (expected_line, after_line)) in lines.enumerate() {
-        if i == 2 || i == 13 {
+        if i == 4 || i == 15 {
             // these lines have dynamic things that may break the tests
             let expected_line_updated = expected_line?.replace(
                 "date_goes_here",

@@ -32,7 +32,7 @@ async fn change_nested_after_append() {
         if *delayed_trigger {
             html! { <div>{"failure"}</div> }
         } else {
-            html! { <><i></i><span id="result">{"success"}</span></> }
+            html! { <i></i><span id="result">{"success"}</span> }
         }
     }
 
@@ -55,12 +55,10 @@ async fn change_nested_after_append() {
         }
 
         html! {
-            <>
-                <Top />
-                if *show_bottom {
-                    <div>{"<div>Bottom</div>"}</div>
-                }
-            </>
+            <Top />
+            if *show_bottom {
+                <div>{"<div>Bottom</div>"}</div>
+            }
         }
     }
 

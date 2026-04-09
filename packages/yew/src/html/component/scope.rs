@@ -1,7 +1,6 @@
 //! Component scope module
 
 use std::any::{Any, TypeId};
-use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -9,9 +8,9 @@ use std::{fmt, iter};
 
 use futures::{Stream, StreamExt};
 
+use super::BaseComponent;
 #[cfg(any(feature = "csr", feature = "ssr"))]
 use super::lifecycle::ComponentState;
-use super::BaseComponent;
 use crate::callback::Callback;
 use crate::context::{ContextHandle, ContextProvider};
 use crate::platform::spawn_local;
@@ -28,7 +27,7 @@ pub struct AnyScope {
 
 impl fmt::Debug for AnyScope {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("AnyScope<_>")
+        f.debug_struct("AnyScope").finish_non_exhaustive()
     }
 }
 
@@ -106,7 +105,7 @@ pub struct Scope<COMP: BaseComponent> {
 
 impl<COMP: BaseComponent> fmt::Debug for Scope<COMP> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("Scope<_>")
+        f.debug_struct("Scope<_>").finish_non_exhaustive()
     }
 }
 
@@ -228,8 +227,7 @@ impl<COMP: BaseComponent> Scope<COMP> {
     /// If the future panics, then the promise will not resolve, and will leak.
     pub fn send_future_batch<Fut>(&self, future: Fut)
     where
-        Fut: Future + 'static,
-        Fut::Output: SendAsMessage<COMP>,
+        Fut: Future<Output: SendAsMessage<COMP>> + 'static,
     {
         let link = self.clone();
         let js_future = async move {
@@ -581,6 +579,19 @@ mod feat_csr {
         }
 
         pub(crate) fn reuse(&self, props: Rc<COMP::Properties>, slot: DomSlot) {
+            if let Some(state) = self.state.borrow_mut().as_mut() {
+                match &state.render_state {
+                    ComponentRenderState::Render { sibling_slot, .. } => {
+                        sibling_slot.reassign(slot.clone());
+                    }
+                    #[cfg(feature = "hydration")]
+                    ComponentRenderState::Hydration { sibling_slot, .. } => {
+                        sibling_slot.reassign(slot.clone());
+                    }
+                    #[cfg(feature = "ssr")]
+                    ComponentRenderState::Ssr { .. } => {}
+                }
+            }
             schedule_props_update(self.state.clone(), props, slot)
         }
     }

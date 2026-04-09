@@ -87,12 +87,10 @@ macro_rules! create_update_html_test {
                 };
                 let raw = Html::from_html_unchecked(AttrValue::from(*raw_html));
                 html! {
-                    <>
-                        <div id="raw-container">
-                            {raw}
-                        </div>
-                        <button id="click-me-btn" {onclick}>{"Click me"}</button>
-                    </>
+                    <div id="raw-container">
+                        {raw}
+                    </div>
+                    <button id="click-me-btn" {onclick}>{"Click me"}</button>
                 }
             }
             use std::time::Duration;
@@ -171,12 +169,10 @@ async fn change_vnode_types_from_other_to_vraw() {
             }
         };
         html! {
-            <>
-                <div id="raw-container">
-                    {(*node).clone()}
-                </div>
-                <button id="click-me-btn" {onclick}>{"Click me"}</button>
-            </>
+            <div id="raw-container">
+                {(*node).clone()}
+            </div>
+            <button id="click-me-btn" {onclick}>{"Click me"}</button>
         }
     }
     use std::time::Duration;
@@ -219,12 +215,10 @@ async fn change_vnode_types_from_vraw_to_other() {
             move |_| node.set(html!("text"))
         };
         html! {
-            <>
-                <div id="raw-container">
-                    {(*node).clone()}
-                </div>
-                <button id="click-me-btn" {onclick}>{"Click me"}</button>
-            </>
+            <div id="raw-container">
+                {(*node).clone()}
+            </div>
+            <button id="click-me-btn" {onclick}>{"Click me"}</button>
         }
     }
     use std::time::Duration;

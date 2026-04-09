@@ -161,24 +161,22 @@ fn MyComponent() -> Html {
     });
 
     html! {
-        <>
-            <label for="cautious-input">
-                { "My cautious input:" }
-                <input onchange={on_cautious_change}
-                    id="cautious-input"
-                    type="text"
-                    value={input_value.clone()}
-                />
-            </label>
-            <label for="dangerous-input">
-                { "My dangerous input:" }
-                <input onchange={on_dangerous_change}
-                    id="dangerous-input"
-                    type="text"
-                    value={input_value}
-                />
-            </label>
-        </>
+        <label for="cautious-input">
+            { "My cautious input:" }
+            <input onchange={on_cautious_change}
+                id="cautious-input"
+                type="text"
+                value={input_value.clone()}
+            />
+        </label>
+        <label for="dangerous-input">
+            { "My dangerous input:" }
+            <input onchange={on_dangerous_change}
+                id="dangerous-input"
+                type="text"
+                value={input_value}
+            />
+        </label>
     }
 }
 ```
@@ -245,24 +243,22 @@ fn MyComponent() -> Html {
     });
 
     html! {
-        <>
-            <label for="cautious-input">
-                { "My cautious input:" }
-                <input onchange={on_cautious_change}
-                    id="cautious-input"
-                    type="text"
-                    value={input_value.clone()}
-                />
-            </label>
-            <label for="dangerous-input">
-                { "My dangerous input:" }
-                <input onchange={on_dangerous_change}
-                    id="dangerous-input"
-                    type="text"
-                    value={input_value}
-                />
-            </label>
-        </>
+        <label for="cautious-input">
+            { "My cautious input:" }
+            <input onchange={on_cautious_change}
+                id="cautious-input"
+                type="text"
+                value={input_value.clone()}
+            />
+        </label>
+        <label for="dangerous-input">
+            { "My dangerous input:" }
+            <input onchange={on_dangerous_change}
+                id="dangerous-input"
+                type="text"
+                value={input_value}
+            />
+        </label>
     }
 }
 ```
@@ -302,18 +298,16 @@ fn MyComponent() -> Html {
     };
 
     html! {
-        <>
-            <label for="my-input">
-                { "My input:" }
-                //highlight-next-line
-                <input ref={input_node_ref}
-                    {onchange}
-                    id="my-input"
-                    type="text"
-                    value={input_value}
-                />
-            </label>
-        </>
+        <label for="my-input">
+            { "My input:" }
+            //highlight-next-line
+            <input ref={input_node_ref}
+                {onchange}
+                id="my-input"
+                type="text"
+                value={input_value}
+            />
+        </label>
     }
 }
 ```
@@ -346,16 +340,14 @@ fn MyComponent() -> Html {
     //highlight-end
 
     html! {
-        <>
-            <label for="my-input">
-                { "My input:" }
-                <input ref={input_node_ref}
-                    {onchange}
-                    id="my-input"
-                    type="text"
-                />
-            </label>
-        </>
+        <label for="my-input">
+            { "My input:" }
+            <input ref={input_node_ref}
+                {onchange}
+                id="my-input"
+                type="text"
+            />
+        </label>
     }
 }
 ```

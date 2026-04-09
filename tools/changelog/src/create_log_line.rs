@@ -1,6 +1,6 @@
 use std::sync::{LazyLock, Mutex};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use git2::{Error, Oid, Repository};
 use regex::Regex;
 
@@ -88,8 +88,10 @@ pub fn create_log_line(
         });
         let count = leftovers.count();
         if count > 0 {
-            println!("Potentially invalidly labeled issue: {issue_id}. Neither A-* (area), documentation nor meta labels found. \
-            inspect/re-tag at https://github.com/yewstack/yew/issues/{issue_id}");
+            println!(
+                "Potentially invalidly labeled issue: {issue_id}. Neither A-* (area), documentation nor meta labels found. \
+            inspect/re-tag at https://github.com/yewstack/yew/issues/{issue_id}"
+            );
         }
         return Ok(None);
     }

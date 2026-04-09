@@ -4,7 +4,7 @@ use gloo::storage::{LocalStorage, Storage};
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
-use crate::constant::{CardName, Status, KEY_BEST_SCORE};
+use crate::constant::{CardName, KEY_BEST_SCORE, Status};
 use crate::helper::shuffle_cards;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]

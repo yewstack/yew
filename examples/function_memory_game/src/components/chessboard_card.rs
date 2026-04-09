@@ -1,6 +1,6 @@
 use web_sys::MouseEvent;
 use yew::prelude::*;
-use yew::{function_component, html, Html, Properties};
+use yew::{Html, Properties, function_component, html};
 
 use crate::constant::CardName;
 use crate::state::{Card, RawCard};

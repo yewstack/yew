@@ -1,8 +1,8 @@
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
+use syn::Expr;
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::Expr;
 
 use super::html_dashed_name::HtmlDashedName;
 use super::{HtmlChildrenTree, TagTokens};
@@ -13,6 +13,13 @@ pub struct HtmlList {
     pub open: HtmlListOpen,
     pub children: HtmlChildrenTree,
     close: HtmlListClose,
+}
+
+impl HtmlList {
+    /// Returns tokens spanning the opening `<>` tag, for use in diagnostics.
+    pub(super) fn open_spanned(&self) -> impl ToTokens + use<> {
+        self.open.to_spanned()
+    }
 }
 
 impl PeekValue<()> for HtmlList {
@@ -65,10 +72,13 @@ impl ToTokens for HtmlList {
             close,
         } = &self;
 
-        let key = if let Some(key) = &open.props.key {
-            quote_spanned! {key.span()=> ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
-        } else {
-            quote! { ::std::option::Option::None }
+        let key = match &open.props.key {
+            Some(key) => {
+                quote_spanned! {key.span()=> ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))}
+            }
+            _ => {
+                quote! { ::std::option::Option::None }
+            }
         };
 
         let span = {
@@ -97,7 +107,7 @@ pub struct HtmlListOpen {
     pub props: HtmlListProps,
 }
 impl HtmlListOpen {
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.tag.to_spanned()
     }
 }
@@ -141,11 +151,14 @@ impl Parse for HtmlListProps {
                 return Err(input.error("only a single `key` prop is allowed on a fragment"));
             }
 
-            if prop.label.to_ascii_lowercase_string() != "key" {
-                return Err(syn::Error::new_spanned(
-                    prop.label,
-                    "fragments only accept the `key` prop",
-                ));
+            match String::try_from(&prop.label) {
+                Ok(label) if label.eq_ignore_ascii_case("key") => {}
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        prop.label,
+                        "fragments only accept the `key` prop",
+                    ));
+                }
             }
 
             Some(prop.value)
@@ -157,7 +170,7 @@ impl Parse for HtmlListProps {
 
 struct HtmlListClose(TagTokens);
 impl HtmlListClose {
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.0.to_spanned()
     }
 }

@@ -1,14 +1,14 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::{For, In};
-use syn::{braced, Expr, Pat};
+use syn::{Expr, Local, Pat, Stmt, Token, braced};
 
 use super::{HtmlChildrenTree, ToNodeIterator};
-use crate::html_tree::HtmlTree;
 use crate::PeekValue;
+use crate::html_tree::HtmlTree;
 
 /// Determines if an expression is guaranteed to always return the same value anywhere.
 fn is_contextless_pure(expr: &Expr) -> bool {
@@ -22,6 +22,7 @@ fn is_contextless_pure(expr: &Expr) -> bool {
 pub struct HtmlFor {
     pat: Pat,
     iter: Expr,
+    let_stmts: Vec<Local>,
     body: HtmlChildrenTree,
 }
 
@@ -42,8 +43,18 @@ impl Parse for HtmlFor {
         let body_stream;
         braced!(body_stream in input);
 
-        let body = HtmlChildrenTree::parse_delimited(&body_stream)?;
-        // TODO: more concise code by using if-let guards once MSRV is raised
+        let mut let_stmts = Vec::new();
+        while body_stream.peek(Token![let]) {
+            let stmt: Stmt = body_stream.parse()?;
+            match stmt {
+                Stmt::Local(local) => let_stmts.push(local),
+                _ => unreachable!("peeked Token![let] but parsed non-local statement"),
+            }
+        }
+
+        let body = HtmlChildrenTree::parse_delimited_with_nodes(&body_stream)?;
+        super::check_unnecessary_fragment(&body);
+        // TODO: more concise code by using if-let guards (MSRV 1.95)
         for child in body.0.iter() {
             let HtmlTree::Element(element) = child else {
                 continue;
@@ -61,13 +72,23 @@ impl Parse for HtmlFor {
                 ));
             }
         }
-        Ok(Self { pat, iter, body })
+        Ok(Self {
+            pat,
+            iter,
+            let_stmts,
+            body,
+        })
     }
 }
 
 impl ToTokens for HtmlFor {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { pat, iter, body } = self;
+        let Self {
+            pat,
+            iter,
+            let_stmts,
+            body,
+        } = self;
         let acc = Ident::new("__yew_v", iter.span());
 
         let alloc_opt = body
@@ -95,19 +116,23 @@ impl ToTokens for HtmlFor {
             },
         };
 
-        let body = body.0.iter().map(|child| {
-            if let Some(child) = child.to_node_iterator_stream() {
-                quote!( #acc.extend(#child) )
-            } else {
-                quote!( #acc.push(::std::convert::Into::into(#child)) )
-            }
-        });
+        let body = body
+            .0
+            .iter()
+            .map(|child| match child.to_node_iterator_stream() {
+                Some(child) => {
+                    quote!( #acc.extend(#child) )
+                }
+                _ => {
+                    quote!( #acc.push(::std::convert::Into::into(#child)) )
+                }
+            });
 
         tokens.extend(quote!({
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
             ::std::iter::Iterator::for_each(
                 ::std::iter::IntoIterator::into_iter(#iter),
-                |#pat| { #alloc_opt; #(#body);* }
+                |#pat| { #(#let_stmts)* #alloc_opt; #(#body);* }
             );
             #vlist_gen
         }))

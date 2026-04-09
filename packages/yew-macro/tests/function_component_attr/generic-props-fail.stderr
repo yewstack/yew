@@ -9,28 +9,13 @@ help: you might be missing a type parameter
 20 | fn compile_fail<INVALID>() {
    |                +++++++++
 
-error[E0277]: not all required properties have been provided
+error[E0277]: not all required properties have been provided for `Props`
   --> tests/function_component_attr/generic-props-fail.rs:22:14
    |
 22 |     html! { <Comp<Props> /> };
-   |              ^^^^ missing required properties for this component
+   |              ^^^^ missing required properties
    |
-   = help: the trait `HasProp<a, _>` is not implemented for `AssertAllProps`
-   = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `HasPropsa<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-           and $N others
-note: required for `CheckPropsAll<AssertAllProps>` to implement `HasAllProps<Props, (_,)>`
-  --> tests/function_component_attr/generic-props-fail.rs:3:17
-   |
-3  | #[derive(Clone, Properties, PartialEq)]
-   |                 ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+   = help: the trait `HasAllProps<Props, (_,)>` is not implemented for `CheckPropsAll<AssertAllProps>`
    = note: required for `AssertAllProps` to implement `AllPropsFor<PropsBuilder, (_,)>`
 note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
@@ -40,7 +25,7 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
    |         where
    |             Token: AllPropsFor<B, How>,
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
-   = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `Comp<MissingTypeBounds>: yew::BaseComponent` is not satisfied
   --> tests/function_component_attr/generic-props-fail.rs:27:14

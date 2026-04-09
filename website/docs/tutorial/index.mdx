@@ -62,9 +62,9 @@ cargo run
 ## Our first static page
 
 To convert this simple command line application to a basic Yew web application, a few changes are needed.
-Update the files as follows:
+Add `yew` to the list of dependencies:
 
-```toml title="Cargo.toml" {7}
+```toml title=Cargo.toml {7}
 [package]
 name = "yew-app"
 version = "0.1.0"
@@ -158,8 +158,7 @@ into a representation compatible with `html!`. If you are comfortable writing si
 writing marking inside `html!`. It is important to note that the macro does differ from HTML in a few ways:
 
 1. Expressions must be wrapped in curly braces (`{ }`)
-2. There must only be one root node. If you want to have multiple elements without wrapping them in a container,
-   an empty tag/fragment (`<> ... </>`) is used
+2. You may return any number of root nodes; they are grouped automatically.
 3. Elements must be closed properly.
 
 We want to build a layout that looks something like this in raw HTML:
@@ -185,27 +184,25 @@ We want to build a layout that looks something like this in raw HTML:
 Now, let's convert this HTML into `html!`. Type (or copy/paste) the following snippet into the body of `app` function
 such that the value of `html!` is returned by the function
 
-```rust {3-21}
+```rust {3-19}
 #[component]
 fn App() -> Html {
 -   html! {
 -       <h1>{ "Hello World" }</h1>
 -   }
 +   html! {
-+       <>
-+           <h1>{ "RustConf Explorer" }</h1>
-+           <div>
-+               <h3>{ "Videos to watch" }</h3>
-+               <p>{ "John Doe: Building and breaking things" }</p>
-+               <p>{ "Jane Smith: The development process" }</p>
-+               <p>{ "Matt Miller: The Web 7.0" }</p>
-+               <p>{ "Tom Jerry: Mouseless development" }</p>
-+           </div>
-+           <div>
-+               <h3>{ "John Doe: Building and breaking things" }</h3>
-+               <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
-+           </div>
-+       </>
++       <h1>{ "RustConf Explorer" }</h1>
++       <div>
++           <h3>{ "Videos to watch" }</h3>
++           <p>{ "John Doe: Building and breaking things" }</p>
++           <p>{ "Jane Smith: The development process" }</p>
++           <p>{ "Matt Miller: The Web 7.0" }</p>
++           <p>{ "Tom Jerry: Mouseless development" }</p>
++       </div>
++       <div>
++           <h3>{ "John Doe: Building and breaking things" }</h3>
++           <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
++       </div>
 +   }
 }
 ```
@@ -266,22 +263,20 @@ fn App() -> Html {
 
 To display them, we can use a `for` loop right in the macro in place of the hardcoded HTML:
 
-```rust {6-12}
+```rust {5-11}
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{ "Videos to watch" }</h3>
--               <p>{ "John Doe: Building and breaking things" }</p>
--               <p>{ "Jane Smith: The development process" }</p>
--               <p>{ "Matt Miller: The Web 7.0" }</p>
--               <p>{ "Tom Jerry: Mouseless development" }</p>
-+               for video in &videos {
-+                   <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
-+               }
-            </div>
-            // ...
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           <p>{ "John Doe: Building and breaking things" }</p>
+-           <p>{ "Jane Smith: The development process" }</p>
+-           <p>{ "Matt Miller: The Web 7.0" }</p>
+-           <p>{ "Tom Jerry: Mouseless development" }</p>
++           for video in &videos {
++               <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
++           }
+        </div>
+        // ...
     }
 ```
 
@@ -333,22 +328,20 @@ The struct used for props must implement `Properties` by deriving it.
 
 Now, we can update our `App` component to make use of `VideosList` component.
 
-```rust {9-12}
+```rust {8-11}
 #[component]
 fn App() -> Html {
     // ...
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{ "Videos to watch" }</h3>
--               for video in &videos {
--                   <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
--               }
-+               <VideosList {videos} />
-            </div>
-            // ...
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           for video in &videos {
+-               <p key={video.id}>{format!("{}: {}", video.speaker, video.title)}</p>
+-           }
++           <VideosList {videos} />
+        </div>
+        // ...
     }
 }
 ```
@@ -430,21 +423,19 @@ Now, modify the `App` component to display `VideoDetails` component whenever a v
 +   };
 
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{ "Videos to watch" }</h3>
--               <VideosList {videos} />
-+               <VideosList {videos} on_click={on_video_select} />
-            </div>
-+           if let Some(video) = &*selected_video {
-+               <VideoDetails video={video.clone()} />
-+           }
--           <div>
--               <h3>{ "John Doe: Building and breaking things" }</h3>
--               <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
--           </div>
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           <VideosList {videos} />
++           <VideosList {videos} on_click={on_video_select} />
+        </div>
++       if let Some(video) = &*selected_video {
++           <VideoDetails video={video.clone()} />
++       }
+-       <div>
+-           <h3>{ "John Doe: Building and breaking things" }</h3>
+-           <img src="https://placehold.co/640x360.png?text=Video+Player+Placeholder" alt="video thumbnail" />
+-       </div>
     }
 }
 ```
@@ -563,15 +554,13 @@ fn App() -> Html {
     // ...
 
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{ "Videos to watch" }</h3>
--               <VideosList {videos} on_click={on_video_select} />
-+               <VideosList videos={(*videos).clone()} on_click={on_video_select} />
-            </div>
-            // ...
-        </>
+        <h1>{ "RustConf Explorer" }</h1>
+        <div>
+            <h3>{ "Videos to watch" }</h3>
+-           <VideosList {videos} on_click={on_video_select} />
++           <VideosList videos={(*videos).clone()} on_click={on_video_select} />
+        </div>
+        // ...
     }
 }
 ```

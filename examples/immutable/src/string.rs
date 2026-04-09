@@ -52,12 +52,10 @@ impl Component for StringExample {
         });
 
         html! {
-            <>
             <h2>{"Input"}</h2>
             <input value={&self.name} {oninput} />
             <h2>{"Output"}</h2>
             <Display name={&self.name} />
-            </>
         }
     }
 }

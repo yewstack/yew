@@ -15,14 +15,14 @@ use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlTextAreaElement as TextAreaElement};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
+use crate::NodeRef;
 use crate::html::AnyScope;
 #[cfg(feature = "hydration")]
 use crate::virtual_dom::vtag::HTML_NAMESPACE;
 use crate::virtual_dom::vtag::{
-    InputFields, TextareaFields, VTagInner, Value, MATHML_NAMESPACE, SVG_NAMESPACE,
+    InputFields, MATHML_NAMESPACE, SVG_NAMESPACE, TextareaFields, VTagInner, Value,
 };
 use crate::virtual_dom::{AttrValue, Attributes, Key, VTag};
-use crate::NodeRef;
 
 /// Applies contained changes to DOM [web_sys::Element]
 trait Apply {
@@ -248,55 +248,58 @@ impl VTag {
         let tag = self.tag();
         // check for an xmlns attribute. If it exists, create an element with the specified
         // namespace
-        if let Some(xmlns) = self
+        match self
             .attributes
             .iter()
             .find(|(k, _)| *k == "xmlns")
             .map(|(_, v)| v)
         {
-            document()
+            Some(xmlns) => document()
                 .create_element_ns(Some(xmlns), tag)
-                .expect("can't create namespaced element for vtag")
-        } else if tag == "svg" || parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
-            let namespace = Some(SVG_NAMESPACE);
-            document()
-                .create_element_ns(namespace, tag)
-                .expect("can't create namespaced element for vtag")
-        } else if tag == "math"
-            || parent
-                .namespace_uri()
-                .is_some_and(|ns| ns == MATHML_NAMESPACE)
-        {
-            let namespace = Some(MATHML_NAMESPACE);
-            document()
-                .create_element_ns(namespace, tag)
-                .expect("can't create namespaced element for vtag")
-        } else {
-            thread_local! {
-                static CACHED_ELEMENTS: RefCell<HashMap<String, Element>> = RefCell::new(HashMap::with_capacity(32));
-            }
+                .expect("can't create namespaced element for vtag"),
+            _ => {
+                if tag == "svg" || parent.namespace_uri().is_some_and(|ns| ns == SVG_NAMESPACE) {
+                    let namespace = Some(SVG_NAMESPACE);
+                    document()
+                        .create_element_ns(namespace, tag)
+                        .expect("can't create namespaced element for vtag")
+                } else if tag == "math"
+                    || parent
+                        .namespace_uri()
+                        .is_some_and(|ns| ns == MATHML_NAMESPACE)
+                {
+                    let namespace = Some(MATHML_NAMESPACE);
+                    document()
+                        .create_element_ns(namespace, tag)
+                        .expect("can't create namespaced element for vtag")
+                } else {
+                    thread_local! {
+                        static CACHED_ELEMENTS: RefCell<HashMap<String, Element>> = RefCell::new(HashMap::with_capacity(32));
+                    }
 
-            CACHED_ELEMENTS.with(|cache| {
-                let mut cache = cache.borrow_mut();
-                let cached = cache.get(tag).map(|el| {
-                    el.clone_node()
-                        .expect("couldn't clone cached element")
-                        .unchecked_into::<Element>()
-                });
-                cached.unwrap_or_else(|| {
-                    let to_be_cached = document()
-                        .create_element(tag)
-                        .expect("can't create element for vtag");
-                    cache.insert(
-                        tag.to_string(),
-                        to_be_cached
-                            .clone_node()
-                            .expect("couldn't clone node to be cached")
-                            .unchecked_into(),
-                    );
-                    to_be_cached
-                })
-            })
+                    CACHED_ELEMENTS.with(|cache| {
+                        let mut cache = cache.borrow_mut();
+                        let cached = cache.get(tag).map(|el| {
+                            el.clone_node()
+                                .expect("couldn't clone cached element")
+                                .unchecked_into::<Element>()
+                        });
+                        cached.unwrap_or_else(|| {
+                            let to_be_cached = document()
+                                .create_element(tag)
+                                .expect("can't create element for vtag");
+                            cache.insert(
+                                tag.to_string(),
+                                to_be_cached
+                                    .clone_node()
+                                    .expect("couldn't clone node to be cached")
+                                    .unchecked_into(),
+                            );
+                            to_be_cached
+                        })
+                    })
+                }
+            }
         }
     }
 }
@@ -338,7 +341,7 @@ mod feat_hydration {
     use web_sys::Node;
 
     use super::*;
-    use crate::dom_bundle::{node_type_str, DynamicDomSlot, Fragment, Hydratable};
+    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable, node_type_str};
 
     impl Hydratable for VTag {
         fn hydrate(
@@ -380,8 +383,9 @@ mod feat_hydration {
 
                 // In HTML namespace (or no namespace), createElement is case-insensitive
                 // In other namespaces (SVG, MathML), createElementNS is case-sensitive
-                let should_compare_case_insensitive = parent_namespace.is_none()
-                    || parent_namespace.as_deref() == Some(HTML_NAMESPACE);
+                let should_compare_case_insensitive = parent_namespace
+                    .as_deref()
+                    .is_none_or(|ns| ns == HTML_NAMESPACE);
 
                 if should_compare_case_insensitive {
                     // Case-insensitive comparison for HTML elements
@@ -462,7 +466,7 @@ mod tests {
     use crate::utils::RcExt;
     use crate::virtual_dom::vtag::{HTML_NAMESPACE, SVG_NAMESPACE};
     use crate::virtual_dom::{AttrValue, VNode, VTag};
-    use crate::{html, Html, NodeRef};
+    use crate::{Html, NodeRef, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -974,15 +978,11 @@ mod tests {
 
         let test_ref = NodeRef::default();
         let before = html! {
-            <>
-                <div ref={&test_ref} id="before" />
-            </>
+            <div ref={&test_ref} id="before" />
         };
         let after = html! {
-            <>
-                <h6 />
-                <div ref={&test_ref} id="after" />
-            </>
+            <h6 />
+            <div ref={&test_ref} id="after" />
         };
         // The point of this diff is to first render the "after" div and then detach the "before"
         // div, while both should be bound to the same node ref
@@ -1052,7 +1052,7 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use crate::html;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -1141,45 +1141,26 @@ mod layout_tests {
 
 #[cfg(test)]
 mod tests_without_browser {
+    use std::rc::Rc;
+
     use crate::html;
-    use crate::virtual_dom::VNode;
+    use crate::virtual_dom::{VList, VNode};
+
+    fn vlist(children: Vec<VNode>) -> VNode {
+        VNode::VList(Rc::new(VList::with_children(children, None)))
+    }
 
     #[test]
     fn html_if_bool() {
         assert_eq!(
-            html! {
-                if true {
-                    <div class="foo" />
-                }
-            },
-            html! {
-                <>
-                    <div class="foo" />
-                </>
-            },
+            html! { if true { <div class="foo" /> } },
+            vlist(vec![html! { <div class="foo" /> }]),
         );
         assert_eq!(
-            html! {
-                if false {
-                    <div class="foo" />
-                } else {
-                    <div class="bar" />
-                }
-            },
-            html! {
-                <><div class="bar" /></>
-            },
+            html! { if false { <div class="foo" /> } else { <div class="bar" /> } },
+            vlist(vec![html! { <div class="bar" /> }]),
         );
-        assert_eq!(
-            html! {
-                if false {
-                    <div class="foo" />
-                }
-            },
-            html! {
-                <></>
-            },
-        );
+        assert_eq!(html! { if false { <div class="foo" /> } }, vlist(vec![]),);
 
         // non-root tests
         assert_eq!(
@@ -1233,40 +1214,16 @@ mod tests_without_browser {
         let option_foo = Some("foo");
         let none: Option<&'static str> = None;
         assert_eq!(
-            html! {
-                if let Some(class) = option_foo {
-                    <div class={class} />
-                }
-            },
-            html! {
-                <>
-                    <div class={Some("foo")} />
-                </>
-            },
+            html! { if let Some(class) = option_foo { <div class={class} /> } },
+            vlist(vec![html! { <div class={Some("foo")} /> }]),
         );
         assert_eq!(
-            html! {
-                if let Some(class) = none {
-                    <div class={class} />
-                } else {
-                    <div class="bar" />
-                }
-            },
-            html! {
-                <>
-                    <div class="bar" />
-                </>
-            },
+            html! { if let Some(class) = none { <div class={class} /> } else { <div class="bar" /> } },
+            vlist(vec![html! { <div class="bar" /> }]),
         );
         assert_eq!(
-            html! {
-                if let Some(class) = none {
-                    <div class={class} />
-                }
-            },
-            html! {
-                <></>
-            },
+            html! { if let Some(class) = none { <div class={class} /> } },
+            vlist(vec![]),
         );
 
         // non-root tests
