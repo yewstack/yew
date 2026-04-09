@@ -11,10 +11,6 @@ fn main() {
     }};
 
     _ = ::yew::html!{for _ in 0 .. 10 {
-        <span>{break}</span>
-    }};
-
-    _ = ::yew::html!{for _ in 0 .. 10 {
         <div key="duplicate" />
     }};
 

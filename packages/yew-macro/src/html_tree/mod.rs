@@ -52,6 +52,8 @@ pub enum HtmlType {
     If,
     For,
     Match,
+    Break,
+    Continue,
     Empty,
 }
 
@@ -64,6 +66,8 @@ pub enum HtmlTree {
     For(Box<HtmlFor>),
     Match(Box<HtmlMatch>),
     Node(Box<HtmlNode>),
+    Break(Token![break]),
+    Continue(Token![continue]),
     Empty,
 }
 
@@ -80,6 +84,8 @@ impl Parse for HtmlTree {
             HtmlType::If => Self::If(Box::new(input.parse()?)),
             HtmlType::For => Self::For(Box::new(input.parse()?)),
             HtmlType::Match => Self::Match(Box::new(input.parse()?)),
+            HtmlType::Break => Self::Break(input.parse()?),
+            HtmlType::Continue => Self::Continue(input.parse()?),
         })
     }
 }
@@ -113,6 +119,14 @@ impl HtmlTree {
             Some(HtmlType::For)
         } else if HtmlMatch::peek(cursor).is_some() {
             Some(HtmlType::Match)
+        } else if cursor.ident().map(|(i, _)| i == "break").unwrap_or(false) {
+            Some(HtmlType::Break)
+        } else if cursor
+            .ident()
+            .map(|(i, _)| i == "continue")
+            .unwrap_or(false)
+        {
+            Some(HtmlType::Continue)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
 
@@ -163,6 +177,8 @@ impl ToTokens for HtmlTree {
             Self::For(block) => block.to_tokens(tokens),
             Self::Match(block) => block.to_tokens(tokens),
             Self::Node(node) => node.to_tokens(tokens),
+            Self::Break(token) => token.to_tokens(tokens),
+            Self::Continue(token) => token.to_tokens(tokens),
         }
     }
 }
@@ -428,7 +444,12 @@ impl HtmlChildrenTree {
                         HtmlNode::Expression(_) => None,
                     };
                 }
-                HtmlTree::If(_) | HtmlTree::For(_) | HtmlTree::Match(_) | HtmlTree::Empty => {
+                HtmlTree::If(_)
+                | HtmlTree::For(_)
+                | HtmlTree::Match(_)
+                | HtmlTree::Break(_)
+                | HtmlTree::Continue(_)
+                | HtmlTree::Empty => {
                     return Some(false);
                 }
             }
