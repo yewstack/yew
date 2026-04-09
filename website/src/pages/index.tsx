@@ -1,4 +1,5 @@
 import React from 'react'
+import Head from '@docusaurus/Head'
 import Layout from '@theme/Layout'
 import styles from './index.module.scss'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
@@ -95,10 +96,10 @@ function Features() {
 export default function Index() {
     const { siteConfig } = useDocusaurusContext()
     return (
-        <Layout
-            title="Yew | The Rust Frontend Framework"
-            description={siteConfig.tagline}
-        >
+        <Layout description={siteConfig.tagline}>
+            <Head>
+                <title>Yew | The Rust Frontend Framework</title>
+            </Head>
             <Hero />
             <Features />
         </Layout>
