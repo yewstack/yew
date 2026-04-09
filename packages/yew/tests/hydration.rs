@@ -765,8 +765,8 @@ async fn hydration_list_order_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_suspense_no_flickering() {
-    #[component(App)]
-    pub fn app() -> Html {
+    #[component]
+    pub fn App() -> Html {
         let fallback = html! { <h1>{"Loading..."}</h1> };
         html! {
             <Suspense {fallback}>
@@ -780,16 +780,16 @@ async fn hydration_suspense_no_flickering() {
         number: u32,
     }
 
-    #[component(SuspendedNumber)]
-    fn suspended_number(props: &NumberProps) -> HtmlResult {
+    #[component]
+    fn SuspendedNumber(props: &NumberProps) -> HtmlResult {
         use_suspend()?;
 
         Ok(html! {
             <Number ..{props.clone()}/>
         })
     }
-    #[component(Number)]
-    fn number(props: &NumberProps) -> Html {
+    #[component]
+    fn Number(props: &NumberProps) -> Html {
         html! {
             <div>
                 {props.number.to_string()}
@@ -797,16 +797,14 @@ async fn hydration_suspense_no_flickering() {
         }
     }
 
-    #[component(Suspended)]
-    fn suspended() -> HtmlResult {
+    #[component]
+    fn Suspended() -> HtmlResult {
         use_suspend()?;
 
         Ok(html! {
-            { for (0..10).map(|number|
-                html! {
-                    <SuspendedNumber {number}/>
-                }
-            )}
+            for number in 0..10 {
+                <SuspendedNumber {number}/>
+            }
         })
     }
 
