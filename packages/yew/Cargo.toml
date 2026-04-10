@@ -19,7 +19,7 @@ rust-version.workspace = true
 [dependencies]
 console_error_panic_hook = "0.1"
 gloo.workspace = true
-indexmap = { version = "2.13", features = ["std"] }
+indexmap = { version = "2.14", features = ["std"] }
 js-sys.workspace = true
 slab = "0.4"
 wasm-bindgen.workspace = true
