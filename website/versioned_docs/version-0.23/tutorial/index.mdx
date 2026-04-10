@@ -479,7 +479,6 @@ Let's update the dependencies in `Cargo.toml` file:
 +yew = { version = "0.23", features = ["csr", "serde"] }
 +gloo-net = "0.6"
 +serde = { version = "1.0", features = ["derive"] }
-+wasm-bindgen-futures = "0.4"
 ```
 
 Yew's `serde` feature enables integration with the `serde` crate, the important point for us is that
@@ -506,12 +505,70 @@ struct Video {
 }
 ```
 
-Now as the last step, we need to update our `App` component to make the fetch request instead of using hardcoded data
+Now we need to update our `App` component to fetch data. The modern yew way to do this is with
 
-```rust {2,6-50,59-60}
+[`use_future`](https://docs.rs/yew/0.23.0/yew/suspense/fn.use_future.html) and
+[`<Suspense>`](https://yew.rs/docs/concepts/suspense).
+
+Alternatively, you can use [`yew::platform::spawn_local`](https://docs.rs/yew/latest/yew/platform/fn.spawn_local.html)
+if hooks are unavailable, such as within struct components or standard functions.
+
+`use_future` suspends the component until the async operation completes, and `<Suspense>` shows a
+fallback UI (e.g. a loading indicator) in the meantime.
+
+We split the data fetching logic into a child component (`VideosFetcher`) that returns `HtmlResult`,
+while the parent `App` wraps it in `<Suspense>`:
+
+```rust {3-4}
 use yew::prelude::*;
+use serde::Deserialize;
 +use gloo_net::http::Request;
++use yew::suspense::use_future;
+// ..
++#[derive(Properties, PartialEq)]
++struct VideosFetchProps {
++    on_click: Callback<Video>,
++    selected_video: Option<Video>,
++}
 
++#[component]
++fn VideosFetcher(
++    VideosFetchProps {
++        on_click,
++        selected_video,
++    }: &VideosFetchProps,
++) -> HtmlResult {
++    let videos = use_future(|| async {
++        Request::get("/tutorial/data.json")
++            .send()
++            .await?
++            .json::<Vec<Video>>()
++            .await
++    })?;
++
++    match &*videos {
++        Ok(videos) => Ok(html! {
++            <>
++                <div>
++                    <h3>{ "Videos to watch" }</h3>
++                    <VideosList videos={videos.clone()} on_click={on_click.clone()} />
++                </div>
++                if let Some(video) = selected_video {
++                    <VideoDetails video={video.clone()} />
++                }
++            </>
++        }),
++        Err(err) => Ok(html! {
++            <p>{format!("Error fetching videos: {err}")}</p>
++        }),
++    }
++}
+```
+
+Now we will use the new component inside the App component. 
+
+```rust {4-30,37-46}
+// ..
 #[component]
 fn App() -> Html {
 -   let videos = vec![
@@ -541,45 +598,53 @@ fn App() -> Html {
 -       },
 -   ];
 -
-+   let videos = use_state(|| vec![]);
-+   {
-+       let videos = videos.clone();
-+       use_effect_with((), move |_| {
-+           let videos = videos.clone();
-+           wasm_bindgen_futures::spawn_local(async move {
-+               let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
-+                   .send()
-+                   .await
-+                   .unwrap()
-+                   .json()
-+                   .await
-+                   .unwrap();
-+               videos.set(fetched_videos);
-+           });
-+           || ()
-+       });
-+   }
 
     // ...
 
     html! {
         <>
             <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{ "Videos to watch" }</h3>
+-            <div>
+-               <h3>{ "Videos to watch" }</h3>
 -               <VideosList {videos} on_click={on_video_select} />
-+               <VideosList videos={(*videos).clone()} on_click={on_video_select} />
-            </div>
-            // ...
+-            </div>
++            <Suspense fallback={html! {<p> {"Loading..."} </p>}} >
++               <VideosFetcher
++                        on_click={on_video_select}
++                        selected_video={(*selected_video).clone()}
++                    />
++             </Suspense>                 
         </>
     }
 }
 ```
 
 :::note
-We are using `unwrap`s here because this is a demo application. In a real-world app, you would likely want to have
-[proper error handling](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html).
+We use `?` on the `use_future` call to propagate the suspension. The component returns `HtmlResult`
+instead of `Html` when using suspense hooks. The parent wraps it in `<Suspense fallback=...>` to show
+a loading indicator while the data is being fetched.
 :::
+
+The loading text may not be visible because the data loads very quickly. If you'd like to see it, you can add an
+artificial delay inside the `use_future` hook using `TimeoutFuture`. First, add `gloo-timers` to your `Cargo.toml`:
+
+```toml
+gloo-timers = { version = "0.3", features = ["futures"] }
+```
+Then add the delay inside the hook:
+
+```rust
+use gloo_timers::future::TimeoutFuture;
+
+let videos = use_future(|| async {
++   TimeoutFuture::new(3_000).await; // 3 second delay
+    Request::get("/tutorial/data.json")
+        .send()
+        .await?
+        .json::<Vec<Video>>()
+        .await
+})?;
+```
 
 Now, look at the browser to see everything working as expected... which would have been the case if it were not for CORS.
 To fix that, we need a proxy server. Luckily trunk provides that.
