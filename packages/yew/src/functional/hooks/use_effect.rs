@@ -203,7 +203,7 @@ where
 ///     });
 ///
 ///     html! {
-///         <>{"Am I loading? - "}{is_loading}</>
+///         {"Am I loading? - "}{is_loading}
 ///     }
 /// }
 /// ```

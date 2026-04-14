@@ -148,12 +148,10 @@ async fn bench_concurrent_task() -> Duration {
     #[function_component]
     fn Parent() -> Html {
         html! {
-            <>
-                <Comp />
-                <Comp />
-                <Comp />
-                <Comp />
-            </>
+            <Comp />
+            <Comp />
+            <Comp />
+            <Comp />
         }
     }
 

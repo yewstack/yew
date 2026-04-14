@@ -42,10 +42,8 @@ fn no(props: &NoProps) -> Html {
     let location = use_location().unwrap();
 
     html! {
-        <>
-            <div id="result-params">{ route }</div>
-            <div id="result-query">{ location.query::<Query>().unwrap().foo }</div>
-        </>
+        <div id="result-params">{ route }</div>
+        <div id="result-query">{ location.query::<Query>().unwrap().foo }</div>
     }
 }
 
@@ -80,16 +78,12 @@ fn component() -> Html {
 
         match routes {
             Routes::Home => html! {
-                <>
-                    <div id="result">{"Home"}</div>
-                    <button onclick={replace_route}>{"replace a route"}</button>
-                </>
+                <div id="result">{"Home"}</div>
+                <button onclick={replace_route}>{"replace a route"}</button>
             },
             Routes::No { id } => html! {
-                <>
-                    <No id={id} />
-                    <button onclick={push_route}>{"push a route"}</button>
-                </>
+                <No id={id} />
+                <button onclick={push_route}>{"push a route"}</button>
             },
             Routes::NotFound => html! { <div id="result">{"404"}</div> },
         }

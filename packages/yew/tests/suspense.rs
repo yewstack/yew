@@ -790,7 +790,7 @@ async fn test_duplicate_suspension() {
         use_future(|| async {
             scheduler::flush().await;
         })?;
-        Ok(html! { <>{props.children.clone()}</> })
+        Ok(html! { {props.children.clone()} })
     }
 
     #[component]

@@ -25,7 +25,7 @@ use crate::functional::{hook, use_memo};
 ///     let greeting = props.callback.emit("Yew".to_string());
 ///
 ///     html! {
-///         <>{ &greeting }</>
+///         { &greeting }
 ///     }
 /// }
 ///

@@ -108,20 +108,20 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        match &self.markdown {
-            FetchState::NotFetching => html! {
-                <>
+        html! {
+            match &self.markdown {
+                FetchState::NotFetching => {
                     <button onclick={ctx.link().callback(|_| Msg::GetMarkdown)}>
                         { "Get Markdown" }
                     </button>
                     <button onclick={ctx.link().callback(|_| Msg::GetError)}>
                         { "Get using incorrect URL" }
                     </button>
-                </>
-            },
-            FetchState::Fetching => html! { "Fetching" },
-            FetchState::Success(data) => html! { markdown::render_markdown(data) },
-            FetchState::Failed(err) => html! { err },
+                }
+                FetchState::Fetching => "Fetching",
+                FetchState::Success(data) => markdown::render_markdown(data),
+                FetchState::Failed(err) => err
+            }
         }
     }
 }

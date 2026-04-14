@@ -14,7 +14,7 @@ struct Print {
 
 impl ::std::convert::From<Print> for ::yew::virtual_dom::VNode {
     fn from(val: Print) -> Self {
-        ::yew::html! {<>{"Hello "}{val.text}</>}
+        ::yew::html! {{"Hello "}{val.text}}
     }
 }
 

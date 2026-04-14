@@ -21,4 +21,9 @@ fn main() {
     _ = ::yew::html!{for _ in 0 .. 10 {
         <div key={smth::KEY} />
     }};
+
+    // Unnecessary fragment in for body
+    _ = ::yew::html!{for _ in 0 .. 5 {
+        <><span>{"a"}</span><span>{"b"}</span></>
+    }};
 }

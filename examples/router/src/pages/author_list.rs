@@ -34,16 +34,6 @@ impl Component for AuthorList {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let authors = self.seeds.iter().map(|&seed| {
-            html! {
-                <div class="tile is-parent">
-                    <div class="tile is-child">
-                        <AuthorCard {seed} />
-                    </div>
-                </div>
-            }
-        });
-
         html! {
             <div class="container">
                 <section class="hero">
@@ -65,7 +55,13 @@ impl Component for AuthorList {
                 </p>
                 <div class="section">
                     <div class="tile is-ancestor">
-                        { for authors }
+                        for seed in &self.seeds {
+                            <div class="tile is-parent">
+                                <div class="tile is-child">
+                                    <AuthorCard {seed} />
+                                </div>
+                            </div>
+                        }
                     </div>
                     <ProgressDelay duration_ms={CAROUSEL_DELAY_MS} on_complete={ctx.link().callback(|_| Msg::NextAuthors)} />
                 </div>

@@ -80,14 +80,13 @@ fn app() -> Html {
                     />
                     <label for="toggle-all" />
                     <ul class="todo-list">
-                        { for state.entries.iter().filter(|e| state.filter.fits(e)).cloned().map(|entry|
-                            html! {
-                                <EntryItem {entry}
-                                    ontoggle={&ontoggle}
-                                    onremove={&onremove}
-                                    onedit={&onedit}
-                                />
-                        }) }
+                        for entry in state.entries.iter().filter(|e| state.filter.fits(e)).cloned() {
+                            <EntryItem {entry}
+                                ontoggle={&ontoggle}
+                                onremove={&onremove}
+                                onedit={&onedit}
+                            />
+                        }
                     </ul>
                 </section>
                 <footer class={classes!("footer", hidden_class)}>
@@ -96,14 +95,12 @@ fn app() -> Html {
                         { " item(s) left" }
                     </span>
                     <ul class="filters">
-                        { for Filter::iter().map(|filter| {
-                            html! {
-                                <FilterItem {filter}
-                                    selected={state.filter == filter}
-                                    onset_filter={&onset_filter}
-                                />
-                            }
-                        }) }
+                        for filter in Filter::iter() {
+                            <FilterItem {filter}
+                                selected={state.filter == filter}
+                                onset_filter={&onset_filter}
+                            />
+                        }
                     </ul>
                     <button class="clear-completed" onclick={onclear_completed}>
                         { format!("Clear completed ({completed})") }

@@ -15,6 +15,13 @@ pub struct HtmlList {
     close: HtmlListClose,
 }
 
+impl HtmlList {
+    /// Returns tokens spanning the opening `<>` tag, for use in diagnostics.
+    pub(super) fn open_spanned(&self) -> impl ToTokens + use<> {
+        self.open.to_spanned()
+    }
+}
+
 impl PeekValue<()> for HtmlList {
     fn peek(cursor: Cursor) -> Option<()> {
         HtmlListOpen::peek(cursor)

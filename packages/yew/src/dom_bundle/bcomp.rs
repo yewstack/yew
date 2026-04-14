@@ -422,7 +422,7 @@ mod layout_tests {
 
         fn view(&self, ctx: &Context<Self>) -> Html {
             html! {
-                <>{ ctx.props().children.clone() }</>
+                { ctx.props().children.clone() }
             }
         }
     }

@@ -15,6 +15,9 @@ rust-version.workspace = true
 [lib]
 proc-macro = true
 
+[build-dependencies]
+version_check = "0.9"
+
 [dependencies]
 proc-macro-error = "1"
 proc-macro2.workspace = true

@@ -12,28 +12,19 @@ pub struct Props {
 
 #[function_component]
 pub fn GameStatusBoard(props: &Props) -> Html {
-    let get_content = {
-        let onclick = props.on_reset.reform(move |e: MouseEvent| {
-            e.stop_propagation();
-            e.prevent_default();
-        });
-
-        match props.status {
-            Status::Ready => html! {
-                <span>{"Ready"}</span>
-            },
-            Status::Playing => html! {
-                <span>{"Playing"}</span>
-            },
-            Status::Passed => html! {
-                <button class="play-again-btn" {onclick}>{"Play again"}</button>
-            },
-        }
-    };
-
     html! {
       <div class="game-status-container">
-        {get_content}
+        match props.status {
+            Status::Ready => <span>{"Ready"}</span>,
+            Status::Playing => <span>{"Playing"}</span>,
+            Status::Passed => {
+                let onclick = props.on_reset.reform(move |e: MouseEvent| {
+                    e.stop_propagation();
+                    e.prevent_default();
+                });
+                <button class="play-again-btn" {onclick}>{"Play again"}</button>
+            }
+        }
         <span class="sec-past">{ props.sec_past}{" s"}</span>
     </div>
     }

@@ -978,15 +978,11 @@ mod tests {
 
         let test_ref = NodeRef::default();
         let before = html! {
-            <>
-                <div ref={&test_ref} id="before" />
-            </>
+            <div ref={&test_ref} id="before" />
         };
         let after = html! {
-            <>
-                <h6 />
-                <div ref={&test_ref} id="after" />
-            </>
+            <h6 />
+            <div ref={&test_ref} id="after" />
         };
         // The point of this diff is to first render the "after" div and then detach the "before"
         // div, while both should be bound to the same node ref
@@ -1145,45 +1141,26 @@ mod layout_tests {
 
 #[cfg(test)]
 mod tests_without_browser {
+    use std::rc::Rc;
+
     use crate::html;
-    use crate::virtual_dom::VNode;
+    use crate::virtual_dom::{VList, VNode};
+
+    fn vlist(children: Vec<VNode>) -> VNode {
+        VNode::VList(Rc::new(VList::with_children(children, None)))
+    }
 
     #[test]
     fn html_if_bool() {
         assert_eq!(
-            html! {
-                if true {
-                    <div class="foo" />
-                }
-            },
-            html! {
-                <>
-                    <div class="foo" />
-                </>
-            },
+            html! { if true { <div class="foo" /> } },
+            vlist(vec![html! { <div class="foo" /> }]),
         );
         assert_eq!(
-            html! {
-                if false {
-                    <div class="foo" />
-                } else {
-                    <div class="bar" />
-                }
-            },
-            html! {
-                <><div class="bar" /></>
-            },
+            html! { if false { <div class="foo" /> } else { <div class="bar" /> } },
+            vlist(vec![html! { <div class="bar" /> }]),
         );
-        assert_eq!(
-            html! {
-                if false {
-                    <div class="foo" />
-                }
-            },
-            html! {
-                <></>
-            },
-        );
+        assert_eq!(html! { if false { <div class="foo" /> } }, vlist(vec![]),);
 
         // non-root tests
         assert_eq!(
@@ -1237,40 +1214,16 @@ mod tests_without_browser {
         let option_foo = Some("foo");
         let none: Option<&'static str> = None;
         assert_eq!(
-            html! {
-                if let Some(class) = option_foo {
-                    <div class={class} />
-                }
-            },
-            html! {
-                <>
-                    <div class={Some("foo")} />
-                </>
-            },
+            html! { if let Some(class) = option_foo { <div class={class} /> } },
+            vlist(vec![html! { <div class={Some("foo")} /> }]),
         );
         assert_eq!(
-            html! {
-                if let Some(class) = none {
-                    <div class={class} />
-                } else {
-                    <div class="bar" />
-                }
-            },
-            html! {
-                <>
-                    <div class="bar" />
-                </>
-            },
+            html! { if let Some(class) = none { <div class={class} /> } else { <div class="bar" /> } },
+            vlist(vec![html! { <div class="bar" /> }]),
         );
         assert_eq!(
-            html! {
-                if let Some(class) = none {
-                    <div class={class} />
-                }
-            },
-            html! {
-                <></>
-            },
+            html! { if let Some(class) = none { <div class={class} /> } },
+            vlist(vec![]),
         );
 
         // non-root tests

@@ -89,20 +89,18 @@ impl Component for App {
         // We will only render once, and then do the rest of the DOM changes
         // by mounting/destroying appinstances of CounterModel
         html! {
-            <>
-                <div class="panel">
-                    // Create button to create a new app
-                    <button
-                        class="create"
-                        onclick={ctx.link().callback(|_| Msg::SpawnCounterAppInstance)}
-                    >
-                        { "Spawn new CounterModel app" }
-                    </button>
-                </div>
-                // Create a container for all the app instances
-                <div ref={self.apps_container_ref.clone()}>
-                </div>
-            </>
+            <div class="panel">
+                // Create button to create a new app
+                <button
+                    class="create"
+                    onclick={ctx.link().callback(|_| Msg::SpawnCounterAppInstance)}
+                >
+                    { "Spawn new CounterModel app" }
+                </button>
+            </div>
+            // Create a container for all the app instances
+            <div ref={self.apps_container_ref.clone()}>
+            </div>
         }
     }
 }

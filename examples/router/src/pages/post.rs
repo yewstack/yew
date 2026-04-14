@@ -31,37 +31,31 @@ impl Component for Post {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let Self { post } = self;
 
-        let keywords = post
-            .meta
-            .keywords
-            .iter()
-            .map(|keyword| html! { <span class="tag is-info">{ keyword }</span> });
-
         html! {
-            <>
-                <section class="hero is-medium is-light has-background">
-                    <img alt="The hero's background" class="hero-background is-transparent" src={post.meta.image_url.clone()} />
-                    <div class="hero-body">
-                        <div class="container">
-                            <h1 class="title">
-                                { &post.meta.title }
-                            </h1>
-                            <h2 class="subtitle">
-                                { "by " }
-                                <Link<Route> classes={classes!("has-text-weight-semibold")} to={Route::Author { id: post.meta.author.seed }}>
-                                    { &post.meta.author.name }
-                                </Link<Route>>
-                            </h2>
-                            <div class="tags">
-                                { for keywords }
-                            </div>
+            <section class="hero is-medium is-light has-background">
+                <img alt="The hero's background" class="hero-background is-transparent" src={post.meta.image_url.clone()} />
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">
+                            { &post.meta.title }
+                        </h1>
+                        <h2 class="subtitle">
+                            { "by " }
+                            <Link<Route> classes={classes!("has-text-weight-semibold")} to={Route::Author { id: post.meta.author.seed }}>
+                                { &post.meta.author.name }
+                            </Link<Route>>
+                        </h2>
+                        <div class="tags">
+                            for keyword in &post.meta.keywords {
+                                <span class="tag is-info">{ keyword }</span>
+                            }
                         </div>
                     </div>
-                </section>
-                <div class="section container">
-                    { self.view_content() }
                 </div>
-            </>
+            </section>
+            <div class="section container">
+                { self.view_content() }
+            </div>
         }
     }
 }
@@ -102,20 +96,16 @@ impl Post {
     }
 
     fn render_section(&self, section: &content::Section, show_hero: bool) -> Html {
-        let hero = if show_hero {
-            self.render_section_hero(section)
-        } else {
-            html! {}
-        };
-        let paragraphs = section.paragraphs.iter().map(|paragraph| {
-            html! {
-                <p>{ paragraph }</p>
-            }
-        });
         html! {
             <section>
-                { hero }
-                <div>{ for paragraphs }</div>
+                if show_hero {
+                    self.render_section_hero(section)
+                }
+                <div>
+                    for paragraph in &section.paragraphs {
+                        <p>{ paragraph }</p>
+                    }
+                </div>
             </section>
         }
     }

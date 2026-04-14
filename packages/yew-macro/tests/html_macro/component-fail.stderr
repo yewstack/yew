@@ -313,12 +313,6 @@ error: this opening tag has no corresponding closing tag
 101 |     html! { <Child><Child></Child> };
     |             ^^^^^^^
 
-error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-   --> tests/html_macro/component-fail.rs:102:28
-    |
-102 |     html! { <Child></Child><Child></Child> };
-    |                            ^^^^^^^^^^^^^^^
-
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::Path {
            attrs: [],
            qself: None,
@@ -328,66 +322,60 @@ error: the property value must be either a literal or enclosed in braces. Consid
                    PathSegment {
                        ident: Ident {
                            ident: "num",
-                           span: #0 bytes(3894..3897),
+                           span: #0 bytes(3848..3851),
                        },
                        arguments: PathArguments::None,
                    },
                ],
            },
        }
-   --> tests/html_macro/component-fail.rs:106:24
+   --> tests/html_macro/component-fail.rs:105:24
     |
-106 |     html! { <Child int=num ..props /> };
+105 |     html! { <Child int=num ..props /> };
     |                        ^^^
 
 error: cannot specify the `children` prop when the component already has children
-   --> tests/html_macro/component-fail.rs:124:26
+   --> tests/html_macro/component-fail.rs:123:26
     |
-124 |         <ChildContainer {children}>
+123 |         <ChildContainer {children}>
     |                          ^^^^^^^^
 
-error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-   --> tests/html_macro/component-fail.rs:131:9
-    |
-131 |         <span>{ 2 }</span>
-    |         ^^^^^^^^^^^^^^^^^^
-
 error: only simple identifiers are allowed in the shorthand property syntax
-   --> tests/html_macro/component-fail.rs:134:21
+   --> tests/html_macro/component-fail.rs:128:21
     |
-134 |     html! { <Child {std::f64::consts::PI} /> };
+128 |     html! { <Child {std::f64::consts::PI} /> };
     |                     ^^^^^^^^^^^^^^^^^^^^
 
 error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
-   --> tests/html_macro/component-fail.rs:135:21
+   --> tests/html_macro/component-fail.rs:129:21
     |
-135 |     html! { <Child {7 + 6} /> };
+129 |     html! { <Child {7 + 6} /> };
     |                     ^^^^^
 
 error: missing label for property value. If trying to use the shorthand property syntax, only identifiers may be used
-   --> tests/html_macro/component-fail.rs:136:21
+   --> tests/html_macro/component-fail.rs:130:21
     |
-136 |     html! { <Child {children.len()} /> };
+130 |     html! { <Child {children.len()} /> };
     |                     ^^^^^^^^^^^^^^
 
 error: only an expression may be assigned as a property
-   --> tests/html_macro/component-fail.rs:147:34
+   --> tests/html_macro/component-fail.rs:141:34
     |
-147 |     html! { <HtmlInProps header={macro_rules! declare { }} /> };
+141 |     html! { <HtmlInProps header={macro_rules! declare { }} /> };
     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: mismatched closing tags: expected `A`, found `B`
-   --> tests/html_macro/component-fail.rs:177:22
+   --> tests/html_macro/component-fail.rs:171:22
     |
-177 |     let _ = html! { <A></B> };
+171 |     let _ = html! { <A></B> };
     |                      ^^^^^
 
 error: expected a valid closing tag for component
        note: found opening tag `<A>`
        help: try `</A>`
-   --> tests/html_macro/component-fail.rs:178:24
+   --> tests/html_macro/component-fail.rs:172:24
     |
-178 |     let _ = html! { <A></> };
+172 |     let _ = html! { <A></> };
     |                        ^^^
 
 error[E0425]: cannot find value `blah` in this scope
@@ -594,36 +582,36 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `children` on type `ChildProperties`
-   --> tests/html_macro/component-fail.rs:103:14
+   --> tests/html_macro/component-fail.rs:102:14
     |
-103 |     html! { <Child>{ "Not allowed" }</Child> };
+102 |     html! { <Child>{ "Not allowed" }</Child> };
     |              ^^^^^ unknown field
     |
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: no method named `children` found for struct `ChildPropertiesBuilder` in the current scope
-   --> tests/html_macro/component-fail.rs:103:14
+   --> tests/html_macro/component-fail.rs:102:14
     |
 4   | #[derive(Clone, Properties, PartialEq)]
     |                 ---------- method `children` not found for this struct
 ...
-103 |     html! { <Child>{ "Not allowed" }</Child> };
+102 |     html! { <Child>{ "Not allowed" }</Child> };
     |              ^^^^^ method not found in `ChildPropertiesBuilder`
     |
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0609]: no field `children` on type `ChildProperties`
-   --> tests/html_macro/component-fail.rs:110:10
+   --> tests/html_macro/component-fail.rs:109:10
     |
-110 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
+109 |         <Child ..ChildProperties { string: "hello".to_owned(), int: 5 }>
     |          ^^^^^ unknown field
     |
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: not all required properties have been provided for `ChildContainerProperties`
-   --> tests/html_macro/component-fail.rs:115:14
+   --> tests/html_macro/component-fail.rs:114:14
     |
-115 |     html! { <ChildContainer /> };
+114 |     html! { <ChildContainer /> };
     |              ^^^^^^^^^^^^^^ missing required properties
     |
     = help: the trait `HasAllProps<ChildContainerProperties, (_,)>` is not implemented for `CheckChildContainerPropertiesAll<AssertAllProps>`
@@ -639,9 +627,9 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: not all required properties have been provided for `ChildContainerProperties`
-   --> tests/html_macro/component-fail.rs:116:14
+   --> tests/html_macro/component-fail.rs:115:14
     |
-116 |     html! { <ChildContainer></ChildContainer> };
+115 |     html! { <ChildContainer></ChildContainer> };
     |              ^^^^^^^^^^^^^^ missing required properties
     |
     = help: the trait `HasAllProps<ChildContainerProperties, (_,)>` is not implemented for `CheckChildContainerPropertiesAll<AssertAllProps>`
@@ -657,9 +645,9 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
     = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
-   --> tests/html_macro/component-fail.rs:117:31
+   --> tests/html_macro/component-fail.rs:116:31
     |
-117 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
+116 |     html! { <ChildContainer>{ "Not allowed" }</ChildContainer> };
     |              --------------   ^^^^^^^^^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `yew::virtual_dom::VText`
     |              |
     |              required by a bound introduced by this call
@@ -678,17 +666,17 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
     = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `VChild<Child>: From<yew::virtual_dom::VList>` is not satisfied
-   --> tests/html_macro/component-fail.rs:118:29
+   --> tests/html_macro/component-fail.rs:117:29
     |
-118 |     html! { <ChildContainer><></></ChildContainer> };
+117 |     html! { <ChildContainer><></></ChildContainer> };
     |                             ^ the trait `From<yew::virtual_dom::VList>` is not implemented for `VChild<Child>`
     |
     = note: required for `yew::virtual_dom::VList` to implement `Into<VChild<Child>>`
 
 error[E0277]: the trait bound `VNode: IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not satisfied
-   --> tests/html_macro/component-fail.rs:119:30
+   --> tests/html_macro/component-fail.rs:118:30
     |
-119 |     html! { <ChildContainer><other /></ChildContainer> };
+118 |     html! { <ChildContainer><other /></ChildContainer> };
     |              --------------  ^^^^^ the trait `IntoPropValue<ChildrenRenderer<VChild<Child>>>` is not implemented for `VNode`
     |              |
     |              required by a bound introduced by this call
@@ -707,9 +695,9 @@ note: required by a bound in `ChildContainerPropertiesBuilder::children`
     = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 warning: unused variable: `props`
-   --> tests/html_macro/component-fail.rs:144:16
+   --> tests/html_macro/component-fail.rs:138:16
     |
-144 | fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemented!() }
+138 | fn HtmlInProps(props: &HtmlInPropsProperties) -> Html { let _ = (); unimplemented!() }
     |                ^^^^^ help: if this is intentional, prefix it with an underscore: `_props`
     |
     = note: `#[warn(unused_variables)]` on by default

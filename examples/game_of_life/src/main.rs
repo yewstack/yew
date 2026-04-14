@@ -86,23 +86,6 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let cell_rows = self
-            .conway
-            .cellules
-            .chunks(self.conway.width)
-            .enumerate()
-            .map(|(row, cellules)| {
-                let cells = cellules
-                    .iter()
-                    .enumerate()
-                    .map(|(col, _)| self.view_cellule(row, col, ctx.link()));
-                html! {
-                    <div class="game-row">
-                        { for cells }
-                    </div>
-                }
-            });
-
         html! {
             <div>
                 <section class="game-container">
@@ -112,7 +95,12 @@ impl Component for App {
                     </header>
                     <section class="game-area">
                         <div class="game-of-life">
-                            { for cell_rows }
+                            for (row, cellules) in self.conway.cellules.chunks(self.conway.width).enumerate() {
+                                let cells = cellules.iter().enumerate().map(|(col, _)| self.view_cellule(row, col, ctx.link()));
+                                <div class="game-row">
+                                    { for cells }
+                                </div>
+                            }
                         </div>
                         <div class="game-buttons">
                             <button class="game-button" onclick={ctx.link().callback(|_| Msg::Random)}>{ "Random" }</button>

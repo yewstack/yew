@@ -74,11 +74,9 @@ fn Text(props: &TextProps) -> Html {
 fn App() -> Html {
     let s = String::from("world");
     html! {
-        <>
-            <Text>{"hello"}</Text>
-            <Text>{s}</Text>
-            <Text>{ format!("year {}", 2024) }</Text>
-        </>
+        <Text>{"hello"}</Text>
+        <Text>{s}</Text>
+        <Text>{ format!("year {}", 2024) }</Text>
     }
 }
 ```

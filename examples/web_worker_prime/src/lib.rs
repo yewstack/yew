@@ -41,16 +41,14 @@ fn Main() -> Html {
     );
 
     html! {
-        <>
-            <h1>{"Find Prime"}</h1>
-            <p>{"This page demonstrates how to calculate prime in a web worker."}</p>
-            if *started {
-                <button onclick={stop_prime_calc}>{"Stop"}</button>
-            } else {
-                <button onclick={start_prime_calc}>{"Start"}</button>
-            }
-            <div id="result">{result_s}</div>
-        </>
+        <h1>{"Find Prime"}</h1>
+        <p>{"This page demonstrates how to calculate prime in a web worker."}</p>
+        if *started {
+            <button onclick={stop_prime_calc}>{"Stop"}</button>
+        } else {
+            <button onclick={start_prime_calc}>{"Start"}</button>
+        }
+        <div id="result">{result_s}</div>
     }
 }
 

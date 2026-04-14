@@ -15,15 +15,11 @@ pub enum Route {
 }
 
 pub fn switch(routes: Route) -> Html {
-    match routes {
-        Route::Portal => {
-            html! { <h1>{"Hello"}</h1> }
-        }
-        Route::Thread { id } => {
-            html! { <h1>{format!("Thread id {}", id)}</h1> }
-        }
-        Route::NotFound => {
-            html! { <h1>{"Not found"}</h1> }
+    html! {
+        match routes {
+            Route::Portal => <h1>{"Hello"}</h1>,
+            Route::Thread { id } => <h1>{format!("Thread id {}", id)}</h1>,
+            Route::NotFound => <h1>{"Not found"}</h1>,
         }
     }
 }

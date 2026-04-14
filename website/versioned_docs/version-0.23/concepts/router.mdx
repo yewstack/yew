@@ -399,12 +399,6 @@ import ThemedImage from '@theme/ThemedImage'
 The nested `SettingsRouter` handles all URLs that start with `/settings`. Additionally, it redirects URLs that are not
 matched to the main `NotFound` route. So `/settings/gibberish` will redirect to `/404`.
 
-:::caution
-
-Though note that this is still a work in progress so the way we do this is not final
-
-:::
-
 It can be implemented with the following code:
 
 ```rust
@@ -471,6 +465,12 @@ pub fn app() -> Html {
     }
 }
 ```
+
+:::caution
+
+If you want more ergonomic nested router support. Please comment under [the first-class nested routing RFC](https://github.com/yewstack/yew/discussions/4111).
+
+:::
 
 ### Basename
 

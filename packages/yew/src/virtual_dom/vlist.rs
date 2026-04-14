@@ -389,11 +389,9 @@ mod ssr_tests {
         #[component]
         fn Comp() -> Html {
             html! {
-                <>
-                    <Child name="Jane" />
-                    <Child name="John" />
-                    <Child name="Josh" />
-                </>
+                <Child name="Jane" />
+                <Child name="John" />
+                <Child name="Josh" />
             }
         }
 

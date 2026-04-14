@@ -1,3 +1,12 @@
+macro_rules! emit_deprecated {
+    ($($tt:tt)*) => {{
+        #[cfg(yew_macro_nightly)]
+        proc_macro_error::emit_warning!($($tt)*);
+        #[cfg(not(yew_macro_nightly))]
+        proc_macro_error::emit_error!($($tt)*);
+    }};
+}
+pub(crate) use emit_deprecated;
 use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
@@ -16,6 +25,7 @@ mod html_for;
 mod html_if;
 mod html_iterable;
 mod html_list;
+mod html_match;
 mod html_node;
 mod lint;
 mod tag;
@@ -32,6 +42,7 @@ use tag::TagTokens;
 
 use self::html_block::BlockContent;
 use self::html_for::HtmlFor;
+use self::html_match::HtmlMatch;
 
 pub enum HtmlType {
     Block,
@@ -40,6 +51,7 @@ pub enum HtmlType {
     Element,
     If,
     For,
+    Match,
     Empty,
 }
 
@@ -50,6 +62,8 @@ pub enum HtmlTree {
     Element(Box<HtmlElement>),
     If(Box<HtmlIf>),
     For(Box<HtmlFor>),
+    Match(Box<HtmlMatch>),
+    Node(Box<HtmlNode>),
     Empty,
 }
 
@@ -65,11 +79,22 @@ impl Parse for HtmlTree {
             HtmlType::List => Self::List(Box::new(input.parse()?)),
             HtmlType::If => Self::If(Box::new(input.parse()?)),
             HtmlType::For => Self::For(Box::new(input.parse()?)),
+            HtmlType::Match => Self::Match(Box::new(input.parse()?)),
         })
     }
 }
 
 impl HtmlTree {
+    /// Parse an HtmlTree, falling back to HtmlNode for bare literals/expressions.
+    pub(crate) fn parse_or_node(input: ParseStream) -> syn::Result<Self> {
+        if Self::peek_html_type(input).is_some() {
+            input.parse()
+        } else {
+            let node: HtmlNode = input.parse()?;
+            Ok(Self::Node(Box::new(node)))
+        }
+    }
+
     /// Determine the [`HtmlType`] before actually parsing it.
     /// Even though this method accepts a [`ParseStream`], it is forked and the original stream is
     /// not modified. Once a certain `HtmlType` can be deduced for certain, the function eagerly
@@ -86,6 +111,8 @@ impl HtmlTree {
             Some(HtmlType::If)
         } else if HtmlFor::peek(cursor).is_some() {
             Some(HtmlType::For)
+        } else if HtmlMatch::peek(cursor).is_some() {
+            Some(HtmlType::Match)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
 
@@ -134,41 +161,48 @@ impl ToTokens for HtmlTree {
             Self::Block(block) => block.to_tokens(tokens),
             Self::If(block) => block.to_tokens(tokens),
             Self::For(block) => block.to_tokens(tokens),
+            Self::Match(block) => block.to_tokens(tokens),
+            Self::Node(node) => node.to_tokens(tokens),
         }
     }
 }
 
-pub enum HtmlRoot {
-    Tree(HtmlTree),
-    Node(Box<HtmlNode>),
+pub struct HtmlRoot {
+    children: HtmlChildrenTree,
 }
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let html_root = if HtmlTree::peek_html_type(input).is_some() {
-            Self::Tree(input.parse()?)
-        } else {
-            Self::Node(Box::new(input.parse()?))
-        };
-
-        if !input.is_empty() {
-            let stream: TokenStream = input.parse()?;
-            Err(syn::Error::new_spanned(
-                stream,
-                "only one root html element is allowed (hint: you can wrap multiple html elements \
-                 in a fragment `<></>`)",
-            ))
-        } else {
-            Ok(html_root)
-        }
+        let children = HtmlChildrenTree::parse_delimited_with_nodes(input)?;
+        check_unnecessary_fragment(&children);
+        Ok(Self { children })
     }
 }
 
 impl ToTokens for HtmlRoot {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            Self::Tree(tree) => tree.to_tokens(tokens),
-            Self::Node(node) => node.to_tokens(tokens),
+        match &self.children.0[..] {
+            [] => tokens.extend(quote! {
+                <::yew::virtual_dom::VNode as ::std::default::Default>::default()
+            }),
+            [single] => single.to_tokens(tokens),
+            _ => {
+                let children = &self.children;
+                let vlist = match children.fully_keyed() {
+                    Some(true) => quote! {
+                        ::yew::virtual_dom::VList::__macro_new(#children, ::std::option::Option::None, ::yew::virtual_dom::FullyKeyedState::KnownFullyKeyed)
+                    },
+                    Some(false) => quote! {
+                        ::yew::virtual_dom::VList::__macro_new(#children, ::std::option::Option::None, ::yew::virtual_dom::FullyKeyedState::KnownMissingKeys)
+                    },
+                    None => quote! {
+                        ::yew::virtual_dom::VList::with_children(#children, ::std::option::Option::None)
+                    },
+                };
+                tokens.extend(quote! {
+                    ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(#vlist))
+                });
+            }
         }
     }
 }
@@ -184,12 +218,11 @@ impl Parse for HtmlRootVNode {
 impl ToTokens for HtmlRootVNode {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_tokens = self.0.to_token_stream();
-        tokens.extend(
-            quote_spanned! {self.0.span().resolved_at(Span::mixed_site())=> {
-                #[allow(clippy::useless_conversion)]
-                <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
-            }},
-        );
+        let span = new_tokens.span();
+        tokens.extend(quote_spanned! {span.resolved_at(Span::mixed_site())=> {
+            #[allow(clippy::useless_conversion)]
+            <::yew::virtual_dom::VNode as ::std::convert::From<_>>::from(#new_tokens)
+        }});
     }
 }
 
@@ -210,7 +243,7 @@ impl ToNodeIterator for HtmlTree {
     fn to_node_iterator_stream(&self) -> Option<TokenStream> {
         match self {
             Self::Block(block) => block.to_node_iterator_stream(),
-            // everything else is just a single node.
+            Self::Node(node) => node.to_node_iterator_stream(),
             _ => None,
         }
     }
@@ -218,6 +251,7 @@ impl ToNodeIterator for HtmlTree {
     fn is_singular(&self) -> bool {
         match self {
             Self::Block(block) => block.is_singular(),
+            Self::Node(node) => node.is_singular(),
             _ => true,
         }
     }
@@ -285,11 +319,16 @@ impl HtmlChildrenTree {
         }
     }
 
-    fn parse_delimited(input: ParseStream) -> syn::Result<Self> {
+    pub fn parse_delimited_with_nodes(input: ParseStream) -> syn::Result<Self> {
         let mut children = HtmlChildrenTree::new();
 
         while !input.is_empty() {
-            children.parse_child(input)?;
+            if HtmlTree::peek_html_type(input).is_some() {
+                children.parse_child(input)?;
+            } else {
+                let node: HtmlNode = input.parse()?;
+                children.0.push(HtmlTree::Node(Box::new(node)));
+            }
         }
 
         Ok(children)
@@ -383,7 +422,15 @@ impl HtmlChildrenTree {
                         return Some(false);
                     }
                 }
-                HtmlTree::If(_) | HtmlTree::For(_) | HtmlTree::Empty => return Some(false),
+                HtmlTree::Node(node) => {
+                    return match node.as_ref() {
+                        HtmlNode::Literal(_) => Some(false),
+                        HtmlNode::Expression(_) => None,
+                    };
+                }
+                HtmlTree::If(_) | HtmlTree::For(_) | HtmlTree::Match(_) | HtmlTree::Empty => {
+                    return Some(false);
+                }
             }
         }
         Some(true)
@@ -398,6 +445,7 @@ impl ToTokens for HtmlChildrenTree {
 
 pub struct HtmlRootBraced {
     brace: token::Brace,
+    let_stmts: Vec<syn::Local>,
     children: HtmlChildrenTree,
 }
 
@@ -411,18 +459,51 @@ impl Parse for HtmlRootBraced {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
         let brace = braced!(content in input);
-        let children = HtmlChildrenTree::parse_delimited(&content)?;
 
-        Ok(HtmlRootBraced { brace, children })
+        let mut let_stmts = Vec::new();
+        while content.peek(Token![let]) {
+            let stmt: syn::Stmt = content.parse()?;
+            match stmt {
+                syn::Stmt::Local(local) => let_stmts.push(local),
+                _ => unreachable!("peeked Token![let] but parsed non-local statement"),
+            }
+        }
+
+        let children = HtmlChildrenTree::parse_delimited_with_nodes(&content)?;
+        check_unnecessary_fragment(&children);
+
+        Ok(HtmlRootBraced {
+            brace,
+            let_stmts,
+            children,
+        })
+    }
+}
+
+/// Lint when a braced body contains a single keyless fragment, since the children
+/// can be placed directly in the body without the `<>...</>` wrapper.
+pub(super) fn check_unnecessary_fragment(children: &HtmlChildrenTree) {
+    if let [HtmlTree::List(list)] = &children.0[..] {
+        if list.open.props.key.is_none() {
+            emit_deprecated!(
+                list.open_spanned(),
+                "unnecessary `<>...</>`. Children can be placed directly in the body"
+            );
+        }
     }
 }
 
 impl ToTokens for HtmlRootBraced {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { brace, children } = self;
+        let Self {
+            brace,
+            let_stmts,
+            children,
+        } = self;
 
         tokens.extend(quote_spanned! {brace.span.span()=>
             {
+                #(#let_stmts)*
                 ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
                     ::yew::virtual_dom::VList::with_children(#children, ::std::option::Option::None)
                 ))

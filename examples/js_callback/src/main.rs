@@ -14,10 +14,8 @@ static WASM_BINDGEN_SNIPPETS_PATH: OnceLock<String> = OnceLock::new();
 fn Important() -> Html {
     let msg = use_memo((), |_| bindings::hello());
     html! {
-        <>
-            <h2>{"Important"}</h2>
-            <p>{msg}</p>
-        </>
+        <h2>{"Important"}</h2>
+        <p>{msg}</p>
     }
 }
 
@@ -40,10 +38,8 @@ fn use_do_bye() -> SuspensionResult<String> {
 fn UnImportant() -> HtmlResult {
     let msg = use_do_bye()?;
     Ok(html! {
-        <>
-            <h2>{"Unimportant"}</h2>
-            <p>{msg}</p>
-        </>
+        <h2>{"Unimportant"}</h2>
+        <p>{msg}</p>
     })
 }
 

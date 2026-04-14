@@ -597,16 +597,14 @@ mod tests {
                 let portal_target = ctx.props().wrapped.host.clone();
                 let onclick = ctx.link().callback(|_| Message::Action);
                 html! {
-                    <>
-                        <div onclick={onclick}>
-                            {create_portal(html! {
-                                <a ref={&ctx.props().state_ref}>
-                                    {state.action}
-                                </a>
-                            }, portal_target.clone())}
-                        </div>
-                        {VNode::VRef(portal_target.into())}
-                    </>
+                    <div onclick={onclick}>
+                        {create_portal(html! {
+                            <a ref={&ctx.props().state_ref}>
+                                {state.action}
+                            </a>
+                        }, portal_target.clone())}
+                    </div>
+                    {VNode::VRef(portal_target.into())}
                 }
             }
         }

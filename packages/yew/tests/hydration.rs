@@ -638,18 +638,14 @@ async fn hydration_node_ref_works() {
         }
     }
 
-    #[component(List)]
-    fn list(props: &ListProps) -> Html {
+    #[component]
+    fn List(props: &ListProps) -> Html {
         let elems = 0..props.size;
 
         html! {
-            <>
-            { for elems.map(|_|
-                html! {
-                    <Test2/>
-                }
-            )}
-            </>
+            for _ in elems{
+                <Test2/>
+            }
         }
     }
 
@@ -693,18 +689,14 @@ async fn hydration_node_ref_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_list_order_works() {
-    #[component(App)]
-    pub fn app() -> Html {
+    #[component]
+    pub fn App() -> Html {
         let elems = 0..10;
 
         html! {
-            <>
-            { for elems.map(|number|
-                html! {
-                    <ToSuspendOrNot {number}/>
-                }
-            )}
-            </>
+            for number in elems{
+                <ToSuspendOrNot {number}/>
+            }
         }
     }
 
@@ -773,8 +765,8 @@ async fn hydration_list_order_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_suspense_no_flickering() {
-    #[component(App)]
-    pub fn app() -> Html {
+    #[component]
+    pub fn App() -> Html {
         let fallback = html! { <h1>{"Loading..."}</h1> };
         html! {
             <Suspense {fallback}>
@@ -788,16 +780,16 @@ async fn hydration_suspense_no_flickering() {
         number: u32,
     }
 
-    #[component(SuspendedNumber)]
-    fn suspended_number(props: &NumberProps) -> HtmlResult {
+    #[component]
+    fn SuspendedNumber(props: &NumberProps) -> HtmlResult {
         use_suspend()?;
 
         Ok(html! {
             <Number ..{props.clone()}/>
         })
     }
-    #[component(Number)]
-    fn number(props: &NumberProps) -> Html {
+    #[component]
+    fn Number(props: &NumberProps) -> Html {
         html! {
             <div>
                 {props.number.to_string()}
@@ -805,16 +797,14 @@ async fn hydration_suspense_no_flickering() {
         }
     }
 
-    #[component(Suspended)]
-    fn suspended() -> HtmlResult {
+    #[component]
+    fn Suspended() -> HtmlResult {
         use_suspend()?;
 
         Ok(html! {
-            { for (0..10).map(|number|
-                html! {
-                    <SuspendedNumber {number}/>
-                }
-            )}
+            for number in 0..10 {
+                <SuspendedNumber {number}/>
+            }
         })
     }
 
@@ -1044,16 +1034,14 @@ async fn hydrate_empty() {
     }
     #[component]
     fn Empty() -> Html {
-        html! { <></> }
+        html! {}
     }
     #[component]
     fn App() -> Html {
         html! {
-            <>
-                <Updating />
-                <Empty />
-                <Updating />
-            </>
+            <Updating />
+            <Empty />
+            <Updating />
         }
     }
     let s = ServerRenderer::<App>::new().render().await;
@@ -1092,17 +1080,13 @@ async fn hydrate_flicker() {
         if is_first {
             trigger.set(true);
             html! {
-                <>
-                    <InnerComp key="1" text="1" />
-                    <InnerComp key="2" text="2" />
-                </>
+                <InnerComp key="1" text="1" />
+                <InnerComp key="2" text="2" />
             }
         } else {
             html! {
-                <>
-                    <InnerComp key="2" text="2" />
-                    <InnerComp key="1" text="1" />
-                </>
+                <InnerComp key="2" text="2" />
+                <InnerComp key="1" text="1" />
             }
         }
     }

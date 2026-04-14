@@ -122,27 +122,27 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let has_job = self.timeout.is_some() || self.interval.is_some();
         html! {
-            <>
-                <div id="buttons">
-                    <button disabled={has_job} onclick={ctx.link().callback(|_| Msg::StartTimeout)}>
-                        { "Start Timeout" }
-                    </button>
-                    <button disabled={has_job} onclick={ctx.link().callback(|_| Msg::StartInterval)}>
-                        { "Start Interval" }
-                    </button>
-                    <button disabled={!has_job} onclick={ctx.link().callback(|_| Msg::Cancel)}>
-                        { "Cancel!" }
-                    </button>
+            <div id="buttons">
+                <button disabled={has_job} onclick={ctx.link().callback(|_| Msg::StartTimeout)}>
+                    { "Start Timeout" }
+                </button>
+                <button disabled={has_job} onclick={ctx.link().callback(|_| Msg::StartInterval)}>
+                    { "Start Interval" }
+                </button>
+                <button disabled={!has_job} onclick={ctx.link().callback(|_| Msg::Cancel)}>
+                    { "Cancel!" }
+                </button>
+            </div>
+            <div id="wrapper">
+                <div id="time">
+                    { &self.time }
                 </div>
-                <div id="wrapper">
-                    <div id="time">
-                        { &self.time }
-                    </div>
-                    <div id="messages">
-                        { for self.messages.iter().map(|message| html! { <p>{ message }</p> }) }
-                    </div>
+                <div id="messages">
+                    for message in self.messages.iter() {
+                        <p>{ message }</p>
+                    }
                 </div>
-            </>
+            </div>
         }
     }
 }
