@@ -138,28 +138,26 @@ fn render_post(post: &content::Post) -> Html {
     };
 
     html! {
-        <>
-            <section class="hero is-medium is-light has-background">
-                <img alt="Hero background" class="hero-background is-transparent" src={post.meta.image_url.clone()} />
-                <div class="hero-body">
-                    <div class="container">
-                        <h1 class="title">{ &post.meta.title }</h1>
-                        <h2 class="subtitle">
-                            { "by " }
-                            <Link<function_router::Route> classes={classes!("has-text-weight-semibold")} to={function_router::Route::Author { id: post.meta.author.seed }}>
-                                { &post.meta.author.name }
-                            </Link<function_router::Route>>
-                        </h2>
-                        <div class="tags">
-                            for kw in &post.meta.keywords {
-                                <span class="tag is-info">{ kw }</span>
-                            }
-                        </div>
+        <section class="hero is-medium is-light has-background">
+            <img alt="Hero background" class="hero-background is-transparent" src={post.meta.image_url.clone()} />
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">{ &post.meta.title }</h1>
+                    <h2 class="subtitle">
+                        { "by " }
+                        <Link<function_router::Route> classes={classes!("has-text-weight-semibold")} to={function_router::Route::Author { id: post.meta.author.seed }}>
+                            { &post.meta.author.name }
+                        </Link<function_router::Route>>
+                    </h2>
+                    <div class="tags">
+                        for kw in &post.meta.keywords {
+                            <span class="tag is-info">{ kw }</span>
+                        }
                     </div>
                 </div>
-            </section>
-            <div class="section container">{ view_content }</div>
-        </>
+            </div>
+        </section>
+        <div class="section container">{ view_content }</div>
     }
 }
 
