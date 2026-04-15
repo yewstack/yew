@@ -1,4 +1,5 @@
 const { API_BUTTON } = require('./src/constants')
+const rustDocHiddenLines = require('./src/remark/rustDocHiddenLines')
 
 const editUrl = 'https://github.com/yewstack/yew/blob/master/website/'
 
@@ -169,6 +170,7 @@ module.exports = {
                     sidebarPath: require.resolve('./sidebars/docs.js'),
                     editUrl,
                     routeBasePath: '/docs',
+                    remarkPlugins: [rustDocHiddenLines],
                 },
                 blog: {
                     path: 'blog',
@@ -193,6 +195,7 @@ module.exports = {
                 sidebarPath: require.resolve('./sidebars/community.js'),
                 routeBasePath: '/community',
                 editUrl,
+                remarkPlugins: [rustDocHiddenLines],
             },
         ],
         [
