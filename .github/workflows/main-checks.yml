@@ -139,9 +139,7 @@ jobs:
 
       - name: Run native tests
         env:
-          # workaround for lack of ternary operator
-          # see https://github.com/orgs/community/discussions/25725
-          RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
+          RUSTFLAGS: ${{ case(matrix.toolchain == 'nightly', '--cfg nightly_yew', '') }}
         run: |
           if [[ "${{ matrix.toolchain }}" == "1.85.0" ]]; then
             cargo test --all-targets -p yew-agent -p yew-agent-macro -p yew-router -p yew-link -p yew-link-macro
@@ -151,9 +149,7 @@ jobs:
 
       - name: Run native tests for yew
         env:
-          # workaround for lack of ternary operator
-          # see https://github.com/orgs/community/discussions/25725
-          RUSTFLAGS: ${{ matrix.toolchain == 'nightly' && '--cfg nightly_yew' || '' }}
+          RUSTFLAGS: ${{ case(matrix.toolchain == 'nightly', '--cfg nightly_yew', '') }}
         run: cargo test -p yew --all-features
 
   test-lints:
