@@ -15,21 +15,3 @@ error: `match` expression must have at least one arm
    |
 11 |     html! { match 42 {} };
    |                      ^^
-
-error: `html!` is not needed in `match` arms. Use bare elements directly
-  --> tests/html_macro/html-match-fail.rs:16:18
-   |
-16 |             1 => html! { <h1>{"Hello"}</h1> },
-   |                  ^^^^
-
-error: `html!` is not needed in `match` arms. Use bare elements directly
-  --> tests/html_macro/html-match-fail.rs:24:31
-   |
-24 |             1 => { let a = 1; html! { <h1>{a}</h1> } },
-   |                               ^^^^
-
-error: unnecessary `<>...</>`. Children can be placed directly in the body
-  --> tests/html_macro/html-match-fail.rs:32:20
-   |
-32 |             1 => { <><h1>{"Hello"}</h1><p>{"World"}</p></> }
-   |                    ^^

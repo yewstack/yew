@@ -24,6 +24,7 @@ pub struct HtmlFor {
     iter: Expr,
     let_stmts: Vec<Local>,
     body: HtmlChildrenTree,
+    deprecations: TokenStream,
 }
 
 impl PeekValue<()> for HtmlFor {
@@ -53,7 +54,7 @@ impl Parse for HtmlFor {
         }
 
         let body = HtmlChildrenTree::parse_delimited_with_nodes(&body_stream)?;
-        super::check_unnecessary_fragment(&body);
+        let deprecations = super::check_unnecessary_fragment(&body);
         // TODO: more concise code by using if-let guards (MSRV 1.95)
         for child in body.0.iter() {
             let HtmlTree::Element(element) = child else {
@@ -77,6 +78,7 @@ impl Parse for HtmlFor {
             iter,
             let_stmts,
             body,
+            deprecations,
         })
     }
 }
@@ -88,6 +90,7 @@ impl ToTokens for HtmlFor {
             iter,
             let_stmts,
             body,
+            deprecations,
         } = self;
         let acc = Ident::new("__yew_v", iter.span());
 
@@ -129,6 +132,7 @@ impl ToTokens for HtmlFor {
             });
 
         tokens.extend(quote!({
+            #deprecations
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
             ::std::iter::Iterator::for_each(
                 ::std::iter::IntoIterator::into_iter(#iter),

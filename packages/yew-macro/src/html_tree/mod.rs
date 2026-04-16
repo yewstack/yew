@@ -1,12 +1,3 @@
-macro_rules! emit_deprecated {
-    ($($tt:tt)*) => {{
-        #[cfg(yew_macro_nightly)]
-        proc_macro_error::emit_warning!($($tt)*);
-        #[cfg(not(yew_macro_nightly))]
-        proc_macro_error::emit_error!($($tt)*);
-    }};
-}
-pub(crate) use emit_deprecated;
 use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
@@ -169,23 +160,34 @@ impl ToTokens for HtmlTree {
 
 pub struct HtmlRoot {
     children: HtmlChildrenTree,
+    deprecations: TokenStream,
 }
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let children = HtmlChildrenTree::parse_delimited_with_nodes(input)?;
-        check_unnecessary_fragment(&children);
-        Ok(Self { children })
+        let deprecations = check_unnecessary_fragment(&children);
+        Ok(Self {
+            children,
+            deprecations,
+        })
     }
 }
 
 impl ToTokens for HtmlRoot {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let deprecations = &self.deprecations;
         match &self.children.0[..] {
             [] => tokens.extend(quote! {
-                <::yew::virtual_dom::VNode as ::std::default::Default>::default()
+                { #deprecations <::yew::virtual_dom::VNode as ::std::default::Default>::default() }
             }),
-            [single] => single.to_tokens(tokens),
+            [single] => {
+                if deprecations.is_empty() {
+                    single.to_tokens(tokens);
+                } else {
+                    tokens.extend(quote! { { #deprecations #single } });
+                }
+            }
             _ => {
                 let children = &self.children;
                 let vlist = match children.fully_keyed() {
@@ -200,7 +202,10 @@ impl ToTokens for HtmlRoot {
                     },
                 };
                 tokens.extend(quote! {
-                    ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(#vlist))
+                    {
+                        #deprecations
+                        ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(#vlist))
+                    }
                 });
             }
         }
@@ -345,10 +350,15 @@ impl HtmlChildrenTree {
                 // Or further nested once deref pattern (https://github.com/rust-lang/rust/issues/87121) is stable.
                 if let HtmlBlock {
                     content: BlockContent::Node(children),
+                    deprecations,
                     ..
                 } = m.as_ref()
                 {
-                    Some(quote! { #children })
+                    if deprecations.is_empty() {
+                        Some(quote! { #children })
+                    } else {
+                        Some(quote! { { #deprecations #children } })
+                    }
                 } else {
                     Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
                 }
@@ -372,10 +382,19 @@ impl HtmlChildrenTree {
                 // Or further nested once deref pattern (https://github.com/rust-lang/rust/issues/87121) is stable.
                 if let HtmlBlock {
                     content: BlockContent::Node(children),
+                    deprecations,
                     ..
                 } = m.as_ref()
                 {
-                    quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+                    if deprecations.is_empty() {
+                        quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
+                    } else {
+                        quote! {
+                            ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                                { #deprecations #children }
+                            )
+                        }
+                    }
                 } else {
                     quote! {
                         ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
@@ -447,6 +466,7 @@ pub struct HtmlRootBraced {
     brace: token::Brace,
     let_stmts: Vec<syn::Local>,
     children: HtmlChildrenTree,
+    deprecations: TokenStream,
 }
 
 impl PeekValue<()> for HtmlRootBraced {
@@ -470,27 +490,40 @@ impl Parse for HtmlRootBraced {
         }
 
         let children = HtmlChildrenTree::parse_delimited_with_nodes(&content)?;
-        check_unnecessary_fragment(&children);
+        let deprecations = check_unnecessary_fragment(&children);
 
         Ok(HtmlRootBraced {
             brace,
             let_stmts,
             children,
+            deprecations,
         })
+    }
+}
+
+pub(super) fn deprecated_call(span: Span, note: &str) -> TokenStream {
+    quote_spanned! {span=>
+        {
+            #[deprecated = #note]
+            fn __yew_deprecated() {}
+            __yew_deprecated();
+        }
     }
 }
 
 /// Lint when a braced body contains a single keyless fragment, since the children
 /// can be placed directly in the body without the `<>...</>` wrapper.
-pub(super) fn check_unnecessary_fragment(children: &HtmlChildrenTree) {
-    if let [HtmlTree::List(list)] = &children.0[..] {
-        if list.open.props.key.is_none() {
-            emit_deprecated!(
-                list.open_spanned(),
-                "unnecessary `<>...</>`. Children can be placed directly in the body"
-            );
-        }
+pub(super) fn check_unnecessary_fragment(children: &HtmlChildrenTree) -> TokenStream {
+    let [HtmlTree::List(list)] = &children.0[..] else {
+        return TokenStream::new();
+    };
+    if list.open.props.key.is_some() {
+        return TokenStream::new();
     }
+    deprecated_call(
+        list.open_spanned().to_token_stream().span(),
+        "unnecessary `<>...</>`. Children can be placed directly in the body",
+    )
 }
 
 impl ToTokens for HtmlRootBraced {
@@ -499,10 +532,12 @@ impl ToTokens for HtmlRootBraced {
             brace,
             let_stmts,
             children,
+            deprecations,
         } = self;
 
         tokens.extend(quote_spanned! {brace.span.span()=>
             {
+                #deprecations
                 #(#let_stmts)*
                 ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
                     ::yew::virtual_dom::VList::with_children(#children, ::std::option::Option::None)

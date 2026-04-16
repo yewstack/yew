@@ -30,7 +30,6 @@ unexpected_cfgs = { level = "warn", check-cfg = [
     "cfg(verbose_tests)",
     "cfg(yew_lints)",
     "cfg(nightly_yew)",
-    "cfg(yew_macro_nightly)",
     "cfg(wasm_bindgen_unstable_test_coverage)"
 ]}
 [workspace.dependencies]
