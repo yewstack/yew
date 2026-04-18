@@ -79,7 +79,38 @@ fn check_deprecated_html_call(expr: &Expr) -> TokenStream {
         }
     }
 
+    // Pattern 3: { if cond { html! { ... } } else { html! { ... } } }
+    if let Expr::If(if_expr) = expr {
+        if let Some(span) = if_branch_html_macro_span(if_expr) {
+            return super::deprecated_call(
+                span,
+                "`html!` is not needed inside `if`/`else` branches. Use bare elements directly",
+            );
+        }
+    }
+
     TokenStream::new()
+}
+
+/// Walk through an `if`/`else if`/`else` chain and return the span of the first tail `html!` call.
+fn if_branch_html_macro_span(if_expr: &syn::ExprIf) -> Option<proc_macro2::Span> {
+    if let Some(span) = if_expr
+        .then_branch
+        .stmts
+        .last()
+        .and_then(stmt_tail_html_macro_span)
+    {
+        return Some(span);
+    }
+    match if_expr.else_branch.as_ref().map(|(_, expr)| expr.as_ref()) {
+        Some(Expr::Block(block_expr)) => block_expr
+            .block
+            .stmts
+            .last()
+            .and_then(stmt_tail_html_macro_span),
+        Some(Expr::If(nested)) => if_branch_html_macro_span(nested),
+        _ => None,
+    }
 }
 
 /// Check if a statement is a tail `html!`/`html_nested!` macro call (no trailing semicolon).

@@ -1,7 +1,7 @@
 error: This macro call exists to deliberately fail the compilation of the test so we can verify output of deprecation lints
-  --> tests/html_deprecation/fail.rs:85:5
+  --> tests/html_deprecation/fail.rs:92:5
    |
-85 |     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of deprecation lints...
+92 |     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of deprecation lints...
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 warning: use of deprecated function `root_level_fragment::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
@@ -81,3 +81,9 @@ warning: use of deprecated function `nested_block_with_html_tail::__yew_deprecat
    |
 80 |         <div>{{ let processed = item.to_uppercase(); html! { <span>{processed}</span> } }}</div>
    |                                                      ^^^^
+
+warning: use of deprecated function `if_else_block_with_html_branches::__yew_deprecated`: `html!` is not needed inside `if`/`else` branches. Use bare elements directly
+  --> tests/html_deprecation/fail.rs:87:26
+   |
+87 |         <div>{ if cond { html! { <span>{"yes"}</span> } } else { html! { <span>{"no"}</span> } } }</div>
+   |                          ^^^^

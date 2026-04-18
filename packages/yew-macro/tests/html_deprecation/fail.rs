@@ -81,6 +81,13 @@ fn nested_block_with_html_tail() {
     };
 }
 
+fn if_else_block_with_html_branches() {
+    let cond = true;
+    let _ = html! {
+        <div>{ if cond { html! { <span>{"yes"}</span> } } else { html! { <span>{"no"}</span> } } }</div>
+    };
+}
+
 fn main() {
     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of deprecation lints");
 }
