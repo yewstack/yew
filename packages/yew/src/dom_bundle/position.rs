@@ -202,26 +202,34 @@ impl DynamicDomSlot {
         // TODO: there could be some data structure that performs better here. E.g. a balanced tree
         // with parent pointers come to mind, but they are a bit fiddly to implement in rust
         //
-        // We traverse via raw pointers to avoid Rc refcount overhead (clone + drop) per hop.
+        // We traverse via raw pointers to avoid Rc refcount overhead (clone + drop) per hop, then
+        // clone the terminal next-sibling out of the chain before invoking `f`. Invoking `f` with
+        // no borrow held and no reliance on chain structure keeps the traversal sound: `f` runs
+        // arbitrary code (panic drop glue, `gloo::console::error`, tracing subscribers) that
+        // could, in principle, reassign a link in the chain and drop the last strong reference
+        // to the RefCell we would otherwise still borrow from.
         //
-        // SAFETY: All RefCells in the chain are valid for the duration of this traversal:
+        // SAFETY: All RefCells visited by the loop remain live while we dereference them:
         // - `self.target` (Rc) is alive because `self` is borrowed
         // - Each DomSlot::Chained(DynamicDomSlot { target }) in the chain holds a strong Rc to the
         //   next RefCell, so all links are transitively kept alive
-        // - Yew is single-threaded and this function does not yield, so no mutable borrow (e.g.
-        //   from reassign()) can occur on any RefCell in the chain during traversal
+        // - Yew is single-threaded and the loop body does not run user code, so no mutable borrow
+        //   (e.g. from reassign()) can occur on any RefCell in the chain during traversal
         // - Each RefCell::borrow() is dropped before advancing to the next hop
-        let mut ptr: *const RefCell<DomSlot> = Rc::as_ptr(&self.target);
-        loop {
-            let cell = unsafe { &*ptr };
-            let slot_ref = cell.borrow();
-            match &slot_ref.variant {
-                DomSlotVariant::Node(ref n) => break f(n.as_ref()),
-                DomSlotVariant::Chained(ref chain) => {
-                    ptr = Rc::as_ptr(&chain.target);
+        let node: Option<Node> = {
+            let mut ptr: *const RefCell<DomSlot> = Rc::as_ptr(&self.target);
+            loop {
+                let cell = unsafe { &*ptr };
+                let slot_ref = cell.borrow();
+                match &slot_ref.variant {
+                    DomSlotVariant::Node(ref n) => break n.clone(),
+                    DomSlotVariant::Chained(ref chain) => {
+                        ptr = Rc::as_ptr(&chain.target);
+                    }
                 }
             }
-        }
+        };
+        f(node.as_ref())
     }
 }
 
