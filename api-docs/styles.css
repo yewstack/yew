@@ -5,9 +5,7 @@
     left: 0;
     top: 0;
     right: 0;
-    height: 70px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px 15px;
     text-align: center;
     font-family: sans-serif;
     box-shadow: 0 0 5px 0 rgb(100, 100, 100);
@@ -21,5 +19,15 @@
 }
 
 body {
-    padding-top: 70px !important;
+    padding-top: 70px;
+}
+
+@media (max-width: 700px) {
+    #unreleased-version-header {
+        position: relative;
+    }
+
+    body {
+        padding-top: 0;
+    }
 }

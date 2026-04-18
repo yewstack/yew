@@ -37,9 +37,9 @@ pub struct u8;
 pub struct usize;
 
 fn main() {
-    _ = ::yew::html! { <>{ "Hi" }</> };
-    _ = ::yew::html! { <>{ ::std::format!("Hello") }</> };
-    _ = ::yew::html! { <>{ ::std::string::ToString::to_string("Hello") }</> };
+    _ = ::yew::html! { { "Hi" } };
+    _ = ::yew::html! { { ::std::format!("Hello") } };
+    _ = ::yew::html! { { ::std::string::ToString::to_string("Hello") } };
 
     let msg = "Hello";
     _ = ::yew::html! { <div>{ msg }</div> };

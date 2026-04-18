@@ -1,5 +1,5 @@
 use std::cell::Cell;
-use std::panic::PanicHookInfo as PanicInfo;
+use std::panic::PanicHookInfo;
 use std::rc::Rc;
 
 use web_sys::Element;
@@ -15,8 +15,7 @@ thread_local! {
 /// Unless a panic hook is set through this function, Yew will
 /// overwrite any existing panic hook when an application is rendered with [Renderer].
 #[cfg(feature = "csr")]
-#[allow(clippy::incompatible_msrv)]
-pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicInfo<'_>) + Sync + Send + 'static>) {
+pub fn set_custom_panic_hook(hook: Box<dyn Fn(&PanicHookInfo<'_>) + Sync + Send + 'static>) {
     std::panic::set_hook(hook);
     PANIC_HOOK_IS_SET.with(|hook_is_set| hook_is_set.set(true));
 }
@@ -47,8 +46,7 @@ where
 
 impl<COMP> Default for Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default> + 'static,
 {
     fn default() -> Self {
         Self::with_props(Default::default())
@@ -57,8 +55,7 @@ where
 
 impl<COMP> Renderer<COMP>
 where
-    COMP: BaseComponent + 'static,
-    COMP::Properties: Default,
+    COMP: BaseComponent<Properties: Default> + 'static,
 {
     /// Creates a [Renderer] that renders into the document body with default properties.
     pub fn new() -> Self {

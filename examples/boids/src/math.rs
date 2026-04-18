@@ -38,11 +38,7 @@ impl Vector2D {
 
     pub fn clamp_magnitude(self, max: f64) -> Self {
         let mag = self.magnitude();
-        if mag > max {
-            self / mag * max
-        } else {
-            self
-        }
+        if mag > max { self / mag * max } else { self }
     }
 
     /// Positive angles measured counter-clockwise from positive x axis.
@@ -163,10 +159,6 @@ where
             avg += (value - avg) / count;
             (avg, count)
         });
-        if count.is_normal() {
-            Some(avg)
-        } else {
-            None
-        }
+        if count.is_normal() { Some(avg) } else { None }
     }
 }

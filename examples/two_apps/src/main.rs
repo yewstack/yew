@@ -1,5 +1,5 @@
 use yew::html::Scope;
-use yew::{html, AppHandle, Component, Context, Html};
+use yew::{AppHandle, Component, Context, Html, html};
 
 pub enum Msg {
     SetOpposite(Scope<App>),

@@ -45,7 +45,7 @@ impl Filter {
 
 impl IntoPropValue<Html> for Filter {
     fn into_prop_value(self) -> Html {
-        html! {<>{self.to_string()}</>}
+        html! {self.to_string()}
     }
 }
 

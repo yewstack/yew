@@ -25,11 +25,11 @@ pub fn route_meta(route: &Route) -> (&'static str, &'static str) {
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/posts/:id")]
+    #[at("/posts/{id}")]
     Post { id: u32 },
     #[at("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[at("/authors/{id}")]
     Author { id: u32 },
     #[at("/authors")]
     Authors,
@@ -94,24 +94,14 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
 }
 
 fn switch(routes: Route) -> Html {
-    match routes {
-        Route::Post { id } => {
-            html! { <Post seed={id} /> }
-        }
-        Route::Posts => {
-            html! { <PostList /> }
-        }
-        Route::Author { id } => {
-            html! { <Author seed={id} /> }
-        }
-        Route::Authors => {
-            html! { <AuthorList /> }
-        }
-        Route::Home => {
-            html! { <Home /> }
-        }
-        Route::NotFound => {
-            html! { <PageNotFound /> }
+    html! {
+        match routes {
+            Route::Post { id } => <Post seed={id} />,
+            Route::Posts => <PostList />,
+            Route::Author { id } => <Author seed={id} />,
+            Route::Authors => <AuthorList />,
+            Route::Home => <Home />,
+            Route::NotFound => <PageNotFound />,
         }
     }
 }

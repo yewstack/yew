@@ -1,4 +1,5 @@
 const { API_BUTTON } = require('./src/constants')
+const rustDocHiddenLines = require('./src/remark/rustDocHiddenLines')
 
 const editUrl = 'https://github.com/yewstack/yew/blob/master/website/'
 
@@ -13,6 +14,23 @@ module.exports = {
     favicon: 'img/logo.svg',
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
+    headTags: [
+        {
+            tagName: 'link',
+            attributes: {
+                rel: 'icon',
+                href: '/favicon.ico',
+                sizes: 'any',
+            },
+        },
+        {
+            tagName: 'link',
+            attributes: {
+                rel: 'apple-touch-icon',
+                href: '/apple-touch-icon.png',
+            },
+        },
+    ],
     themeConfig: {
         colorMode: {
             respectPrefersColorScheme: true,
@@ -152,6 +170,7 @@ module.exports = {
                     sidebarPath: require.resolve('./sidebars/docs.js'),
                     editUrl,
                     routeBasePath: '/docs',
+                    remarkPlugins: [rustDocHiddenLines],
                 },
                 blog: {
                     path: 'blog',
@@ -176,6 +195,7 @@ module.exports = {
                 sidebarPath: require.resolve('./sidebars/community.js'),
                 routeBasePath: '/community',
                 editUrl,
+                remarkPlugins: [rustDocHiddenLines],
             },
         ],
         [

@@ -2,7 +2,7 @@ use std::cell::Cell;
 
 use web_sys::HtmlInputElement;
 use yew::events::InputEvent;
-use yew::{html, Callback, Component, Context, Html, Properties, TargetCast};
+use yew::{Callback, Component, Context, Html, Properties, TargetCast, html};
 
 thread_local! {
     static SLIDER_ID: Cell<usize> = Cell::default();

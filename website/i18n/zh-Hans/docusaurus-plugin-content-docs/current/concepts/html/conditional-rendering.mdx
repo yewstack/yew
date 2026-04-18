@@ -1,6 +1,6 @@
 ---
 title: '条件渲染'
-description: '在 html 中有条件地渲染节点！'
+description: '在 html! 中使用 if、if let 和 match 进行条件渲染'
 ---
 
 import Tabs from '@theme/Tabs'
@@ -70,4 +70,89 @@ html! {
 ```
 
   </TabItem>
+  <TabItem value="if-let-bindings" label="let 绑定">
+
+大括号体支持在 html 子节点前使用 `let` 绑定，也可以直接写多个子节点：
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    if condition {
+        let label = format!("count: {count}");
+        <h2>{"Result"}</h2>
+        <span>{label}</span>
+    } else {
+        "nothing"
+    }
+};
+```
+
+`let` 绑定必须出现在所有 html 子节点之前，不能与它们交错。
+
+  </TabItem>
 </Tabs>
+
+## Match 块
+
+`match` 表达式可以直接在 `html!` 中使用，与 `if`/`else` 遵循相同的模式：
+
+<Tabs>
+  <TabItem value="match" label="match">
+
+```rust
+use yew::prelude::*;
+
+let value: Option<String> = Some("hello".into());
+
+html! {
+    match value {
+        Some(text) => <p>{text}</p>,
+        None => <p>{"Nothing here"}</p>,
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="match-guards" label="if 守卫">
+
+```rust
+use yew::prelude::*;
+
+let value: i32 = 42;
+
+html! {
+    match value {
+        x if x > 10 => <p>{"Big"}</p>,
+        x if x > 0 => <p>{"Small"}</p>,
+        _ => <p>{"Non-positive"}</p>,
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="match-let" label="let 绑定">
+
+大括号 arm 体支持 `let` 绑定和多个子节点：
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    match data {
+        Some(item) => {
+            let label = format!("Item: {}", item.name);
+            let class = if item.important { "highlight" } else { "normal" };
+            <p class={class}>{label}</p>
+        }
+        None => <p>{"No data"}</p>,
+    }
+};
+```
+
+  </TabItem>
+</Tabs>
+
+单元素 arm 可以省略大括号。含多个子节点或 `let` 绑定的 arm 需要大括号。
+
+`match` 支持所有标准 Rust 模式，包括 OR 模式（`A | B`）、解构和 `if` 守卫。穷尽性由 Rust 编译器检查。

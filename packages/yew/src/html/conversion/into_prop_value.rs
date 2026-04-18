@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use implicit_clone::unsync::{IArray, IMap};
 pub use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::{IArray, IMap};
 
 use crate::callback::Callback;
 use crate::html::{BaseComponent, ChildrenRenderer, Component, Scope};
@@ -201,12 +201,6 @@ impl<C: BaseComponent> IntoPropValue<VList> for VChild<C> {
     }
 }
 
-impl IntoPropValue<ChildrenRenderer<VNode>> for AttrValue {
-    fn into_prop_value(self) -> ChildrenRenderer<VNode> {
-        ChildrenRenderer::new(vec![VNode::VText(VText::new(self))])
-    }
-}
-
 impl IntoPropValue<VNode> for Vec<VNode> {
     #[inline]
     fn into_prop_value(self) -> VNode {
@@ -341,6 +335,12 @@ macro_rules! impl_into_prop_value_via_attr_value {
             #[inline(always)]
             fn into_prop_value(self) -> Option<VNode> {
                 self.map(|v| VText::new(v).into())
+            }
+        }
+        impl IntoPropValue<ChildrenRenderer<VNode>> for $from_ty {
+            #[inline(always)]
+            fn into_prop_value(self) -> ChildrenRenderer<VNode> {
+                ChildrenRenderer::new(vec![VText::new(self).into()])
             }
         }
     };

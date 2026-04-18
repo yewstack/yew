@@ -1,14 +1,16 @@
 use std::fmt;
+use std::mem::transmute;
 use std::ops::Deref;
 use std::rc::Rc;
 
 use implicit_clone::ImplicitClone;
 
-use super::{use_reducer, use_reducer_eq, Reducible, UseReducerDispatcher, UseReducerHandle};
+use super::{Reducible, UseReducerDispatcher, UseReducerHandle, use_reducer, use_reducer_eq};
+use crate::Callback;
 use crate::functional::hook;
 use crate::html::IntoPropValue;
-use crate::Callback;
 
+#[repr(transparent)]
 struct UseStateReducer<T> {
     value: T,
 }
@@ -110,11 +112,21 @@ impl<T: fmt::Debug> fmt::Debug for UseStateHandle<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("UseStateHandle")
             .field("value", &format!("{:?}", **self))
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
 impl<T> UseStateHandle<T> {
+    /// Returns the current value of the handle as an `Rc`.
+    ///
+    /// Unlike [`Deref`], this gives you an owned `Rc<T>` that can be moved
+    /// into closures or stored without borrowing the handle.
+    pub fn value_rc(&self) -> Rc<T> {
+        // SAFETY: `UseStateReducer<T>` is `repr(transparent)` over `T`, so
+        // `Rc<UseStateReducer<T>>` and `Rc<T>` have identical layouts.
+        unsafe { transmute::<Rc<UseStateReducer<T>>, Rc<T>>(self.inner.value_rc()) }
+    }
+
     /// Replaces the value
     pub fn set(&self, value: T) {
         self.inner.dispatch(value)
@@ -125,6 +137,17 @@ impl<T> UseStateHandle<T> {
         UseStateSetter {
             inner: self.inner.dispatcher(),
         }
+    }
+
+    /// Destructures the handle into its two parts: the current value as an
+    /// `Rc<T>`, and the setter for updating the state.
+    pub fn into_inner(self) -> (Rc<T>, UseStateSetter<T>) {
+        let (data, inner) = self.inner.into_inner();
+        // SAFETY: same repr(transparent) guarantee as `value_rc`.
+        (
+            unsafe { transmute::<Rc<UseStateReducer<T>>, Rc<T>>(data) },
+            UseStateSetter { inner },
+        )
     }
 }
 
@@ -173,7 +196,7 @@ where
     T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseStateSetter").finish()
+        f.debug_struct("UseStateSetter").finish_non_exhaustive()
     }
 }
 

@@ -27,10 +27,10 @@ use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 
+use crate::Properties;
 #[cfg(all(feature = "hydration", feature = "ssr"))]
 use crate::html::RenderMode;
 use crate::html::{AnyScope, BaseComponent, Context, HtmlResult};
-use crate::Properties;
 
 mod hooks;
 pub use hooks::*;
@@ -290,7 +290,7 @@ impl HookContext {
 
 impl fmt::Debug for HookContext {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("HookContext<_>")
+        f.debug_struct("HookContext").finish_non_exhaustive()
     }
 }
 
@@ -391,6 +391,7 @@ where
     T: FunctionProvider + 'static,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("FunctionComponent<_>")
+        f.debug_struct("FunctionComponent<_>")
+            .finish_non_exhaustive()
     }
 }

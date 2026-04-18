@@ -1,6 +1,6 @@
 use gloo::console;
 use js_sys::Date;
-use yew::{html, Component, Context, Html};
+use yew::{Component, Context, Html, html};
 
 // Define the possible messages which can be sent to the component
 pub enum Msg {

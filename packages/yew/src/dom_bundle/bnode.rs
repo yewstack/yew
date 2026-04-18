@@ -68,18 +68,18 @@ impl ReconcileTarget for BNode {
 
     fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         match self {
-            Self::Tag(ref vtag) => vtag.shift(next_parent, slot),
-            Self::Text(ref btext) => btext.shift(next_parent, slot),
-            Self::Comp(ref bsusp) => bsusp.shift(next_parent, slot),
-            Self::List(ref vlist) => vlist.shift(next_parent, slot),
-            Self::Ref(ref node) => {
+            Self::Tag(vtag) => vtag.shift(next_parent, slot),
+            Self::Text(btext) => btext.shift(next_parent, slot),
+            Self::Comp(bsusp) => bsusp.shift(next_parent, slot),
+            Self::List(vlist) => vlist.shift(next_parent, slot),
+            Self::Ref(node) => {
                 slot.insert(next_parent, node);
 
                 DomSlot::at(node.clone())
             }
-            Self::Portal(ref vportal) => vportal.shift(next_parent, slot),
-            Self::Suspense(ref vsuspense) => vsuspense.shift(next_parent, slot),
-            Self::Raw(ref braw) => braw.shift(next_parent, slot),
+            Self::Portal(vportal) => vportal.shift(next_parent, slot),
+            Self::Suspense(vsuspense) => vsuspense.shift(next_parent, slot),
+            Self::Raw(braw) => braw.shift(next_parent, slot),
         }
     }
 }
@@ -178,7 +178,7 @@ impl Reconcilable for VNode {
                 bundle,
             ),
             VNode::VRef(node) => match bundle {
-                BNode::Ref(ref n) if &node == n => DomSlot::at(node),
+                &mut BNode::Ref(ref n) if &node == n => DomSlot::at(node),
                 _ => VNode::VRef(node).replace(root, parent_scope, parent, slot, bundle),
             },
             VNode::VPortal(vportal) => RcExt::unwrap_or_clone(vportal).reconcile_node(
@@ -322,7 +322,7 @@ mod layout_tests {
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
     use super::*;
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

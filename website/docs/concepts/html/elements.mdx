@@ -60,6 +60,59 @@ html! {
 };
 ```
 
+## Dynamic attribute names
+
+Similar to dynamic tag names, attribute names can also be determined at runtime. This is useful for
+libraries like HTMX that use attributes with colons (e.g. `hx-on:click`), or any situation where
+the attribute name is not known at compile time.
+
+There are two syntaxes for dynamic attribute names: string literals and expressions.
+
+### String literal attribute names
+
+Use a string literal directly as the attribute name:
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <div "hx-on:click"="alert('Clicked!')" />
+};
+```
+
+This also works with braced values:
+
+```rust
+use yew::prelude::*;
+
+let handler = "alert('Clicked!')";
+
+html! {
+    <div "hx-on:click"={handler} />
+};
+```
+
+### Expression attribute names
+
+Wrap any expression in braces to compute the attribute name dynamically:
+
+```rust
+use yew::prelude::*;
+
+let attr_name = format!("hx-on:{}", "click");
+
+html! {
+    <div { attr_name }={ "alert('Clicked!')" } />
+};
+```
+
+The expression must evaluate to a type that implements `Into<AttrValue>` (e.g. `String`, `&str`, `AttrValue`).
+
+:::note
+Dynamic attribute names are only supported on HTML elements. Component properties require
+static Rust identifiers. See [Component Properties](../function-components/properties.mdx).
+:::
+
 ## Boolean Attributes
 
 Some content attributes (e.g checked, hidden, required) are called boolean attributes. In Yew,

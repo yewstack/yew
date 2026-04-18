@@ -7,13 +7,13 @@ use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
-use wasm_bindgen::prelude::{wasm_bindgen, Closure};
-use wasm_bindgen::{intern, JsCast, UnwrapThrowExt};
+use wasm_bindgen::prelude::{Closure, wasm_bindgen};
+use wasm_bindgen::{JsCast, UnwrapThrowExt, intern};
 use web_sys::{
     AddEventListenerOptions, Element, Event, EventTarget as HtmlEventTarget, ShadowRoot,
 };
 
-use super::{test_log, Registry};
+use super::{Registry, test_log};
 use crate::virtual_dom::{Listener, ListenerKind};
 
 /// DOM-Types that capture (bubbling) events. This generally includes event targets,
@@ -28,7 +28,7 @@ pub trait EventGrating {
 }
 
 #[wasm_bindgen]
-extern "C" {
+unsafe extern "C" {
     // Duck-typing, not a real class on js-side. On rust-side, use impls of EventGrating below
     type EventTargetable;
     #[wasm_bindgen(method, getter = __yew_subtree_id, structural)]
@@ -268,14 +268,14 @@ impl AppData {
         if !self.listening.insert(desc.clone()) {
             return;
         }
-        self.subtrees.retain(|subtree| {
-            if let Some(subtree) = subtree.weak_ref.upgrade() {
-                subtree.add_listener(desc);
-                true
-            } else {
-                false
-            }
-        })
+        self.subtrees
+            .retain(|subtree| match subtree.weak_ref.upgrade() {
+                Some(subtree) => {
+                    subtree.add_listener(desc);
+                    true
+                }
+                _ => false,
+            })
     }
 }
 
@@ -430,20 +430,25 @@ impl SubtreeData {
         // We say that the most deeply nested subtree is "responsible" for handling the event.
         let (responsible_tree_id, bubbling_start) = if let Some(branding) = cached_branding {
             (branding, target.clone())
-        } else if let Some(branding) = find_closest_branded_element(target.clone(), should_bubble) {
-            let BrandingSearchResult {
-                branding,
-                closest_branded_ancestor,
-            } = branding;
-            event.set_subtree_id(branding);
-            event.set_cache_key(derived_cached_key);
-            (branding, closest_branded_ancestor)
         } else {
-            // Possible only? if bubbling is disabled
-            // No tree should handle this event
-            event.set_subtree_id(NONE_TREE_ID);
-            event.set_cache_key(derived_cached_key);
-            return None;
+            match find_closest_branded_element(target.clone(), should_bubble) {
+                Some(branding) => {
+                    let BrandingSearchResult {
+                        branding,
+                        closest_branded_ancestor,
+                    } = branding;
+                    event.set_subtree_id(branding);
+                    event.set_cache_key(derived_cached_key);
+                    (branding, closest_branded_ancestor)
+                }
+                _ => {
+                    // Possible only? if bubbling is disabled
+                    // No tree should handle this event
+                    event.set_subtree_id(NONE_TREE_ID);
+                    event.set_cache_key(derived_cached_key);
+                    return None;
+                }
+            }
         };
         if self.subtree_id != responsible_tree_id {
             return None;

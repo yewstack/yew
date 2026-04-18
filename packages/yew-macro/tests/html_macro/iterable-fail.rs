@@ -13,10 +13,10 @@ fn compile_fail() {
     html! { {for empty.iter()} };
 
     html! {
-        <>
+        <div>
             <div/>
             { for () }
-        </>
+        </div>
     };
 }
 

@@ -167,8 +167,8 @@ pub fn generate_data_url(width: u32, height: u32, seed: u32) -> String {
         return cached.clone();
     }
 
-    use image::codecs::png::{CompressionType, FilterType, PngEncoder};
     use image::ImageEncoder;
+    use image::codecs::png::{CompressionType, FilterType, PngEncoder};
 
     let img = generate_image(width, height, seed);
     let mut bytes: Vec<u8> = Vec::new();

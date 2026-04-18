@@ -8,7 +8,7 @@ use std::convert::TryInto;
 use builder::PropsBuilder;
 use field::PropField;
 use proc_macro2::{Ident, Span};
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Pair;
 use syn::visit_mut::VisitMut;
@@ -105,10 +105,13 @@ impl VisitMut for Normaliser<'_> {
 fn should_preserve_attr(attr: &Attribute) -> bool {
     // #[cfg(...)]: does not usually appear in macro inputs, but rust-analyzer seems to generate it
     // sometimes.              If not preserved, results in "no-such-field" errors generating
-    // the field setter for `build` #[allow(...)]: silences warnings from clippy, such as
-    // dead_code etc. #[deny(...)]: enable additional warnings from clippy
+    // the field setter for `build` #[allow(...)]/[#expect(...)]: silences warnings from clippy,
+    // such as dead_code etc. #[deny(...)]: enable additional warnings from clippy
     let path = attr.path();
-    path.is_ident("allow") || path.is_ident("deny") || path.is_ident("cfg")
+    path.is_ident("allow")
+        || path.is_ident("deny")
+        || path.is_ident("expect")
+        || path.is_ident("cfg")
 }
 
 impl Parse for DerivePropsInput {

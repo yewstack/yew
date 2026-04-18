@@ -2,10 +2,10 @@ use wasm_bindgen::JsCast;
 use web_sys::{Element, Node};
 
 use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
-use crate::html::AnyScope;
-use crate::virtual_dom::vtag::{MATHML_NAMESPACE, SVG_NAMESPACE};
-use crate::virtual_dom::VRaw;
 use crate::AttrValue;
+use crate::html::AnyScope;
+use crate::virtual_dom::VRaw;
+use crate::virtual_dom::vtag::{MATHML_NAMESPACE, SVG_NAMESPACE};
 
 #[derive(Debug)]
 pub struct BRaw {
@@ -188,7 +188,7 @@ mod tests {
 
     use super::*;
     use crate::dom_bundle::utils::{
-        setup_parent, setup_parent_and_sibling, setup_parent_svg, SIBLING_CONTENT,
+        SIBLING_CONTENT, setup_parent, setup_parent_and_sibling, setup_parent_svg,
     };
     use crate::virtual_dom::VNode;
 

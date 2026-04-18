@@ -43,6 +43,36 @@ impl Component for List {
 }
 ```
 
+### 字串子元素
+
+當使用 `Children`（即 `ChildrenRenderer<VNode>`）作為屬性類型時，可以直接將字串類型（如 `String`、`AttrValue`、`Rc<str>` 和 `Cow<'static, str>`）作為子元素傳遞。它們會被自動轉換為文字節點。
+
+```rust
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+pub struct TextProps {
+    pub children: Children,
+}
+
+#[component]
+fn Text(props: &TextProps) -> Html {
+    html! {
+        <span>{ for props.children.iter() }</span>
+    }
+}
+
+#[component]
+fn App() -> Html {
+    let s = String::from("world");
+    html! {
+        <Text>{"hello"}</Text>
+        <Text>{s}</Text>
+        <Text>{ format!("year {}", 2024) }</Text>
+    }
+}
+```
+
 ## 進階用法
 
 ### 類型化子元件

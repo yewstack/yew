@@ -81,8 +81,7 @@ pub trait AgentScopeExt {
     /// Bridges to a Reactor Agent.
     fn bridge_reactor<R>(&self, callback: Callback<ReactorEvent<R>>) -> ReactorBridgeHandle<R>
     where
-        R: Reactor + 'static,
-        <R::Scope as ReactorScoped>::Output: 'static;
+        R: Reactor<Scope: ReactorScoped<Output: 'static>> + 'static;
 
     /// Runs an oneshot in an Oneshot Agent.
     fn run_oneshot<T>(&self, input: T::Input, callback: Callback<T::Output>)
@@ -109,8 +108,7 @@ where
 
     fn bridge_reactor<R>(&self, callback: Callback<ReactorEvent<R>>) -> ReactorBridgeHandle<R>
     where
-        R: Reactor + 'static,
-        <R::Scope as ReactorScoped>::Output: 'static,
+        R: Reactor<Scope: ReactorScoped<Output: 'static>> + 'static,
     {
         let (tx, mut rx) = self
             .context::<ReactorProviderState<R>>((|_| {}).into())

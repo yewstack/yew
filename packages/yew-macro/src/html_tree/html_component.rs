@@ -1,5 +1,5 @@
 use proc_macro2::Span;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::parse::discouraged::Speculative;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
@@ -167,7 +167,7 @@ impl HtmlComponentOpen {
         self.tag.div.is_some()
     }
 
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.tag.to_spanned()
     }
 }
@@ -196,7 +196,7 @@ struct HtmlComponentClose {
     ty: Type,
 }
 impl HtmlComponentClose {
-    fn to_spanned(&self) -> impl ToTokens {
+    fn to_spanned(&self) -> impl ToTokens + use<> {
         self.tag.to_spanned()
     }
 }

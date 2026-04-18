@@ -30,8 +30,7 @@ where
 
 impl<R> fmt::Debug for ReactorEvent<R>
 where
-    R: Reactor,
-    <R::Scope as ReactorScoped>::Output: fmt::Debug,
+    R: Reactor<Scope: ReactorScoped<Output: fmt::Debug>>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -52,13 +51,12 @@ where
 
 impl<R> fmt::Debug for UseReactorBridgeHandle<R>
 where
-    R: 'static + Reactor,
-    <R::Scope as ReactorScoped>::Input: fmt::Debug,
+    R: 'static + Reactor<Scope: ReactorScoped<Input: fmt::Debug>>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(type_name::<Self>())
             .field("inner", &self.tx)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -210,15 +208,13 @@ where
 
 impl<R> fmt::Debug for UseReactorSubscriptionHandle<R>
 where
-    R: 'static + Reactor,
-    <R::Scope as ReactorScoped>::Input: fmt::Debug,
-    <R::Scope as ReactorScoped>::Output: fmt::Debug,
+    R: 'static + Reactor<Scope: ReactorScoped<Input: fmt::Debug, Output: fmt::Debug>>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(type_name::<Self>())
             .field("bridge", &self.bridge)
             .field("outputs", &self.outputs)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 

@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 use web_sys::HtmlInputElement as InputElement;
 use yew::events::{FocusEvent, KeyboardEvent};
 use yew::html::Scope;
-use yew::{classes, html, Classes, Component, Context, Html, NodeRef, TargetCast};
+use yew::{Classes, Component, Context, Html, NodeRef, TargetCast, classes, html};
 
 mod state;
 

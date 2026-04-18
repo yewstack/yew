@@ -31,7 +31,7 @@ impl fmt::Debug for BComp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("BComp")
             .field("root", &self.scope.as_ref().render_state())
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -87,9 +87,7 @@ impl Reconcilable for VComp {
     ) -> DomSlot {
         match bundle {
             // If the existing bundle is the same type, reuse it and update its properties
-            BNode::Comp(ref mut bcomp)
-                if self.type_id == bcomp.type_id && self.key == bcomp.key =>
-            {
+            BNode::Comp(bcomp) if self.type_id == bcomp.type_id && self.key == bcomp.key => {
                 self.reconcile(root, parent_scope, parent, slot, bcomp)
             }
             _ => self.replace(root, parent_scope, parent, slot, bundle),
@@ -161,7 +159,7 @@ mod tests {
     use super::*;
     use crate::dom_bundle::Reconcilable;
     use crate::virtual_dom::{Key, VChild, VNode};
-    use crate::{html, scheduler, Children, Component, Context, Html, Properties};
+    use crate::{Children, Component, Context, Html, Properties, html, scheduler};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -393,8 +391,8 @@ mod layout_tests {
 
     use wasm_bindgen_test::{wasm_bindgen_test as test, wasm_bindgen_test_configure};
 
-    use crate::tests::layout_tests::{diff_layouts, TestLayout};
-    use crate::{html, Children, Component, Context, Html, Properties};
+    use crate::tests::layout_tests::{TestLayout, diff_layouts};
+    use crate::{Children, Component, Context, Html, Properties, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -424,7 +422,7 @@ mod layout_tests {
 
         fn view(&self, ctx: &Context<Self>) -> Html {
             html! {
-                <>{ ctx.props().children.clone() }</>
+                { ctx.props().children.clone() }
             }
         }
     }

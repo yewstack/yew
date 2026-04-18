@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use tokio::process::{Child, Command};
-use tokio::time::{sleep, Instant};
+use tokio::time::{Instant, sleep};
 
 #[derive(Parser)]
 struct Args {
@@ -92,7 +92,9 @@ async fn wait_for_server(url: &str, timeout: Duration) -> bool {
 fn shutdown_server(server: &mut Child) {
     #[cfg(unix)]
     if let Some(id) = server.id() {
-        let _ = unsafe { libc::kill(-(id as i32), libc::SIGTERM) };
+        unsafe {
+            libc::kill(-(id as i32), libc::SIGTERM);
+        }
         return;
     }
 
@@ -143,6 +145,7 @@ async fn main() -> ExitCode {
     let test_result = Command::new("cargo")
         .args(&cargo_args)
         .env("WASM_BINDGEN_TEST_NO_ORIGIN_ISOLATION", "1")
+        .env("WASM_BINDGEN_TEST_NO_STREAM", "1")
         .status()
         .await;
 

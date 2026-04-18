@@ -1,5 +1,7 @@
 # Changelog
 
+[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+
 ## ✨ yew **0.23.0** *(2026-03-10)*
 
 bumping from 0.22 should require no code changes for most users.
@@ -148,9 +150,9 @@ Yew pinned to 0.23 now.
 
  - **MSRV raised to 1.84.0.** [[@Siyuan Yan](https://github.com/Madoshakalaka), [#3900](https://github.com/yewstack/yew/pull/3900)]
 
-
 ## ✨ yew **0.21.0** *(2023-09-23)*
 
+Users can follow the [migration guide](https://yew.rs/docs/migration-guides/yew/from-0_20_0-to-0_21_0) to migrate from 0.20.0 to 0.21.0.
 
 ### 🛠 Fixes
 

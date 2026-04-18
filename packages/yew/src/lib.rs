@@ -313,7 +313,7 @@ pub mod events {
 #[cfg(feature = "csr")]
 pub use crate::app_handle::AppHandle;
 #[cfg(feature = "csr")]
-pub use crate::renderer::{set_custom_panic_hook, Renderer};
+pub use crate::renderer::{Renderer, set_custom_panic_hook};
 
 pub mod prelude {
     //! The Yew Prelude
@@ -332,8 +332,8 @@ pub mod prelude {
     pub use crate::events::*;
     pub use crate::functional::*;
     pub use crate::html::{
-        create_portal, BaseComponent, Children, ChildrenWithProps, Classes, Component, Context,
-        Html, HtmlResult, NodeRef, Properties,
+        BaseComponent, Children, ChildrenWithProps, Classes, Component, Context, Html, HtmlResult,
+        NodeRef, Properties, create_portal,
     };
     pub use crate::macros::{classes, html, html_nested};
     pub use crate::suspense::Suspense;

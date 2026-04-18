@@ -1,0 +1,59 @@
+error[E0277]: the trait bound `Print: IntoPropValue<VNode>` is not satisfied
+  --> tests/html_macro/custom-type-in-block-fail.rs:47:34
+   |
+47 |     let _ = ::yew::html! { <div>{text}</div> };
+   |             ---------------------^^^^---------
+   |             |                    |
+   |             |                    the trait `IntoPropValue<VNode>` is not implemented for `Print`
+   |             required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<Option<VNode>>`
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<Option<VNode>>`
+             `&&str` implements `IntoPropValue<VNode>`
+             `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
+             `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
+             `&'static str` implements `IntoPropValue<Classes>`
+             `&'static str` implements `IntoPropValue<Cow<'static, str>>`
+           and $N others
+
+error[E0277]: the trait bound `Ratio: IntoPropValue<VNode>` is not satisfied
+  --> tests/html_macro/custom-type-in-block-fail.rs:50:34
+   |
+50 |     let _ = ::yew::html! { <div>{setback}</div> };
+   |             ---------------------^^^^^^^---------
+   |             |                    |
+   |             |                    the trait `IntoPropValue<VNode>` is not implemented for `Ratio`
+   |             required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<Option<VNode>>`
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<Option<VNode>>`
+             `&&str` implements `IntoPropValue<VNode>`
+             `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
+             `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
+             `&'static str` implements `IntoPropValue<Classes>`
+             `&'static str` implements `IntoPropValue<Cow<'static, str>>`
+           and $N others
+
+error[E0277]: the trait bound `Label: IntoPropValue<VNode>` is not satisfied
+  --> tests/html_macro/custom-type-in-block-fail.rs:53:34
+   |
+53 |     let _ = ::yew::html! { <div>{label}</div> };
+   |             ---------------------^^^^^---------
+   |             |                    |
+   |             |                    the trait `IntoPropValue<VNode>` is not implemented for `Label`
+   |             required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `IntoPropValue<T>`:
+             `&&String` implements `IntoPropValue<Option<VNode>>`
+             `&&String` implements `IntoPropValue<VNode>`
+             `&&str` implements `IntoPropValue<Option<VNode>>`
+             `&&str` implements `IntoPropValue<VNode>`
+             `&'static [(K, V)]` implements `IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>`
+             `&'static [T]` implements `IntoPropValue<implicit_clone::unsync::array::IArray<T>>`
+             `&'static str` implements `IntoPropValue<Classes>`
+             `&'static str` implements `IntoPropValue<Cow<'static, str>>`
+           and $N others

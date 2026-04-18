@@ -4,8 +4,8 @@ use proc_macro_error::emit_error;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote_spanned, visit_mut, Expr, ExprCall, ExprClosure, ExprForLoop, ExprIf, ExprLoop,
-    ExprMatch, ExprWhile, Ident, Item,
+    Expr, ExprCall, ExprClosure, ExprForLoop, ExprIf, ExprLoop, ExprMatch, ExprWhile, Ident, Item,
+    parse_quote_spanned, visit_mut,
 };
 
 #[derive(Debug)]
@@ -41,7 +41,7 @@ impl VisitMut for BodyRewriter {
         let ctx_ident = &self.ctx_ident;
 
         // Only rewrite hook calls.
-        if let Expr::Path(ref m) = &*i.func {
+        if let Expr::Path(m) = &*i.func {
             if let Some(m) = m.path.segments.last().as_ref().map(|m| &m.ident) {
                 if m.to_string().starts_with("use_") {
                     if self.is_branched() {

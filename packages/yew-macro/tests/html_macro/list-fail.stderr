@@ -28,22 +28,16 @@ error: this closing fragment has no corresponding opening fragment
 11 |     html! { </></> };
    |             ^^^
 
-error: only one root html element is allowed (hint: you can wrap multiple html elements in a fragment `<></>`)
-  --> tests/html_macro/list-fail.rs:14:18
-   |
-14 |     html! { <></><></> };
-   |                  ^^^^^
-
 error: expected a valid html element
-  --> tests/html_macro/list-fail.rs:16:15
+  --> tests/html_macro/list-fail.rs:14:15
    |
-16 |     html! { <>invalid</> };
+14 |     html! { <>invalid</> };
    |               ^^^^^^^
 
 error: expected an expression following this equals sign
-  --> tests/html_macro/list-fail.rs:18:17
+  --> tests/html_macro/list-fail.rs:16:17
    |
-18 |     html! { <key=></> };
+16 |     html! { <key=></> };
    |                 ^
 
 error: the property value must be either a literal or enclosed in braces. Consider adding braces around your expression.: Expr::MethodCall {
@@ -57,25 +51,43 @@ error: the property value must be either a literal or enclosed in braces. Consid
            dot_token: Dot,
            method: Ident {
                ident: "to_string",
-               span: #0 bytes(404..413),
+               span: #0 bytes(351..360),
            },
            turbofish: None,
            paren_token: Paren,
            args: [],
        }
-  --> tests/html_macro/list-fail.rs:20:18
+  --> tests/html_macro/list-fail.rs:18:18
    |
-20 |     html! { <key="key".to_string()></key> };
+18 |     html! { <key="key".to_string()></key> };
    |                  ^^^^^^^^^^^^^^^^^
 
 error: only a single `key` prop is allowed on a fragment
-  --> tests/html_macro/list-fail.rs:23:30
+  --> tests/html_macro/list-fail.rs:21:30
    |
-23 |     html! { <key="first key" key="second key" /> };
+21 |     html! { <key="first key" key="second key" /> };
    |                              ^^^
 
 error: fragments only accept the `key` prop
-  --> tests/html_macro/list-fail.rs:25:14
+  --> tests/html_macro/list-fail.rs:23:14
    |
-25 |     html! { <some_attr="test"></> };
+23 |     html! { <some_attr="test"></> };
    |              ^^^^^^^^^
+
+error: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_macro/list-fail.rs:26:13
+   |
+26 |     html! { <></> };
+   |             ^^
+
+error: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_macro/list-fail.rs:27:13
+   |
+27 |     html! { <><div/></> };
+   |             ^^
+
+error: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_macro/list-fail.rs:29:9
+   |
+29 |         <>
+   |         ^^

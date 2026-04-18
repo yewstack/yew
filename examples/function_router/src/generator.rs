@@ -1,10 +1,10 @@
 use std::sync::LazyLock;
 
 use lipsum::MarkovChain;
-use rand::distr::Bernoulli;
-use rand::rngs::StdRng;
-use rand::seq::IteratorRandom;
-use rand::{Rng, SeedableRng};
+use rand_09::distr::Bernoulli;
+use rand_09::rngs::StdRng;
+use rand_09::seq::IteratorRandom;
+use rand_09::{Rng, SeedableRng};
 
 const KEYWORDS: &str = include_str!("../data/keywords.txt");
 const SYLLABLES: &str = include_str!("../data/syllables.txt");
@@ -170,7 +170,7 @@ fn title_case(word: &str) -> String {
 }
 
 pub trait Generated: Sized {
-    fn generate(gen: &mut Generator) -> Self;
+    fn generate(r#gen: &mut Generator) -> Self;
     fn generate_from_seed(seed: u32) -> Self {
         Self::generate(&mut Generator::from_seed(seed))
     }

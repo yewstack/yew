@@ -108,13 +108,8 @@ impl DomSlot {
     /// the end
     fn with_next_sibling_check_trap<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         let checkedf = |node: Option<&Node>| {
-            // MSRV 1.82 could rewrite this with `is_none_or`
-            let is_trapped = match node {
-                None => false,
-                Some(node) => trap_impl::is_trap(node),
-            };
             assert!(
-                !is_trapped,
+                node.is_none_or(|node| !trap_impl::is_trap(node)),
                 "Should not use a trapped DomSlot. Please report this as an internal bug in yew."
             );
             f(node)
@@ -124,8 +119,8 @@ impl DomSlot {
 
     fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
         match &self.variant {
-            DomSlotVariant::Node(ref n) => f(n.as_ref()),
-            DomSlotVariant::Chained(ref chain) => chain.with_next_sibling(f),
+            DomSlotVariant::Node(n) => f(n.as_ref()),
+            DomSlotVariant::Chained(chain) => chain.with_next_sibling(f),
         }
     }
 
@@ -222,8 +217,8 @@ impl DynamicDomSlot {
                 let cell = unsafe { &*ptr };
                 let slot_ref = cell.borrow();
                 match &slot_ref.variant {
-                    DomSlotVariant::Node(ref n) => break n.clone(),
-                    DomSlotVariant::Chained(ref chain) => {
+                    DomSlotVariant::Node(n) => break n.clone(),
+                    DomSlotVariant::Chained(chain) => {
                         ptr = Rc::as_ptr(&chain.target);
                     }
                 }

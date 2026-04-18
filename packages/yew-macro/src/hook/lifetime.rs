@@ -82,16 +82,16 @@ impl VisitMut for CollectLifetimes {
         visit_mut::visit_type_reference_mut(self, ty);
     }
 
-    fn visit_generic_argument_mut(&mut self, gen: &mut GenericArgument) {
+    fn visit_generic_argument_mut(&mut self, arg: &mut GenericArgument) {
         // We don't rewrite types in the impl FnOnce(&arg) -> Type<'_>
         if self.is_impl_fn() {
             return;
         }
 
-        if let GenericArgument::Lifetime(lifetime) = gen {
+        if let GenericArgument::Lifetime(lifetime) = arg {
             self.visit_lifetime(lifetime);
         }
-        visit_mut::visit_generic_argument_mut(self, gen);
+        visit_mut::visit_generic_argument_mut(self, arg);
     }
 
     fn visit_type_impl_trait_mut(&mut self, impl_trait: &mut TypeImplTrait) {

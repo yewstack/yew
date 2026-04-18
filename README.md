@@ -42,8 +42,6 @@
 
 Yew is named after a type of evergreen tree, and is pronounced /juː/. [Entry with audio on Cambridge Dictionary](https://dictionary.cambridge.org/dictionary/english/yew).
 
-*Note: Yew is not 1.0 yet. Be prepared to do major refactoring due to breaking API changes.*
-
 ## Contributing
 
 Yew is a community-driven effort and we welcome all kinds of contributions, big or small, from developers of all backgrounds. We want the Yew community to be a fun and friendly place, so please review our [Code of Conduct](https://github.com/yewstack/yew/blob/master/CODE_OF_CONDUCT.md) to learn what behavior will not be tolerated.

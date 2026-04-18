@@ -1,10 +1,10 @@
 [package]
 name = "website-test"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 build = "build.rs"
 publish = false
-rust-version = "1.84.0"
+rust-version.workspace = true
 
 [dependencies]
 yew-agent = { path = "../../packages/yew-agent/" }
@@ -12,16 +12,22 @@ yew-agent = { path = "../../packages/yew-agent/" }
 [dev-dependencies]
 derive_more = { version = "2.1", features = ["from"] }
 gloo.workspace = true
-gloo-net = "0.6"
+gloo-net = "0.7"
 js-sys.workspace = true
 serde = { workspace = true, features = ["derive"] }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 weblog = "0.3.0"
-yew = { path = "../../packages/yew/", features = ["ssr", "csr", "serde"] }
-yew-autoprops = "0.4.1"
+yew = { path = "../../packages/yew/", features = ["ssr", "csr", "hydration", "serde"] }
+yew-autoprops = "0.5.0"
 yew-router = { path = "../../packages/yew-router/" }
 tokio = { workspace = true, features = ["rt", "macros"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+actix-web = { workspace = true }
+axum = { workspace = true }
+serde_json = { workspace = true }
+yew-link = { path = "../../packages/yew-link/", features = ["actix", "axum"] }
 
 [dev-dependencies.web-sys]
 workspace = true

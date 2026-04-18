@@ -1,9 +1,9 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+use crate::Route;
 use crate::content::Author;
 use crate::generator::Generated;
-use crate::Route;
 
 #[derive(Clone, Debug, PartialEq, Eq, Properties)]
 pub struct Props {

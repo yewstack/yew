@@ -1,5 +1,5 @@
 mod routable_derive;
-use routable_derive::{routable_derive_impl, Routable};
+use routable_derive::{Routable, routable_derive_impl};
 use syn::parse_macro_input;
 
 /// Derive macro used to mark an enum as Routable.

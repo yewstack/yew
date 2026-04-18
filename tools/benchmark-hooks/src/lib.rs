@@ -87,7 +87,7 @@ impl Default for AppState {
             rows: Vec::new(),
             next_id: 1,
             selected_id: None,
-            rng: SmallRng::from_os_rng(),
+            rng: SmallRng::from_rng(&mut rand::rng()),
         }
     }
 }

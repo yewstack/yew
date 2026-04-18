@@ -56,7 +56,7 @@ impl Routable for AnyRoute {
     }
 
     fn routes() -> Vec<&'static str> {
-        vec!["/*path"]
+        vec!["/{*path}"]
     }
 
     fn not_found_route() -> Option<Self> {

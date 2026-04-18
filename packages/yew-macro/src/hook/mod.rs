@@ -1,11 +1,11 @@
-use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{
-    visit_mut, AttrStyle, Attribute, Block, Expr, ExprPath, File, Ident, Item, ItemFn, LitStr,
-    Meta, MetaNameValue, ReturnType, Signature, Stmt, Token, Type,
+    AttrStyle, Attribute, Block, Expr, ExprPath, File, Ident, Item, ItemFn, LitStr, Meta,
+    MetaNameValue, ReturnType, Signature, Stmt, Token, Type, visit_mut,
 };
 
 mod body;

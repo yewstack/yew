@@ -36,6 +36,12 @@ error: duplicate key for a node in a `for`-loop
 22 |         <div key={smth::KEY} />
    |                   ^^^^
 
+error: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_macro/for-fail.rs:27:9
+   |
+27 |         <><span>{"a"}</span><span>{"b"}</span></>
+   |         ^^
+
 error[E0267]: `break` inside of a closure
   --> tests/html_macro/for-fail.rs:14:16
    |

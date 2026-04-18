@@ -3,8 +3,8 @@
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use implicit_clone::unsync::IArray;
 use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::IArray;
 use yew::html::ChildrenRenderer;
 
 /// Map `IntoIterator<Item = Into<T>>` to `Iterator<Item = T>`

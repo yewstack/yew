@@ -13,8 +13,8 @@ use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::spawn_local;
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::suspense::{use_future, use_future_with, Suspension, SuspensionResult};
-use yew::{scheduler, UseStateHandle};
+use yew::suspense::{Suspension, SuspensionResult, use_future, use_future_with};
+use yew::{UseStateHandle, scheduler};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -790,7 +790,7 @@ async fn test_duplicate_suspension() {
         use_future(|| async {
             scheduler::flush().await;
         })?;
-        Ok(html! { <>{props.children.clone()}</> })
+        Ok(html! { {props.children.clone()} })
     }
 
     #[component]

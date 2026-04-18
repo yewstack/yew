@@ -66,13 +66,13 @@ mod ssr_tests {
     use std::rc::Rc;
     use std::time::Duration;
 
-    use tokio::task::{spawn_local, LocalSet};
+    use tokio::task::{LocalSet, spawn_local};
     use tokio::test;
 
+    use crate::ServerRenderer;
     use crate::platform::time::sleep;
     use crate::prelude::*;
     use crate::suspense::{Suspension, SuspensionResult};
-    use crate::ServerRenderer;
 
     #[cfg(not(target_os = "wasi"))]
     #[test(flavor = "multi_thread", worker_threads = 2)]

@@ -1,4 +1,4 @@
-use rand::{distr, Rng};
+use rand::{RngExt, distr};
 use yew::prelude::*;
 
 use crate::components::author_card::AuthorCard;
@@ -10,16 +10,6 @@ const CAROUSEL_DELAY_MS: u32 = 15000;
 #[function_component]
 pub fn AuthorList() -> Html {
     let seeds = use_state(random_author_seeds);
-
-    let authors = seeds.iter().map(|&seed| {
-        html! {
-            <div class="tile is-parent">
-                <div class="tile is-child">
-                    <AuthorCard {seed} />
-                </div>
-            </div>
-        }
-    });
 
     let on_complete = {
         let seeds = seeds.clone();
@@ -50,7 +40,13 @@ pub fn AuthorList() -> Html {
             </p>
             <div class="section">
                 <div class="tile is-ancestor">
-                    { for authors }
+                    for seed in seeds.iter() {
+                        <div class="tile is-parent">
+                            <div class="tile is-child">
+                                <AuthorCard {seed} />
+                            </div>
+                        </div>
+                    }
                 </div>
                 <ProgressDelay duration_ms={CAROUSEL_DELAY_MS} on_complete={on_complete} />
             </div>
