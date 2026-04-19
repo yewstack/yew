@@ -199,6 +199,17 @@ module.exports = {
             },
         ],
         [
+            '@docusaurus/plugin-content-docs',
+            {
+                id: 'migration-guides',
+                path: 'migration-guides',
+                sidebarPath: require.resolve('./sidebars/migration-guides.js'),
+                routeBasePath: '/docs/migration-guides',
+                editUrl,
+                remarkPlugins: [rustDocHiddenLines],
+            },
+        ],
+        [
             'client-redirects',
             {
                 redirects: [
@@ -209,6 +220,21 @@ module.exports = {
                         from: ['/docs/next'], // string | string[]
                     },
                 ],
+                // Migration guides were previously duplicated across every versioned docs dir.
+                // They now live in a single unversioned plugin instance mounted at
+                // `/docs/migration-guides`. Redirect all historical versioned URLs to their
+                // unversioned equivalents.
+                createRedirects(existingPath) {
+                    const prefix = '/docs/migration-guides/'
+                    if (!existingPath.startsWith(prefix)) return undefined
+                    const suffix = existingPath.slice(prefix.length)
+                    return [
+                        `/docs/next/migration-guides/${suffix}`,
+                        `/docs/0.20/migration-guides/${suffix}`,
+                        `/docs/0.21/migration-guides/${suffix}`,
+                        `/docs/0.22/migration-guides/${suffix}`,
+                    ]
+                },
             },
         ],
     ],
