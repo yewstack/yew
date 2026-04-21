@@ -16,6 +16,7 @@ mod html_for;
 mod html_if;
 mod html_iterable;
 mod html_list;
+mod html_loop;
 mod html_match;
 mod html_node;
 mod html_while;

@@ -56,6 +56,8 @@ html! {
 };
 ```
 
+不支援迴圈標籤（`'label: for ...`、`break 'label`、`continue 'label`）。`break` 和 `continue` 永遠作用於 `html!` 主體內最靠近的 `for` 或 `while`。
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` 迴圈">
 `while` 和 `while let` 迴圈的運作方式與 `for` 相同，也會從迴圈主體中生成節點清單。`let` 綁定、`if` 區塊以及 `break` / `continue` 都受到支援。

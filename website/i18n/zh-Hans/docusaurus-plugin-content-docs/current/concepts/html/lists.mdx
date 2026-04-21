@@ -56,6 +56,8 @@ html! {
 };
 ```
 
+不支持循环标签（`'label: for ...`、`break 'label`、`continue 'label`）。`break` 和 `continue` 总是作用于 `html!` 主体内最近的 `for` 或 `while`。
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` 循环">
 `while` 和 `while let` 循环的工作方式与 `for` 相同，也会从循环体中生成节点列表。`let` 绑定、`if` 块以及 `break` / `continue` 都被支持。

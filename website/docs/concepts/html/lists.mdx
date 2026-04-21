@@ -58,6 +58,10 @@ html! {
 };
 ```
 
+Loop labels (`'label: for ...`, `break 'label`, `continue 'label`) are not
+supported. `break` and `continue` always target the nearest enclosing `for` or
+`while` in the `html!` body.
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` loops">
 `while` and `while let` loops work the same way as `for`, producing a list of nodes from their

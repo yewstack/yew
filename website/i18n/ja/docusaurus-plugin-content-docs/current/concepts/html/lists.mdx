@@ -56,6 +56,8 @@ html! {
 };
 ```
 
+ループラベル（`'label: for ...`、`break 'label`、`continue 'label`）はサポートされていません。`break` と `continue` は常に `html!` 本体内の最も内側の `for` または `while` を対象にします。
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` ループ">
 `while` および `while let` ループは `for` と同じように動作し、本体からノードのリストを生成します。`let` バインディング、`if` ブロック、`break` / `continue` のすべてがサポートされています。
