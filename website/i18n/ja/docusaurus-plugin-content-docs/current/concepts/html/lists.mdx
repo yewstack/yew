@@ -7,13 +7,11 @@ import TabItem from '@theme/TabItem'
 
 ## イテレータ
 
-イテレータから HTML を構築する方法は 3 つあります：
+イテレータから HTML を構築する方法は 4 つあります：
 
 <Tabs>
   <TabItem value="`for` loops" label="`for` ループ">
-主なアプローチは for ループを使用することです。これは Rust に既に存在する for ループと同じですが、2 つの重要な違いがあります：
-1. 通常の for ループは何も返せませんが、`html!` 内の for ループはノードのリストに変換されます。
-2. `break`、`continue` などの発散式は `html!` 内の for ループの本体では許可されていません。
+主なアプローチは for ループを使用することです。これは Rust に既に存在する for ループと同じですが、1 つの重要な違いがあります：通常の for ループは何も返せませんが、`html!` 内の for ループはノードのリストに変換されます。
 
 ```rust
 use yew::prelude::*;
@@ -35,6 +33,64 @@ html! {
         let label = format!("{}: {}", item.id, item.name);
         let class = if item.active { "active" } else { "inactive" };
         <div class={class}>{label}</div>
+    }
+};
+```
+
+`break` と `continue` は通常の Rust のループと同様に動作し、出力されるノードリストに影響します。
+`continue` は現在の反復でノードを生成せずにスキップし、`break` は反復を早期に終了します：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        if i % 2 == 0 {
+            continue
+        }
+        if i > 7 {
+            break
+        }
+        <span>{i}</span>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="`while` loops" label="`while` ループ">
+`while` および `while let` ループは `for` と同じように動作し、本体からノードのリストを生成します。`let` バインディング、`if` ブロック、`break` / `continue` のすべてがサポートされています。
+
+`while let` をイテレータと組み合わせて使うと、きれいな反復パターンになり、`break` と `continue` が自然に組み合わせられます：
+
+```rust
+use yew::prelude::*;
+
+let mut items = vec!["a", "b", "c", "skip", "d"].into_iter();
+
+html! {
+    while let Some(item) = items.next() {
+        if item == "skip" {
+            continue
+        }
+        if item.is_empty() {
+            break
+        }
+        <span>{item}</span>
+    }
+};
+```
+
+条件付きの通常の `while` も使用できます。ループが条件を進めるために必要な状態はすべて外側のスコープで用意し、本体の中で更新する必要があります。通常は本体の先頭の `let` バインディングで行います：
+
+```rust
+use yew::prelude::*;
+
+let mut counter: i32 = 0;
+
+html! {
+    while counter < 5 {
+        let current = { let c = counter; counter += 1; c };
+        <span>{current}</span>
     }
 };
 ```

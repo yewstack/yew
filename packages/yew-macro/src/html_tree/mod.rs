@@ -18,6 +18,7 @@ mod html_iterable;
 mod html_list;
 mod html_match;
 mod html_node;
+mod html_while;
 mod lint;
 mod tag;
 
@@ -34,6 +35,7 @@ use tag::TagTokens;
 use self::html_block::BlockContent;
 use self::html_for::HtmlFor;
 use self::html_match::HtmlMatch;
+use self::html_while::HtmlWhile;
 
 pub enum HtmlType {
     Block,
@@ -42,6 +44,7 @@ pub enum HtmlType {
     Element,
     If,
     For,
+    While,
     Match,
     Break,
     Continue,
@@ -55,6 +58,7 @@ pub enum HtmlTree {
     Element(Box<HtmlElement>),
     If(Box<HtmlIf>),
     For(Box<HtmlFor>),
+    While(Box<HtmlWhile>),
     Match(Box<HtmlMatch>),
     Node(Box<HtmlNode>),
     Break(Token![break]),
@@ -74,6 +78,7 @@ impl Parse for HtmlTree {
             HtmlType::List => Self::List(Box::new(input.parse()?)),
             HtmlType::If => Self::If(Box::new(input.parse()?)),
             HtmlType::For => Self::For(Box::new(input.parse()?)),
+            HtmlType::While => Self::While(Box::new(input.parse()?)),
             HtmlType::Match => Self::Match(Box::new(input.parse()?)),
             HtmlType::Break => Self::Break(input.parse()?),
             HtmlType::Continue => Self::Continue(input.parse()?),
@@ -108,6 +113,8 @@ impl HtmlTree {
             Some(HtmlType::If)
         } else if HtmlFor::peek(cursor).is_some() {
             Some(HtmlType::For)
+        } else if HtmlWhile::peek(cursor).is_some() {
+            Some(HtmlType::While)
         } else if HtmlMatch::peek(cursor).is_some() {
             Some(HtmlType::Match)
         } else if cursor.ident().map(|(i, _)| i == "break").unwrap_or(false) {
@@ -166,6 +173,7 @@ impl ToTokens for HtmlTree {
             Self::Block(block) => block.to_tokens(tokens),
             Self::If(block) => block.to_tokens(tokens),
             Self::For(block) => block.to_tokens(tokens),
+            Self::While(block) => block.to_tokens(tokens),
             Self::Match(block) => block.to_tokens(tokens),
             Self::Node(node) => node.to_tokens(tokens),
             Self::Break(token) => token.to_tokens(tokens),
@@ -465,6 +473,7 @@ impl HtmlChildrenTree {
                 }
                 HtmlTree::If(_)
                 | HtmlTree::For(_)
+                | HtmlTree::While(_)
                 | HtmlTree::Match(_)
                 | HtmlTree::Break(_)
                 | HtmlTree::Continue(_)

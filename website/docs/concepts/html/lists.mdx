@@ -7,13 +7,13 @@ import TabItem from '@theme/TabItem'
 
 ## Iterators
 
-There are 3 ways to build HTML from iterators:
+There are 4 ways to build HTML from iterators:
 
 <Tabs>
   <TabItem value="`for` loops" label="`for` loops">
-The main approach is to use for loops, the same for loops that already exist in Rust, but with 2 key differences:
-1. Unlike standard for loops which can't return anything, for loops in `html!` are converted to a list of nodes;
-2. Diverging expressions, i.e. `break`, `continue` are not allowed in the body of for loops in `html!`.
+The main approach is to use for loops, the same for loops that already exist in Rust, with one
+key difference: unlike standard for loops which can't return anything, for loops in `html!` are
+converted to a list of nodes.
 
 ```rust
 use yew::prelude::*;
@@ -35,6 +35,68 @@ html! {
         let label = format!("{}: {}", item.id, item.name);
         let class = if item.active { "active" } else { "inactive" };
         <div class={class}>{label}</div>
+    }
+};
+```
+
+`break` and `continue` work as in ordinary Rust loops and affect the emitted node list.
+`continue` skips the current iteration without producing a node, `break` stops iteration early:
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        if i % 2 == 0 {
+            continue
+        }
+        if i > 7 {
+            break
+        }
+        <span>{i}</span>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="`while` loops" label="`while` loops">
+`while` and `while let` loops work the same way as `for`, producing a list of nodes from their
+body. `let` bindings, `if` blocks, and `break` / `continue` are all supported.
+
+Pair `while let` with an iterator for a clean iteration pattern, where `break` and `continue`
+compose naturally:
+
+```rust
+use yew::prelude::*;
+
+let mut items = vec!["a", "b", "c", "skip", "d"].into_iter();
+
+html! {
+    while let Some(item) = items.next() {
+        if item == "skip" {
+            continue
+        }
+        if item.is_empty() {
+            break
+        }
+        <span>{item}</span>
+    }
+};
+```
+
+A plain `while` with a condition works too. Any state the loop needs to advance its condition
+must be set up via the outer scope and updated inside the body, typically via a `let` binding
+at the top of the body:
+
+```rust
+use yew::prelude::*;
+
+let mut counter: i32 = 0;
+
+html! {
+    while counter < 5 {
+        let current = { let c = counter; counter += 1; c };
+        <span>{current}</span>
     }
 };
 ```

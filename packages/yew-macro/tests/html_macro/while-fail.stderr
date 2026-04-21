@@ -1,0 +1,33 @@
+error: unexpected end of input, expected an expression
+ --> tests/html_macro/while-fail.rs:6:9
+  |
+6 |     _ = ::yew::html!{while};
+  |         ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `::yew::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this `while` expression has a condition, but no block
+ --> tests/html_macro/while-fail.rs:7:28
+  |
+7 |     _ = ::yew::html!{while true};
+  |                            ^^^^
+
+error: missing condition for `while` expression
+ --> tests/html_macro/while-fail.rs:8:28
+  |
+8 |     _ = ::yew::html!{while {} { <div/> }};
+  |                            ^^
+
+error: duplicate key for a node in a `while`-loop
+       this will create elements with duplicate keys if the loop iterates more than once
+  --> tests/html_macro/while-fail.rs:11:18
+   |
+11 |         <div key="duplicate" />
+   |                  ^^^^^^^^^^^
+
+error: duplicate key for a node in a `while`-loop
+       this will create elements with duplicate keys if the loop iterates more than once
+  --> tests/html_macro/while-fail.rs:15:19
+   |
+15 |         <div key={smth::KEY} />
+   |                   ^^^^

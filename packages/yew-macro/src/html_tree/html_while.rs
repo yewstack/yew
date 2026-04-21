@@ -3,43 +3,47 @@ use quote::{ToTokens, quote};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::token::{For, In};
-use syn::{Expr, Local, Pat, Stmt, Token, braced};
+use syn::token::While;
+use syn::{Expr, Local, Stmt, Token, braced};
 
 use super::{HtmlChildrenTree, ToNodeIterator};
 use crate::PeekValue;
 use crate::html_tree::HtmlTree;
+use crate::html_tree::html_for::is_contextless_pure;
 
-/// Determines if an expression is guaranteed to always return the same value anywhere.
-pub(super) fn is_contextless_pure(expr: &Expr) -> bool {
-    match expr {
-        Expr::Lit(_) => true,
-        Expr::Path(path) => path.path.get_ident().is_none(),
-        _ => false,
-    }
-}
-
-pub struct HtmlFor {
-    pat: Pat,
-    iter: Expr,
+pub struct HtmlWhile {
+    cond: Box<Expr>,
     let_stmts: Vec<Local>,
     body: HtmlChildrenTree,
     deprecations: TokenStream,
 }
 
-impl PeekValue<()> for HtmlFor {
+impl PeekValue<()> for HtmlWhile {
     fn peek(cursor: Cursor) -> Option<()> {
         let (ident, _) = cursor.ident()?;
-        (ident == "for").then_some(())
+        (ident == "while").then_some(())
     }
 }
 
-impl Parse for HtmlFor {
+impl Parse for HtmlWhile {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        For::parse(input)?;
-        let pat = Pat::parse_single(input)?;
-        In::parse(input)?;
-        let iter = Expr::parse_without_eager_brace(input)?;
+        While::parse(input)?;
+        let cond = Box::new(input.call(Expr::parse_without_eager_brace)?);
+        match &*cond {
+            Expr::Block(syn::ExprBlock { block, .. }) if block.stmts.is_empty() => {
+                return Err(syn::Error::new(
+                    cond.span(),
+                    "missing condition for `while` expression",
+                ));
+            }
+            _ => {}
+        }
+        if input.is_empty() {
+            return Err(syn::Error::new(
+                cond.span(),
+                "this `while` expression has a condition, but no block",
+            ));
+        }
 
         let body_stream;
         braced!(body_stream in input);
@@ -68,14 +72,13 @@ impl Parse for HtmlFor {
             if is_contextless_pure(&key.value) {
                 return Err(syn::Error::new(
                     key.value.span(),
-                    "duplicate key for a node in a `for`-loop\nthis will create elements with \
+                    "duplicate key for a node in a `while`-loop\nthis will create elements with \
                      duplicate keys if the loop iterates more than once",
                 ));
             }
         }
         Ok(Self {
-            pat,
-            iter,
+            cond,
             let_stmts,
             body,
             deprecations,
@@ -83,16 +86,15 @@ impl Parse for HtmlFor {
     }
 }
 
-impl ToTokens for HtmlFor {
+impl ToTokens for HtmlWhile {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
-            pat,
-            iter,
+            cond,
             let_stmts,
             body,
             deprecations,
         } = self;
-        let acc = Ident::new("__yew_v", iter.span());
+        let acc = Ident::new("__yew_v", cond.span());
 
         let alloc_opt = body
             .size_hint()
@@ -134,7 +136,7 @@ impl ToTokens for HtmlFor {
         tokens.extend(quote!({
             #deprecations
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
-            for #pat in #iter {
+            while #cond {
                 #(#let_stmts)* #alloc_opt; #(#body);*
             }
             #vlist_gen

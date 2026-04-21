@@ -7,13 +7,11 @@ import TabItem from '@theme/TabItem'
 
 ## 迭代器
 
-從迭代器建立 HTML 有 3 種方法：
+從迭代器建立 HTML 有 4 種方法：
 
 <Tabs>
   <TabItem value="`for` loops" label="`for` 迴圈">
-主要方法是使用 for 迴圈，與 Rust 中已有的 for 迴圈相同，但有 2 個關鍵區別：
-1. 與標準 for 迴圈不能傳回任何內容不同，`html!` 中的 for 迴圈會被轉換為節點清單；
-2. 發散運算式，即 `break`、`continue` 在 `html!` 中的 for 迴圈主體內是不允許的。
+主要方法是使用 for 迴圈，與 Rust 中已有的 for 迴圈相同，但有一個關鍵區別：與標準 for 迴圈不能傳回任何內容不同，`html!` 中的 for 迴圈會被轉換為節點清單。
 
 ```rust
 use yew::prelude::*;
@@ -35,6 +33,64 @@ html! {
         let label = format!("{}: {}", item.id, item.name);
         let class = if item.active { "active" } else { "inactive" };
         <div class={class}>{label}</div>
+    }
+};
+```
+
+`break` 和 `continue` 的作用與一般 Rust 迴圈相同，會影響生成的節點清單。
+`continue` 會跳過目前迭代而不產生節點，`break` 會提前終止迭代：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        if i % 2 == 0 {
+            continue
+        }
+        if i > 7 {
+            break
+        }
+        <span>{i}</span>
+    }
+};
+```
+
+  </TabItem>
+  <TabItem value="`while` loops" label="`while` 迴圈">
+`while` 和 `while let` 迴圈的運作方式與 `for` 相同，也會從迴圈主體中生成節點清單。`let` 綁定、`if` 區塊以及 `break` / `continue` 都受到支援。
+
+將 `while let` 與迭代器搭配使用，可以得到一種清晰的迭代模式，其中 `break` 和 `continue` 可以自然地組合使用：
+
+```rust
+use yew::prelude::*;
+
+let mut items = vec!["a", "b", "c", "skip", "d"].into_iter();
+
+html! {
+    while let Some(item) = items.next() {
+        if item == "skip" {
+            continue
+        }
+        if item.is_empty() {
+            break
+        }
+        <span>{item}</span>
+    }
+};
+```
+
+帶條件的一般 `while` 也可以使用。迴圈推進條件所需的任何狀態都必須在外部作用域中設定，並在迴圈主體內部更新，通常是透過在迴圈主體頂部加入 `let` 綁定來完成：
+
+```rust
+use yew::prelude::*;
+
+let mut counter: i32 = 0;
+
+html! {
+    while counter < 5 {
+        let current = { let c = counter; counter += 1; c };
+        <span>{current}</span>
     }
 };
 ```
