@@ -1,6 +1,6 @@
 # Changelog
 
-[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+[Link to all migration guides](https://yew.rs/docs/migration-guides)
 
 ## ✨ yew **0.23.0** *(2026-03-10)*
 
@@ -9,7 +9,7 @@ bumping from 0.22 should require no code changes for most users.
 ### 🚨 Breaking changes
 
 - Performance: use_reducer now skips re-rendering for the same Rc. [[@Pascal Sommer](https://github.com/Pascal-So), [#3945](https://github.com/yewstack/yew/pull/3945)]
-    NOTE: Whether this is breaking is arguable. It merely breaks the promise that a dispatch will always cause a re-render. For code that wishes to force re-render, [use_force_update](https://docs.rs/yew/latest/yew/functional/fn.use_force_update.html) helps. Please refer to [the migration guide](https://yew.rs/docs/next/migration-guides/yew/from-0_22_0-to-0_23_0) for details.
+    NOTE: Whether this is breaking is arguable. It merely breaks the promise that a dispatch will always cause a re-render. For code that wishes to force re-render, [use_force_update](https://docs.rs/yew/latest/yew/functional/fn.use_force_update.html) helps. Please refer to [the migration guide](https://yew.rs/docs/migration-guides/yew/from-0_22_0-to-0_23_0) for details.
 
 ### ⚡️ Features
 

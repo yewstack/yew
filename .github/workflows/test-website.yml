@@ -44,3 +44,21 @@ jobs:
 
       - name: Run website code snippet tests
         run: cargo test -p website-test --target wasm32-unknown-unknown
+
+  website_tests_native:
+    name: Tests Website Snippets (native)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run website code snippet tests
+        run: cargo test -p website-test

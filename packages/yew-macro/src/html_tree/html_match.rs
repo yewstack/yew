@@ -30,8 +30,12 @@ enum HtmlMatchArmBody {
         brace: token::Brace,
         let_stmts: Vec<Local>,
         children: HtmlChildrenTree,
+        deprecations: TokenStream,
     },
-    Unbraced(Box<super::HtmlTree>),
+    Unbraced {
+        tree: Box<super::HtmlTree>,
+        deprecations: TokenStream,
+    },
 }
 
 impl PeekValue<()> for HtmlMatch {
@@ -100,7 +104,7 @@ impl Parse for HtmlMatchArm {
 
         let fat_arrow_token: Token![=>] = input.parse()?;
 
-        let body = if input.cursor().group(Delimiter::Brace).is_some() {
+        let mut body = if input.cursor().group(Delimiter::Brace).is_some() {
             let content;
             let brace = braced!(content in input);
             let mut let_stmts = Vec::new();
@@ -112,17 +116,31 @@ impl Parse for HtmlMatchArm {
                 }
             }
             let children = HtmlChildrenTree::parse_delimited_with_nodes(&content)?;
-            super::check_unnecessary_fragment(&children);
+            let deprecations = super::check_unnecessary_fragment(&children);
             HtmlMatchArmBody::Braced {
                 brace,
                 let_stmts,
                 children,
+                deprecations,
             }
         } else {
-            HtmlMatchArmBody::Unbraced(Box::new(super::HtmlTree::parse_or_node(input)?))
+            HtmlMatchArmBody::Unbraced {
+                tree: Box::new(super::HtmlTree::parse_or_node(input)?),
+                deprecations: TokenStream::new(),
+            }
         };
 
-        check_arm_html_macro_call(&body);
+        let arm_deprecations = check_arm_html_macro_call(&body);
+        if !arm_deprecations.is_empty() {
+            match &mut body {
+                HtmlMatchArmBody::Braced { deprecations, .. } => {
+                    deprecations.extend(arm_deprecations)
+                }
+                HtmlMatchArmBody::Unbraced { deprecations, .. } => {
+                    deprecations.extend(arm_deprecations);
+                }
+            }
+        }
 
         let comma: Option<Token![,]> = input.parse()?;
 
@@ -143,9 +161,11 @@ impl ToTokens for HtmlMatchArmBody {
                 brace,
                 let_stmts,
                 children,
+                deprecations,
             } => {
                 tokens.extend(quote_spanned! {brace.span.span()=>
                     {
+                        #deprecations
                         #(#let_stmts)*
                         ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
                             ::yew::virtual_dom::VList::with_children(
@@ -155,9 +175,12 @@ impl ToTokens for HtmlMatchArmBody {
                     }
                 });
             }
-            Self::Unbraced(tree) => {
+            Self::Unbraced { tree, deprecations } => {
                 tokens.extend(quote_spanned! {tree.span()=>
-                    { ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#tree) }
+                    {
+                        #deprecations
+                        ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#tree)
+                    }
                 });
             }
         }
@@ -197,22 +220,22 @@ impl ToTokens for HtmlMatch {
     }
 }
 
-fn check_arm_html_macro_call(body: &HtmlMatchArmBody) {
+fn check_arm_html_macro_call(body: &HtmlMatchArmBody) -> TokenStream {
     let trees: Box<dyn Iterator<Item = &super::HtmlTree> + '_> = match body {
         HtmlMatchArmBody::Braced { children, .. } => Box::new(children.0.iter()),
-        HtmlMatchArmBody::Unbraced(tree) => Box::new(std::iter::once(tree.as_ref())),
+        HtmlMatchArmBody::Unbraced { tree, .. } => Box::new(std::iter::once(tree.as_ref())),
     };
     for tree in trees {
         if let super::HtmlTree::Node(node) = tree {
             if let HtmlNode::Expression(expr) = node.as_ref() {
                 if let Some(span) = html_macro_call_span(expr) {
-                    super::emit_deprecated!(
+                    return super::deprecated_call(
                         span,
-                        "`html!` is not needed in `match` arms. Use bare elements directly"
+                        "`html!` is not needed in `match` arms. Use bare elements directly",
                     );
-                    return;
                 }
             }
         }
     }
+    TokenStream::new()
 }

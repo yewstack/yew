@@ -391,12 +391,6 @@ import ThemedImage from '@theme/ThemedImage'
 
 嵌套的 `SettingsRouter` 处理所有以 `/settings` 开头的 URL。外层路由器为 `/settings/` 定义了一个单独的 `SettingsSlash` 变体，并将其重定向到 `SettingsRoot`，因为内层 `SettingsRoute` 没有定义仅含尾部斜杠的路由（参见[尾部斜杠](#尾部斜杠)）。无法识别的子路径（如 `/settings/gibberish`）会重定向到主 `NotFound` 路由 `/404`。
 
-:::caution
-
-请注意，该接口仍在开发中，这样写的方式尚未最终确定
-
-:::
-
 可以使用以下代码实现：
 
 ```rust
@@ -466,6 +460,12 @@ pub fn app() -> Html {
     }
 }
 ```
+
+:::caution
+
+如果您希望获得更便捷的嵌套路由器支持，请在[一等嵌套路由 RFC](https://github.com/yewstack/yew/discussions/4111) 下发表评论。
+
+:::
 
 ### 基底路径 (Basename)
 

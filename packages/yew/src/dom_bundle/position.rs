@@ -191,23 +191,40 @@ impl DynamicDomSlot {
     }
 
     fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
-        // we use an iterative approach to traverse a possible long chain for references
-        // see for example issue #3043 why a recursive call is impossible for large lists in vdom
-
+        // We use an iterative approach to traverse a possible long chain of references.
+        // See issue #3043 for why a recursive call is impossible for large lists in vdom.
+        //
         // TODO: there could be some data structure that performs better here. E.g. a balanced tree
         // with parent pointers come to mind, but they are a bit fiddly to implement in rust
-        let mut this = self.target.clone();
-        loop {
-            //                          v------- borrow lives for this match expression
-            let next_this = match &this.borrow().variant {
-                DomSlotVariant::Node(n) => break f(n.as_ref()),
-                // We clone an Rc here temporarily, so that we don't have to consume stack
-                // space. The alternative would be to keep the
-                // `Ref<'_, DomSlot>` above in some temporary buffer
-                DomSlotVariant::Chained(chain) => chain.target.clone(),
-            };
-            this = next_this;
-        }
+        //
+        // We traverse via raw pointers to avoid Rc refcount overhead (clone + drop) per hop, then
+        // clone the terminal next-sibling out of the chain before invoking `f`. Invoking `f` with
+        // no borrow held and no reliance on chain structure keeps the traversal sound: `f` runs
+        // arbitrary code (panic drop glue, `gloo::console::error`, tracing subscribers) that
+        // could, in principle, reassign a link in the chain and drop the last strong reference
+        // to the RefCell we would otherwise still borrow from.
+        //
+        // SAFETY: All RefCells visited by the loop remain live while we dereference them:
+        // - `self.target` (Rc) is alive because `self` is borrowed
+        // - Each DomSlot::Chained(DynamicDomSlot { target }) in the chain holds a strong Rc to the
+        //   next RefCell, so all links are transitively kept alive
+        // - Yew is single-threaded and the loop body does not run user code, so no mutable borrow
+        //   (e.g. from reassign()) can occur on any RefCell in the chain during traversal
+        // - Each RefCell::borrow() is dropped before advancing to the next hop
+        let node: Option<Node> = {
+            let mut ptr: *const RefCell<DomSlot> = Rc::as_ptr(&self.target);
+            loop {
+                let cell = unsafe { &*ptr };
+                let slot_ref = cell.borrow();
+                match &slot_ref.variant {
+                    DomSlotVariant::Node(n) => break n.clone(),
+                    DomSlotVariant::Chained(chain) => {
+                        ptr = Rc::as_ptr(&chain.target);
+                    }
+                }
+            }
+        };
+        f(node.as_ref())
     }
 }
 

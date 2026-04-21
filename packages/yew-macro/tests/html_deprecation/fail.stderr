@@ -1,0 +1,89 @@
+error: This macro call exists to deliberately fail the compilation of the test so we can verify output of deprecation lints
+  --> tests/html_deprecation/fail.rs:92:5
+   |
+92 |     compile_error!("This macro call exists to deliberately fail the compilation of the test so we can verify output of deprecation lints...
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated function `root_level_fragment::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+ --> tests/html_deprecation/fail.rs:4:21
+  |
+4 |     let _ = html! { <></> };
+  |                     ^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated function `root_level_fragment::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+ --> tests/html_deprecation/fail.rs:5:21
+  |
+5 |     let _ = html! { <><div/></> };
+  |                     ^
+
+warning: use of deprecated function `root_level_fragment::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+ --> tests/html_deprecation/fail.rs:7:9
+  |
+7 |         <>
+  |         ^
+
+warning: use of deprecated function `root_level_fragment_with_keyed_children::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_deprecation/fail.rs:16:9
+   |
+16 |         <>
+   |         ^
+
+warning: use of deprecated function `fragment_in_for_body::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_deprecation/fail.rs:25:13
+   |
+25 |             <><span>{"a"}</span><span>{"b"}</span></>
+   |             ^
+
+warning: use of deprecated function `fragment_in_if_body::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_deprecation/fail.rs:31:31
+   |
+31 |     let _ = html! { if true { <><div/><div/></> } };
+   |                               ^
+
+warning: use of deprecated function `fragment_in_else_body::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_deprecation/fail.rs:35:47
+   |
+35 |     let _ = html! { if true { <div/> } else { <><span/><span/></> } };
+   |                                               ^
+
+warning: use of deprecated function `fragment_in_match_arm::__yew_deprecated`: unnecessary `<>...</>`. Children can be placed directly in the body
+  --> tests/html_deprecation/fail.rs:41:20
+   |
+41 |             1 => { <><h1>{"Hello"}</h1><p>{"World"}</p></> }
+   |                    ^
+
+warning: use of deprecated function `html_in_unbraced_match_arm::__yew_deprecated`: `html!` is not needed in `match` arms. Use bare elements directly
+  --> tests/html_deprecation/fail.rs:50:18
+   |
+50 |             1 => html! { <h1>{"Hello"}</h1> },
+   |                  ^^^^
+
+warning: use of deprecated function `html_in_braced_match_arm::__yew_deprecated`: `html!` is not needed in `match` arms. Use bare elements directly
+  --> tests/html_deprecation/fail.rs:59:31
+   |
+59 |             1 => { let a = 1; html! { <h1>{a}</h1> } },
+   |                               ^^^^
+
+warning: use of deprecated function `match_in_block_with_html_arms::__yew_deprecated`: Use bare elements in arms directly
+
+         match value {
+             pattern => <Element />,
+         }
+  --> tests/html_deprecation/fail.rs:70:22
+   |
+70 |                 0 => html! { <span>{"loading"}</span> },
+   |                      ^^^^
+
+warning: use of deprecated function `nested_block_with_html_tail::__yew_deprecated`: `html!` is not needed inside expression blocks. Use `let` bindings and bare elements directly
+  --> tests/html_deprecation/fail.rs:80:54
+   |
+80 |         <div>{{ let processed = item.to_uppercase(); html! { <span>{processed}</span> } }}</div>
+   |                                                      ^^^^
+
+warning: use of deprecated function `if_else_block_with_html_branches::__yew_deprecated`: `html!` is not needed inside `if`/`else` branches. Use bare elements directly
+  --> tests/html_deprecation/fail.rs:87:26
+   |
+87 |         <div>{ if cond { html! { <span>{"yes"}</span> } } else { html! { <span>{"no"}</span> } } }</div>
+   |                          ^^^^

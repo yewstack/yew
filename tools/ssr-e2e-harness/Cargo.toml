@@ -6,5 +6,6 @@ rust-version.workspace = true
 
 [dependencies]
 gloo = { workspace = true, features = ["futures"] }
-web-sys = { workspace = true }
+web-sys = { workspace = true, features = ["Performance", "PerformanceEntry"] }
 wasm-bindgen = { workspace = true }
+yew = { path = "../../packages/yew", features = ["csr", "hydration", "test"] }

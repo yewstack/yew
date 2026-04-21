@@ -15,7 +15,6 @@ import TabItem from '@theme/TabItem'
 1. `html! {}` 宏只能接受一个根 HTML 节点（您可以通过使用 [fragments](./fragments.mdx) 或 [iterators](./../html/lists.mdx) 来规避这一点）
 2. 空的 `html! {}` 调用是有效的，不会渲染任何内容
 3. 字面量必须始终用引号引起来并用大括号括起来：`html! { <p>{ "Hello, World" }</p> }`
-4. `html!` 宏会将所有标签名称转换为小写。要使用大写字符（某些 SVG 元素所需的字符）请使用[动态标签名称](concepts/html/elements.mdx#dynamic-tag-names)：`html! { <@{"myTag"}></@> }`
 
 :::note
 `html!` 宏可能会达到编译器的默认递归限制。如果遇到编译错误，请在 crate 根目录添加类似 `#![recursion_limit="1024"]` 的属性以解决问题。

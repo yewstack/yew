@@ -50,7 +50,7 @@ jobs:
           TARGET_FLAGS: ${{ case(matrix.target == 'wasm32', '--target wasm32-unknown-unknown', null) }}
         run: >-
           cargo hack clippy
-          -p yew -p yew-agent -p yew-router
+          -p yew -p yew-agent -p yew-router -p yew-link
           --feature-powerset --no-dev-deps
           --keep-going
           $RELEASE_FLAG

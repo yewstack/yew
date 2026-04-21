@@ -15,7 +15,6 @@ import TabItem from '@theme/TabItem'
 1. `html! {}` マクロは 1 つのルート HTML ノードしか受け入れません（これを回避するには、[fragments](./fragments.mdx) または [iterators](./../html/lists.mdx) を使用できます）
 2. 空の `html! {}` 呼び出しは有効で、何もレンダリングしません
 3. リテラルは常に引用符で囲み、中括弧で囲む必要があります：`html! { <p>{ "Hello, World" }</p> }`
-4. `html!` マクロはすべてのタグ名を小文字に変換します。大文字の文字（特定の SVG 要素に必要な文字）を使用するには、[動的タグ名](concepts/html/elements.mdx#dynamic-tag-names) を使用してください：`html! { <@{"myTag"}></@> }`
 
 :::note
 `html!` マクロはコンパイラのデフォルトの再帰制限に達する可能性があります。コンパイル エラーが発生した場合は、クレートのルートに `#![recursion_limit="1024"]` のような属性を追加して問題を解決してください。

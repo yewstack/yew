@@ -73,21 +73,3 @@ error: fragments only accept the `key` prop
    |
 23 |     html! { <some_attr="test"></> };
    |              ^^^^^^^^^
-
-error: unnecessary `<>...</>`. Children can be placed directly in the body
-  --> tests/html_macro/list-fail.rs:26:13
-   |
-26 |     html! { <></> };
-   |             ^^
-
-error: unnecessary `<>...</>`. Children can be placed directly in the body
-  --> tests/html_macro/list-fail.rs:27:13
-   |
-27 |     html! { <><div/></> };
-   |             ^^
-
-error: unnecessary `<>...</>`. Children can be placed directly in the body
-  --> tests/html_macro/list-fail.rs:29:9
-   |
-29 |         <>
-   |         ^^

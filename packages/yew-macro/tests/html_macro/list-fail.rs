@@ -21,16 +21,6 @@ fn compile_fail() {
     html! { <key="first key" key="second key" /> };
     // invalid prop
     html! { <some_attr="test"></> };
-
-    // unnecessary root-level fragment
-    html! { <></> };
-    html! { <><div/></> };
-    html! {
-        <>
-            <span>{ "a" }</span>
-            <span>{ "b" }</span>
-        </>
-    };
 }
 
 fn main() {}

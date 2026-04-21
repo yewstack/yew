@@ -1107,7 +1107,7 @@ async fn hydrate_flicker() {
 
 #[wasm_bindgen_test]
 async fn hydration_with_camelcase_svg_elements() {
-    #[function_component]
+    #[component]
     fn SvgWithCamelCase() -> Html {
         html! {
             <svg width="100" height="100">
@@ -1131,7 +1131,7 @@ async fn hydration_with_camelcase_svg_elements() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let counter = use_state(|| 0);
         let onclick = {

@@ -1,0 +1,34 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.migrationGuides.category.yew": {
+    "message": "yew",
+    "description": "The label for category yew in sidebar migrationGuides"
+  },
+  "sidebar.migrationGuides.category.yew.link.generated-index.title": {
+    "message": "yew",
+    "description": "The generated-index page title for category yew in sidebar migrationGuides"
+  },
+  "sidebar.migrationGuides.category.yew-agent": {
+    "message": "yew-agent",
+    "description": "The label for category yew-agent in sidebar migrationGuides"
+  },
+  "sidebar.migrationGuides.category.yew-agent.link.generated-index.title": {
+    "message": "yew-agent",
+    "description": "The generated-index page title for category yew-agent in sidebar migrationGuides"
+  },
+  "sidebar.migrationGuides.category.yew-router": {
+    "message": "yew-router",
+    "description": "The label for category yew-router in sidebar migrationGuides"
+  },
+  "sidebar.migrationGuides.category.yew-router.link.generated-index.title": {
+    "message": "yew-router",
+    "description": "The generated-index page title for category yew-router in sidebar migrationGuides"
+  },
+  "sidebar.migrationGuides.doc.Overview": {
+    "message": "Overview",
+    "description": "The label for the doc item Overview in sidebar migrationGuides, linking to the doc index"
+  }
+}

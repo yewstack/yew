@@ -12,9 +12,9 @@ import TabItem from '@theme/TabItem'
 
 **重要提示**
 
-1. `html!` 宏可以接受任意数量的根节点，包括零个。空的 `html! {}` 调用是有效的，不会渲染任何内容。
-2. 字面量必须始终用引号引起来并用大括号括起来：`html! { <p>{ "Hello, World" }</p> }`
-3. `html!` 宏会将所有标签名称转换为小写。要使用大写字符（某些 SVG 元素所需的字符）请使用[动态标签名称](concepts/html/elements.mdx#dynamic-tag-names)：`html! { <@{"myTag"}></@> }`
+1. `html!` 宏可以接受任意数量的根节点。空的 `html! {}` 调用不会渲染任何内容。
+2. 字符串字面量需要用引号引起来，并且通常需要用大括号包裹：`html! { <p>{ "Hello, World" }</p> }`。
+3. Bool 类型和数值类型可以直接使用：`html!{ <span>{1}</span> <span>{true}</span> }`
 
 :::note
 `html!` 宏可能会达到编译器的默认递归限制。如果遇到编译错误，请在 crate 根目录添加类似 `#![recursion_limit="1024"]` 的属性以解决问题。

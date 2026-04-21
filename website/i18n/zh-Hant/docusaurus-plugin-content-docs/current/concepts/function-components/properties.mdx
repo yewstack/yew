@@ -302,6 +302,33 @@ fn Greetings(
 // `is_loading` 將作為值傳遞給元件，而 `message` 和 `name` 將使用引用，因為定義中有一個前導的 `&`。
 ```
 
+與獨立的屬性結構體相比，`yew-autoprops` 還有一個額外的優勢，即能夠暴露未使用的屬性。
+
+```rust
+use yew::prelude::*;
+use yew_autoprops::autoprops;
+
+#[autoprops]
+#[component]
+// highlight-next-line
+pub fn Foo(bar0: AttrValue, bar1: AttrValue) -> Html {
+    // `bar1` 將產生一個關於未使用變數的編譯器警告
+    html! {<div>{bar0}</div>}
+}
+
+#[derive(PartialEq, Properties, Clone)]
+pub struct BarProps {
+    bar0: AttrValue,
+    // 這個屬性未被使用，但編譯器無法偵測到
+    bar1: AttrValue,
+}
+
+#[component]
+pub fn Bar(props: &BarProps) -> Html {
+    html! {<div>{&props.bar0}</div>}
+}
+```
+
 ## 評估順序
 
 屬性依照指定的順序進行評估，如下例所示：
@@ -333,7 +360,3 @@ fn main() {
    **為什麼不好？ ** `Vec<T>`，就像 `String` 一樣，克隆成本也很高。 `IArray<T>` 是一個引用計數的切片 (`Rc<[T]>`) 或一個 `&'static [T]`，因此非常便宜克隆。 <br />
    **注意**：`IArray` 可以從 [implicit-clone](https://crates.io/crates/implicit-clone) 匯入。查看該包以了解更多資訊。
 4. 您發覺可能的新內容。您是否遇到了一個希望早點了解清楚的邊緣情況？請隨時建立一個問題或向本文檔提供修復的 PR。
-
-## yew-autoprops
-
-[yew-autoprops](https://crates.io/crates/yew-autoprops) 是一個實驗性包，可讓您根據函數的參數動態建立 Props 結構體。如果屬性結構體永遠不會被重複使用，這可能會很有用。

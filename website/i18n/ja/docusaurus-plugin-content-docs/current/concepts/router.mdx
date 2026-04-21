@@ -391,12 +391,6 @@ import ThemedImage from '@theme/ThemedImage'
 
 ネストされた `SettingsRouter` は、すべての `/settings` で始まる URL を処理します。外側のルーターでは `/settings/` 用に別の `SettingsSlash` バリアントを定義し、`SettingsRoot` にリダイレクトします。これは、内側の `SettingsRoute` が末尾スラッシュのみのルートを定義していないためです（[末尾のスラッシュ](#末尾のスラッシュ) を参照）。`/settings/gibberish` のような認識されないサブパスは、メインの `NotFound` ルート `/404` にリダイレクトされます。
 
-:::caution
-
-このインターフェースはまだ開発中であり、このように記述する方法は最終決定されていません。
-
-:::
-
 以下のコードで実装できます：
 
 ```rust
@@ -466,6 +460,12 @@ pub fn app() -> Html {
     }
 }
 ```
+
+:::caution
+
+より使いやすいネストされたルーターのサポートをご希望の場合は、[ファーストクラスのネストルーティング RFC](https://github.com/yewstack/yew/discussions/4111) にコメントしてください。
+
+:::
 
 ### ベースパス (Basename)
 

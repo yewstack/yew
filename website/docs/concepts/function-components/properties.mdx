@@ -310,6 +310,33 @@ fn Greetings(
 // `name` will use references because of the leading `&` in the definition.
 ```
 
+Compared to standalone prop structs, `yew-autoprops` has the additional advantage of exposing unused props.
+
+```rust
+use yew::prelude::*;
+use yew_autoprops::autoprops;
+
+#[autoprops]
+#[component]
+// highlight-next-line
+pub fn Foo(bar0: AttrValue, bar1: AttrValue) -> Html {
+    // `bar1` will turn into a compiler warning about unused variables
+    html! {<div>{bar0}</div>}
+}
+
+#[derive(PartialEq, Properties, Clone)]
+pub struct BarProps {
+    bar0: AttrValue,
+    // this property is unused but the compiler cannot detect it
+    bar1: AttrValue,
+}
+
+#[component]
+pub fn Bar(props: &BarProps) -> Html {
+    html! {<div>{&props.bar0}</div>}
+}
+```
+
 ## Evaluation Order
 
 Props are evaluated in the order they're specified, as shown by the following example:
@@ -348,7 +375,3 @@ These include, but are not limited to:
    See that crate to learn more.
 4. You tell us. Did you run into an edge-case you wish you knew about earlier? Feel free to create an issue
    or PR a fix to this documentation.
-
-## yew-autoprops
-
-[yew-autoprops](https://crates.io/crates/yew-autoprops) is an experimental package that allows one to create the Props struct on the fly out of the arguments of your function. Might be useful, if the properties struct is never reused.

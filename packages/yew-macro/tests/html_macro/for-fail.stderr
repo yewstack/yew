@@ -36,12 +36,6 @@ error: duplicate key for a node in a `for`-loop
 18 |         <div key={smth::KEY} />
    |                   ^^^^
 
-error: unnecessary `<>...</>`. Children can be placed directly in the body
-  --> tests/html_macro/for-fail.rs:23:9
-   |
-23 |         <><span>{"a"}</span><span>{"b"}</span></>
-   |         ^^
-
 error[E0308]: mismatched types
  --> tests/html_macro/for-fail.rs:9:26
   |

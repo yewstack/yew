@@ -372,12 +372,6 @@ import ThemedImage from '@theme/ThemedImage'
 
 嵌套的 `SettingsRouter` 處理所有以 `/settings` 開頭的 URL。此外，它會將未符合的 URL 重新導向到主 `NotFound` 路由。因此，`/settings/gibberish` 將會重新導向到 `/404`。
 
-:::caution
-
-請注意，該介面仍在開發中，這樣寫的方式尚未最終確定
-
-:::
-
 可以使用以下程式碼實作：
 
 ```rust
@@ -444,6 +438,12 @@ pub fn app() -> Html {
     }
 }
 ```
+
+:::caution
+
+如果您希望獲得更便捷的巢狀路由器支援，請在[一等巢狀路由 RFC](https://github.com/yewstack/yew/discussions/4111) 下發表評論。
+
+:::
 
 ### 基底路徑 (Basename)
 

@@ -18,10 +18,16 @@ serde = { workspace = true, features = ["derive"] }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 weblog = "0.3.0"
-yew = { path = "../../packages/yew/", features = ["ssr", "csr", "serde"] }
+yew = { path = "../../packages/yew/", features = ["ssr", "csr", "hydration", "serde"] }
 yew-autoprops = "0.5.0"
 yew-router = { path = "../../packages/yew-router/" }
 tokio = { workspace = true, features = ["rt", "macros"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+actix-web = { workspace = true }
+axum = { workspace = true }
+serde_json = { workspace = true }
+yew-link = { path = "../../packages/yew-link/", features = ["actix", "axum"] }
 
 [dev-dependencies.web-sys]
 workspace = true
