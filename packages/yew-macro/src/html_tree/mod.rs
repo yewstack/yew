@@ -311,7 +311,11 @@ impl HtmlChildrenTree {
     pub fn to_build_vec_token_stream(&self) -> TokenStream {
         let Self(children) = self;
 
-        if self.only_single_node_children() {
+        let has_divergent = children
+            .iter()
+            .any(|c| matches!(c, HtmlTree::Break(_) | HtmlTree::Continue(_)));
+
+        if !has_divergent && self.only_single_node_children() {
             // optimize for the common case where all children are single nodes (only using literal
             // html).
             let children_into = children
@@ -323,21 +327,21 @@ impl HtmlChildrenTree {
         }
 
         let vec_ident = Ident::new("__yew_v", Span::mixed_site());
-        let add_children_streams =
-            children
-                .iter()
-                .map(|child| match child.to_node_iterator_stream() {
-                    Some(node_iterator_stream) => {
-                        quote! {
-                            ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
-                        }
+        let add_children_streams = children.iter().map(|child| match child {
+            HtmlTree::Break(_) | HtmlTree::Continue(_) => quote!( #child; ),
+            _ => match child.to_node_iterator_stream() {
+                Some(node_iterator_stream) => {
+                    quote! {
+                        ::std::iter::Extend::extend(&mut #vec_ident, #node_iterator_stream);
                     }
-                    _ => {
-                        quote_spanned! {child.span()=>
-                            #vec_ident.push(::std::convert::Into::into(#child));
-                        }
+                }
+                _ => {
+                    quote_spanned! {child.span()=>
+                        #vec_ident.push(::std::convert::Into::into(#child));
                     }
-                });
+                }
+            },
+        });
 
         quote! {
             {

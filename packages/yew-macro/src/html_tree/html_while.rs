@@ -121,17 +121,13 @@ impl ToTokens for HtmlWhile {
             },
         };
 
-        let body = body
-            .0
-            .iter()
-            .map(|child| match child.to_node_iterator_stream() {
-                Some(child) => {
-                    quote!( #acc.extend(#child) )
-                }
-                _ => {
-                    quote!( #acc.push(::std::convert::Into::into(#child)) )
-                }
-            });
+        let body = body.0.iter().map(|child| match child {
+            HtmlTree::Break(_) | HtmlTree::Continue(_) => quote!( #child ),
+            _ => match child.to_node_iterator_stream() {
+                Some(stream) => quote!( #acc.extend(#stream) ),
+                _ => quote!( #acc.push(::std::convert::Into::into(#child)) ),
+            },
+        });
 
         tokens.extend(quote!({
             #deprecations
