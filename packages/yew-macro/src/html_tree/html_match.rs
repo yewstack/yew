@@ -3,11 +3,11 @@ use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, Local, Pat, Stmt, Token, braced, token};
+use syn::{Expr, Pat, Stmt, Token, braced, token};
 
-use super::HtmlChildrenTree;
 use super::html_block::html_macro_call_span;
 use super::html_node::HtmlNode;
+use super::{HtmlChildrenTree, parse_preamble_stmts, stmts_have_divergent};
 use crate::PeekValue;
 
 pub struct HtmlMatch {
@@ -28,7 +28,7 @@ struct HtmlMatchArm {
 enum HtmlMatchArmBody {
     Braced {
         brace: token::Brace,
-        let_stmts: Vec<Local>,
+        stmts: Vec<Stmt>,
         children: HtmlChildrenTree,
         deprecations: TokenStream,
     },
@@ -107,19 +107,12 @@ impl Parse for HtmlMatchArm {
         let mut body = if input.cursor().group(Delimiter::Brace).is_some() {
             let content;
             let brace = braced!(content in input);
-            let mut let_stmts = Vec::new();
-            while content.peek(Token![let]) {
-                let stmt: Stmt = content.parse()?;
-                match stmt {
-                    Stmt::Local(local) => let_stmts.push(local),
-                    _ => unreachable!("peeked Token![let] but parsed non-local statement"),
-                }
-            }
+            let stmts = parse_preamble_stmts(&content)?;
             let children = HtmlChildrenTree::parse_delimited_with_nodes(&content)?;
             let deprecations = super::check_unnecessary_fragment(&children);
             HtmlMatchArmBody::Braced {
                 brace,
-                let_stmts,
+                stmts,
                 children,
                 deprecations,
             }
@@ -159,29 +152,48 @@ impl ToTokens for HtmlMatchArmBody {
         match self {
             Self::Braced {
                 brace,
-                let_stmts,
+                stmts,
                 children,
                 deprecations,
             } => {
+                // Match-arm body blocks reject inner attributes directly, so we
+                // nest in an inner expression block that accepts them.
+                let allow_unreachable =
+                    stmts_have_divergent(stmts).then(|| quote!(#![allow(unreachable_code)]));
                 tokens.extend(quote_spanned! {brace.span.span()=>
                     {
                         #deprecations
-                        #(#let_stmts)*
-                        ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
-                            ::yew::virtual_dom::VList::with_children(
-                                #children, ::std::option::Option::None
-                            )
-                        ))
+                        {
+                            #allow_unreachable
+                            #(#stmts)*
+                            ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
+                                ::yew::virtual_dom::VList::with_children(
+                                    #children, ::std::option::Option::None
+                                )
+                            ))
+                        }
                     }
                 });
             }
             Self::Unbraced { tree, deprecations } => {
-                tokens.extend(quote_spanned! {tree.span()=>
-                    {
-                        #deprecations
-                        ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#tree)
-                    }
-                });
+                if matches!(
+                    tree.as_ref(),
+                    super::HtmlTree::Break(_) | super::HtmlTree::Continue(_)
+                ) {
+                    tokens.extend(quote_spanned! {tree.span()=>
+                        {
+                            #deprecations
+                            #tree
+                        }
+                    });
+                } else {
+                    tokens.extend(quote_spanned! {tree.span()=>
+                        {
+                            #deprecations
+                            ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#tree)
+                        }
+                    });
+                }
             }
         }
     }

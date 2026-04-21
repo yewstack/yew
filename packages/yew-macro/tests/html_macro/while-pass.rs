@@ -151,4 +151,134 @@ fn main() {
             }
         }
     };
+
+    // break with trailing semicolon
+    _ = {
+        let mut i: ::std::primitive::i32 = 0;
+        ::yew::html! {
+            while i < 100 {
+                let current = { let c = i; i += 1; c };
+                if current > 5 {
+                    break;
+                }
+                <span>{current}</span>
+            }
+        }
+    };
+
+    // continue with trailing semicolon
+    _ = {
+        let mut i: ::std::primitive::i32 = 0;
+        ::yew::html! {
+            while i < 10 {
+                let current = { let c = i; i += 1; c };
+                if current % 2 == 0 {
+                    continue;
+                }
+                <span>{current}</span>
+            }
+        }
+    };
+
+    // unbraced match arm with break
+    _ = {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..10);
+        ::yew::html! {
+            while let ::std::option::Option::Some(v) = ::std::iter::Iterator::next(&mut it) {
+                match v {
+                    0 => break,
+                    _ => <span>{v}</span>,
+                }
+            }
+        }
+    };
+
+    // unbraced match arm with continue
+    _ = {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..10);
+        ::yew::html! {
+            while let ::std::option::Option::Some(v) = ::std::iter::Iterator::next(&mut it) {
+                match v {
+                    0 => continue,
+                    _ => <span>{v}</span>,
+                }
+            }
+        }
+    };
+
+    // break/continue in a while body must not emit `unreachable_code` warnings even
+    // under `#[deny(unreachable_code)]`.
+    #[deny(unreachable_code)]
+    fn break_continue_no_warn() {
+        let mut i: ::std::primitive::i32 = 0;
+        _ = ::yew::html! {
+            while i < 100 {
+                let current = { let c = i; i += 1; c };
+                if current > 5 {
+                    break;
+                }
+                if current % 2 == 0 {
+                    continue;
+                }
+                <span>{current}</span>
+            }
+        };
+    }
+    break_continue_no_warn();
+
+    // Expression statement in while body: post-increment without the let-block hack.
+    _ = {
+        let mut i: ::std::primitive::i32 = 0;
+        ::yew::html! {
+            while i < 5 {
+                let current = i;
+                i += 1;
+                <span>{current}</span>
+            }
+        }
+    };
+
+    // Local fn item + expr-stmt + let, interleaved in while body preamble.
+    {
+        let mut i: ::std::primitive::i32 = 0;
+        let mut total: ::std::primitive::i32 = 0;
+        _ = ::yew::html! {
+            while i < 3 {
+                fn square(x: ::std::primitive::i32) -> ::std::primitive::i32 { x * x }
+                let sq = square(i);
+                total += sq;
+                i += 1;
+                <span>{sq}</span>
+            }
+        };
+        _ = total;
+    }
+
+    // Macro statement in while body preamble.
+    _ = {
+        let mut i: ::std::primitive::i32 = 0;
+        ::yew::html! {
+            while i < 1 {
+                ::std::stringify!(debug_marker);
+                i += 1;
+                <span>{i}</span>
+            }
+        }
+    };
+
+    // Labeled `break` targeting an enclosing labeled loop in user code.
+    'outer: loop {
+        let mut i: ::std::primitive::i32 = 0;
+        _ = ::yew::html! {
+            while i < 100 {
+                let current = i;
+                i += 1;
+                if current > 2 {
+                    break 'outer;
+                }
+                <span>{current}</span>
+            }
+        };
+        break;
+    }
 }

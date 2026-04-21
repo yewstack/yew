@@ -2,9 +2,11 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::parse::ParseStream;
 use syn::spanned::Spanned;
-use syn::{Expr, Local, Stmt, Token};
+use syn::{Expr, Stmt};
 
-use super::{HtmlChildrenTree, HtmlTree, ToNodeIterator};
+use super::{
+    HtmlChildrenTree, HtmlTree, ToNodeIterator, parse_preamble_stmts, stmts_have_divergent,
+};
 
 /// Determines if an expression is guaranteed to always return the same value anywhere.
 pub(super) fn is_contextless_pure(expr: &Expr) -> bool {
@@ -15,20 +17,13 @@ pub(super) fn is_contextless_pure(expr: &Expr) -> bool {
     }
 }
 
-/// Parse leading `let` bindings from a loop body, then the remaining children.
+/// Parse leading Rust statements from a loop body, then the remaining children.
 /// Also runs duplicate-key detection keyed to `loop_kind` (e.g. "for", "while").
 pub(super) fn parse_loop_body(
     body_stream: ParseStream,
     loop_kind: &str,
-) -> syn::Result<(Vec<Local>, HtmlChildrenTree, TokenStream)> {
-    let mut let_stmts = Vec::new();
-    while body_stream.peek(Token![let]) {
-        let stmt: Stmt = body_stream.parse()?;
-        match stmt {
-            Stmt::Local(local) => let_stmts.push(local),
-            _ => unreachable!("peeked Token![let] but parsed non-local statement"),
-        }
-    }
+) -> syn::Result<(Vec<Stmt>, HtmlChildrenTree, TokenStream)> {
+    let stmts = parse_preamble_stmts(body_stream)?;
 
     let body = HtmlChildrenTree::parse_delimited_with_nodes(body_stream)?;
     let deprecations = super::check_unnecessary_fragment(&body);
@@ -53,7 +48,7 @@ pub(super) fn parse_loop_body(
         }
     }
 
-    Ok((let_stmts, body, deprecations))
+    Ok((stmts, body, deprecations))
 }
 
 /// Emit a loop that accumulates its body children into a `VList`.
@@ -64,7 +59,7 @@ pub(super) fn parse_loop_body(
 pub(super) fn emit_loop(
     loop_header: TokenStream,
     span: Span,
-    let_stmts: &[Local],
+    stmts: &[Stmt],
     body: &HtmlChildrenTree,
     deprecations: &TokenStream,
 ) -> TokenStream {
@@ -103,12 +98,35 @@ pub(super) fn emit_loop(
         },
     });
 
-    quote!({
-        #deprecations
-        let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
-        #loop_header {
-            #(#let_stmts)* #alloc_opt; #(#body_streams);*
-        }
-        #vlist_gen
-    })
+    let has_top_level_divergent = body
+        .0
+        .iter()
+        .any(|c| matches!(c, HtmlTree::Break(_) | HtmlTree::Continue(_)))
+        || stmts_have_divergent(stmts);
+
+    // Nest in an inner block when divergent, so `#![allow(unreachable_code)]`
+    // lands in an inner expression block (accepted everywhere) rather than in
+    // an if-branch or match-arm position where it would be rejected.
+    if has_top_level_divergent {
+        quote!({
+            #deprecations
+            {
+                #![allow(unreachable_code)]
+                let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
+                #loop_header {
+                    #(#stmts)* #alloc_opt; #(#body_streams);*
+                }
+                #vlist_gen
+            }
+        })
+    } else {
+        quote!({
+            #deprecations
+            let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
+            #loop_header {
+                #(#stmts)* #alloc_opt; #(#body_streams);*
+            }
+            #vlist_gen
+        })
+    }
 }

@@ -81,8 +81,20 @@ impl Parse for HtmlTree {
             HtmlType::For => Self::For(Box::new(input.parse()?)),
             HtmlType::While => Self::While(Box::new(input.parse()?)),
             HtmlType::Match => Self::Match(Box::new(input.parse()?)),
-            HtmlType::Break => Self::Break(input.parse()?),
-            HtmlType::Continue => Self::Continue(input.parse()?),
+            HtmlType::Break => {
+                let token = input.parse()?;
+                while input.peek(Token![;]) {
+                    let _: Token![;] = input.parse()?;
+                }
+                Self::Break(token)
+            }
+            HtmlType::Continue => {
+                let token = input.parse()?;
+                while input.peek(Token![;]) {
+                    let _: Token![;] = input.parse()?;
+                }
+                Self::Continue(token)
+            }
         })
     }
 }
@@ -344,8 +356,10 @@ impl HtmlChildrenTree {
             },
         });
 
+        let allow_unreachable = has_divergent.then(|| quote!( #![allow(unreachable_code)] ));
         quote! {
             {
+                #allow_unreachable
                 let mut #vec_ident = ::std::vec::Vec::new();
                 #(#add_children_streams)*
                 #vec_ident
@@ -441,7 +455,12 @@ impl HtmlChildrenTree {
     }
 
     pub fn size_hint(&self) -> Option<usize> {
-        self.only_single_node_children().then_some(self.0.len())
+        self.only_single_node_children().then(|| {
+            self.0
+                .iter()
+                .filter(|c| !matches!(c, HtmlTree::Break(_) | HtmlTree::Continue(_)))
+                .count()
+        })
     }
 
     pub fn fully_keyed(&self) -> Option<bool> {
@@ -499,7 +518,7 @@ impl ToTokens for HtmlChildrenTree {
 
 pub struct HtmlRootBraced {
     brace: token::Brace,
-    let_stmts: Vec<syn::Local>,
+    stmts: Vec<syn::Stmt>,
     children: HtmlChildrenTree,
     deprecations: TokenStream,
 }
@@ -515,25 +534,62 @@ impl Parse for HtmlRootBraced {
         let content;
         let brace = braced!(content in input);
 
-        let mut let_stmts = Vec::new();
-        while content.peek(Token![let]) {
-            let stmt: syn::Stmt = content.parse()?;
-            match stmt {
-                syn::Stmt::Local(local) => let_stmts.push(local),
-                _ => unreachable!("peeked Token![let] but parsed non-local statement"),
-            }
-        }
+        let stmts = parse_preamble_stmts(&content)?;
 
         let children = HtmlChildrenTree::parse_delimited_with_nodes(&content)?;
         let deprecations = check_unnecessary_fragment(&children);
 
         Ok(HtmlRootBraced {
             brace,
-            let_stmts,
+            stmts,
             children,
             deprecations,
         })
     }
+}
+
+/// Parse leading Rust statements as a preamble: `let` bindings, items, macro
+/// invocations terminated by `;`, and expression statements terminated by `;`
+/// (including `break`/`continue`/`return`, with or without labels).
+///
+/// Bare expressions (no trailing `;`) are left in the stream for html parsing.
+/// A forked parse is used to test each candidate statement without committing
+/// to it, which lets us fall through cleanly whenever the next token run is
+/// not Rust-parseable (e.g. an `<element/>` or `if cond { <node/> }` that the
+/// Rust expression grammar rejects).
+pub(super) fn parse_preamble_stmts(input: ParseStream) -> syn::Result<Vec<syn::Stmt>> {
+    let mut stmts = Vec::new();
+    loop {
+        let fork = input.fork();
+        let is_preamble = match fork.parse::<syn::Stmt>() {
+            Ok(syn::Stmt::Local(_)) => true,
+            Ok(syn::Stmt::Item(_)) => true,
+            Ok(syn::Stmt::Expr(_, Some(_))) => true,
+            Ok(syn::Stmt::Macro(m)) => m.semi_token.is_some(),
+            _ => false,
+        };
+        if !is_preamble {
+            break;
+        }
+        let stmt: syn::Stmt = input.parse()?;
+        stmts.push(stmt);
+    }
+    Ok(stmts)
+}
+
+/// Whether any statement is a top-level divergent expression (`break`,
+/// `continue`, or `return`). Callers that emit code after the statements need
+/// an `#[allow(unreachable_code)]` when this is true.
+pub(super) fn stmts_have_divergent(stmts: &[syn::Stmt]) -> bool {
+    stmts.iter().any(|stmt| {
+        matches!(
+            stmt,
+            syn::Stmt::Expr(
+                syn::Expr::Break(_) | syn::Expr::Continue(_) | syn::Expr::Return(_),
+                _,
+            )
+        )
+    })
 }
 
 pub(super) fn deprecated_call(span: Span, note: &str) -> TokenStream {
@@ -565,18 +621,28 @@ impl ToTokens for HtmlRootBraced {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
             brace,
-            let_stmts,
+            stmts,
             children,
             deprecations,
         } = self;
 
+        // Inner attributes are rejected on if-branch and match-arm blocks
+        // directly, so we always nest in an inner expression block. The inner
+        // attribute goes on that inner block, which Rust accepts everywhere.
+        let allow_unreachable =
+            stmts_have_divergent(stmts).then(|| quote!(#![allow(unreachable_code)]));
         tokens.extend(quote_spanned! {brace.span.span()=>
             {
                 #deprecations
-                #(#let_stmts)*
-                ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
-                    ::yew::virtual_dom::VList::with_children(#children, ::std::option::Option::None)
-                ))
+                {
+                    #allow_unreachable
+                    #(#stmts)*
+                    ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(
+                        ::yew::virtual_dom::VList::with_children(
+                            #children, ::std::option::Option::None
+                        )
+                    ))
+                }
             }
         });
     }

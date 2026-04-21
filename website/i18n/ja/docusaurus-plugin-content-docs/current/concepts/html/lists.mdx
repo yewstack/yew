@@ -23,7 +23,7 @@ html! {
 };
 ```
 
-`for` ループ本体では、html 子要素の前に `let` バインディングも使用できます：
+`for` ループ本体では、html 子要素の前に Rust の文を置くことができます。終端子を持つ文であれば何でも動作します：`let` バインディング、`;` で終わる式文、アイテム定義（`fn`、`struct`、`use` など）、`;` 付きのマクロ呼び出しです。
 
 ```rust , ignore
 use yew::prelude::*;
@@ -56,13 +56,52 @@ html! {
 };
 ```
 
-ループラベル（`'label: for ...`、`break 'label`、`continue 'label`）はサポートされていません。`break` と `continue` は常に `html!` 本体内の最も内側の `for` または `while` を対象にします。
+`break` と `continue` は、波括弧付きでも波括弧なしでも、match アームの本体としてそのまま使えます：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        match i {
+            0 => continue,
+            8.. => break,
+            _ => <span>{i}</span>,
+        }
+    }
+};
+```
+
+ループラベルもサポートされています。`break 'label` や `continue 'label` は、マクロを囲む Rust コードで定義されたラベル付きループを対象にでき、マクロの内側から外側のループを抜けることができます：
+
+```rust , ignore
+use yew::prelude::*;
+
+let mut rendered = Vec::new();
+'outer: for section in sections {
+    rendered.push(html! {
+        for item in section.items {
+            if should_stop(&item) {
+                break 'outer;
+            }
+            <span>{item.name}</span>
+        }
+    });
+}
+```
+
+:::note 限定パス
+
+`<Type>::method(...)` のような裸の限定パス式は `<Type>` という要素開始タグと衝突し、受け付けられません。回避方法は 2 つあります：
+
+- 末尾に `;` を付けてプリアンブルの式文にします：`<Type>::method(...);`。戻り値は破棄されます。
+- `{...}` で囲んで戻り値をノードとして使います：`{ <Type>::method(...) }`。
+
+:::
 
   </TabItem>
   <TabItem value="`while` loops" label="`while` ループ">
-`while` および `while let` ループは `for` と同じように動作し、本体からノードのリストを生成します。`let` バインディング、`if` ブロック、`break` / `continue` のすべてがサポートされています。
-
-`while let` をイテレータと組み合わせて使うと、きれいな反復パターンになり、`break` と `continue` が自然に組み合わせられます：
+`while` および `while let` ループは `for` と同じように動作し、本体からノードのリストを生成します。`for` 本体で受け付けられるすべての文の形式（let バインディング、式文、アイテム、マクロ）がここでも受け付けられ、`if` ブロックと `break` / `continue` も使えます。
 
 ```rust
 use yew::prelude::*;
@@ -82,7 +121,7 @@ html! {
 };
 ```
 
-条件付きの通常の `while` も使用できます。ループが条件を進めるために必要な状態はすべて外側のスコープで用意し、本体の中で更新する必要があります。通常は本体の先頭の `let` バインディングで行います：
+条件付きの通常の `while` も使用できます：
 
 ```rust
 use yew::prelude::*;
@@ -91,7 +130,8 @@ let mut counter: i32 = 0;
 
 html! {
     while counter < 5 {
-        let current = { let c = counter; counter += 1; c };
+        let current = counter;
+        counter += 1;
         <span>{current}</span>
     }
 };

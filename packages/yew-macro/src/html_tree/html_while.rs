@@ -4,7 +4,7 @@ use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::While;
-use syn::{Expr, Local, braced};
+use syn::{Expr, Stmt, braced};
 
 use super::HtmlChildrenTree;
 use super::html_loop::{emit_loop, parse_loop_body};
@@ -12,7 +12,7 @@ use crate::PeekValue;
 
 pub struct HtmlWhile {
     cond: Box<Expr>,
-    let_stmts: Vec<Local>,
+    stmts: Vec<Stmt>,
     body: HtmlChildrenTree,
     deprecations: TokenStream,
 }
@@ -47,11 +47,11 @@ impl Parse for HtmlWhile {
         let body_stream;
         braced!(body_stream in input);
 
-        let (let_stmts, body, deprecations) = parse_loop_body(&body_stream, "while")?;
+        let (stmts, body, deprecations) = parse_loop_body(&body_stream, "while")?;
 
         Ok(Self {
             cond,
-            let_stmts,
+            stmts,
             body,
             deprecations,
         })
@@ -62,17 +62,11 @@ impl ToTokens for HtmlWhile {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
             cond,
-            let_stmts,
+            stmts,
             body,
             deprecations,
         } = self;
         let header = quote!(while #cond);
-        tokens.extend(emit_loop(
-            header,
-            cond.span(),
-            let_stmts,
-            body,
-            deprecations,
-        ));
+        tokens.extend(emit_loop(header, cond.span(), stmts, body, deprecations));
     }
 }

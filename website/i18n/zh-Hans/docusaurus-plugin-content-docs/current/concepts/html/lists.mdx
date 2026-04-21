@@ -23,7 +23,7 @@ html! {
 };
 ```
 
-`for` 循环体也支持在 html 子节点前使用 `let` 绑定：
+`for` 循环体支持在 html 子节点前书写 Rust 语句。任何带终止符的语句都可以：`let` 绑定、以 `;` 结尾的表达式语句、项定义（`fn`、`struct`、`use` 等）以及带 `;` 的宏调用。
 
 ```rust , ignore
 use yew::prelude::*;
@@ -56,13 +56,52 @@ html! {
 };
 ```
 
-不支持循环标签（`'label: for ...`、`break 'label`、`continue 'label`）。`break` 和 `continue` 总是作用于 `html!` 主体内最近的 `for` 或 `while`。
+`break` 和 `continue` 也可以直接作为 match 分支使用，无论带花括号还是不带：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        match i {
+            0 => continue,
+            8.. => break,
+            _ => <span>{i}</span>,
+        }
+    }
+};
+```
+
+循环标签也受支持。`break 'label` 和 `continue 'label` 可以作用于宏外部 Rust 代码中定义的带标签的循环，让你能从宏内部退出外层循环：
+
+```rust , ignore
+use yew::prelude::*;
+
+let mut rendered = Vec::new();
+'outer: for section in sections {
+    rendered.push(html! {
+        for item in section.items {
+            if should_stop(&item) {
+                break 'outer;
+            }
+            <span>{item.name}</span>
+        }
+    });
+}
+```
+
+:::note 限定路径
+
+像 `<Type>::method(...)` 这样的裸限定路径表达式会与 `<Type>` 元素起始标签冲突，因此会被拒绝。有两种解决方法：
+
+- 在末尾加上 `;`，使其成为前置的表达式语句：`<Type>::method(...);`。返回值会被丢弃。
+- 用 `{...}` 包起来，将返回值作为节点使用：`{ <Type>::method(...) }`。
+
+:::
 
   </TabItem>
   <TabItem value="`while` loops" label="`while` 循环">
-`while` 和 `while let` 循环的工作方式与 `for` 相同，也会从循环体中生成节点列表。`let` 绑定、`if` 块以及 `break` / `continue` 都被支持。
-
-将 `while let` 与迭代器搭配使用可以得到一种清晰的迭代模式，其中 `break` 和 `continue` 可以自然地组合使用：
+`while` 和 `while let` 循环的工作方式与 `for` 相同，也会从循环体中生成节点列表。`for` 循环体中支持的所有语句形式（let 绑定、表达式语句、项、宏）在这里同样可用，外加 `if` 块和 `break` / `continue`。
 
 ```rust
 use yew::prelude::*;
@@ -82,7 +121,7 @@ html! {
 };
 ```
 
-带条件的普通 `while` 也可以使用。循环推进条件所需的任何状态都必须在外部作用域中设置，并在循环体内部更新，通常通过在循环体顶部添加 `let` 绑定来完成：
+带条件的普通 `while` 也可以使用：
 
 ```rust
 use yew::prelude::*;
@@ -91,7 +130,8 @@ let mut counter: i32 = 0;
 
 html! {
     while counter < 5 {
-        let current = { let c = counter; counter += 1; c };
+        let current = counter;
+        counter += 1;
         <span>{current}</span>
     }
 };

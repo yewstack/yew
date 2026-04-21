@@ -25,7 +25,10 @@ html! {
 };
 ```
 
-`for` loop bodies also support `let` bindings before the html children:
+`for` loop bodies accept Rust statements before the html children. Any
+terminated statement works: `let` bindings, expression statements ending in
+`;`, item definitions (`fn`, `struct`, `use`, ...), and macro invocations with
+`;`.
 
 ```rust , ignore
 use yew::prelude::*;
@@ -58,17 +61,60 @@ html! {
 };
 ```
 
-Loop labels (`'label: for ...`, `break 'label`, `continue 'label`) are not
-supported. `break` and `continue` always target the nearest enclosing `for` or
-`while` in the `html!` body.
+`break` and `continue` are also available directly as match arms, whether
+braced or unbraced:
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        match i {
+            0 => continue,
+            8.. => break,
+            _ => <span>{i}</span>,
+        }
+    }
+};
+```
+
+Loop labels are supported. `break 'label` and `continue 'label` target a
+labeled loop defined in the surrounding Rust code, letting you exit an
+enclosing loop from inside the macro:
+
+```rust , ignore
+use yew::prelude::*;
+
+let mut rendered = Vec::new();
+'outer: for section in sections {
+    rendered.push(html! {
+        for item in section.items {
+            if should_stop(&item) {
+                break 'outer;
+            }
+            <span>{item.name}</span>
+        }
+    });
+}
+```
+
+:::note Qualified paths
+
+A bare qualified-path expression like `<Type>::method(...)` collides with the
+`<Type>` element open tag and is rejected. Two ways out:
+
+- Add a trailing `;` and it becomes an expression statement in the preamble:
+  `<Type>::method(...);`. The return value is discarded.
+- Wrap it in `{...}` to use the return value as a node:
+  `{ <Type>::method(...) }`.
+
+:::
 
   </TabItem>
   <TabItem value="`while` loops" label="`while` loops">
 `while` and `while let` loops work the same way as `for`, producing a list of nodes from their
-body. `let` bindings, `if` blocks, and `break` / `continue` are all supported.
-
-Pair `while let` with an iterator for a clean iteration pattern, where `break` and `continue`
-compose naturally:
+body. All the statement forms accepted by `for` bodies (let bindings, expression statements,
+items, macros) are also accepted here, along with `if` blocks and `break`/`continue`.
 
 ```rust
 use yew::prelude::*;
@@ -88,9 +134,7 @@ html! {
 };
 ```
 
-A plain `while` with a condition works too. Any state the loop needs to advance its condition
-must be set up via the outer scope and updated inside the body, typically via a `let` binding
-at the top of the body:
+A plain `while` with a condition works too:
 
 ```rust
 use yew::prelude::*;
@@ -99,7 +143,8 @@ let mut counter: i32 = 0;
 
 html! {
     while counter < 5 {
-        let current = { let c = counter; counter += 1; c };
+        let current = counter;
+        counter += 1;
         <span>{current}</span>
     }
 };

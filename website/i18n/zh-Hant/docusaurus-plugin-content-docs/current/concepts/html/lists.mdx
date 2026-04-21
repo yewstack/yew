@@ -23,7 +23,7 @@ html! {
 };
 ```
 
-`for` 迴圈主體也支援在 html 子節點前使用 `let` 綁定：
+`for` 迴圈主體支援在 html 子節點前書寫 Rust 陳述式。任何帶終止符號的陳述式都可以：`let` 綁定、以 `;` 結尾的運算式陳述式、項目定義（`fn`、`struct`、`use` 等）以及帶 `;` 的巨集呼叫。
 
 ```rust , ignore
 use yew::prelude::*;
@@ -56,13 +56,52 @@ html! {
 };
 ```
 
-不支援迴圈標籤（`'label: for ...`、`break 'label`、`continue 'label`）。`break` 和 `continue` 永遠作用於 `html!` 主體內最靠近的 `for` 或 `while`。
+`break` 和 `continue` 也可以直接作為 match 分支使用，無論帶大括號或不帶：
+
+```rust
+use yew::prelude::*;
+
+html! {
+    for i in 0..10 {
+        match i {
+            0 => continue,
+            8.. => break,
+            _ => <span>{i}</span>,
+        }
+    }
+};
+```
+
+迴圈標籤也受支援。`break 'label` 和 `continue 'label` 可以作用於巨集外部 Rust 程式碼中定義的帶標籤迴圈，讓你能從巨集內部跳出外層迴圈：
+
+```rust , ignore
+use yew::prelude::*;
+
+let mut rendered = Vec::new();
+'outer: for section in sections {
+    rendered.push(html! {
+        for item in section.items {
+            if should_stop(&item) {
+                break 'outer;
+            }
+            <span>{item.name}</span>
+        }
+    });
+}
+```
+
+:::note 限定路徑
+
+像 `<Type>::method(...)` 這樣的裸限定路徑運算式會與 `<Type>` 元素起始標籤衝突，因此會被拒絕。有兩種解決方式：
+
+- 在結尾加上 `;`，讓它成為前置的運算式陳述式：`<Type>::method(...);`。傳回值會被丟棄。
+- 用 `{...}` 包起來，將傳回值當作節點使用：`{ <Type>::method(...) }`。
+
+:::
 
   </TabItem>
   <TabItem value="`while` loops" label="`while` 迴圈">
-`while` 和 `while let` 迴圈的運作方式與 `for` 相同，也會從迴圈主體中生成節點清單。`let` 綁定、`if` 區塊以及 `break` / `continue` 都受到支援。
-
-將 `while let` 與迭代器搭配使用，可以得到一種清晰的迭代模式，其中 `break` 和 `continue` 可以自然地組合使用：
+`while` 和 `while let` 迴圈的運作方式與 `for` 相同，也會從迴圈主體中生成節點清單。`for` 迴圈主體中支援的所有陳述式形式（let 綁定、運算式陳述式、項目、巨集）在這裡同樣可用，此外還有 `if` 區塊以及 `break` / `continue`。
 
 ```rust
 use yew::prelude::*;
@@ -82,7 +121,7 @@ html! {
 };
 ```
 
-帶條件的一般 `while` 也可以使用。迴圈推進條件所需的任何狀態都必須在外部作用域中設定，並在迴圈主體內部更新，通常是透過在迴圈主體頂部加入 `let` 綁定來完成：
+帶條件的一般 `while` 也可以使用：
 
 ```rust
 use yew::prelude::*;
@@ -91,7 +130,8 @@ let mut counter: i32 = 0;
 
 html! {
     while counter < 5 {
-        let current = { let c = counter; counter += 1; c };
+        let current = counter;
+        counter += 1;
         <span>{current}</span>
     }
 };
