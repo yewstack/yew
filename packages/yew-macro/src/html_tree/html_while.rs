@@ -67,6 +67,6 @@ impl ToTokens for HtmlWhile {
             deprecations,
         } = self;
         let header = quote!(while #cond);
-        tokens.extend(emit_loop(header, cond.span(), stmts, body, deprecations));
+        tokens.extend(emit_loop(header, stmts, body, deprecations));
     }
 }

@@ -2,7 +2,6 @@ use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
 use syn::token::{For, In};
 use syn::{Expr, Pat, Stmt, braced};
 
@@ -57,6 +56,6 @@ impl ToTokens for HtmlFor {
             deprecations,
         } = self;
         let header = quote!(for #pat in #iter);
-        tokens.extend(emit_loop(header, iter.span(), stmts, body, deprecations));
+        tokens.extend(emit_loop(header, stmts, body, deprecations));
     }
 }

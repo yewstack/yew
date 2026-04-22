@@ -340,3 +340,25 @@ async fn while_return_in_unbraced_match_arm() {
 
     assert_eq!(render_and_read::<App>().await, "stopped at 3");
 }
+
+// Counterpart to `for_return_html_workaround_with_braced_arm`: verifies the
+// braced-arm workaround works under `while let` too.
+#[wasm_bindgen_test]
+async fn while_return_html_workaround_with_braced_arm() {
+    #[component]
+    fn App() -> Html {
+        let mut it = (0..10).into_iter();
+        html! {
+            <div id="original">
+                while let Some(v) = it.next() {
+                    match v {
+                        3 => { return html!(<p id="result">{format!("stopped at {v}")}</p>) }
+                        _ => <span>{v}</span>,
+                    }
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "stopped at 3");
+}

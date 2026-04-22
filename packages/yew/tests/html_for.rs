@@ -295,3 +295,51 @@ async fn for_return_in_unbraced_match_arm() {
 
     assert_eq!(render_and_read::<App>().await, "stopped at 3");
 }
+
+// `break <html-element/>`, `continue <html-element/>`, and `return <html-element/>`
+// in an unbraced match arm are compile errors (see html-match-fail.rs). The
+// documented workaround is to wrap the arm body in braces and use `html!(...)`
+// to produce the value. The tests below verify the workaround compiles and
+// renders correctly.
+#[wasm_bindgen_test]
+async fn for_return_html_workaround_with_braced_arm() {
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="original">
+                for i in 0..10 {
+                    match i {
+                        3 => { return html!(<p id="result">{format!("stopped at {i}")}</p>) }
+                        _ => <span>{i}</span>,
+                    }
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "stopped at 3");
+}
+
+#[wasm_bindgen_test]
+async fn for_break_workaround_with_braced_arm() {
+    // Breaking the loop doesn't need a value; the workaround for users who
+    // tried `break <html/>` is just a braced `{ break }` arm.
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="result">
+                for i in 0..10 {
+                    match i {
+                        3 => { break }
+                        _ => <span>{i}</span>,
+                    }
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(
+        render_and_read::<App>().await,
+        "<span>0</span><span>1</span><span>2</span>"
+    );
+}

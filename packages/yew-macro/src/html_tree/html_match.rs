@@ -137,6 +137,29 @@ impl Parse for HtmlMatchArm {
 
         let comma: Option<Token![,]> = input.parse()?;
 
+        // An unbraced `break`/`continue`/`return` body followed by more tokens
+        // past the optional comma is almost always an attempt to give the
+        // keyword an HTML value, which Rust does not accept as an expression.
+        // Without this check the next-arm parser runs on the trailing `<...>`
+        // and fails inside `Pat::parse` with a misleading "expected `>`".
+        if comma.is_none() && !input.is_empty() {
+            if let HtmlMatchArmBody::Unbraced { tree, .. } = &body {
+                if matches!(
+                    &**tree,
+                    super::HtmlTree::Break(_)
+                        | super::HtmlTree::Continue(_)
+                        | super::HtmlTree::Return(_)
+                ) {
+                    return Err(syn::Error::new(
+                        input.span(),
+                        "`break`, `continue`, and `return` in a match arm cannot be followed by \
+                         HTML as their value. Wrap the arm body in braces, e.g. `_ => { return \
+                         ::yew::html!(<span/>) }`.",
+                    ));
+                }
+            }
+        }
+
         Ok(HtmlMatchArm {
             pat,
             guard,

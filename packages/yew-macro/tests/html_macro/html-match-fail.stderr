@@ -15,3 +15,27 @@ error: `match` expression must have at least one arm
    |
 11 |     html! { match 42 {} };
    |                      ^^
+
+error: `break`, `continue`, and `return` in a match arm cannot be followed by HTML as their value. Wrap the arm body in braces, e.g. `_ => { return ::yew::html!(<span/>) }`.
+  --> tests/html_macro/html-match-fail.rs:18:29
+   |
+18 |                 () => break <span/>,
+   |                             ^
+
+error: `break`, `continue`, and `return` in a match arm cannot be followed by HTML as their value. Wrap the arm body in braces, e.g. `_ => { return ::yew::html!(<span/>) }`.
+  --> tests/html_macro/html-match-fail.rs:27:32
+   |
+27 |                 () => continue <div/>,
+   |                                ^
+
+error: `break`, `continue`, and `return` in a match arm cannot be followed by HTML as their value. Wrap the arm body in braces, e.g. `_ => { return ::yew::html!(<span/>) }`.
+  --> tests/html_macro/html-match-fail.rs:37:34
+   |
+37 |                     () => return <p/>,
+   |                                  ^
+
+error: `break`, `continue`, and `return` in a match arm cannot be followed by HTML as their value. Wrap the arm body in braces, e.g. `_ => { return ::yew::html!(<span/>) }`.
+  --> tests/html_macro/html-match-fail.rs:48:29
+   |
+48 |                 () => break <div/>
+   |                             ^

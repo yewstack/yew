@@ -54,16 +54,14 @@ pub(super) fn parse_loop_body(
 /// Emit a loop that accumulates its body children into a `VList`.
 ///
 /// `loop_header` is the native Rust loop syntax without its body, e.g.
-/// `for #pat in #iter` or `while #cond`. `span` is used to place the internal
-/// accumulator identifier.
+/// `for #pat in #iter` or `while #cond`.
 pub(super) fn emit_loop(
     loop_header: TokenStream,
-    span: Span,
     stmts: &[Stmt],
     body: &HtmlChildrenTree,
     deprecations: &TokenStream,
 ) -> TokenStream {
-    let acc = Ident::new("__yew_v", span);
+    let acc = Ident::new("__yew_v", Span::mixed_site());
 
     let alloc_opt = body
         .size_hint()
