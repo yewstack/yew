@@ -246,3 +246,97 @@ async fn while_expr_stmt_preamble_increments() {
         "<span>0</span><span>1</span><span>2</span><span>3</span>"
     );
 }
+
+#[wasm_bindgen_test]
+async fn while_labeled_break_no_semi() {
+    #[component]
+    fn App() -> Html {
+        let mut rows_completed = 0;
+        'outer: for _row in 0..3 {
+            let mut i: i32 = 0;
+            let _ = html! {
+                while i < 10 {
+                    let current = i;
+                    i += 1;
+                    if current >= 1 {
+                        break 'outer
+                    }
+                    <span>{current}</span>
+                }
+            };
+            rows_completed += 1;
+        }
+        html! {
+            <div id="result">{ format!("rows_completed={rows_completed}") }</div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "rows_completed=0");
+}
+
+#[wasm_bindgen_test]
+async fn while_labeled_continue_no_semi() {
+    #[component]
+    fn App() -> Html {
+        let mut rows_skipped = 0;
+        'outer: for row in 0..3 {
+            let mut i: i32 = 0;
+            let _ = html! {
+                while i < 2 {
+                    let current = i;
+                    i += 1;
+                    if row == 1 {
+                        continue 'outer
+                    }
+                    <span>{current}</span>
+                }
+            };
+            if row == 1 {
+                rows_skipped += 1;
+            }
+        }
+        html! {
+            <div id="result">{ format!("rows_skipped={rows_skipped}") }</div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "rows_skipped=0");
+}
+
+#[wasm_bindgen_test]
+async fn while_return_exits_component() {
+    #[component]
+    fn App() -> Html {
+        let mut it = (0..1).into_iter();
+        html! {
+            <div id="original">
+                while let Some(_) = it.next() {
+                    return html!{ <p id="result">{"returned"}</p> };
+                    <span>{"never"}</span>
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "returned");
+}
+
+#[wasm_bindgen_test]
+async fn while_return_in_unbraced_match_arm() {
+    #[component]
+    fn App() -> Html {
+        let mut it = (0..10).into_iter();
+        html! {
+            <div id="original">
+                while let Some(v) = it.next() {
+                    match v {
+                        3 => return html!{ <p id="result">{format!("stopped at {v}")}</p> },
+                        _ => <span>{v}</span>,
+                    }
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "stopped at 3");
+}

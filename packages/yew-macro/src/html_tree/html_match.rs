@@ -178,7 +178,9 @@ impl ToTokens for HtmlMatchArmBody {
             Self::Unbraced { tree, deprecations } => {
                 if matches!(
                     tree.as_ref(),
-                    super::HtmlTree::Break(_) | super::HtmlTree::Continue(_)
+                    super::HtmlTree::Break(_)
+                        | super::HtmlTree::Continue(_)
+                        | super::HtmlTree::Return(_)
                 ) {
                     tokens.extend(quote_spanned! {tree.span()=>
                         {

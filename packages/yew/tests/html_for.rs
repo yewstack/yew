@@ -203,3 +203,95 @@ async fn for_labeled_break_crosses_macro() {
 
     assert_eq!(render_and_read::<App>().await, "rows_completed=0");
 }
+
+#[wasm_bindgen_test]
+async fn for_labeled_break_no_semi() {
+    #[component]
+    fn App() -> Html {
+        let mut rows_completed = 0;
+        'outer: for _row in 0..3 {
+            let _ = html! {
+                for col in 0..10 {
+                    if col >= 1 {
+                        break 'outer
+                    }
+                    <span>{col}</span>
+                }
+            };
+            rows_completed += 1;
+        }
+        html! {
+            <div id="result">{ format!("rows_completed={rows_completed}") }</div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "rows_completed=0");
+}
+
+#[wasm_bindgen_test]
+async fn for_labeled_continue_no_semi() {
+    #[component]
+    fn App() -> Html {
+        let mut rows_skipped = 0;
+        'outer: for row in 0..3 {
+            let _ = html! {
+                for col in 0..10 {
+                    if row == 1 {
+                        continue 'outer
+                    }
+                    <span>{col}</span>
+                }
+            };
+            if row == 1 {
+                rows_skipped += 1;
+            }
+        }
+        html! {
+            <div id="result">{ format!("rows_skipped={rows_skipped}") }</div>
+        }
+    }
+
+    // Row 1's inner `continue 'outer` skips over `rows_skipped += 1;`, so
+    // the counter stays at 0 — proving the label crossed the macro boundary.
+    assert_eq!(render_and_read::<App>().await, "rows_skipped=0");
+}
+
+#[wasm_bindgen_test]
+async fn for_return_exits_component() {
+    // `return` inside an html! body returns from the enclosing function. The
+    // component function therefore yields the inner `html! { <p .../> }`
+    // instead of the outer `<div>` fragment, and the "never" span is dead
+    // code. Verifies bare `return val;` semantics in a for-body preamble.
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="original">
+                for _ in 0..1 {
+                    return html!{ <p id="result">{"returned"}</p> };
+                    <span>{"never"}</span>
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "returned");
+}
+
+#[wasm_bindgen_test]
+async fn for_return_in_unbraced_match_arm() {
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="original">
+                for i in 0..10 {
+                    match i {
+                        3 => return html!{ <p id="result">{format!("stopped at {i}")}</p> },
+                        _ => <span>{i}</span>,
+                    }
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(render_and_read::<App>().await, "stopped at 3");
+}

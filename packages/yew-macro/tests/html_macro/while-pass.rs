@@ -281,4 +281,108 @@ fn main() {
         };
         break;
     }
+
+    // Labeled `break 'outer` without a trailing `;` (body-top position).
+    'outer: loop {
+        let mut i: ::std::primitive::i32 = 0;
+        _ = ::yew::html! {
+            while i < 100 {
+                let current = i;
+                i += 1;
+                if current > 2 {
+                    break 'outer
+                }
+                <span>{current}</span>
+            }
+        };
+        break;
+    }
+
+    // Labeled `continue 'outer` without a trailing `;` inside a while body.
+    {
+        let mut outer_hit: ::std::primitive::i32 = 0;
+        'outer: for _ in 0..3 {
+            let mut i: ::std::primitive::i32 = 0;
+            _ = ::yew::html! {
+                while i < 10 {
+                    let current = i;
+                    i += 1;
+                    if current > 2 {
+                        continue 'outer
+                    }
+                    <span>{current}</span>
+                }
+            };
+            outer_hit += 1;
+        }
+        _ = outer_hit;
+    }
+
+    // Bare `return` (no value, no `;`) at body top.
+    fn bare_return_at_body_top() {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..1);
+        _ = ::yew::html! {
+            while let ::std::option::Option::Some(_) = ::std::iter::Iterator::next(&mut it) {
+                return
+                <span>{"unreachable"}</span>
+            }
+        };
+    }
+    bare_return_at_body_top();
+
+    // Bare `return` in unbraced match arm (inside while-let).
+    fn return_in_unbraced_match_arm() {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..10);
+        _ = ::yew::html! {
+            while let ::std::option::Option::Some(v) = ::std::iter::Iterator::next(&mut it) {
+                match v {
+                    3 => return,
+                    _ => <span>{v}</span>,
+                }
+            }
+        };
+    }
+    return_in_unbraced_match_arm();
+
+    // Bare `return` in braced match arm.
+    fn return_in_braced_match_arm() {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..10);
+        _ = ::yew::html! {
+            while let ::std::option::Option::Some(v) = ::std::iter::Iterator::next(&mut it) {
+                match v {
+                    3 => { return },
+                    _ => <span>{v}</span>,
+                }
+            }
+        };
+    }
+    return_in_braced_match_arm();
+
+    // `return` with a value in preamble position.
+    fn return_value_from_preamble() -> ::std::primitive::i32 {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..3);
+        _ = ::yew::html! {
+            while let ::std::option::Option::Some(current) = ::std::iter::Iterator::next(&mut it) {
+                return current;
+                <span>{current}</span>
+            }
+        };
+        0
+    }
+    let _ = return_value_from_preamble();
+
+    // `return` with a value in unbraced match arm.
+    fn return_value_from_unbraced_arm() -> ::std::primitive::i32 {
+        let mut it = ::std::iter::IntoIterator::into_iter(0..10);
+        _ = ::yew::html! {
+            while let ::std::option::Option::Some(v) = ::std::iter::Iterator::next(&mut it) {
+                match v {
+                    3 => return v,
+                    _ => <span>{v}</span>,
+                }
+            }
+        };
+        0
+    }
+    let _ = return_value_from_unbraced_arm();
 }

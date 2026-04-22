@@ -2,6 +2,7 @@ use proc_macro2::{Delimiter, Ident, Span, TokenStream};
 use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
+use syn::parse::discouraged::Speculative;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{Token, braced, token};
@@ -49,6 +50,7 @@ pub enum HtmlType {
     Match,
     Break,
     Continue,
+    Return,
     Empty,
 }
 
@@ -62,8 +64,9 @@ pub enum HtmlTree {
     While(Box<HtmlWhile>),
     Match(Box<HtmlMatch>),
     Node(Box<HtmlNode>),
-    Break(Token![break]),
-    Continue(Token![continue]),
+    Break(Box<syn::ExprBreak>),
+    Continue(Box<syn::ExprContinue>),
+    Return(Box<syn::ExprReturn>),
     Empty,
 }
 
@@ -82,18 +85,25 @@ impl Parse for HtmlTree {
             HtmlType::While => Self::While(Box::new(input.parse()?)),
             HtmlType::Match => Self::Match(Box::new(input.parse()?)),
             HtmlType::Break => {
-                let token = input.parse()?;
+                let expr = parse_break(input)?;
                 while input.peek(Token![;]) {
                     let _: Token![;] = input.parse()?;
                 }
-                Self::Break(token)
+                Self::Break(Box::new(expr))
             }
             HtmlType::Continue => {
-                let token = input.parse()?;
+                let expr = parse_continue(input)?;
                 while input.peek(Token![;]) {
                     let _: Token![;] = input.parse()?;
                 }
-                Self::Continue(token)
+                Self::Continue(Box::new(expr))
+            }
+            HtmlType::Return => {
+                let expr = parse_return(input)?;
+                while input.peek(Token![;]) {
+                    let _: Token![;] = input.parse()?;
+                }
+                Self::Return(Box::new(expr))
             }
         })
     }
@@ -138,6 +148,8 @@ impl HtmlTree {
             .unwrap_or(false)
         {
             Some(HtmlType::Continue)
+        } else if cursor.ident().map(|(i, _)| i == "return").unwrap_or(false) {
+            Some(HtmlType::Return)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
 
@@ -189,8 +201,9 @@ impl ToTokens for HtmlTree {
             Self::While(block) => block.to_tokens(tokens),
             Self::Match(block) => block.to_tokens(tokens),
             Self::Node(node) => node.to_tokens(tokens),
-            Self::Break(token) => token.to_tokens(tokens),
-            Self::Continue(token) => token.to_tokens(tokens),
+            Self::Break(expr) => expr.to_tokens(tokens),
+            Self::Continue(expr) => expr.to_tokens(tokens),
+            Self::Return(expr) => expr.to_tokens(tokens),
         }
     }
 }
@@ -324,9 +337,12 @@ impl HtmlChildrenTree {
     pub fn to_build_vec_token_stream(&self) -> TokenStream {
         let Self(children) = self;
 
-        let has_divergent = children
-            .iter()
-            .any(|c| matches!(c, HtmlTree::Break(_) | HtmlTree::Continue(_)));
+        let has_divergent = children.iter().any(|c| {
+            matches!(
+                c,
+                HtmlTree::Break(_) | HtmlTree::Continue(_) | HtmlTree::Return(_)
+            )
+        });
 
         if !has_divergent && self.only_single_node_children() {
             // optimize for the common case where all children are single nodes (only using literal
@@ -341,7 +357,9 @@ impl HtmlChildrenTree {
 
         let vec_ident = Ident::new("__yew_v", Span::mixed_site());
         let add_children_streams = children.iter().map(|child| match child {
-            HtmlTree::Break(_) | HtmlTree::Continue(_) => quote!( #child; ),
+            HtmlTree::Break(_) | HtmlTree::Continue(_) | HtmlTree::Return(_) => {
+                quote!( #child; )
+            }
             _ => match child.to_node_iterator_stream() {
                 Some(node_iterator_stream) => {
                     quote! {
@@ -458,7 +476,12 @@ impl HtmlChildrenTree {
         self.only_single_node_children().then(|| {
             self.0
                 .iter()
-                .filter(|c| !matches!(c, HtmlTree::Break(_) | HtmlTree::Continue(_)))
+                .filter(|c| {
+                    !matches!(
+                        c,
+                        HtmlTree::Break(_) | HtmlTree::Continue(_) | HtmlTree::Return(_)
+                    )
+                })
                 .count()
         })
     }
@@ -501,6 +524,7 @@ impl HtmlChildrenTree {
                 | HtmlTree::Match(_)
                 | HtmlTree::Break(_)
                 | HtmlTree::Continue(_)
+                | HtmlTree::Return(_)
                 | HtmlTree::Empty => {
                     return Some(false);
                 }
@@ -575,6 +599,71 @@ pub(super) fn parse_preamble_stmts(input: ParseStream) -> syn::Result<Vec<syn::S
         stmts.push(stmt);
     }
     Ok(stmts)
+}
+
+/// Parse `break [label] [value]` forgivingly: first try syn's full
+/// `ExprBreak::parse` (via a fork so we don't commit a bad state), and if that
+/// fails because the value position starts with `<` (html) or another
+/// non-expression token, fall back to the keyword + optional lifetime label.
+/// This lets `break` / `break 'outer` / `break val` / `break 'outer val` all
+/// work without also eating html children.
+pub(super) fn parse_break(input: syn::parse::ParseStream) -> syn::Result<syn::ExprBreak> {
+    let fork = input.fork();
+    if let Ok(expr) = fork.parse::<syn::ExprBreak>() {
+        input.advance_to(&fork);
+        return Ok(expr);
+    }
+    let break_token: Token![break] = input.parse()?;
+    let label: Option<syn::Lifetime> = if input.peek(syn::Lifetime) {
+        Some(input.parse()?)
+    } else {
+        None
+    };
+    Ok(syn::ExprBreak {
+        attrs: Vec::new(),
+        break_token,
+        label,
+        expr: None,
+    })
+}
+
+/// Parse `continue [label]` with the same fork-and-fallback strategy as
+/// [`parse_break`].
+pub(super) fn parse_continue(input: syn::parse::ParseStream) -> syn::Result<syn::ExprContinue> {
+    let fork = input.fork();
+    if let Ok(expr) = fork.parse::<syn::ExprContinue>() {
+        input.advance_to(&fork);
+        return Ok(expr);
+    }
+    let continue_token: Token![continue] = input.parse()?;
+    let label: Option<syn::Lifetime> = if input.peek(syn::Lifetime) {
+        Some(input.parse()?)
+    } else {
+        None
+    };
+    Ok(syn::ExprContinue {
+        attrs: Vec::new(),
+        continue_token,
+        label,
+    })
+}
+
+/// Parse `return [value]` with the same fork-and-fallback strategy as
+/// [`parse_break`]. The fallback emits a bare `return` (no value), leaving
+/// anything that follows — notably `<span>` or other html — for the children
+/// parser.
+pub(super) fn parse_return(input: syn::parse::ParseStream) -> syn::Result<syn::ExprReturn> {
+    let fork = input.fork();
+    if let Ok(expr) = fork.parse::<syn::ExprReturn>() {
+        input.advance_to(&fork);
+        return Ok(expr);
+    }
+    let return_token: Token![return] = input.parse()?;
+    Ok(syn::ExprReturn {
+        attrs: Vec::new(),
+        return_token,
+        expr: None,
+    })
 }
 
 /// Whether any statement is a top-level divergent expression (`break`,

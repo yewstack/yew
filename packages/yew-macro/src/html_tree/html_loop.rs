@@ -91,18 +91,19 @@ pub(super) fn emit_loop(
     };
 
     let body_streams = body.0.iter().map(|child| match child {
-        HtmlTree::Break(_) | HtmlTree::Continue(_) => quote!( #child ),
+        HtmlTree::Break(_) | HtmlTree::Continue(_) | HtmlTree::Return(_) => quote!( #child ),
         _ => match child.to_node_iterator_stream() {
             Some(stream) => quote!( #acc.extend(#stream) ),
             _ => quote!( #acc.push(::std::convert::Into::into(#child)) ),
         },
     });
 
-    let has_top_level_divergent = body
-        .0
-        .iter()
-        .any(|c| matches!(c, HtmlTree::Break(_) | HtmlTree::Continue(_)))
-        || stmts_have_divergent(stmts);
+    let has_top_level_divergent = body.0.iter().any(|c| {
+        matches!(
+            c,
+            HtmlTree::Break(_) | HtmlTree::Continue(_) | HtmlTree::Return(_)
+        )
+    }) || stmts_have_divergent(stmts);
 
     // Nest in an inner block when divergent, so `#![allow(unreachable_code)]`
     // lands in an inner expression block (accepted everywhere) rather than in

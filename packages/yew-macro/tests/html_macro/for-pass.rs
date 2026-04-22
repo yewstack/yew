@@ -293,4 +293,101 @@ fn main() {
         }
         _ = outer_hit;
     }
+
+    // Labeled `break 'outer` without a trailing `;` (body-top position).
+    {
+        let mut outer_hit: ::std::primitive::i32 = 0;
+        'outer: for _ in 0..3 {
+            _ = ::yew::html!{
+                for i in 0..10 {
+                    if i > 2 {
+                        break 'outer
+                    }
+                    <span>{i}</span>
+                }
+            };
+            outer_hit += 1;
+        }
+        _ = outer_hit;
+    }
+
+    // Labeled `continue 'outer` without a trailing `;` (body-top position).
+    {
+        let mut outer_hit: ::std::primitive::i32 = 0;
+        'outer: for _ in 0..3 {
+            _ = ::yew::html!{
+                for i in 0..10 {
+                    if i > 2 {
+                        continue 'outer
+                    }
+                    <span>{i}</span>
+                }
+            };
+            outer_hit += 1;
+        }
+        _ = outer_hit;
+    }
+
+    // Bare `return` (no value, no trailing `;`) at body top. Returns `()` from main.
+    fn bare_return_at_body_top() {
+        _ = ::yew::html!{
+            for _ in 0..1 {
+                return
+                <span>{"unreachable"}</span>
+            }
+        };
+    }
+    bare_return_at_body_top();
+
+    // Bare `return` in unbraced match arm.
+    fn return_in_unbraced_match_arm() {
+        _ = ::yew::html!{
+            for i in 0..10 {
+                match i {
+                    3 => return,
+                    _ => <span>{i}</span>,
+                }
+            }
+        };
+    }
+    return_in_unbraced_match_arm();
+
+    // Bare `return` in braced match arm.
+    fn return_in_braced_match_arm() {
+        _ = ::yew::html!{
+            for i in 0..10 {
+                match i {
+                    3 => { return },
+                    _ => <span>{i}</span>,
+                }
+            }
+        };
+    }
+    return_in_braced_match_arm();
+
+    // `return` with a value in preamble position (statement form with `;`).
+    fn return_value_from_preamble() -> ::std::primitive::i32 {
+        _ = ::yew::html!{
+            for i in 0..3 {
+                return i;
+                <span>{i}</span>
+            }
+        };
+        0
+    }
+    let _ = return_value_from_preamble();
+
+    // `return` with a value in unbraced match arm (value part of ExprReturn).
+    fn return_value_from_unbraced_arm() -> ::std::primitive::i32 {
+        _ = ::yew::html!{
+            for i in 0..10 {
+                match i {
+                    3 => return i,
+                    _ => <span>{i}</span>,
+                }
+            }
+        };
+        0
+    }
+    let _ = return_value_from_unbraced_arm();
 }
