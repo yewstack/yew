@@ -510,20 +510,28 @@ impl ComponentState {
                 let first_render = !self.has_rendered;
                 self.has_rendered = true;
 
-                // When resuming from suspension, the component's DOM nodes live in a
-                // detached parent. The Suspense ancestor must process the Resume
-                // message and re-render to move children into the live DOM before
-                // effects run. Use the `rendered` queue (not `rendered_first`) so
-                // the scheduler processes the Suspense update and render first.
-                let schedule_as_first = first_render && !resuming_from_suspension;
-                scheduler::push_component_rendered(
-                    self.comp_id,
-                    Box::new(RenderedRunner {
-                        state: shared_state.clone(),
+                if resuming_from_suspension {
+                    // The DOM we just reconciled still lives in the ancestor
+                    // Suspense's detached parent. The Suspense must process
+                    // the Resume message and re-render to shift children into
+                    // the live tree before our effects observe the DOM.
+                    // Hand the pending `rendered` to the Suspense; it will
+                    // re-schedule it once it fully un-suspends.
+                    let pending = PendingRendered::new(shared_state.clone(), first_render);
+                    let suspense_scope = scope
+                        .find_parent_scope::<BaseSuspense>()
+                        .expect("a resuming component must have a Suspense ancestor");
+                    BaseSuspense::defer_rendered(&suspense_scope, self.comp_id, pending);
+                } else {
+                    scheduler::push_component_rendered(
+                        self.comp_id,
+                        Box::new(RenderedRunner {
+                            state: shared_state.clone(),
+                            first_render,
+                        }),
                         first_render,
-                    }),
-                    schedule_as_first,
-                );
+                    );
+                }
             }
 
             #[cfg(feature = "hydration")]
@@ -709,6 +717,47 @@ mod feat_csr {
         pub first_render: bool,
     }
 
+    /// A `rendered` lifecycle deferred by the ancestor `<Suspense>` so it fires
+    /// only after Suspense un-suspends and children's DOM has been shifted into
+    /// the live tree. See `BaseSuspense::defer_rendered`.
+    pub(crate) struct PendingRendered {
+        pub state: Shared<Option<ComponentState>>,
+        pub first_render: bool,
+    }
+
+    impl PendingRendered {
+        pub(crate) fn new(state: Shared<Option<ComponentState>>, first_render: bool) -> Self {
+            Self {
+                state,
+                first_render,
+            }
+        }
+
+        /// Absorb a later-committed pending rendered for the same component:
+        /// keep the latest state but preserve `first_render=true` if either
+        /// side carried it.
+        pub(crate) fn absorb(&mut self, later: Self) {
+            self.state = later.state;
+            self.first_render |= later.first_render;
+        }
+
+        /// Push this onto the scheduler's `rendered` queue.
+        pub(crate) fn schedule(self, comp_id: usize) {
+            let PendingRendered {
+                state,
+                first_render,
+            } = self;
+            scheduler::push_component_rendered(
+                comp_id,
+                Box::new(RenderedRunner {
+                    state,
+                    first_render,
+                }),
+                false,
+            );
+        }
+    }
+
     impl ComponentState {
         #[tracing::instrument(
             level = tracing::Level::DEBUG,
@@ -749,7 +798,7 @@ mod feat_csr {
 }
 
 #[cfg(feature = "csr")]
-pub(super) use feat_csr::*;
+pub(crate) use feat_csr::*;
 
 #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]

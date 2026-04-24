@@ -14,7 +14,12 @@ pub struct SuspenseProps {
 
 #[cfg(any(feature = "csr", feature = "ssr"))]
 mod feat_csr_ssr {
+    #[cfg(feature = "csr")]
+    use std::cell::RefCell;
+
     use super::*;
+    #[cfg(feature = "csr")]
+    use crate::html::PendingRendered;
     use crate::html::{Component, Context, Html, Scope};
     use crate::suspense::Suspension;
     #[cfg(feature = "hydration")]
@@ -35,11 +40,29 @@ mod feat_csr_ssr {
         Resume(Suspension),
     }
 
-    #[derive(Debug)]
     pub(crate) struct BaseSuspense {
         suspensions: Vec<Suspension>,
         #[cfg(feature = "hydration")]
         hydration_handle: Option<SuspensionHandle>,
+        /// Rendered runners for child components that resumed while this
+        /// Suspense was still suspended (because of other pending siblings).
+        /// Drained in `rendered` once the Suspense fully un-suspends, so
+        /// effects fire only after children's DOM has been shifted into the
+        /// live tree.
+        ///
+        /// A small `Vec` is used over a map; the expected population is the
+        /// number of suspending direct descendants resumed in one boundary
+        /// transition, typically just a handful.
+        #[cfg(feature = "csr")]
+        pending_rendered: RefCell<Vec<(usize, PendingRendered)>>,
+    }
+
+    impl std::fmt::Debug for BaseSuspense {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("BaseSuspense")
+                .field("suspensions", &self.suspensions)
+                .finish()
+        }
     }
 
     impl Component for BaseSuspense {
@@ -73,6 +96,8 @@ mod feat_csr_ssr {
                 suspensions,
                 #[cfg(feature = "hydration")]
                 hydration_handle,
+                #[cfg(feature = "csr")]
+                pending_rendered: RefCell::new(Vec::new()),
             }
         }
 
@@ -128,11 +153,23 @@ mod feat_csr_ssr {
             }
         }
 
-        #[cfg(feature = "hydration")]
         fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+            #[cfg(not(feature = "hydration"))]
+            let _ = first_render;
+            #[cfg(feature = "hydration")]
             if first_render {
                 if let Some(m) = self.hydration_handle.take() {
                     m.resume();
+                }
+            }
+            // Fire deferred rendered callbacks for children that resumed while
+            // we were still suspended. Only safe now that we're un-suspended:
+            // the last reconcile shifted their DOM into the live tree.
+            #[cfg(feature = "csr")]
+            if self.suspensions.is_empty() {
+                let pending = std::mem::take(&mut *self.pending_rendered.borrow_mut());
+                for (comp_id, p) in pending {
+                    p.schedule(comp_id);
                 }
             }
         }
@@ -145,6 +182,28 @@ mod feat_csr_ssr {
 
         pub(crate) fn resume(scope: &Scope<Self>, s: Suspension) {
             scope.send_message(BaseSuspenseMsg::Resume(s));
+        }
+
+        /// Queue a child component's `rendered` lifecycle to be scheduled once
+        /// this Suspense fully un-suspends and its reconcile has shifted the
+        /// child's DOM into the live tree. If the child already has a pending
+        /// entry (e.g. it re-committed between suspensions), the two are
+        /// merged so `first_render=true` is not lost.
+        #[cfg(feature = "csr")]
+        pub(crate) fn defer_rendered(
+            scope: &Scope<Self>,
+            comp_id: usize,
+            pending: PendingRendered,
+        ) {
+            let Some(comp) = scope.get_component() else {
+                return;
+            };
+            let mut q = comp.pending_rendered.borrow_mut();
+            if let Some(slot) = q.iter_mut().find(|(id, _)| *id == comp_id) {
+                slot.1.absorb(pending);
+            } else {
+                q.push((comp_id, pending));
+            }
         }
     }
 

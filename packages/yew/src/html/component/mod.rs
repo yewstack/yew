@@ -10,6 +10,8 @@ mod scope;
 use std::rc::Rc;
 
 pub use children::*;
+#[cfg(feature = "csr")]
+pub(crate) use lifecycle::PendingRendered;
 pub use marker::*;
 pub use properties::*;
 #[cfg(feature = "csr")]

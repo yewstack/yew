@@ -899,3 +899,86 @@ async fn use_effect_can_access_dom_after_use_future_resolves() {
         "use_effect should see the rendered DOM element after use_future resolves"
     );
 }
+
+// Companion to #3780: when multiple siblings under the same <Suspense> each
+// suspend independently and resume at different times, every child's effect
+// must see the DOM in the live tree, not the detached parent where Suspense
+// parks children while at least one of them is still pending.
+#[wasm_bindgen_test]
+async fn sibling_suspensions_effects_see_dom() {
+    #[derive(Properties, Clone)]
+    struct ChildProps {
+        id: &'static str,
+        observed: Rc<RefCell<Vec<(&'static str, bool)>>>,
+    }
+
+    impl PartialEq for ChildProps {
+        fn eq(&self, other: &Self) -> bool {
+            self.id == other.id
+        }
+    }
+
+    #[component(Child)]
+    fn child(props: &ChildProps) -> HtmlResult {
+        use_future(|| async {
+            sleep(Duration::ZERO).await;
+        })?;
+
+        let id = props.id;
+        let observed = props.observed.clone();
+        use_effect_with((), move |_| {
+            let found = gloo::utils::document().get_element_by_id(id).is_some();
+            observed.borrow_mut().push((id, found));
+            || {}
+        });
+
+        Ok(html! { <div id={id}></div> })
+    }
+
+    #[derive(Properties, Clone)]
+    struct AppProps {
+        observed: Rc<RefCell<Vec<(&'static str, bool)>>>,
+    }
+
+    impl PartialEq for AppProps {
+        fn eq(&self, _other: &Self) -> bool {
+            true
+        }
+    }
+
+    #[component(App)]
+    fn app(props: &AppProps) -> Html {
+        html! {
+            <Suspense fallback={html! { <div>{"loading"}</div> }}>
+                <Child id="sib-a" observed={props.observed.clone()} />
+                <Child id="sib-b" observed={props.observed.clone()} />
+            </Suspense>
+        }
+    }
+
+    let observed: Rc<RefCell<Vec<(&'static str, bool)>>> = Rc::new(RefCell::new(Vec::new()));
+    yew::Renderer::<App>::with_root_and_props(
+        gloo::utils::document().get_element_by_id("output").unwrap(),
+        AppProps {
+            observed: observed.clone(),
+        },
+    )
+    .render();
+
+    sleep(Duration::from_millis(100)).await;
+
+    let observed = observed.borrow();
+    assert_eq!(
+        observed.len(),
+        2,
+        "both sibling effects should fire exactly once: {:?}",
+        *observed
+    );
+    for (id, found) in observed.iter() {
+        assert!(
+            *found,
+            "effect for {} did not see DOM in live tree: {:?}",
+            id, *observed
+        );
+    }
+}
