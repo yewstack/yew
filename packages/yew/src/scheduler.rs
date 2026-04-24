@@ -3,6 +3,34 @@
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
+#[cfg(any(test, feature = "test"))]
+mod flush_wakers {
+    use std::cell::RefCell;
+    use std::task::Waker;
+
+    thread_local! {
+        static FLUSH_WAKERS: RefCell<Vec<Waker>> = const { RefCell::new(Vec::new()) };
+    }
+
+    #[cfg(all(
+        target_arch = "wasm32",
+        not(target_os = "wasi"),
+        not(feature = "not_browser_env")
+    ))]
+    pub(super) fn register(waker: Waker) {
+        FLUSH_WAKERS.with(|w| {
+            w.borrow_mut().push(waker);
+        });
+    }
+
+    pub(super) fn wake_all() {
+        FLUSH_WAKERS.with(|w| {
+            for waker in w.borrow_mut().drain(..) {
+                waker.wake();
+            }
+        });
+    }
+}
 
 /// Alias for `Rc<RefCell<T>>`
 pub type Shared<T> = Rc<RefCell<T>>;
@@ -23,6 +51,10 @@ struct FifoQueue {
 }
 
 impl FifoQueue {
+    const fn new() -> Self {
+        Self { inner: Vec::new() }
+    }
+
     fn push(&mut self, task: Box<dyn Runnable>) {
         self.inner.push(QueueEntry { task });
     }
@@ -40,6 +72,12 @@ struct TopologicalQueue {
 }
 
 impl TopologicalQueue {
+    const fn new() -> Self {
+        Self {
+            inner: BTreeMap::new(),
+        }
+    }
+
     #[cfg(any(feature = "ssr", feature = "csr"))]
     fn push(&mut self, component_id: usize, task: Box<dyn Runnable>) {
         self.inner.insert(component_id, QueueEntry { task });
@@ -64,7 +102,6 @@ impl TopologicalQueue {
 
 /// This is a global scheduler suitable to schedule and run any tasks.
 #[derive(Default)]
-#[allow(missing_debug_implementations)] // todo
 struct Scheduler {
     // Main queue
     main: FifoQueue,
@@ -84,6 +121,23 @@ struct Scheduler {
     rendered: TopologicalQueue,
 }
 
+impl Scheduler {
+    const fn new() -> Self {
+        Self {
+            main: FifoQueue::new(),
+            destroy: FifoQueue::new(),
+            create: FifoQueue::new(),
+            props_update: FifoQueue::new(),
+            update: FifoQueue::new(),
+            render: TopologicalQueue::new(),
+            render_first: TopologicalQueue::new(),
+            render_priority: TopologicalQueue::new(),
+            rendered_first: TopologicalQueue::new(),
+            rendered: TopologicalQueue::new(),
+        }
+    }
+}
+
 /// Execute closure with a mutable reference to the scheduler
 #[inline]
 fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
@@ -92,7 +146,7 @@ fn with<R>(f: impl FnOnce(&mut Scheduler) -> R) -> R {
         ///
         /// Exclusivity of mutable access is controlled by only accessing it through a set of public
         /// functions.
-        static SCHEDULER: RefCell<Scheduler> = Default::default();
+        static SCHEDULER: RefCell<Scheduler> = const { RefCell::new(Scheduler::new()) };
     }
 
     SCHEDULER.with(|s| f(&mut s.borrow_mut()))
@@ -183,6 +237,13 @@ mod feat_hydration {
 pub(crate) use feat_hydration::*;
 
 /// Execute any pending [Runnable]s
+#[cfg(any(
+    not(target_arch = "wasm32"),
+    target_os = "wasi",
+    feature = "not_browser_env",
+    test,
+    feature = "test"
+))]
 pub(crate) fn start_now() {
     #[tracing::instrument(level = tracing::Level::DEBUG)]
     fn scheduler_loop() {
@@ -201,12 +262,14 @@ pub(crate) fn start_now() {
     thread_local! {
         // The lock is used to prevent recursion. If the lock cannot be acquired, it is because the
         // `start()` method is being called recursively as part of a `runnable.run()`.
-        static LOCK: RefCell<()> = Default::default();
+        static LOCK: RefCell<()> = const { RefCell::new(()) };
     }
 
     LOCK.with(|l| {
         if let Ok(_lock) = l.try_borrow_mut() {
             scheduler_loop();
+            #[cfg(any(test, feature = "test"))]
+            flush_wakers::wake_all();
         }
     });
 }
@@ -219,7 +282,10 @@ pub(crate) fn start_now() {
 mod arch {
     use std::sync::atomic::{AtomicBool, Ordering};
 
+    use wasm_bindgen::prelude::*;
+
     use crate::platform::spawn_local;
+
     // Really only used as a `Cell<bool>` that is also `Sync`
     static IS_SCHEDULED: AtomicBool = AtomicBool::new(false);
     fn check_scheduled() -> bool {
@@ -232,16 +298,58 @@ mod arch {
         IS_SCHEDULED.store(is, Ordering::Relaxed)
     }
 
+    #[cfg(any(test, feature = "test"))]
+    pub(super) fn is_scheduled() -> bool {
+        check_scheduled()
+    }
+
+    const YIELD_DEADLINE_MS: f64 = 16.0;
+
+    #[wasm_bindgen]
+    unsafe extern "C" {
+        #[wasm_bindgen(js_name = setTimeout)]
+        fn set_timeout(handler: &js_sys::Function, timeout: i32) -> i32;
+    }
+
+    fn run_scheduler(mut queue: Vec<super::QueueEntry>) {
+        let deadline = js_sys::Date::now() + YIELD_DEADLINE_MS;
+
+        loop {
+            super::with(|s| s.fill_queue(&mut queue));
+            if queue.is_empty() {
+                break;
+            }
+            for r in queue.drain(..) {
+                r.task.run();
+            }
+            if js_sys::Date::now() >= deadline {
+                // Only yield when no DOM-mutating work is pending, so event
+                // handlers that fire during the yield see a consistent DOM.
+                let can_yield = super::with(|s| s.can_yield());
+                if can_yield {
+                    let cb = Closure::once_into_js(move || run_scheduler(queue));
+                    set_timeout(cb.unchecked_ref(), 0);
+                    return;
+                }
+            }
+        }
+
+        set_scheduled(false);
+        #[cfg(any(test, feature = "test"))]
+        super::flush_wakers::wake_all();
+    }
+
     /// We delay the start of the scheduler to the end of the micro task queue.
     /// So any messages that needs to be queued can be queued.
+    /// Once running, we yield to the browser every ~16ms, but only at points
+    /// where the DOM is in a consistent state (no pending renders/destroys).
     pub(crate) fn start() {
         if check_scheduled() {
             return;
         }
         set_scheduled(true);
         spawn_local(async {
-            set_scheduled(false);
-            super::start_now();
+            run_scheduler(vec![]);
         });
     }
 }
@@ -264,7 +372,67 @@ mod arch {
 
 pub(crate) use arch::*;
 
+/// Flush all pending scheduler work, ensuring all rendering and lifecycle callbacks complete.
+///
+/// On browser WebAssembly targets, the scheduler defers its work to the microtask queue.
+/// This function registers a waker that is notified when `start_now()` finishes draining all
+/// queues, providing proper event-driven render-complete notification without arbitrary sleeps.
+///
+/// On non-browser targets, the scheduler runs synchronously so this simply drains pending work.
+///
+/// Use this in tests after mounting or updating a component to ensure all rendering has
+/// completed before making assertions.
+#[cfg(all(
+    any(test, feature = "test"),
+    target_arch = "wasm32",
+    not(target_os = "wasi"),
+    not(feature = "not_browser_env")
+))]
+pub async fn flush() {
+    std::future::poll_fn(|cx| {
+        start_now();
+
+        if arch::is_scheduled() {
+            flush_wakers::register(cx.waker().clone());
+            std::task::Poll::Pending
+        } else {
+            std::task::Poll::Ready(())
+        }
+    })
+    .await
+}
+
+/// Flush all pending scheduler work, ensuring all rendering and lifecycle callbacks complete.
+///
+/// On non-browser targets, the scheduler runs synchronously so this simply drains pending work.
+#[cfg(all(
+    any(test, feature = "test"),
+    not(all(
+        target_arch = "wasm32",
+        not(target_os = "wasi"),
+        not(feature = "not_browser_env")
+    ))
+))]
+pub async fn flush() {
+    start_now();
+}
+
 impl Scheduler {
+    /// Returns true when no DOM-mutating work is pending, meaning it's safe to
+    /// yield to the browser without leaving the DOM in an inconsistent state.
+    #[cfg(all(
+        target_arch = "wasm32",
+        not(target_os = "wasi"),
+        not(feature = "not_browser_env")
+    ))]
+    fn can_yield(&self) -> bool {
+        self.destroy.inner.is_empty()
+            && self.create.inner.is_empty()
+            && self.render_first.inner.is_empty()
+            && self.render.inner.is_empty()
+            && self.render_priority.inner.is_empty()
+    }
+
     /// Fill vector with tasks to be executed according to Runnable type execution priority
     ///
     /// This method is optimized for typical usage, where possible, but does not break on
@@ -346,7 +514,7 @@ mod tests {
         use std::cell::Cell;
 
         thread_local! {
-            static FLAG: Cell<bool> = Default::default();
+            static FLAG: Cell<bool> = const { Cell::new(false) };
         }
 
         struct Test;

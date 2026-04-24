@@ -128,6 +128,27 @@ suspended.
 With this approach, developers can build a client-agnostic, SSR-ready
 application with data fetching with very little effort.
 
+## Rendering `<head>` Tags
+
+A common need with SSR is rendering dynamic `<head>` content (e.g. `<title>`,
+`<meta>`) so that crawlers and social previews see the right metadata on first
+load.
+
+`ServerRenderer` only renders your component tree (typically at the body of the document),
+it has no access to `<head>`. Head tags must therefore be generated **on the server, outside of
+Yew**, and spliced into the HTML template before it is sent to the client.
+
+The [`ssr_router` example](https://github.com/yewstack/yew/blob/yew-v0.22.1/examples/ssr_router/src/bin/ssr_router_server.rs) demonstrates this pattern: the server recognizes the
+route from the request URL, generates the appropriate `<title>` and `<meta>`
+tags, and injects them into the Trunk-generated `index.html` before
+`</head>`.
+
+:::info
+
+For a fully SSR-compatible third-party solution, use [the `<Helmet/>` component from Bounce](https://docs.rs/bounce/latest/bounce/helmet/index.html).
+
+:::
+
 ## SSR Hydration
 
 Hydration is the process that connects a Yew application to the
@@ -186,13 +207,14 @@ fn App() -> Html {
 fn main() {
     let renderer = Renderer::<App>::new();
 
-    // 直接在 body 元素下注水，并移除可能有的任何尾随元素。
+    // hydrates everything under body element, removes trailing
+    // elements (if any).
     renderer.hydrate();
 }
 ```
 
-Example: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
-Example: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+Example: [simple_ssr](https://github.com/yewstack/yew/tree/yew-v0.22.1/examples/simple_ssr)
+Example: [ssr_router](https://github.com/yewstack/yew/tree/yew-v0.22.1/examples/ssr_router)
 
 ## Single thread mode
 
@@ -235,7 +257,7 @@ async fn main() {
 }
 ```
 
-Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/master/examples/wasi_ssr_module)
+Example: [wasi_ssr_module](https://github.com/yewstack/yew/tree/yew-v0.22.1/examples/wasi_ssr_module)
 
 :::note
 If you are using the `wasm32-unknown-unknown` target to build a SSR application, you can use the `not_browser_env` feature flag to disable access of browser-specific APIs inside of Yew. This would be useful on serverless platforms like Cloudflare Worker.

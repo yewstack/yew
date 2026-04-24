@@ -1,4 +1,4 @@
-use yew::{function_component, html, Html, Properties};
+use yew::{Html, Properties, function_component, html};
 
 #[derive(PartialEq, Eq, Properties, Clone)]
 pub struct Props {

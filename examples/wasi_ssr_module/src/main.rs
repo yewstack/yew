@@ -4,19 +4,17 @@
 mod router;
 
 use anyhow::Result;
-use router::{switch, Route};
-use yew::prelude::*;
+use router::{Route, switch};
 use yew::LocalServerRenderer;
+use yew::prelude::*;
 
 #[function_component]
 fn Content() -> Html {
     use yew_router::prelude::*;
 
     html! {
-        <>
-            <h1>{"Yew WASI SSR demo"}</h1>
-            <Switch<Route> render={switch} />
-        </>
+        <h1>{"Yew WASI SSR demo"}</h1>
+        <Switch<Route> render={switch} />
     }
 }
 

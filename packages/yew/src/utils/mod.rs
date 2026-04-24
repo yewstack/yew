@@ -3,8 +3,8 @@
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use implicit_clone::unsync::IArray;
 use implicit_clone::ImplicitClone;
+use implicit_clone::unsync::IArray;
 use yew::html::ChildrenRenderer;
 
 /// Map `IntoIterator<Item = Into<T>>` to `Iterator<Item = T>`
@@ -16,8 +16,8 @@ where
     it.into_iter().map(|n| n.into())
 }
 
-fn array_single<T: ImplicitClone + 'static>(singl: T) -> IArray<T> {
-    IArray::Rc(Rc::new([singl]))
+fn array_single<T: ImplicitClone + 'static>(single: T) -> IArray<T> {
+    IArray::Rc(Rc::new([single]))
 }
 
 /// A special type necessary for flattening components returned from nested html macros.

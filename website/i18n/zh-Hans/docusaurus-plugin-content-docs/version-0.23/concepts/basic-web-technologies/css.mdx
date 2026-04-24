@@ -1,0 +1,99 @@
+---
+title: '使用 classes! 宏处理 CSS 类'
+description: '用一个方便的宏来处理 CSS 类'
+comment: '尽量保持文件简短和简单。它的目的是让读者更容易地了解 Yew 中的组件，而不是提供正确的 API 文档'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+Yew 并没有提供原生的 CSS-in-Rust 解决方案，但通过提供编程方式与 HTML `class` 属性交互的方式来辅助样式。
+
+## `classes!` 宏
+
+`classes!` 宏和相关的 `Classes` 结构简化了 HTML 类的使用：
+
+<Tabs>
+  <TabItem value="Literal" label="Literal">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("container")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Multiple" label="Multiple">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!("class-1", "class-2")}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="String" label="String">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(String::from("class-1 class-2"))}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Optional" label="Optional">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(Some("class"))} />
+};
+```
+
+  </TabItem>
+  <TabItem value="Vector" label="Vector">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(vec!["class-1", "class-2"])}></div>
+};
+```
+
+  </TabItem>
+  <TabItem value="Slice" label="Slice">
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div class={classes!(["class-1", "class-2"].as_ref())}></div>
+};
+```
+
+  </TabItem>
+</Tabs>
+
+更多 CSS 相关的内容请参见[这个文档](../../more/css)。
+
+## 内联样式
+
+目前 Yew 并没有提供特殊的辅助工具来处理通过 `style` 属性指定的内联样式，但你可以像处理其他 HTML 属性一样处理它：
+
+```rust
+use yew::{classes, html};
+
+html! {
+  <div style="color: red;"></div>
+};
+```
+
+更多 CSS 相关的内容请参见[这个文档](../../more/css)。

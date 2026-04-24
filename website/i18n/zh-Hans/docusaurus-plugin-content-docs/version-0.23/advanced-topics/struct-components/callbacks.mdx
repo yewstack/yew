@@ -1,0 +1,85 @@
+---
+title: '回调函数 (Callbacks)'
+---
+
+## 回调函数 (Callbacks)
+
+回调函数是用于在 Yew 中与服务、代理和父组件进行通信的。在内部，它们的类型只是 `Fn` 包装在 `Rc` 中，以允许它们被克隆。
+
+它们有一个 `emit` 函数，该函数以其 `<IN>` 类型作为参数，并将其转换为其目标期望的消息。如果父组件中的回调函数作为 props 提供给子组件，子组件可以在其 `update` 生命周期钩子中调用回调函数的 `emit` 函数，以将消息发送回其父组件。在 `html!` 宏中作为 props 提供的闭包或函数会自动转换为回调函数。
+
+一个简单的回调函数的使用可能如下所示：
+
+```rust
+use yew::{html, Component, Context, Html};
+
+enum Msg {
+    Clicked,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-next-line
+        let onclick = ctx.link().callback(|_| Msg::Clicked);
+        html! {
+            // highlight-next-line
+            <button {onclick}>{ "Click" }</button>
+        }
+    }
+}
+```
+
+这个函数传递给 `callback` 必须始终带有一个参数。例如，`onclick` 处理程序需要一个接受 `MouseEvent` 类型参数的函数。然后处理程序可以决定应该发送什么类型的消息给组件。这个消息无条件地被安排在下一个更新循环中。
+
+如果你需要一个回调函数，它可能不需要引起更新，请使用 `batch_callback`。
+
+```rust
+use yew::{events::KeyboardEvent, html, Component, Context, Html};
+
+enum Msg {
+    Submit,
+}
+
+struct Comp;
+
+impl Component for Comp {
+
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // highlight-start
+        let onkeypress = ctx.link().batch_callback(|event: KeyboardEvent| {
+            if event.key() == "Enter" {
+                Some(Msg::Submit)
+            } else {
+                None
+            }
+        });
+
+        html! {
+            <input type="text" {onkeypress} />
+        }
+        // highlight-end
+    }
+}
+```
+
+## 相关示例
+
+- [Counter](https://github.com/yewstack/yew/tree/master/examples/counter)
+- [Timer](https://github.com/yewstack/yew/tree/master/examples/timer)

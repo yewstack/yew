@@ -1,13 +1,25 @@
 use std::convert::TryFrom;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
+use syn::Expr;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::DotDot;
-use syn::Expr;
 
-use super::{Prop, Props, SpecialProps, CHILDREN_LABEL};
+use super::{CHILDREN_LABEL, Prop, PropLabel, Props, SpecialProps};
+use crate::html_tree::HtmlDashedName;
+
+fn is_none_expr(expr: &Expr) -> bool {
+    matches!(
+        expr,
+        Expr::Path(syn::ExprPath {
+            attrs,
+            qself: None,
+            path,
+        }) if attrs.is_empty() && path.is_ident("None")
+    )
+}
 
 struct BaseExpr {
     pub dot_dot: DotDot,
@@ -100,8 +112,19 @@ impl ComponentProps {
                     let #token_ident = ::yew::html::AssertAllProps;
                 };
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span()=>
-                        let #token_ident = #builder_ident.#label(#token_ident, #value);
+                    if is_none_expr(value) {
+                        let name = <&HtmlDashedName>::try_from(label).unwrap();
+                        let none_setter = Ident::new(
+                            &format!("{}_none", name),
+                            label.span().resolved_at(Span::mixed_site()),
+                        );
+                        quote_spanned! {value.span()=>
+                            let #token_ident = #builder_ident.#none_setter(#token_ident);
+                        }
+                    } else {
+                        quote_spanned! {value.span()=>
+                            let #token_ident = #builder_ident.#label(#token_ident, #value);
+                        }
                     }
                 });
                 let set_children = children_renderer.map(|children| {
@@ -125,8 +148,14 @@ impl ComponentProps {
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
                 let set_props = self.props.iter().map(|Prop { label, value, .. }| {
-                    quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                        #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
+                    if is_none_expr(value) {
+                        quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                            #ident.#label = ::std::option::Option::None;
+                        }
+                    } else {
+                        quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                            #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
+                        }
                     }
                 });
                 let set_children = children_renderer.map(|children| {
@@ -190,15 +219,12 @@ impl TryFrom<Props> for ComponentProps {
 
 fn validate(props: Props) -> Result<Props, syn::Error> {
     props.check_no_duplicates()?;
-    props.check_all(|prop| {
-        if !prop.label.extended.is_empty() {
-            Err(syn::Error::new_spanned(
-                &prop.label,
-                "expected a valid Rust identifier",
-            ))
-        } else {
-            Ok(())
-        }
+    props.check_all(|prop| match &prop.label {
+        PropLabel::Static(dashed_name) if dashed_name.extended.is_empty() => Ok(()),
+        _ => Err(syn::Error::new_spanned(
+            &prop.label,
+            "components expect valid Rust identifiers for their property names",
+        )),
     })?;
 
     Ok(props)

@@ -6,8 +6,8 @@ use std::rc::Rc;
 #[cfg(feature = "csr")]
 use web_sys::Element;
 
-use super::scope::{AnyScope, Scope};
 use super::BaseComponent;
+use super::scope::{AnyScope, Scope};
 #[cfg(feature = "hydration")]
 use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
@@ -53,11 +53,11 @@ impl std::fmt::Debug for ComponentRenderState {
         match self {
             #[cfg(feature = "csr")]
             Self::Render {
-                ref bundle,
+                bundle,
                 root,
-                ref parent,
-                ref sibling_slot,
-                ref own_slot,
+                parent,
+                sibling_slot,
+                own_slot,
             } => f
                 .debug_struct("ComponentRenderState::Render")
                 .field("bundle", bundle)
@@ -69,11 +69,11 @@ impl std::fmt::Debug for ComponentRenderState {
 
             #[cfg(feature = "hydration")]
             Self::Hydration {
-                ref fragment,
-                ref parent,
-                ref sibling_slot,
-                ref own_slot,
-                ref root,
+                fragment,
+                parent,
+                sibling_slot,
+                own_slot,
+                root,
             } => f
                 .debug_struct("ComponentRenderState::Hydration")
                 .field("fragment", fragment)
@@ -84,7 +84,7 @@ impl std::fmt::Debug for ComponentRenderState {
                 .finish(),
 
             #[cfg(feature = "ssr")]
-            Self::Ssr { ref sender } => {
+            Self::Ssr { sender } => {
                 let sender_repr = match sender {
                     Some(_) => "Some(_)",
                     None => "None",
@@ -192,14 +192,13 @@ where
     }
 
     fn flush_messages(&mut self) -> bool {
-        self.context
-            .link()
-            .pending_messages
-            .drain()
-            .into_iter()
-            .fold(false, |acc, msg| {
-                self.component.update(&self.context, msg) || acc
-            })
+        let mut changed = false;
+        for msg in self.context.link().pending_messages.drain() {
+            if self.component.update(&self.context, msg) {
+                changed = true;
+            }
+        }
+        changed
     }
 
     #[cfg(feature = "csr")]
@@ -230,7 +229,7 @@ pub(crate) struct ComponentState {
     #[cfg(feature = "csr")]
     has_rendered: bool,
     /// This deals with an edge case. Usually, we want to update props as fast as possible.
-    /// But, when a component hydrates and suspends, we want to continue using the intially given
+    /// But, when a component hydrates and suspends, we want to continue using the initially given
     /// props. This is prop updates are ignored during SSR, too.
     #[cfg(feature = "hydration")]
     pending_props: Option<Rc<dyn Any>>,
@@ -642,8 +641,8 @@ mod feat_csr {
             #[cfg(feature = "hydration")]
             let should_render_hydration =
                 |props: Option<Rc<dyn Any>>, state: &mut ComponentState| -> bool {
-                    if let Some(props) = props.or_else(|| state.pending_props.take()) {
-                        match state.has_rendered {
+                    match props.or_else(|| state.pending_props.take()) {
+                        Some(props) => match state.has_rendered {
                             true => {
                                 state.pending_props = None;
                                 state.inner.props_changed(props)
@@ -652,9 +651,8 @@ mod feat_csr {
                                 state.pending_props = Some(props);
                                 false
                             }
-                        }
-                    } else {
-                        false
+                        },
+                        _ => false,
                     }
                 };
 
@@ -767,7 +765,7 @@ mod tests {
     use super::*;
     use crate::dom_bundle::BSubtree;
     use crate::html::*;
-    use crate::{html, Properties};
+    use crate::{Properties, html};
 
     wasm_bindgen_test_configure!(run_in_browser);
 

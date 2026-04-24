@@ -4,12 +4,11 @@ mod common;
 
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::time::Duration;
 
 use common::obtain_result;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -72,7 +71,7 @@ async fn use_effect_destroys_on_component_drop() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     assert_eq!(1, *destroy_counter.borrow().deref());
 }
@@ -105,7 +104,7 @@ async fn use_effect_works_many_times() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result = obtain_result();
     assert_eq!(result.as_str(), "4");
 }
@@ -135,7 +134,7 @@ async fn use_effect_works_once() {
         gloo::utils::document().get_element_by_id("output").unwrap(),
     )
     .render();
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result();
 
@@ -181,7 +180,7 @@ async fn use_effect_refires_on_dependency_change() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
     let result: String = obtain_result();
 
     assert_eq!(result.as_str(), "11");

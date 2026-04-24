@@ -1,7 +1,6 @@
 use yew::prelude::*;
 
 fn compile_fail() {
-    html! { "valid" "invalid" };
     html! { <span>{ "valid" "invalid" }</span> };
     html! { () };
     html! { invalid };

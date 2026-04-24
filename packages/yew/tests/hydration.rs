@@ -14,9 +14,9 @@ use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
 use yew::platform::time::sleep;
 use yew::prelude::*;
-use yew::suspense::{use_future, Suspension, SuspensionResult};
+use yew::suspense::{Suspension, SuspensionResult, use_future};
 use yew::virtual_dom::VNode;
-use yew::{component, Renderer, ServerRenderer};
+use yew::{Renderer, ServerRenderer, component, scheduler};
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -62,12 +62,12 @@ async fn hydration_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
 
@@ -85,7 +85,7 @@ async fn hydration_works() {
         .unwrap()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
 
@@ -237,7 +237,7 @@ async fn hydration_with_suspense() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -393,7 +393,7 @@ async fn hydration_with_suspense_not_suspended_at_start() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -524,7 +524,7 @@ async fn hydration_nested_suspense_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
@@ -638,18 +638,14 @@ async fn hydration_node_ref_works() {
         }
     }
 
-    #[component(List)]
-    fn list(props: &ListProps) -> Html {
+    #[component]
+    fn List(props: &ListProps) -> Html {
         let elems = 0..props.size;
 
         html! {
-            <>
-            { for elems.map(|_|
-                html! {
-                    <Test2/>
-                }
-            )}
-            </>
+            for _ in elems{
+                <Test2/>
+            }
         }
     }
 
@@ -661,12 +657,12 @@ async fn hydration_node_ref_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -682,7 +678,7 @@ async fn hydration_node_ref_works() {
         .unwrap()
         .click();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -693,18 +689,14 @@ async fn hydration_node_ref_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_list_order_works() {
-    #[component(App)]
-    pub fn app() -> Html {
+    #[component]
+    pub fn App() -> Html {
         let elems = 0..10;
 
         html! {
-            <>
-            { for elems.map(|number|
-                html! {
-                    <ToSuspendOrNot {number}/>
-                }
-            )}
-            </>
+            for number in elems{
+                <ToSuspendOrNot {number}/>
+            }
         }
     }
 
@@ -754,16 +746,13 @@ async fn hydration_list_order_works() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     // Wait until all suspended components becomes revealed.
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -776,8 +765,8 @@ async fn hydration_list_order_works() {
 
 #[wasm_bindgen_test]
 async fn hydration_suspense_no_flickering() {
-    #[component(App)]
-    pub fn app() -> Html {
+    #[component]
+    pub fn App() -> Html {
         let fallback = html! { <h1>{"Loading..."}</h1> };
         html! {
             <Suspense {fallback}>
@@ -791,16 +780,16 @@ async fn hydration_suspense_no_flickering() {
         number: u32,
     }
 
-    #[component(SuspendedNumber)]
-    fn suspended_number(props: &NumberProps) -> HtmlResult {
+    #[component]
+    fn SuspendedNumber(props: &NumberProps) -> HtmlResult {
         use_suspend()?;
 
         Ok(html! {
             <Number ..{props.clone()}/>
         })
     }
-    #[component(Number)]
-    fn number(props: &NumberProps) -> Html {
+    #[component]
+    fn Number(props: &NumberProps) -> Html {
         html! {
             <div>
                 {props.number.to_string()}
@@ -808,16 +797,14 @@ async fn hydration_suspense_no_flickering() {
         }
     }
 
-    #[component(Suspended)]
-    fn suspended() -> HtmlResult {
+    #[component]
+    fn Suspended() -> HtmlResult {
         use_suspend()?;
 
         Ok(html! {
-            { for (0..10).map(|number|
-                html! {
-                    <SuspendedNumber {number}/>
-                }
-            )}
+            for number in 0..10 {
+                <SuspendedNumber {number}/>
+            }
         })
     }
 
@@ -837,13 +824,13 @@ async fn hydration_suspense_no_flickering() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     // Wait until all suspended components becomes revealed.
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -950,16 +937,13 @@ async fn hydration_order_issue_nested_suspense() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
         .hydrate();
 
     // Wait until all suspended components becomes revealed.
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result = obtain_result_by_id("output");
     assert_eq!(
@@ -1050,16 +1034,14 @@ async fn hydrate_empty() {
     }
     #[component]
     fn Empty() -> Html {
-        html! { <></> }
+        html! {}
     }
     #[component]
     fn App() -> Html {
         html! {
-            <>
-                <Updating />
-                <Empty />
-                <Updating />
-            </>
+            <Updating />
+            <Empty />
+            <Updating />
         }
     }
     let s = ServerRenderer::<App>::new().render().await;
@@ -1098,17 +1080,13 @@ async fn hydrate_flicker() {
         if is_first {
             trigger.set(true);
             html! {
-                <>
-                    <InnerComp key="1" text="1" />
-                    <InnerComp key="2" text="2" />
-                </>
+                <InnerComp key="1" text="1" />
+                <InnerComp key="2" text="2" />
             }
         } else {
             html! {
-                <>
-                    <InnerComp key="2" text="2" />
-                    <InnerComp key="1" text="1" />
-                </>
+                <InnerComp key="2" text="2" />
+                <InnerComp key="1" text="1" />
             }
         }
     }
@@ -1129,7 +1107,7 @@ async fn hydrate_flicker() {
 
 #[wasm_bindgen_test]
 async fn hydration_with_camelcase_svg_elements() {
-    #[function_component]
+    #[component]
     fn SvgWithCamelCase() -> Html {
         html! {
             <svg width="100" height="100">
@@ -1153,7 +1131,7 @@ async fn hydration_with_camelcase_svg_elements() {
         }
     }
 
-    #[function_component]
+    #[component]
     fn App() -> Html {
         let counter = use_state(|| 0);
         let onclick = {
@@ -1180,7 +1158,7 @@ async fn hydration_with_camelcase_svg_elements() {
         .unwrap()
         .set_inner_html(&s);
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // Hydrate - this should not panic
     Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
@@ -1222,4 +1200,63 @@ async fn hydration_with_camelcase_svg_elements() {
         .unwrap();
 
     assert_eq!(counter_text, "Count: 1");
+}
+
+#[wasm_bindgen_test]
+async fn hydration_suspended_child_does_not_trap_sibling_slot() {
+    #[hook]
+    fn use_suspend() -> SuspensionResult<()> {
+        use_future(|| async {})?;
+        Ok(())
+    }
+
+    #[component(SuspendingChild)]
+    fn suspending_child() -> HtmlResult {
+        use_suspend()?;
+        Ok(html! { <div class="suspended">{"child"}</div> })
+    }
+
+    #[component(App)]
+    fn app() -> Html {
+        let trigger = use_state(|| false);
+        {
+            let trigger = trigger.clone();
+            use_effect_with((), move |_| {
+                trigger.set(true);
+            });
+        }
+
+        html! {
+            <div id="result">
+                <Suspense fallback={html!{<div>{"Loading..."}</div>}}>
+                    if *trigger {
+                        <p class="new-sibling">{"new sibling"}</p>
+                    }
+                    <SuspendingChild />
+                </Suspense>
+            </div>
+        }
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    scheduler::flush().await;
+
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    scheduler::flush().await;
+
+    let result = obtain_result();
+
+    assert_eq!(
+        result.as_str(),
+        r#"<p class="new-sibling">new sibling</p><div class="suspended">child</div>"#,
+    );
 }

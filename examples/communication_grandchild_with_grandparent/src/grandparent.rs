@@ -24,11 +24,11 @@ impl Component for GrandParent {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ButtonClick(childs_name) => {
+            Msg::ButtonClick(child_name) => {
                 // Update the shared state
                 let shared_state = Rc::make_mut(&mut self.state);
                 shared_state.total_clicks += 1;
-                shared_state.last_clicked = Some(childs_name);
+                shared_state.last_clicked = Some(child_name);
                 true
             }
         }
@@ -37,10 +37,11 @@ impl Component for GrandParent {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let app_state = self.state.clone();
 
-        let detail_msg = if let Some(last_clicked) = &self.state.last_clicked {
-            format!("The last child you clicked was {last_clicked}.")
-        } else {
-            "Waiting for you to click a grandchild...".to_string()
+        let detail_msg = match &self.state.last_clicked {
+            Some(last_clicked) => {
+                format!("The last child you clicked was {last_clicked}.")
+            }
+            _ => "Waiting for you to click a grandchild...".to_string(),
         };
 
         html! {

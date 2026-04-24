@@ -25,6 +25,20 @@ html! {
 };
 ```
 
+`for` 迴圈主體也支援在 html 子節點前使用 `let` 綁定：
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    for item in items {
+        let label = format!("{}: {}", item.id, item.name);
+        let class = if item.active { "active" } else { "inactive" };
+        <div class={class}>{label}</div>
+    }
+};
+```
+
   </TabItem>
   <TabItem value="`for` block" label="`for` 區塊">
 另一種方法是使用 `for` 關鍵字，這不是原生的 Rust 語法，而是由 HTML 巨集用於輸出顯示迭代器所需的程式碼。

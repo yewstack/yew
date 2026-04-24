@@ -3,13 +3,14 @@ use std::any::type_name;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use gloo_worker::{Bincode, Codec};
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 
 use super::{Oneshot, OneshotBridge, OneshotSpawner};
+use crate::Reach;
 use crate::utils::get_next_id;
 use crate::worker::WorkerProviderProps;
-use crate::{Bincode, Codec, Reach};
 
 pub(crate) struct OneshotProviderState<T>
 where
@@ -26,7 +27,7 @@ where
     T: Oneshot,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(type_name::<Self>())
+        f.debug_struct(type_name::<Self>()).finish_non_exhaustive()
     }
 }
 
@@ -88,9 +89,9 @@ where
 #[component]
 pub fn OneshotProvider<T, C = Bincode>(props: &WorkerProviderProps) -> Html
 where
-    T: Oneshot + 'static,
-    T::Input: Serialize + for<'de> Deserialize<'de> + 'static,
-    T::Output: Serialize + for<'de> Deserialize<'de> + 'static,
+    T: Oneshot<Input: Serialize + for<'de> Deserialize<'de> + 'static>
+        + Future<Output: Serialize + for<'de> Deserialize<'de> + 'static>
+        + 'static,
     C: Codec + 'static,
 {
     let WorkerProviderProps {

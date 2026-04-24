@@ -19,7 +19,13 @@ pub fn write_changelog_file(
 
     writeln!(
         version_only_changelog,
-        "## ✨ {package} **{next_version}** *({release_date})* Changelog",
+        "[Link to all migration guides](https://yew.rs/docs/category/migration-guides)"
+    )?;
+    writeln!(version_only_changelog)?;
+
+    writeln!(
+        version_only_changelog,
+        "## ✨ {package} **{next_version}** *({release_date})*",
         next_version = next_version,
         package = package,
         release_date = chrono::Utc::now().format("%Y-%m-%d")

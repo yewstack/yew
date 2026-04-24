@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use gloo_timers::callback::Timeout;
-use web_sys::wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
+use web_sys::wasm_bindgen::JsCast;
 use yew::*;
 
 #[component]
@@ -68,13 +68,13 @@ fn App() -> Html {
               </form>
             </div>
             <div class="p-2 border border-black rounded">
-                <p>{
+                <p>
                     match &*search {
-                        Search::Idle => "Type something to search...".into(),
-                        Search::Fetching(query) => format!("Searching for: {}", query).into(),
+                        Search::Idle => "Type something to search...",
+                        Search::Fetching(query) => format!("Searching for: {}", query),
                         Search::Fetched(response) => response.clone(),
                     }
-                }</p>
+                </p>
             </div>
           </div>
       </div>

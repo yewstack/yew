@@ -1,0 +1,17 @@
+error: missing expression for `match`
+ --> tests/html_macro/html-match-fail.rs:5:19
+  |
+5 |     html! { match {} };
+  |                   ^^
+
+error: this `match` expression has a scrutinee, but no body
+ --> tests/html_macro/html-match-fail.rs:8:19
+  |
+8 |     html! { match 42 };
+  |                   ^^
+
+error: `match` expression must have at least one arm
+  --> tests/html_macro/html-match-fail.rs:11:22
+   |
+11 |     html! { match 42 {} };
+   |                      ^^

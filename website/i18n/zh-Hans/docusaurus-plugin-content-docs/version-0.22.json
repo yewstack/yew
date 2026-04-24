@@ -1,6 +1,6 @@
 {
   "version.label": {
-    "message": "Next",
+    "message": "0.22",
     "description": "The label for version 0.22"
   },
   "sidebar.docs.category.Getting Started": {
@@ -47,22 +47,6 @@
     "message": "杂项",
     "description": "The generated-index page title for category More in sidebar docs"
   },
-  "sidebar.docs.category.Migration guides": {
-    "message": "迁移指南",
-    "description": "The label for category Migration guides in sidebar docs"
-  },
-  "sidebar.docs.category.yew": {
-    "message": "yew",
-    "description": "The label for category yew in sidebar docs"
-  },
-  "sidebar.docs.category.yew-agent": {
-    "message": "yew-agent",
-    "description": "The label for category yew-agent in sidebar docs"
-  },
-  "sidebar.docs.category.yew-router": {
-    "message": "yew-router",
-    "description": "The label for category yew-router in sidebar docs"
-  },
   "sidebar.docs.category.Using Basic Web Technologies In Yew": {
     "message": "Yew 中的基本 Web 技术",
     "description": "The label for category Using Basic Web Technologies In Yew in sidebar docs"
@@ -82,5 +66,9 @@
   "sidebar.docs.category.Struct Components": {
     "message": "结构化组件",
     "description": "The label for category Struct Components in sidebar docs"
+  },
+  "sidebar.docs.link.Migration guides": {
+    "message": "迁移指南",
+    "description": "The label for link Migration guides in sidebar docs, linking to /docs/migration-guides"
   }
 }

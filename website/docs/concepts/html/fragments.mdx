@@ -2,42 +2,33 @@
 title: 'Fragments'
 ---
 
-import Tabs from '@theme/Tabs'
-import TabItem from '@theme/TabItem'
-
-The `html!` macro always requires a single root node. To get around this restriction, you
-can use an "empty tag" (these are also called "fragments").
-
-<Tabs>
-<TabItem value="Valid" label="Valid">
+The `html!` macro accepts multiple root nodes directly. You do **not** need a
+fragment wrapper (`<>...</>`) at the root:
 
 ```rust
 use yew::prelude::*;
 
 html! {
-    <>
-        <div></div>
-        <p></p>
-    </>
-};
-
-```
-
-</TabItem>
-
-<TabItem value="Invalid" label="Invalid">
-
-```rust, compile_fail
-use yew::prelude::*;
-
-// error: only one root html element allowed
-
-html! {
     <div></div>
     <p></p>
 };
-
 ```
 
-</TabItem>
-</Tabs>
+## Keyed fragments
+
+The only legitimate use of fragment syntax is a **keyed** fragment.
+
+```rust
+use yew::prelude::*;
+
+html! {
+    // .. siblings ..
+    <key="group-a">
+        <span>{"a1"}</span>
+        <span>{"a2"}</span>
+    </>
+    // .. siblings ..
+};
+```
+
+Keyed fragments helps with reconciliation performance and node persistence in some cases.

@@ -34,7 +34,7 @@ use btag::{BTag, Registry};
 use btext::BText;
 pub(crate) use position::{DomSlot, DynamicDomSlot};
 use subtree_root::EventDescriptor;
-pub use subtree_root::{set_event_bubbling, BSubtree};
+pub use subtree_root::{BSubtree, set_event_bubbling};
 use traits::{Reconcilable, ReconcileTarget};
 use utils::test_log;
 

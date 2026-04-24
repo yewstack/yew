@@ -183,7 +183,7 @@ impl Level {
             if should_combine_code_blocks(file)? {
                 let res = combined_code_blocks(file)?;
                 self.write_space(dst, level);
-                writeln!(dst, "/// ```rust, no_run")?;
+                writeln!(dst, "/// ```no_run")?;
                 for line in res.lines() {
                     self.write_space(dst, level);
                     writeln!(dst, "/// {line}")?;

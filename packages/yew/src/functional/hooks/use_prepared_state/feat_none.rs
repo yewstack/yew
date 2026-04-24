@@ -2,8 +2,8 @@
 
 use std::rc::Rc;
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::hook;
 use crate::suspense::SuspensionResult;

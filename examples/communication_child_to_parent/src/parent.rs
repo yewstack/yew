@@ -24,9 +24,9 @@ impl Component for Parent {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ButtonClick(childs_name) => {
+            Msg::ButtonClick(child_name) => {
                 // Keep track of the name of the child that was clicked
-                self.last_updated = Some(childs_name);
+                self.last_updated = Some(child_name);
 
                 // Increment the total number of clicks
                 self.total_clicks += 1;

@@ -99,7 +99,6 @@ fn compile_fail() {
     html! { <Child string="abc" /> };
     html! { </Child> };
     html! { <Child><Child></Child> };
-    html! { <Child></Child><Child></Child> };
     html! { <Child>{ "Not allowed" }</Child> };
 
     let num = 1;
@@ -124,11 +123,6 @@ fn compile_fail() {
         <ChildContainer {children}>
             <Child int=1 />
         </ChildContainer>
-    };
-
-    html_nested! {
-        <span>{ 1 }</span>
-        <span>{ 2 }</span>
     };
 
     html! { <Child {std::f64::consts::PI} /> };

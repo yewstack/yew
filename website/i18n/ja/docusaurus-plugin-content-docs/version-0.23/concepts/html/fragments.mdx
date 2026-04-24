@@ -1,0 +1,42 @@
+---
+title: '空のタグ (Fragments)'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`html!` マクロは常にルートノードを必要とします。この制限を回避するために、「空のタグ」（または fragments）を使用できます。
+
+<Tabs>
+<TabItem value="Valid" label="Valid">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <>
+        <div></div>
+        <p></p>
+    </>
+};
+
+```
+
+</TabItem>
+
+<TabItem value="Invalid" label="Invalid">
+
+```rust, compile_fail
+use yew::prelude::*;
+
+// エラー: ルート HTML 要素は1つだけ許可されます
+
+html! {
+    <div></div>
+    <p></p>
+};
+
+```
+
+</TabItem>
+</Tabs>

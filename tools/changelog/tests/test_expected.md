@@ -1,6 +1,8 @@
 # Changelog
 
-## ✨ yew **0.0.0** *(date_goes_here)* Changelog
+[Link to all migration guides](https://yew.rs/docs/category/migration-guides)
+
+## ✨ yew **0.0.0** *(date_goes_here)*
 
 ### ⚡️ Features
 
@@ -11,7 +13,7 @@
 - Enable PartialEq for all virtual dom types. [[@Kaede Hoshikawa](https://github.com/Kaede Hoshikawa), [#3206](https://github.com/yewstack/yew/pull/3206)]
 - Pass hook dependencies as the first function argument. [[@Arniu Tseng](https://github.com/Arniu Tseng), [#2861](https://github.com/yewstack/yew/pull/2861)]
 
-## ✨ yew **0.0.0** *(date_goes_here)* Changelog
+## ✨ yew **0.0.0** *(date_goes_here)*
 
 ### 🛠 Fixes
 

@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::iter::FromIterator;
 use std::rc::Rc;
 
 use indexmap::IndexSet;
@@ -163,7 +162,7 @@ impl IntoIterator for &Classes {
     }
 }
 
-#[allow(clippy::to_string_trait_impl)]
+#[expect(clippy::to_string_trait_impl)]
 impl ToString for Classes {
     fn to_string(&self) -> String {
         let mut iter = self.set.iter().cloned();

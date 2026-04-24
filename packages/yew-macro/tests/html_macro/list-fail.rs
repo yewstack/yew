@@ -10,8 +10,6 @@ fn compile_fail() {
     html! { </> };
     html! { </></> };
 
-    // multiple root nodes
-    html! { <></><></> };
     // invalid child content
     html! { <>invalid</> };
     // no key value

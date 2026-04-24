@@ -2,41 +2,32 @@
 title: '空標籤 (Fragments)'
 ---
 
-import Tabs from '@theme/Tabs'
-import TabItem from '@theme/TabItem'
-
-`html!` 巨集總是需要一個根節點。為了繞過這個限制，您可以使用一個“空標籤”（也稱為“fragments”）。
-
-<Tabs>
-<TabItem value="Valid" label="Valid">
+`html!` 巨集可以直接接受多個根節點。在根層級**不需要**使用 fragment 包裝 (`<>...</>`)：
 
 ```rust
 use yew::prelude::*;
 
 html! {
-    <>
-        <div></div>
-        <p></p>
-    </>
-};
-
-```
-
-</TabItem>
-
-<TabItem value="Invalid" label="Invalid">
-
-```rust, compile_fail
-use yew::prelude::*;
-
-// 錯誤：只允許一個根 HTML 元素
-
-html! {
     <div></div>
     <p></p>
 };
-
 ```
 
-</TabItem>
-</Tabs>
+## 帶 key 的 fragment
+
+fragment 語法僅剩的合理用途是**帶 key 的** fragment。
+
+```rust
+use yew::prelude::*;
+
+html! {
+    // .. siblings ..
+    <key="group-a">
+        <span>{"a1"}</span>
+        <span>{"a2"}</span>
+    </>
+    // .. siblings ..
+};
+```
+
+在某些情況下，帶 key 的 fragment 有助於差分效能和節點持久化。

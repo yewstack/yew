@@ -25,6 +25,20 @@ html! {
 };
 ```
 
+`for` ループ本体では、html 子要素の前に `let` バインディングも使用できます：
+
+```rust , ignore
+use yew::prelude::*;
+
+html! {
+    for item in items {
+        let label = format!("{}: {}", item.id, item.name);
+        let class = if item.active { "active" } else { "inactive" };
+        <div class={class}>{label}</div>
+    }
+};
+```
+
   </TabItem>
   <TabItem value="`for` block" label="`for` ブロック">
 もう一つの方法は `for` キーワードを使用することです。これはネイティブの Rust 構文ではなく、HTML マクロによってイテレータを表示するために必要なコードを出力します。

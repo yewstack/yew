@@ -44,29 +44,28 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-release
-          version: =0.23.1
+          version: =1.1.1
 
       - name: Cargo login
-        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+        run: echo ${{ secrets.CRATES_IO_TOKEN }} | cargo login
 
-      - name: Build command
+      - name: Release yew
         shell: bash
         env:
           PACKAGES: ${{ github.event.inputs.packages }}
+          LEVEL: ${{ github.event.inputs.level }}
         run: |
-          output=""
-          for pkg in ${{ github.event.inputs.packages }}
-          do
-            output+="--package $pkg " 
+          arguments=()
+          for pkg in $PACKAGES; do
+            arguments+=("--package" "$pkg")
           done
-          echo "pkg=$output" >> $GITHUB_ENV
+          cargo release "$LEVEL" --execute --no-confirm "${arguments[@]}"
 
-      - name: Release yew
-        run: cargo release ${{ github.event.inputs.level }} --execute --no-confirm ${{ env.pkg }}
-
-      - name: Get tag
-        id: gettag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
+      - name: Collect release info
+        id: releaseinfo
+        env:
+          PACKAGES: ${{ github.event.inputs.packages }}
+        run: cargo run -p collect-release-info -- $PACKAGES
 
       - name: Create a version branch
         if: github.event.inputs.level != 'patch'
@@ -74,11 +73,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          branch: ${{ steps.gettag.outputs.tag }}
+          branch: ${{ steps.releaseinfo.outputs.version_branch }}
 
-      - name: Create a Release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.YEWTEMPBOT_TOKEN }}
-          tag_name: ${{ steps.gettag.outputs.tag }}
-          body: ${{ steps.changelog.outputs.stdout }}
+      - name: Create releases
+        env:
+          GH_TOKEN: ${{ secrets.YEWTEMPBOT_TOKEN }}
+          RELEASES: ${{ steps.releaseinfo.outputs.releases }}
+        run: |
+          echo "$RELEASES" | jq -c '.[]' | while read -r release; do
+            tag=$(echo "$release" | jq -r '.tag')
+            name=$(echo "$release" | jq -r '.name')
+            body=$(echo "$release" | jq -r '.body')
+            gh release create "$tag" --title "$name" --notes "$body"
+          done

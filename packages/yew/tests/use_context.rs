@@ -3,12 +3,11 @@
 mod common;
 
 use std::rc::Rc;
-use std::time::Duration;
 
 use common::obtain_result_by_id;
 use wasm_bindgen_test::*;
-use yew::platform::time::sleep;
 use yew::prelude::*;
+use yew::scheduler;
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
@@ -69,7 +68,7 @@ async fn use_context_scoping_works() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     let result: String = obtain_result_by_id("result");
     assert_eq!("correct", result);
@@ -152,7 +151,7 @@ async fn use_context_works_with_multiple_types() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 }
 
 #[wasm_bindgen_test]
@@ -171,12 +170,10 @@ async fn use_context_update_works() {
         let counter = use_mut_ref(|| 0);
         *counter.borrow_mut() += 1;
         html! {
-            <>
-                <div id={props.id.clone()}>
-                    { format!("total: {}", counter.borrow()) }
-                </div>
-                { props.children.clone() }
-            </>
+            <div id={props.id.clone()}>
+                { format!("total: {}", counter.borrow()) }
+            </div>
+            { props.children.clone() }
         }
     }
 
@@ -195,12 +192,10 @@ async fn use_context_update_works() {
         let ctx = use_context::<Rc<MyContext>>().expect("context not passed down");
 
         html! {
-            <>
-                <div>{ format!("magic: {}\n", props.magic) }</div>
-                <div id={props.id.clone()}>
-                    { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
-                </div>
-            </>
+            <div>{ format!("magic: {}\n", props.magic) }</div>
+            <div id={props.id.clone()}>
+                { format!("current: {}, total: {}", ctx.0, counter.borrow()) }
+            </div>
         }
     }
 
@@ -252,7 +247,7 @@ async fn use_context_update_works() {
     )
     .render();
 
-    sleep(Duration::ZERO).await;
+    scheduler::flush().await;
 
     // 1 initial render + 1 magic
     assert_eq!(obtain_result_by_id("test-0"), "total: 2");

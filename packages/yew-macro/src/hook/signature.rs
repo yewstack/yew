@@ -1,16 +1,16 @@
 use std::iter::once;
 use std::mem::take;
 
-use proc_macro2::{Span, TokenStream};
 use proc_macro_error::emit_error;
-use quote::{quote, ToTokens};
+use proc_macro2::{Span, TokenStream};
+use quote::{ToTokens, quote};
 use syn::punctuated::{Pair, Punctuated};
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    parse_quote, parse_quote_spanned, visit_mut, FnArg, GenericParam, Ident, Lifetime,
-    LifetimeParam, Pat, Receiver, ReturnType, Signature, Type, TypeImplTrait, TypeParam,
-    TypeParamBound, TypeReference, WherePredicate,
+    FnArg, GenericParam, Ident, Lifetime, LifetimeParam, Pat, Receiver, ReturnType, Signature,
+    Type, TypeImplTrait, TypeParam, TypeParamBound, TypeReference, WherePredicate, parse_quote,
+    parse_quote_spanned, visit_mut,
 };
 
 use super::lifetime;
@@ -63,8 +63,8 @@ impl HookSignature {
                 parse_quote! { -> impl #bound ::yew::functional::Hook<Output = ()> },
                 parse_quote! { () },
             ),
-            ReturnType::Type(arrow, ref return_type) => {
-                if let Type::Reference(ref m) = &**return_type {
+            ReturnType::Type(arrow, return_type) => {
+                if let Type::Reference(m) = &**return_type {
                     if m.lifetime.is_none() {
                         let mut return_type_ref = m.clone();
                         return_type_ref.lifetime = parse_quote!('hook);
@@ -129,24 +129,26 @@ impl HookSignature {
         for type_param in params.iter_mut().skip(1) {
             match type_param {
                 GenericParam::Lifetime(param) => {
-                    if let Some(predicate) = generics
+                    match generics
                         .where_clause
                         .iter_mut()
                         .flat_map(|c| &mut c.predicates)
                         .find_map(|predicate| match predicate {
                             WherePredicate::Lifetime(p) if p.lifetime == param.lifetime => Some(p),
                             _ => None,
-                        })
-                    {
-                        predicate.bounds.push(hook_lifetime.clone());
-                    } else {
-                        param.colon_token = Some(param.colon_token.unwrap_or_default());
-                        param.bounds.push(hook_lifetime.clone());
+                        }) {
+                        Some(predicate) => {
+                            predicate.bounds.push(hook_lifetime.clone());
+                        }
+                        _ => {
+                            param.colon_token = Some(param.colon_token.unwrap_or_default());
+                            param.bounds.push(hook_lifetime.clone());
+                        }
                     }
                 }
 
                 GenericParam::Type(param) => {
-                    if let Some(predicate) = generics
+                    match generics
                         .where_clause
                         .iter_mut()
                         .flat_map(|c| &mut c.predicates)
@@ -155,16 +157,18 @@ impl HookSignature {
                                 Some(p)
                             }
                             _ => None,
-                        })
-                    {
-                        predicate
-                            .bounds
-                            .push(TypeParamBound::Lifetime(hook_lifetime.clone()));
-                    } else {
-                        param.colon_token = Some(param.colon_token.unwrap_or_default());
-                        param
-                            .bounds
-                            .push(TypeParamBound::Lifetime(hook_lifetime.clone()));
+                        }) {
+                        Some(predicate) => {
+                            predicate
+                                .bounds
+                                .push(TypeParamBound::Lifetime(hook_lifetime.clone()));
+                        }
+                        _ => {
+                            param.colon_token = Some(param.colon_token.unwrap_or_default());
+                            param
+                                .bounds
+                                .push(TypeParamBound::Lifetime(hook_lifetime.clone()));
+                        }
                     }
                 }
 

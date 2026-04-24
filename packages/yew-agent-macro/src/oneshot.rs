@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_quote, Ident, ReturnType, Signature, Type};
+use syn::{Ident, ReturnType, Signature, Type, parse_quote};
 
 use crate::agent_fn::{AgentFn, AgentFnType, AgentName};
 

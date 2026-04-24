@@ -2,7 +2,7 @@ use chrono::{DateTime, Local};
 use futures::{FutureExt, StreamExt};
 use services::compute_fun_score;
 use yew::platform::pinned::mpsc::UnboundedSender;
-use yew::{html, AttrValue, Component, Context, Html};
+use yew::{AttrValue, Component, Context, Html, html};
 
 use crate::services::{emit_jokes, initialize_atomic_clocks, stream_time};
 
@@ -71,7 +71,7 @@ impl Component for AsyncComponent {
 
                 // In parallel we launch a background task that produces jokes to make the clock
                 // more fun to watch. The jokes are emitted back to the component
-                // throught the Msg::Joke callback.
+                // through the Msg::Joke callback.
                 let joke_cb = ctx.link().callback(Msg::Joke);
                 emit_jokes(joke_cb);
             }

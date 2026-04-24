@@ -3,12 +3,12 @@
 use std::marker::PhantomData;
 use std::rc::Rc;
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use wasm_bindgen::JsValue;
 
 use super::PreparedStateBase;
-use crate::functional::{use_state, Hook, HookContext};
+use crate::functional::{Hook, HookContext, use_state};
 use crate::platform::spawn_local;
 use crate::suspense::{Suspension, SuspensionResult};
 

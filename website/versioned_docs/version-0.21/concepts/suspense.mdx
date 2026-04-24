@@ -81,7 +81,7 @@ fn use_user() -> SuspensionResult<User> {
 #### Note on implementing suspending hooks
 
 [`Suspension::new`](https://docs.rs/yew/latest/yew/suspense/struct.Suspension.html#method.new) returns 2 values: the suspension context itself, and a suspension handle.
-The latter is the one responsible for signaling when to re-render the suspended components, it provides 2 interchangable ways to do so:
+The latter is the one responsible for signaling when to re-render the suspended components, it provides 2 interchangeable ways to do so:
 
 1. Calling its [`resume`](https://docs.rs/yew/latest/yew/suspense/struct.SuspensionHandle.html#method.resume) method.
 2. Dropping the handle.

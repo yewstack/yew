@@ -1,6 +1,6 @@
 #[derive(yew_router::Routable)]
 enum Routes {
-    #[at("/one/:two")]
+    #[at("/one/{two}")]
     One(u32),
 }
 

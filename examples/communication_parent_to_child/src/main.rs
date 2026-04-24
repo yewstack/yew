@@ -1,6 +1,6 @@
 use child::Child;
 use parent::Parent;
-use yew::{html, Component, Context, Html, Properties};
+use yew::{Component, Context, Html, Properties, html};
 
 mod child;
 mod parent;

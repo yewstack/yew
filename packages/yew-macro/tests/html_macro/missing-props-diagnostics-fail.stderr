@@ -1,96 +1,28 @@
-error[E0277]: not all required properties have been provided
-  --> tests/html_macro/missing-props-diagnostics-fail.rs:6:10
-   |
-6  |         <Foo />
-   |          ^^^ missing required properties for this component
-   |
-   = help: the trait `HasProp<bar, _>` is not implemented for `AssertAllProps`
-   = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckFooPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `HasFooPropsbar<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-           and $N others
-note: required for `CheckFooPropsAll<AssertAllProps>` to implement `HasAllProps<FooProps, (_, _)>`
-  --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
-   |
-24 | #[derive(Properties, PartialEq, Clone)]
-   |          ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
-   = note: required for `AssertAllProps` to implement `AllPropsFor<FooPropsBuilder, (_, _)>`
+error[E0277]: not all required properties have been provided for `FooProps`
+ --> tests/html_macro/missing-props-diagnostics-fail.rs:6:10
+  |
+6 |         <Foo />
+  |          ^^^ missing required properties
+  |
+  = help: the trait `HasAllProps<FooProps, (_, _)>` is not implemented for `CheckFooPropsAll<AssertAllProps>`
+  = note: required for `AssertAllProps` to implement `AllPropsFor<FooPropsBuilder, (_, _)>`
 note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
-  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
-   |
-   |         pub fn build<How>(self) -> B::Output
-   |                ----- required by a bound in this associated function
-   |         where
-   |             Token: AllPropsFor<B, How>,
-   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
-   = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+ --> $WORKSPACE/packages/yew/src/html/component/properties.rs
+  |
+  |         pub fn build<How>(self) -> B::Output
+  |                ----- required by a bound in this associated function
+  |         where
+  |             Token: AllPropsFor<B, How>,
+  |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
+  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: not all required properties have been provided
-  --> tests/html_macro/missing-props-diagnostics-fail.rs:6:10
-   |
-6  |         <Foo />
-   |          ^^^ missing required properties for this component
-   |
-   = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`
-   = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckFooPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `HasFooPropsbar<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-           and $N others
-note: required for `CheckFooPropsAll<AssertAllProps>` to implement `HasAllProps<FooProps, (_, _)>`
-  --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
-   |
-24 | #[derive(Properties, PartialEq, Clone)]
-   |          ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
-   = note: required for `AssertAllProps` to implement `AllPropsFor<FooPropsBuilder, (_, _)>`
-note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
-  --> $WORKSPACE/packages/yew/src/html/component/properties.rs
-   |
-   |         pub fn build<How>(self) -> B::Output
-   |                ----- required by a bound in this associated function
-   |         where
-   |             Token: AllPropsFor<B, How>,
-   |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
-   = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0277]: property `baz` is required but not provided
+error[E0277]: not all required properties have been provided for `FooProps`
   --> tests/html_macro/missing-props-diagnostics-fail.rs:13:10
    |
 13 |         <Foo bar={"bar".to_string()} />
-   |          ^^^ missing required property `baz`
+   |          ^^^ missing required properties
    |
-   = help: the trait `HasProp<baz, _>` is not implemented for `AssertAllProps`
-   = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckFooPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `HasFooPropsbar<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-           and $N others
-note: required for `HasFooPropsbar<AssertAllProps>` to implement `HasProp<baz, &dyn HasProp<baz, _>>`
-  --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
-   |
-24 | #[derive(Properties, PartialEq, Clone)]
-   |          ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
-note: required for `CheckFooPropsAll<HasFooPropsbar<AssertAllProps>>` to implement `HasAllProps<FooProps, (HasFooPropsbar<AssertAllProps>, &dyn HasProp<baz, _>)>`
-  --> tests/html_macro/missing-props-diagnostics-fail.rs:24:10
-   |
-24 | #[derive(Properties, PartialEq, Clone)]
-   |          ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+   = help: the trait `HasAllProps<FooProps, (HasFooPropsbar<AssertAllProps>, &dyn HasProp<baz, _>)>` is not implemented for `CheckFooPropsAll<HasFooPropsbar<AssertAllProps>>`
    = note: required for `HasFooPropsbar<AssertAllProps>` to implement `AllPropsFor<FooPropsBuilder, (HasFooPropsbar<AssertAllProps>, &dyn HasProp<baz, _>)>`
 note: required by a bound in `yew::html::component::properties::__macro::PreBuild::<Token, B>::build`
   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
@@ -100,4 +32,4 @@ note: required by a bound in `yew::html::component::properties::__macro::PreBuil
    |         where
    |             Token: AllPropsFor<B, How>,
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
-   = note: this error originates in the macro `html` which comes from the expansion of the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

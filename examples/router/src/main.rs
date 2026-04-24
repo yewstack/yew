@@ -15,11 +15,11 @@ use yew::html::Scope;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/posts/:id")]
+    #[at("/posts/{id}")]
     Post { id: u64 },
     #[at("/posts")]
     Posts,
-    #[at("/authors/:id")]
+    #[at("/authors/{id}")]
     Author { id: u64 },
     #[at("/authors")]
     Authors,
@@ -70,8 +70,6 @@ impl Component for App {
                         <a href="https://yew.rs">{ "Yew" }</a>
                         { " using " }
                         <a href="https://bulma.io">{ "Bulma" }</a>
-                        { " and images from " }
-                        <a href="https://unsplash.com">{ "Unsplash" }</a>
                     </div>
                 </footer>
             </BrowserRouter>
@@ -125,24 +123,14 @@ impl App {
 }
 
 fn switch(routes: Route) -> Html {
-    match routes {
-        Route::Post { id } => {
-            html! { <Post seed={id} /> }
-        }
-        Route::Posts => {
-            html! { <PostList /> }
-        }
-        Route::Author { id } => {
-            html! { <Author seed={id} /> }
-        }
-        Route::Authors => {
-            html! { <AuthorList /> }
-        }
-        Route::Home => {
-            html! { <Home /> }
-        }
-        Route::NotFound => {
-            html! { <PageNotFound /> }
+    html! {
+        match routes {
+            Route::Post { id } => <Post seed={id} />,
+            Route::Posts => <PostList />,
+            Route::Author { id } => <Author seed={id} />,
+            Route::Authors => <AuthorList />,
+            Route::Home => <Home />,
+            Route::NotFound => <PageNotFound />,
         }
     }
 }

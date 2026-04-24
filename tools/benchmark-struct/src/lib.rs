@@ -89,7 +89,7 @@ impl Component for App {
             rows: Vec::new(),
             next_id: 1,
             selected_id: None,
-            rng: SmallRng::from_os_rng(),
+            rng: SmallRng::from_rng(&mut rand::rng()),
             on_select: ctx.link().callback(Msg::Select),
             on_remove: ctx.link().callback(Msg::Remove),
         }

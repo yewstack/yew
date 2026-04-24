@@ -71,7 +71,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew = { version = "0.22", features = ["csr"] }
 ```
 
 :::info
@@ -127,7 +127,7 @@ Remove option '--open' to not open your default browser `trunk serve`.
 Trunk will open your application in your default browser, watch the project directory and helpfully rebuild your
 application if you modify any source files.
 This will fail if the socket is being used by another application.
-By default server will listening at address '127.0.0.1' and port '8080' => [http://localhost:8080](http://127.0.0.1:8080).
+By default server will be listening at address '127.0.0.1' and port '8080' => [http://localhost:8080](http://127.0.0.1:8080).
 To change it, create the following file and edit as needed:
 
 ```toml title="Trunk.toml"
@@ -475,8 +475,8 @@ Let's update the dependencies in `Cargo.toml` file:
 
 ```toml title="Cargo.toml" {2-6}
 [dependencies]
--yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
-+yew = { git = "https://github.com/yewstack/yew/", features = ["csr", "serde"] }
+-yew = { version = "0.22", features = ["csr"] }
++yew = { version = "0.22", features = ["csr", "serde"] }
 +gloo-net = "0.6"
 +serde = { version = "1.0", features = ["derive"] }
 +wasm-bindgen-futures = "0.4"
@@ -611,7 +611,7 @@ you can use it as a jumping-off point to explore more advanced topics.
 ### Styles
 
 Our apps look very ugly. There is no CSS or any kind of style.
-Unfortunately, Yew does not offer a built-in way to style components. See [Trunk's assets](https://trunkrs.dev/assets/)
+Unfortunately, Yew does not offer a built-in way to style components. See [Trunk's assets](https://trunk-rs.github.io/trunk/guide/assets/index.html)
 to learn how to add style sheets.
 
 ### More libraries

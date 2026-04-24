@@ -8,15 +8,15 @@ struct FolksViewProps {
     folks: IArray<IString>,
 }
 
-#[function_component(FolksView)]
-fn folks_view(props: &FolksViewProps) -> Html {
+#[component]
+fn FolksView(props: &FolksViewProps) -> Html {
     html! {
-        <>
         <p>{"Hello to:"}</p>
         <ul>
-        { for props.folks.iter().map(|s| html!(<li>{s}</li>)) }
+        for s in props.folks.iter() {
+            <li>{s}</li>
+        }
         </ul>
-        </>
     }
 }
 
@@ -45,11 +45,9 @@ pub fn array_example() -> Html {
     };
 
     html! {
-        <>
         <h2>{"Input"}</h2>
         <input {onkeyup} />
         <h2>{"Output"}</h2>
         <FolksView folks={&*folks} />
-        </>
     }
 }

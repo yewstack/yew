@@ -1,0 +1,71 @@
+---
+title: '字面量和表达式'
+---
+
+## 字面量
+
+如果表达式解析为实现了 `Display` 的类型，它们将被转换为字符串并插入到 DOM 中作为 [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) 节点。
+
+:::note
+字符串字面量创建 `Text` 节点，浏览器将其视为字符串。因此，即使表达式包含 `<script>` 标签，您也不会遇到 XSS 等安全问题，除非您将表达式包装在 `<script>` 块中。
+:::
+
+所有显示文本都必须用 `{}` 块括起来，因为文本被视为表达式。这是 Yew 与普通 HTML 语法最大的偏差。
+
+```rust
+use yew::prelude::*;
+
+let text = "lorem ipsum";
+html!{
+    <>
+        <div>{text}</div>
+        <div>{"dolor sit"}</div>
+        <span>{42}</span>
+    </>
+};
+```
+
+## 表达式
+
+您可以使用 `{}` 块在 HTML 中插入表达式，只要它们解析为 `Html`
+
+```rust
+use yew::prelude::*;
+
+let show_link = true;
+
+html! {
+  <div>
+    {
+      if show_link {
+        html! {
+          <a href="https://example.com">{"Link"}</a>
+        }
+      } else {
+        html! {}
+      }
+    }
+  </div>
+};
+```
+
+通常将这些表达式提取到函数或闭包中以优化可读性是有意义的：
+
+```rust
+use yew::prelude::*;
+
+let show_link = true;
+let maybe_display_link = move || -> Html {
+  if show_link {
+    html! {
+      <a href="https://example.com">{"Link"}</a>
+    }
+  } else {
+    html! {}
+  }
+};
+
+html! {
+     <div>{maybe_display_link()}</div>
+};
+```

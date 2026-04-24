@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use build_examples::{get_latest_wasm_opt_version, is_wasm_opt_outdated, NO_TRUNK_EXAMPLES};
+use build_examples::{NO_TRUNK_EXAMPLES, get_latest_wasm_opt_version, is_wasm_opt_outdated};
 use regex::Regex;
 
 fn main() -> ExitCode {

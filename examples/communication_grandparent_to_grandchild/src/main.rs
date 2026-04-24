@@ -8,7 +8,7 @@ mod child;
 mod grandparent;
 mod parent;
 
-use yew::{function_component, html, Component, Context, ContextHandle, ContextProvider, Html};
+use yew::{Component, Context, ContextHandle, ContextProvider, Html, function_component, html};
 
 /// This is the shared state between the parent and child components.
 #[derive(Clone, Eq, PartialEq)]

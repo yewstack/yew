@@ -6,8 +6,8 @@ mod oneshot;
 mod reactor;
 
 use agent_fn::{AgentFn, AgentName};
-use oneshot::{oneshot_impl, OneshotFn};
-use reactor::{reactor_impl, ReactorFn};
+use oneshot::{OneshotFn, oneshot_impl};
+use reactor::{ReactorFn, reactor_impl};
 
 #[proc_macro_attribute]
 pub fn reactor(attr: TokenStream, item: TokenStream) -> TokenStream {

@@ -42,7 +42,9 @@ impl Component for Author {
                             <article class="tile is-child notification">
                                 <p class="title">{ "Interests" }</p>
                                 <div class="tags">
-                                    { for author.keywords.iter().map(|tag| html! { <span class="tag is-info">{ tag }</span> }) }
+                                    for tag in &author.keywords {
+                                        <span class="tag is-info">{ tag }</span>
+                                    }
                                 </div>
                             </article>
                         </div>

@@ -39,7 +39,6 @@ jobs:
       - name: Restore Rust cache for yew packages
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: yew-packages
           workspaces: |
             yew-master
             current-pr
@@ -57,7 +56,7 @@ jobs:
           echo "${{ github.event.number }}" > .PR_NUMBER
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-ssr
           include-hidden-files: true

@@ -13,7 +13,7 @@ then take the following steps:
 ### Checkout and customize project
 
 ```shell
-cargo generate --git https://github.com/yewstack/yew-trunk-minimal-template
+cargo generate yewstack/yew-trunk-minimal-template
 ```
 
 ### Run project
@@ -69,8 +69,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# this is the development version of Yew
-yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+yew = { version = "0.22", features = ["csr"] }
 ```
 
 :::info
@@ -152,7 +151,7 @@ Add option '--open' to open your default browser `trunk serve --open`.
 :::
 
 Trunk will rebuild your application if you modify any of its source code files.
-By default server will listening at address '127.0.0.1' and port '8080' => [http://localhost:8080](http://127.0.0.1:8080).
+By default server will be listening at address '127.0.0.1' and port '8080' => [http://localhost:8080](http://127.0.0.1:8080).
 To change it, create the following file and edit as needed:
 
 ```toml title="Trunk.toml"

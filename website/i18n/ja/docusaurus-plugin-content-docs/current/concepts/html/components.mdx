@@ -27,7 +27,7 @@ struct Props {
 fn MyComponentWithProps(props: &Props) -> Html {
     let Props { user_first_name, user_last_name } = props;
     html! {
-        <>{"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}</>
+        {"user_first_name: "}{user_first_name}{" and user_last_name: "}{user_last_name}
     }
 }
 
@@ -37,19 +37,17 @@ let props = Props {
 };
 
 html!{
-    <>
-        // プロパティなし
-        <MyComponent />
+    // プロパティなし
+    <MyComponent />
 
-        // プロパティを使用
-        <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
+    // プロパティを使用
+    <MyComponentWithProps user_first_name="Sam" user_last_name="Idle" />
 
-        // すべてのプロパティを一度に提供
-        <MyComponentWithProps ..props.clone() />
+    // すべてのプロパティを一度に提供
+    <MyComponentWithProps ..props.clone() />
 
-        // 変数のプロパティを使用し、特定の値を上書き
-        <MyComponentWithProps user_last_name="Elm" ..props />
-    </>
+    // 変数のプロパティを使用し、特定の値を上書き
+    <MyComponentWithProps user_last_name="Elm" ..props />
 };
 ```
 

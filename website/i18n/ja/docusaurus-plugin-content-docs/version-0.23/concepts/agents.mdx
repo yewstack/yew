@@ -1,0 +1,56 @@
+---
+title: 'エージェント (Agents)'
+description: 'Yew のエージェントシステム'
+---
+
+import useBaseUrl from '@docusaurus/useBaseUrl'
+import ThemedImage from '@theme/ThemedImage'
+
+エージェント (Agents) は、タスクを Web Workers にオフロードする方法です。
+
+エージェントが並行して動作できるようにするために、Yew は [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) を使用します。
+
+## ライフサイクル
+
+<!--
+The diagram is produced with nomnoml (nomnoml.com),
+The code can be found in the <desc> tag of the svgs.
+-->
+
+<ThemedImage
+    alt="agent lifecycle diagram"
+    sources={{
+        light: useBaseUrl('/img/agent-lifecycle-light.svg'),
+        dark: useBaseUrl('/img/agent-lifecycle-dark.svg'),
+    }}
+/>
+
+## エージェントの種類
+
+### 範囲
+
+- 公開 - 任意の時点で、公開エージェントのインスタンスは最大で1つだけです。ブリッジはWeb Worker内でエージェントを生成するか、既に生成されたエージェントに接続します。ブリッジがこのエージェントに接続されていない場合、エージェントは消滅します。
+
+- 私有 - 新しいブリッジごとにWeb Worker内で新しいエージェントを生成します。これは、ブラウザと通信する共有だが独立した動作をコンポーネントから移動するのに適しています。接続されたブリッジが破棄されると、エージェントは消滅します。
+
+- グローバル \(WIP\)
+
+## エージェントとコンポーネント間の通信
+
+### 通信ブリッジ (Bridges)
+
+通信ブリッジ（ブリッジ）は、コンポーネントとエージェント間の通信チャネルです。これにより、コンポーネントはエージェントにメッセージを送信し、エージェントからのメッセージを受信できます。
+
+`use_bridge` フックは、関数コンポーネント内でブリッジを作成する機能も提供します。
+
+### ディスパッチャー (Dispatchers)
+
+ディスパッチャー（ディスパッチャー）は、コンポーネントとエージェント間の一方向通信を可能にし、コンポーネントがこの方法でエージェントにメッセージを送信します。
+
+## オーバーヘッド
+
+エージェントはWeb Workers（つまり、私有および公開）を使用します。メッセージの送受信時にシリアル化オーバーヘッドが発生します。エージェントは [bincode](https://github.com/bincode-org/bincode) を使用して他のスレッドと通信するため、コストは関数を呼び出すだけの場合よりもはるかに高くなります。
+
+## さらなる読み物
+
+- [web_worker_fib](https://github.com/yewstack/yew/tree/master/examples/web_worker_fib) の例は、コンポーネントがエージェントにメッセージを送信し、エージェントからのメッセージを受信する方法を示しています。

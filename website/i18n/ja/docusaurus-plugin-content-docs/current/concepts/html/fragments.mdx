@@ -2,41 +2,32 @@
 title: '空のタグ (Fragments)'
 ---
 
-import Tabs from '@theme/Tabs'
-import TabItem from '@theme/TabItem'
-
-`html!` マクロは常にルートノードを必要とします。この制限を回避するために、「空のタグ」（または fragments）を使用できます。
-
-<Tabs>
-<TabItem value="Valid" label="Valid">
+`html!` マクロは複数のルートノードを直接受け入れます。ルートレベルでフラグメントラッパー (`<>...</>`) は**不要**です:
 
 ```rust
 use yew::prelude::*;
 
 html! {
-    <>
-        <div></div>
-        <p></p>
-    </>
-};
-
-```
-
-</TabItem>
-
-<TabItem value="Invalid" label="Invalid">
-
-```rust, compile_fail
-use yew::prelude::*;
-
-// エラー: ルート HTML 要素は1つだけ許可されます
-
-html! {
     <div></div>
     <p></p>
 };
-
 ```
 
-</TabItem>
-</Tabs>
+## キー付きフラグメント
+
+フラグメント構文の唯一の正当な用途は、**キー付き**フラグメントです。
+
+```rust
+use yew::prelude::*;
+
+html! {
+    // .. siblings ..
+    <key="group-a">
+        <span>{"a1"}</span>
+        <span>{"a2"}</span>
+    </>
+    // .. siblings ..
+};
+```
+
+キー付きフラグメントは、場合によっては差分処理のパフォーマンスとノードの永続化に役立ちます。

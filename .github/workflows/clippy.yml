@@ -25,6 +25,9 @@ jobs:
         profile:
           - dev
           - release
+        target:
+          - host
+          - wasm32
     steps:
       - uses: actions/checkout@v6
 
@@ -33,18 +36,26 @@ jobs:
         with:
           toolchain: stable
           components: clippy
+          targets: ${{ case(matrix.target == 'wasm32', 'wasm32-unknown-unknown', null) }}
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: clippy
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - uses: taiki-e/install-action@cargo-hack
 
       - name: Lint feature soundness
-        if: matrix.profile == 'dev'
-        run: bash ./ci/feature-soundness.sh
-
-      - name: Lint feature soundness
-        if: matrix.profile == 'release'
-        run: bash ./ci/feature-soundness-release.sh
+        env:
+          RELEASE_FLAG: ${{ case(matrix.profile == 'release', '--release', null) }}
+          TARGET_FLAGS: ${{ case(matrix.target == 'wasm32', '--target wasm32-unknown-unknown', null) }}
+        run: >-
+          cargo hack clippy
+          -p yew -p yew-agent -p yew-router -p yew-link
+          --feature-powerset --no-dev-deps
+          --keep-going
+          $RELEASE_FLAG
+          $TARGET_FLAGS
+          -- -D warnings
 
   clippy:
     name: Clippy Workspace
@@ -66,7 +77,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: clippy
+          save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run clippy
         run: |

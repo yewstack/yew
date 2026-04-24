@@ -1,18 +1,17 @@
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use git2::{Error, Oid, Repository};
-use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::github_issue_labels_fetcher::GitHubIssueLabelsFetcher;
 use crate::github_user_fetcher::GitHubUsersFetcher;
 use crate::log_line::LogLine;
 
-static REGEX_FOR_ISSUE_ID_CAPTURE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\s*\(#(\d+)\)").unwrap());
-static GITHUB_ISSUE_LABELS_FETCHER: Lazy<Mutex<GitHubIssueLabelsFetcher>> =
-    Lazy::new(Default::default);
+static REGEX_FOR_ISSUE_ID_CAPTURE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\s*\(#(\d+)\)").unwrap());
+static GITHUB_ISSUE_LABELS_FETCHER: LazyLock<Mutex<GitHubIssueLabelsFetcher>> =
+    LazyLock::new(Default::default);
 
 pub fn create_log_line(
     repo: &Repository,
@@ -89,8 +88,10 @@ pub fn create_log_line(
         });
         let count = leftovers.count();
         if count > 0 {
-            println!("Potentially invalidly labeled issue: {issue_id}. Neither A-* (area), documentation nor meta labels found. \
-            inspect/re-tag at https://github.com/yewstack/yew/issues/{issue_id}");
+            println!(
+                "Potentially invalidly labeled issue: {issue_id}. Neither A-* (area), documentation nor meta labels found. \
+            inspect/re-tag at https://github.com/yewstack/yew/issues/{issue_id}"
+            );
         }
         return Ok(None);
     }

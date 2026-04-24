@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::functional::{hook, use_state, Hook, HookContext};
 use crate::NodeRef;
+use crate::functional::{Hook, HookContext, hook, use_state};
 
 struct UseRef<F> {
     init_fn: F,
@@ -138,10 +138,10 @@ where
 /// # Example
 ///
 /// ```rust
-/// use wasm_bindgen::prelude::Closure;
 /// use wasm_bindgen::JsCast;
+/// use wasm_bindgen::prelude::Closure;
 /// use web_sys::{Event, HtmlElement};
-/// use yew::{component, html, use_effect_with, use_node_ref, Html};
+/// use yew::{Html, component, html, use_effect_with, use_node_ref};
 ///
 /// #[component(UseNodeRef)]
 /// pub fn node_ref_hook() -> Html {

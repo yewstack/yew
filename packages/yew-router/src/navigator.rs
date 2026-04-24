@@ -177,7 +177,7 @@ impl Navigator {
                     .unwrap_or(path);
 
                 if !path.starts_with('/') {
-                    path = format!("/{m}").into();
+                    path = format!("/{path}").into();
                 }
 
                 path

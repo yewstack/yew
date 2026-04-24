@@ -84,6 +84,20 @@ Yewは、`<Suspense />` を使用してこの問題を解決する異なるア�
 
 この方法により、開発者はサーバーサイドレンダリングに対応したクライアント非依存のアプリケーションを簡単に構築し、データ取得を行うことができます。
 
+## `<head>` タグのレンダリング
+
+SSR でよく必要とされるのは、クローラーやソーシャルプレビューが最初のロード時に正しいメタデータを参照できるよう、動的な `<head>` コンテンツ（`<title>`、`<meta>` など）をレンダリングすることです。
+
+`ServerRenderer` はコンポーネントツリー（通常はドキュメントの body 部分）のみをレンダリングし、`<head>` にはアクセスできません。そのため、head タグは **Yew の外部でサーバー側に**生成し、クライアントに送信する前に HTML テンプレートに埋め込む必要があります。
+
+[`ssr_router` サンプル](https://github.com/yewstack/yew/blob/master/examples/ssr_router/src/bin/ssr_router_server.rs) はこのパターンを示しています：サーバーはリクエスト URL からルートを判別し、適切な `<title>` および `<meta>` タグを生成して、Trunk が生成した `index.html` の `</head>` の前に挿入します。
+
+:::info
+
+完全に SSR 互換のサードパーティソリューションとして、[Bounce の `<Helmet/>` コンポーネント](https://docs.rs/bounce/latest/bounce/helmet/index.html) が利用できます。
+
+:::
+
 ## SSR ハイドレーション
 
 ## サーバーサイドレンダリングハイドレーション（SSR Hydration）

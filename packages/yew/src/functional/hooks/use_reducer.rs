@@ -6,9 +6,9 @@ use std::rc::Rc;
 
 use implicit_clone::ImplicitClone;
 
-use crate::functional::{hook, Hook, HookContext};
-use crate::html::IntoPropValue;
 use crate::Callback;
+use crate::functional::{Hook, HookContext, hook};
+use crate::html::IntoPropValue;
 
 type DispatchFn<T> = Rc<dyn Fn(<T as Reducible>::Action)>;
 
@@ -48,6 +48,14 @@ impl<T> UseReducerHandle<T>
 where
     T: Reducible,
 {
+    /// Returns the current value of the handle as an `Rc`.
+    ///
+    /// Unlike [`Deref`], this gives you an owned `Rc<T>` that can be moved
+    /// into closures or stored without borrowing the handle.
+    pub fn value_rc(&self) -> Rc<T> {
+        self.current_state.borrow().clone()
+    }
+
     /// Dispatch the given action to the reducer.
     pub fn dispatch(&self, value: T::Action) {
         (self.dispatch)(value)
@@ -58,6 +66,17 @@ where
         UseReducerDispatcher {
             dispatch: self.dispatch.clone(),
         }
+    }
+
+    /// Destructures the handle into its two parts: the current value as an
+    /// `Rc<T>`, and the dispatcher for applying actions.
+    pub fn into_inner(self) -> (Rc<T>, UseReducerDispatcher<T>) {
+        (
+            self.current_state.borrow().clone(),
+            UseReducerDispatcher {
+                dispatch: self.dispatch,
+            },
+        )
     }
 }
 
@@ -125,18 +144,21 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = if let Ok(rc_ref) = self.current_state.try_borrow() {
-            format!("{:?}", *rc_ref)
-        } else {
-            let history = self.deref_history.borrow();
-            format!(
-                "{:?}",
-                **history.last().expect("deref_history is never empty")
-            )
+        let value = match self.current_state.try_borrow() {
+            Ok(rc_ref) => {
+                format!("{:?}", *rc_ref)
+            }
+            _ => {
+                let history = self.deref_history.borrow();
+                format!(
+                    "{:?}",
+                    **history.last().expect("deref_history is never empty")
+                )
+            }
         };
         f.debug_struct("UseReducerHandle")
             .field("value", &value)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -145,7 +167,9 @@ where
     T: Reducible + PartialEq,
 {
     fn eq(&self, rhs: &Self) -> bool {
-        **self == **rhs
+        let self_snapshot = self.deref_history.borrow();
+        let rhs_snapshot = rhs.deref_history.borrow();
+        *self_snapshot[0] == *rhs_snapshot[0]
     }
 }
 
@@ -175,7 +199,8 @@ where
     T: Reducible + fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("UseReducerDispatcher").finish()
+        f.debug_struct("UseReducerDispatcher")
+            .finish_non_exhaustive()
     }
 }
 
@@ -187,7 +212,6 @@ where
         // We are okay with comparisons from different compilation units to result in false
         // not-equal results. This should only lead in the worst-case to some unneeded
         // re-renders.
-        #[allow(ambiguous_wide_pointer_comparisons)]
         Rc::ptr_eq(&self.dispatch, &rhs.dispatch)
     }
 }
@@ -319,8 +343,13 @@ where
 /// implement a `Reducible` trait which defines the associated `Action` type and a
 /// reducer function.
 ///
-/// This hook will always trigger a re-render upon receiving an action. See
-/// [`use_reducer_eq`] if you want the component to only re-render when the state changes.
+/// This hook will trigger a re-render whenever the reducer function produces a new `Rc` value upon
+/// receiving an action. If the reducer function simply returns the original `Rc` then the component
+/// will not re-render. See [`use_reducer_eq`] if you want the component to first compare the old
+/// and new state and only re-render when the state actually changes.
+///
+/// To cause a re-render even if the reducer function returns the same `Rc`, take a look at
+/// [`use_force_update`].
 ///
 /// # Example
 /// ```rust
@@ -375,12 +404,10 @@ where
 ///     };
 ///
 ///     html! {
-///         <>
-///             <div id="result">{ counter.counter }</div>
+///         <div id="result">{ counter.counter }</div>
 ///
-///             <button onclick={double_onclick}>{ "Double" }</button>
-///             <button onclick={square_onclick}>{ "Square" }</button>
-///         </>
+///         <button onclick={double_onclick}>{ "Double" }</button>
+///         <button onclick={square_onclick}>{ "Square" }</button>
 ///     }
 /// }
 /// ```
@@ -405,7 +432,7 @@ where
     T: Reducible + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, |_, _| true)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b))
 }
 
 /// [`use_reducer`] but only re-renders when `prev_state != next_state`.
@@ -418,5 +445,10 @@ where
     T: Reducible + PartialEq + 'static,
     F: FnOnce() -> T,
 {
-    use_reducer_base(init_fn, T::ne)
+    use_reducer_base(init_fn, |a, b| !address_eq(a, b) && a != b)
+}
+
+/// Check if two references point to the same address.
+fn address_eq<T>(a: &T, b: &T) -> bool {
+    std::ptr::eq(a as *const T, b as *const T)
 }

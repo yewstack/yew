@@ -61,28 +61,13 @@ help: consider annotating `Value` with `#[derive(PartialEq)]`
 9  |     struct Value;
    |
 
-error[E0277]: not all required properties have been provided
+error[E0277]: not all required properties have been provided for `t3::Props`
   --> tests/derive_props/fail.rs:35:24
    |
 35 |         ::yew::props!{ Props { } };
-   |                        ^^^^^ missing required properties for this component
+   |                        ^^^^^ missing required properties
    |
-   = help: the trait `HasProp<t3::_Props::value, _>` is not implemented for `AssertAllProps`
-   = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `suspense::component::CheckSuspensePropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `t10::CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-           and $N others
-note: required for `t3::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t3::Props, (_,)>`
-  --> tests/derive_props/fail.rs:29:21
-   |
-29 |     #[derive(Clone, Properties, PartialEq)]
-   |                     ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+   = help: the trait `HasAllProps<t3::Props, (_,)>` is not implemented for `t3::CheckPropsAll<AssertAllProps>`
    = note: required for `AssertAllProps` to implement `AllPropsFor<t3::PropsBuilder, (_,)>`
 note: required by a bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
@@ -92,30 +77,14 @@ note: required by a bound in `html::component::properties::__macro::PreBuild::<T
    |         where
    |             Token: AllPropsFor<B, How>,
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
-   = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0277]: not all required properties have been provided
+error[E0277]: not all required properties have been provided for `t4::Props`
   --> tests/derive_props/fail.rs:47:24
    |
 47 |         ::yew::props!{ Props { } };
-   |                        ^^^^^ missing required properties for this component
+   |                        ^^^^^ missing required properties
    |
-   = help: the trait `HasProp<t4::_Props::value, _>` is not implemented for `AssertAllProps`
-   = help: the following other types implement trait `HasProp<P, How>`:
-             `CheckChildrenPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `CheckContextProviderPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropschildren<B>` implements `HasProp<children, HasContextProviderPropschildren<B>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `HasContextProviderPropscontext<B>` implements `HasProp<yew::context::_ContextProviderProps::context, HasContextProviderPropscontext<B>>`
-             `suspense::component::CheckSuspensePropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-             `t10::CheckPropsAll<B>` implements `HasProp<P, &dyn HasProp<P, How>>`
-           and $N others
-note: required for `t4::CheckPropsAll<AssertAllProps>` to implement `HasAllProps<t4::Props, (_,)>`
-  --> tests/derive_props/fail.rs:41:21
-   |
-41 |     #[derive(Clone, Properties, PartialEq)]
-   |                     ^^^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
+   = help: the trait `HasAllProps<t4::Props, (_,)>` is not implemented for `t4::CheckPropsAll<AssertAllProps>`
    = note: required for `AssertAllProps` to implement `AllPropsFor<t4::PropsBuilder, (_,)>`
 note: required by a bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
   --> $WORKSPACE/packages/yew/src/html/component/properties.rs
@@ -125,7 +94,6 @@ note: required by a bound in `html::component::properties::__macro::PreBuild::<T
    |         where
    |             Token: AllPropsFor<B, How>,
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `PreBuild::<Token, B>::build`
-   = note: this error originates in the derive macro `Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> tests/derive_props/fail.rs:66:19

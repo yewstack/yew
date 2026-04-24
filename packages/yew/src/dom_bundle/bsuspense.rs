@@ -1,4 +1,4 @@
-//! This module contains the bundle version of a supsense [BSuspense]
+//! This module contains the bundle version of a suspense [BSuspense]
 
 use gloo::utils::document;
 use web_sys::Element;
@@ -22,7 +22,7 @@ enum Fallback {
 #[derive(Debug)]
 pub(super) struct BSuspense {
     children_bundle: BNode,
-    /// The supsense is suspended if fallback contains [Some] bundle
+    /// The suspense is suspended if fallback contains [Some] bundle
     fallback: Option<Fallback>,
     detached_parent: Element,
     key: Option<Key>,

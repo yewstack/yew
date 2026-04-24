@@ -1,0 +1,42 @@
+---
+title: '空標籤 (Fragments)'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`html!` 巨集總是需要一個根節點。為了繞過這個限制，您可以使用一個“空標籤”（也稱為“fragments”）。
+
+<Tabs>
+<TabItem value="Valid" label="Valid">
+
+```rust
+use yew::prelude::*;
+
+html! {
+    <>
+        <div></div>
+        <p></p>
+    </>
+};
+
+```
+
+</TabItem>
+
+<TabItem value="Invalid" label="Invalid">
+
+```rust, compile_fail
+use yew::prelude::*;
+
+// 錯誤：只允許一個根 HTML 元素
+
+html! {
+    <div></div>
+    <p></p>
+};
+
+```
+
+</TabItem>
+</Tabs>

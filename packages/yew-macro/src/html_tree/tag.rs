@@ -1,7 +1,7 @@
 use proc_macro2::{Span, TokenStream, TokenTree};
-use quote::{quote, ToTokens};
-use syn::parse::{ParseStream, Parser};
+use quote::{ToTokens, quote};
 use syn::Token;
+use syn::parse::{ParseStream, Parser};
 
 /// Check whether two spans are equal.
 /// The implementation is really silly but I couldn't find another way to do it on stable.
@@ -107,14 +107,12 @@ impl TagTokens {
             let next = input.parse()?;
             if let TokenTree::Punct(punct) = &next {
                 match punct.as_char() {
-                    '/' => {
-                        if angle_count == 1 && input.peek(Token![>]) {
-                            div = Some(syn::token::Slash {
-                                spans: [punct.span()],
-                            });
-                            gt = input.parse()?;
-                            break;
-                        }
+                    '/' if angle_count == 1 && input.peek(Token![>]) => {
+                        div = Some(syn::token::Slash {
+                            spans: [punct.span()],
+                        });
+                        gt = input.parse()?;
+                        break;
                     }
                     '>' => {
                         angle_count = angle_count.checked_sub(1).ok_or_else(|| {
@@ -143,7 +141,7 @@ impl TagTokens {
 
     /// Generate tokens which can be used in `syn::Error::new_spanned` to span the entire tag.
     /// This is to work around the limitation of being unable to manually join spans on stable.
-    pub fn to_spanned(&self) -> impl ToTokens {
+    pub fn to_spanned(&self) -> TokenStream {
         let Self { lt, gt, .. } = self;
         quote! {#lt #gt}
     }

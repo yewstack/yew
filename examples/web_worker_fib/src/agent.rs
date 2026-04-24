@@ -1,8 +1,8 @@
 use js_sys::Uint8Array;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
-use yew_agent::prelude::*;
 use yew_agent::Codec;
+use yew_agent::prelude::*;
 
 /// Example to use a custom codec.
 pub struct Postcard;
@@ -28,11 +28,7 @@ impl Codec for Postcard {
 #[oneshot]
 pub async fn FibonacciTask(n: u32) -> u32 {
     fn fib(n: u32) -> u32 {
-        if n <= 1 {
-            1
-        } else {
-            fib(n - 1) + fib(n - 2)
-        }
+        if n <= 1 { 1 } else { fib(n - 1) + fib(n - 2) }
     }
 
     fib(n)

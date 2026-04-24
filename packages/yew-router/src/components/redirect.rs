@@ -1,8 +1,8 @@
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
-use crate::hooks::use_navigator;
 use crate::Routable;
+use crate::hooks::use_navigator;
 
 /// Props for [`Redirect`]
 #[derive(Properties, Clone, PartialEq, Eq)]

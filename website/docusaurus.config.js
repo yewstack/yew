@@ -1,4 +1,5 @@
 const { API_BUTTON } = require('./src/constants')
+const rustDocHiddenLines = require('./src/remark/rustDocHiddenLines')
 
 const editUrl = 'https://github.com/yewstack/yew/blob/master/website/'
 
@@ -13,6 +14,23 @@ module.exports = {
     favicon: 'img/logo.svg',
     organizationName: 'yewstack', // Usually your GitHub org/user name.
     projectName: 'yew', // Usually your repo name.
+    headTags: [
+        {
+            tagName: 'link',
+            attributes: {
+                rel: 'icon',
+                href: '/favicon.ico',
+                sizes: 'any',
+            },
+        },
+        {
+            tagName: 'link',
+            attributes: {
+                rel: 'apple-touch-icon',
+                href: '/apple-touch-icon.png',
+            },
+        },
+    ],
     themeConfig: {
         colorMode: {
             respectPrefersColorScheme: true,
@@ -152,6 +170,7 @@ module.exports = {
                     sidebarPath: require.resolve('./sidebars/docs.js'),
                     editUrl,
                     routeBasePath: '/docs',
+                    remarkPlugins: [rustDocHiddenLines],
                 },
                 blog: {
                     path: 'blog',
@@ -176,6 +195,18 @@ module.exports = {
                 sidebarPath: require.resolve('./sidebars/community.js'),
                 routeBasePath: '/community',
                 editUrl,
+                remarkPlugins: [rustDocHiddenLines],
+            },
+        ],
+        [
+            '@docusaurus/plugin-content-docs',
+            {
+                id: 'migration-guides',
+                path: 'migration-guides',
+                sidebarPath: require.resolve('./sidebars/migration-guides.js'),
+                routeBasePath: '/docs/migration-guides',
+                editUrl,
+                remarkPlugins: [rustDocHiddenLines],
             },
         ],
         [
@@ -189,6 +220,21 @@ module.exports = {
                         from: ['/docs/next'], // string | string[]
                     },
                 ],
+                // Migration guides were previously duplicated across every versioned docs dir.
+                // They now live in a single unversioned plugin instance mounted at
+                // `/docs/migration-guides`. Redirect all historical versioned URLs to their
+                // unversioned equivalents.
+                createRedirects(existingPath) {
+                    const prefix = '/docs/migration-guides/'
+                    if (!existingPath.startsWith(prefix)) return undefined
+                    const suffix = existingPath.slice(prefix.length)
+                    return [
+                        `/docs/next/migration-guides/${suffix}`,
+                        `/docs/0.20/migration-guides/${suffix}`,
+                        `/docs/0.21/migration-guides/${suffix}`,
+                        `/docs/0.22/migration-guides/${suffix}`,
+                    ]
+                },
             },
         ],
     ],

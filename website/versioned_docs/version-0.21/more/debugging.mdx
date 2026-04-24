@@ -10,19 +10,26 @@ Yew automatically logs panics in the browser console.
 
 In JavaScript, `console.log()` is used to log to the browser console. Some options for Yew are listed below.
 
-### [`wasm-logger`](https://crates.io/crates/wasm-logger)
+### [`tracing-web`](https://crates.io/crates/tracing-web) (recommended)
 
-`wasm-logger` crate integrates with [`log`](https://crates.io/crates/log) crate to send the log level, source line, and filename to the browser console.
+`tracing-web` can be used with [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber) to output messages to the browser console. It works seamlessly on both the client and the server, making it a natural fit for SSR applications where you want a single logging setup across both ends.
 
 ```rust ,ignore
-use log::info;
+use tracing_subscriber::prelude::*;
 use wasm_bindgen::JsValue;
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
+    let fmt_layer = tracing_subscriber::fmt::layer()
+        .with_ansi(false) // only partially supported across browsers
+        .without_time()   // browsers can show timestamps natively in the dev console
+        .with_writer(tracing_web::MakeWebConsoleWriter::new());
+
+    tracing_subscriber::registry()
+        .with(fmt_layer)
+        .init();
 
     let object = JsValue::from("world");
-    info!("Hello {}", object.as_string().unwrap());
+    tracing::info!("Hello {}", object.as_string().unwrap());
 }
 ```
 
@@ -41,40 +48,25 @@ fn main() {
 }
 ```
 
-### [`tracing-web`](https://crates.io/crates/tracing-web)
+### [`wasm-logger`](https://crates.io/crates/wasm-logger) (unmaintained)
 
-`tracing-web` can be used with [`tracing-subscriber`](https://crates.io/crates/tracing-subscriber) to output messages to the browser console.
+`wasm-logger` crate integrates with [`log`](https://crates.io/crates/log) crate to send the log level, source line, and filename to the browser console. Note that this crate is no longer actively maintained. Consider using `tracing-web` instead.
 
-```rust, ignore
-use tracing_subscriber::{
-    fmt::{
-        format::{FmtSpan, Pretty},
-        time::UtcTime,
-    },
-    prelude::*,
-};
+```rust ,ignore
+use log::info;
 use wasm_bindgen::JsValue;
 
 fn main() {
-    let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_ansi(false)
-        .with_timer(UtcTime::rfc_3339())
-        .with_writer(tracing_web::MakeConsoleWriter)
-        .with_span_events(FmtSpan::ACTIVE);
-    let perf_layer = tracing_web::performance_layer().with_details_from_fields(Pretty::default());
+    wasm_logger::init(wasm_logger::Config::default());
 
-    tracing_subscriber::registry()
-        .with(fmt_layer)
-        .with(perf_layer)
-        .init();
     let object = JsValue::from("world");
-    tracing::info!("Hello {}", object.as_string().unwrap());
+    info!("Hello {}", object.as_string().unwrap());
 }
 ```
 
 ## Debugging component lifecycles
 
-[`tracing`](https://crates.io/crates/tracing) can be used to collect event information related to a component's lifecycle. `tracing` also comes with a feature flag for `log` support, which integrates nicely with `wasm-logger`.
+[`tracing`](https://crates.io/crates/tracing) can be used to collect event information related to a component's lifecycle. `tracing` also comes with a feature flag for `log` support, which integrates nicely with `tracing-web`.
 
 [Compile time filters](https://docs.rs/tracing/latest/tracing/level_filters/index.html#compile-time-filters) can be used to adjust verbosity or disable logging, which should result in a smaller Wasm file.
 

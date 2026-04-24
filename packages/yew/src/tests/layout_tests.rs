@@ -6,7 +6,7 @@ use gloo::console::log;
 use crate::dom_bundle::{BSubtree, Bundle, DomSlot};
 use crate::html::AnyScope;
 use crate::virtual_dom::VNode;
-use crate::{scheduler, Component, Context, Html};
+use crate::{Component, Context, Html, scheduler};
 
 #[allow(dead_code)]
 struct Comp;

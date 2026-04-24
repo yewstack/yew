@@ -1,0 +1,112 @@
+---
+title: '優化 & 最佳實踐'
+sidebar_label: Optimizations
+description: '讓您的應用程式獲得最佳效能'
+---
+
+## 使用智慧指針
+
+**注意：如果您對本節中使用的某些術語感到困惑，Rust 手冊中有一個有用的[關於智慧型指針的章節](https://doc.rust-lang.org/book/ch15-00- smart-pointers.html)。 **
+
+為了避免在重新渲染時克隆大量資料以創建 props，我們可以使用智慧指針，只克隆對資料的引用而不是資料本身。如果您在props 和子組件中傳遞與相關數據的引用而不是實際數據，您可以避免在需要修改數據的子組件中克隆任何數據，您可以使用`Rc::make_mut` 來克隆並獲得要更改的數據的可變引用。
+
+這在 `Component::changed` 中帶來了更多好處，可以確定 prop 變更是否需要元件重新渲染。這是因為可以比較指標位址（即資料儲存在機器記憶體中的位置）而不是資料的值；如果兩個指標指向相同的數據，則它們指向的資料的值必須相同。請注意，反之可能不成立！即使兩個指標位址不同，底層資料仍可能相同 - 在這種情況下，您應該比較底層資料。
+
+要進行此比較，您需要使用 `Rc::ptr_eq` 而不僅使用 `PartialEq`（在使用相等運算子 `==` 比較資料時自動使用）。 Rust 文件有關於 `Rc::ptr_eq` 的[更多細節](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html#method.ptr_eq)。
+
+這種最佳化對於不實作 `Copy` 的資料類型最有用。如果您可以廉價地複製數據，則沒有必要將其放在智慧指標後面。對於可能是資料密集的結構，如 `Vec`、`HashMap` 和 `String`，使用智慧指標可能會帶來效能改進。
+
+如果數值從不被子元件更新，則此最佳化效果最佳，如果父元件很少更新，則效果更佳。這使得 `Rc<_>` 是在純元件中包裝屬性值的一個不錯的選擇。
+
+但是，必須注意，除非您需要在子元件中自己克隆數據，否則這種最佳化不僅是無用的，而且還增加了不必要的引用計數成本。 Yew 中的 props 已經是引用計數的，內部不會發生資料克隆。
+
+## 渲染函數
+
+出於程式碼可讀性的原因，將 `html!` 的部分重複程式碼遷移到專門分割出來的函數中通常是有意義的。這不僅使您的程式碼更易讀，減少了程式碼縮進，而且還鼓勵良好的設計模式——特別是圍繞構建可組合應用程序，這些函數可以在多個地方調用，從而減少程式碼量。
+
+## 純組件
+
+純組件是不會改變其狀態的元件，只顯示內容並將訊息傳播到普通的可變組件。它們與視圖函數的不同之處在於，它們可以在`html!` 巨集中使用元件語法（`<SomePureComponent />`）而不是表達式語法（`{some_view_function()}`），並且根據其實現，它們可以被記憶化（這意味著一旦調用函數，其值就會被“保存”，因此如果多次使用相同的參數調用它，則不必重新計算其值，只需從第一個函數調用返回保存的值）- 防止相同的props 重新渲染。 Yew 在內部比較 props，因此僅在 props 更改時重新渲染 UI。
+
+## 使用工作區減少編譯時間
+
+Yew 的最大缺點是編譯所需的時間很長。編譯專案所需的時間似乎與傳遞給 `html!` 巨集的程式碼數量有關。對於較小的項目，這似乎不是什麼問題，但對於較大的應用程序，將程式碼拆分到多個 crate 中以最小化編譯器為應用程式所做的工作量是有意義的。
+
+一種可能的方法是使您的主 crate 處理路由/頁面選擇，然後為每個頁面建立一個不同的 crate，其中每個頁面可以是不同的元件或只是產生 `Html` 的大函數。儲存在包含應用程式不同部分的 crate 之間的程式碼可以儲存在專案依賴的單獨 crate 中。在最理想的情況下，您從每次編譯時重新建置所有程式碼到僅重新建置主 crate 和一個頁面 crate。在最壞的情況下，如果您在「common」 crate 中編輯了某些內容，您將回到起點：編譯依賴於該常用共享 crate 的所有程式碼，這可能是其他所有內容。
+
+如果您的主crate 太重，或者您想快速迭代一個深度巢狀的頁面（例如。在另一個頁面上渲染的頁面），您可以使用範例crate 建立主頁面的簡化實現，並額外渲染您正在處理的組件。
+
+## 減少二進位檔案大小
+
+- 優化 Rust 程式碼
+- `cargo.toml`（定義發布設定檔）
+- 使用 `wasm-opt` 最佳化 wasm 程式碼
+
+**注意：有關減小二進位檔案大小的更多信息，請參閱[Rust Wasm 手冊](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code -size)。 **
+
+### Cargo.toml
+
+可以使用 `Cargo.toml` 中 `[profile.release]` 部分中的可用設定來配置發佈建置為更小。
+
+```toml, title=Cargo.toml
+[profile.release]
+# 讓二進位檔案尺寸更小些
+panic = 'abort'
+# 優化整個程式碼庫（優化更好，但建置速度也會更慢）
+codegen-units = 1
+# 優化尺寸（更激進的做法）
+opt-level = 'z'
+# 優化尺寸
+# opt-level = 's'
+# 使用程式整體分析時進行連結時優化
+lto = true
+```
+
+### 開發版 Cargo 配置
+
+您還可以從 Rust 和 cargo 的實驗性開發版功能中獲得額外的好處。若要使用 `trunk` 的開發版工具鏈，請設定 `RUSTUP_TOOLCHAIN="nightly"` 環境變數。然後，您可以在 `.cargo/config.toml` 中配置不穩定的 rustc 功能。請參考[不穩定功能]的文檔，特別是關於[`build-std`]和[`build-std-features`]的部分，以了解配置。
+
+```toml, title=".cargo/config.toml"
+[unstable]
+# 需要 rust-src 組件。`rustup +nightly component add rust-src`
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
+```
+
+[不穩定特性列表]: https://doc.rust-lang.org/cargo/reference/unstable.html
+[`build-std`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std
+[`build-std-features`]: https://doc.rust-lang.org/cargo/reference/unstable.html#build-std-features
+
+:::caution
+開發版 Rust 編譯器可能包含錯誤，例如[這個例子](https://github.com/yewstack/yew/issues/2696)，需要偶爾注意和調整。請謹慎使用這些實驗性選項。
+:::
+
+### wasm-opt
+
+此外，可以最佳化 `wasm` 程式碼的大小。
+
+Rust Wasm 手冊中有關於減少 Wasm 二進位檔案大小的部分：[縮小 .wasm 大小](https://rustwasm.github.io/book/game-of-life/code-size.html)
+
+- 使用 `wasm-pack`，預設會最佳化發佈建置中的 `wasm` 程式碼
+- 直接在 `wasm` 檔案上使用 `wasm-opt`
+
+```text
+wasm-opt wasm_bg.wasm -Os -o wasm_bg_opt.wasm
+```
+
+#### 在 yew/examples/ 中 'minimal' 範例的建置大小
+
+注意：`wasm-pack` 結合了 Rust 和 Wasm 程式碼的最佳化。在此範例中，`wasm-bindgen` 未經任何 Rust 大小最佳化。
+
+| 工具鏈                      | 大小  |
+| :-------------------------- | :---- |
+| wasm-bindgen                | 158KB |
+| wasm-bindgen + wasm-opt -Os | 116KB |
+| wasm-pack                   | 99 KB |
+
+## 進一步閱讀
+
+- [Rust 手冊中關於智慧型指標的章節](https://doc.rust-lang.org/book/ch15-00-smart-pointers.html)
+- [Rust Wasm 手冊中關於減小二進位檔案大小的資訊](https://rustwasm.github.io/book/reference/code-size.html#optimizing-builds-for-code-size)
+- [Rust 設定檔的文件](https://doc.rust-lang.org/cargo/reference/profiles.html)
+- [binaryen 專案](https://github.com/WebAssembly/binaryen)

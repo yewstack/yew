@@ -2,7 +2,7 @@ use settings::Settings;
 use simulation::Simulation;
 use slider::Slider;
 use yew::html::Scope;
-use yew::{html, Component, Context, Html};
+use yew::{Component, Context, Html, html};
 
 mod boid;
 mod math;
@@ -66,11 +66,9 @@ impl Component for App {
         } = *self;
 
         html! {
-            <>
-                <h1 class="title">{ "Boids" }</h1>
-                <Simulation settings={settings.clone()} {generation} {paused} />
-                { self.view_panel(ctx.link()) }
-            </>
+            <h1 class="title">{ "Boids" }</h1>
+            <Simulation settings={settings.clone()} {generation} {paused} />
+            { self.view_panel(ctx.link()) }
         }
     }
 }

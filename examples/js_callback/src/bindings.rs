@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 
 // https://github.com/rustwasm/wasm-bindgen/issues/3208
 #[wasm_bindgen(inline_js = "export function import2(path) { return import(path); }")]
-extern "C" {
+unsafe extern "C" {
     // this should be in js-sys but is not. see https://github.com/rustwasm/wasm-bindgen/issues/2865
     // pub fn import(s: &str) -> js_sys::Promise;
     #[wasm_bindgen(js_name = "import2")]
@@ -15,13 +15,13 @@ extern "C" {
 }
 
 #[wasm_bindgen(module = "/js/imp.js")]
-extern "C" {
+unsafe extern "C" {
     #[wasm_bindgen]
     pub fn hello() -> String;
 }
 
 #[wasm_bindgen]
-extern "C" {
+unsafe extern "C" {
     pub type UnimpModule;
 
     #[wasm_bindgen(method)]
@@ -29,7 +29,7 @@ extern "C" {
 }
 
 #[wasm_bindgen(module = "/js/unimp.js")]
-extern "C" {
+unsafe extern "C" {
     /// This exists so that wasm bindgen copies js/unimp.js to
     /// dist/snippets/<bin-name>-<hash>/js/uninp.js
     #[wasm_bindgen]

@@ -84,7 +84,248 @@ Yewは、`<Suspense />` を使用してこの問題を解決する異なるア�
 
 この方法により、開発者はサーバーサイドレンダリングに対応したクライアント非依存のアプリケーションを簡単に構築し、データ取得を行うことができます。
 
-## SSR ハイドレーション
+### 低レベルフック
+
+Yew は、サーバー側で計算した状態をクライアントへ運ぶための低レベルフックを 2 つ提供しています：
+
+- **`use_prepared_state!`** は SSR 中に（必要であれば async な）クロージャを実行し、結果をシリアライズして、ハイドレーション中にクライアントへ届けます。コンポーネントが最初のレンダリング時に必要とするデータの取得に向いています。
+- **`use_transitive_state!`** も同様ですが、クロージャはコンポーネントの SSR 出力が生成された _後_ に実行されます。キャッシュや集約状態の収集に向いています。
+
+どちらも内部で `bincode` と `base64` を使い、HTML に `<script>` タグとして埋め込まれます。
+
+### `yew-link`：統一されたデータ取得
+
+低レベルフックは **初回のページ読み込み**（SSR からハイドレーションまで）を扱いますが、ハイドレーション後のクライアントサイドナビゲーションには別のデータ取得経路（例えば `use_future_with` と HTTP クライアントの組み合わせ）が必要です。これは同じデータロジックを 2 回書くことを意味します。
+
+`yew-link` クレートは、これら 3 つの経路（SSR、ハイドレーション、クライアントサイドナビゲーション）を 1 つのフックの背後で統一する高水準の抽象を提供します：
+
+1. `#[linked_state]` 属性マクロで自分のデータ型を **定義** します。
+2. サーバー側で resolver を **登録** します。
+3. アプリを `<LinkProvider>` で **包みます**。
+4. 任意のコンポーネントから `use_linked_state::<MyData>(input)` を **呼び出します**。
+
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# pub struct DbPool;
+# impl DbPool { async fn get_post(&self, _id: u32) -> Post { unreachable!() } }
+use yew_link::{linked_state, LinkedState};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Post { pub title: String, pub body: String }
+
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+        ctx.get_post(*id).await
+    }
+}
+```
+
+このマクロは `LinkedState` と（サーバー専用の）`LinkedStateResolve` トレイト実装を生成します。`resolve` の本体は WASM バンドルから自動的に取り除かれます。
+
+#### 型付きエラー
+
+`resolve` が失敗する可能性がある場合は、`type Error` を宣言します：
+
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone, Debug, Serialize, Deserialize)]
+# pub struct ApiError;
+# impl std::fmt::Display for ApiError {
+#     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "ApiError") }
+# }
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Result<Post, ApiError> { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+#[linked_state]
+impl LinkedState for Post {
+    type Context = DbPool;
+    type Input = u32;
+    type Error = ApiError;
+
+    async fn resolve(ctx: &DbPool, id: &u32) -> Result<Self, ApiError> {
+        ctx.get_post(*id).await.map_err(ApiError::from)
+    }
+}
+```
+
+`type Error` を省略した場合、エラー型は実体を持たない `Never` 型がデフォルトとなり、`resolve` の本体は自動的に `Ok(…)` で包まれます。
+
+`use_linked_state` は `SuspensionResult<LinkedStateHandle<T>>` を返します。外側はサスペンス（読み込み中）を表します。ハンドルは以下を提供します：
+
+- **`.data()`** は解決済みの `Rc<T>` を返します。エラーがあれば panic します。
+- **`.as_result()`** は内部の `Result<Rc<T>, LinkError<T::Error>>` を借用するので、パターンマッチで扱えます。
+- **`.refresh()`** はバックグラウンドで再取得を起動しつつ、それまでの（古い）値を表示し続けます（stale-while-revalidate）。
+- **`.is_refreshing()`** はバックグラウンドのリフレッシュが進行中の間 `true` を返すので、古いデータの隣にローディングインジケータを表示できます。
+
+`LinkError` は、アプリケーションレベルのエラー（`LinkError::Resolve`）とインフラ層の障害（`LinkError::Internal`）を区別します。
+
+複数のコンポーネントが同じ `(T, Input)` を同時に要求した場合、それらは進行中の 1 つのリクエストを自動的に共有します。
+
+#### サーバー側の設定
+
+```rust ,ignore-wasm32
+# use std::sync::Arc;
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone)]
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# fn main() {
+# let db_pool = DbPool;
+use yew_link::{Resolver, axum::linked_state_handler};
+
+let resolver = Arc::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+let app: axum::Router = axum::Router::new().route(
+    "/api/link",
+    axum::routing::post(linked_state_handler).with_state(resolver),
+);
+# let _ = app;
+# }
+```
+
+上の例では `axum` 機能を使っています。`yew-link` は `actix` 機能も提供しており、同じハンドラを `yew_link::actix::linked_state_handler` 経由で公開します：
+
+```rust ,no_run,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew_link::{linked_state, LinkedState};
+# #[derive(Clone)]
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# async fn run() -> std::io::Result<()> {
+# let db_pool = DbPool;
+use actix_web::{App, HttpServer, web::{Data, post}};
+use yew_link::{Resolver, actix::linked_state_handler};
+
+let resolver = Data::new(
+    Resolver::new()
+        .register_linked::<Post>(db_pool.clone())
+);
+
+HttpServer::new(move || {
+    App::new()
+        .app_data(resolver.clone())
+        .route("/api/link", post().to(linked_state_handler))
+})
+.bind(("0.0.0.0", 8080))?
+.run()
+.await
+# }
+# fn main() {}
+```
+
+<details>
+<summary>なぜ `actix-web` が 4.12 に固定されているのか、他のサーバーフレームワーク向けにハンドラを実装する方法</summary>
+
+`actix` 機能は `actix-web 4.12.x` に固定されています。これは Yew の MSRV が `1.85` であるのに対し、`actix-web 4.13` 以降は `rustc 1.88` を必要とするためです。このバージョン固定は `yew-link` の内部にだけ存在し、ワークスペースの他の部分がサポートされたツールチェインでビルドできるようにすることが目的です。あなた自身のアプリケーションの他の場所でどのバージョンの `actix-web` を使うかには影響しません。
+
+より新しい `actix-web`（あるいは他の web フレームワーク）が必要で、同梱の機能を有効にしたくない場合、ハンドラ自体は十分に小さいので自分でインライン実装できます。必要となる公開 API は `Resolver::resolve_request` と、ワイヤーフォーマットの型 `LinkRequest` だけです：
+
+```rust ,ignore-wasm32
+use actix_web::HttpResponse;
+use actix_web::web::{Data, Json};
+use serde_json::json;
+use yew_link::{LinkRequest, Resolver};
+
+pub async fn linked_state_handler(
+    resolver: Data<Resolver>,
+    Json(req): Json<LinkRequest>,
+) -> HttpResponse {
+    match resolver.resolve_request(&req).await {
+        Ok(val) => HttpResponse::Ok().json(json!({ "ok": val })),
+        Err(err) => HttpResponse::UnprocessableEntity().json(json!({ "error": err })),
+    }
+}
+```
+
+同じ書き方は `axum`、`warp`、`rocket`、あるいは JSON を `LinkRequest` にデシリアライズし、async 関数を呼び出して JSON レスポンスをシリアライズできる任意のフレームワークで動作します。レスポンスのワイヤーフォーマットは `serde_json::json!` で構築すると、yew-link 内部の `LinkResponse` 型を依存範囲に含めずに済みます。
+
+</details>
+
+#### コンポーネント内での利用
+
+```rust ,ignore-wasm32
+# use serde::{Serialize, Deserialize};
+# use yew::prelude::*;
+# use yew_link::{linked_state, LinkedState};
+# pub struct DbPool;
+# impl DbPool {
+#     async fn get_post(&self, _id: u32) -> Post { unreachable!() }
+# }
+# #[derive(Clone, Serialize, Deserialize)]
+# pub struct Post { pub title: String, pub body: String }
+# #[linked_state]
+# impl LinkedState for Post {
+#     type Context = DbPool;
+#     type Input = u32;
+#     async fn resolve(ctx: &DbPool, id: &u32) -> Self {
+#         ctx.get_post(*id).await
+#     }
+# }
+# #[derive(Properties, PartialEq)]
+# pub struct PostPageProps { pub id: u32 }
+#[allow(unused_imports)]
+use yew_link::{use_linked_state, LinkProvider};
+
+#[component]
+fn PostPage(props: &PostPageProps) -> HtmlResult {
+    let post = use_linked_state::<Post>(props.id)?.data();
+    Ok(html! { <h1>{ &post.title }</h1> })
+}
+```
+
+SSR 中、状態は `Resolver` を通じてサーバー側でローカルに解決され、`use_prepared_state` を介して HTML に埋め込まれます。ハイドレーション時、クライアントは埋め込まれた状態をネットワークリクエストなしに直接読み取ります。その後のクライアントサイドナビゲーションでは、フックは `LinkProvider` の `endpoint` URL から自動的にデータを取得します。
+
+完全に動作するデモは [`axum_ssr_router`](https://github.com/yewstack/yew/tree/master/examples/axum_ssr_router) と [`actix_ssr_router`](https://github.com/yewstack/yew/tree/master/examples/actix_ssr_router) のサンプルを参照してください。
+
+## `<head>` タグのレンダリング
+
+SSR でよく必要とされるのは、クローラーやソーシャルプレビューが最初のロード時に正しいメタデータを参照できるよう、動的な `<head>` コンテンツ（`<title>`、`<meta>` など）をレンダリングすることです。
+
+`ServerRenderer` はコンポーネントツリー（通常はドキュメントの body 部分）のみをレンダリングし、`<head>` にはアクセスできません。そのため、head タグは **Yew の外部でサーバー側に**生成し、クライアントに送信する前に HTML テンプレートに埋め込む必要があります。
+
+[`axum_ssr_router` サンプル](https://github.com/yewstack/yew/blob/master/examples/axum_ssr_router/src/bin/ssr_router_server.rs) はこのパターンを示しています：サーバーはリクエスト URL からルートを判別し、適切な `<title>` および `<meta>` タグを生成して、Trunk が生成した `index.html` の `</head>` の前に挿入します。
+
+:::info
+
+完全に SSR 互換のサードパーティソリューションとして、[Bounce の `<Helmet/>` コンポーネント](https://docs.rs/bounce/latest/bounce/helmet/index.html) が利用できます。
+
+:::
 
 ## サーバーサイドレンダリングハイドレーション（SSR Hydration）
 
@@ -108,7 +349,7 @@ SSR出力（静的HTML）をブラウザが初期レンダリングした後、�
 
 ## 例
 
-```rust ,ignore
+```rust ,no_run
 use yew::prelude::*;
 use yew::Renderer;
 
@@ -126,7 +367,8 @@ fn main() {
 ```
 
 例: [simple_ssr](https://github.com/yewstack/yew/tree/master/examples/simple_ssr)
-例: [ssr_router](https://github.com/yewstack/yew/tree/master/examples/ssr_router)
+例: [axum_ssr_router](https://github.com/yewstack/yew/tree/master/examples/axum_ssr_router)
+例: [actix_ssr_router](https://github.com/yewstack/yew/tree/master/examples/actix_ssr_router)
 
 ## シングルスレッドモード
 
@@ -143,9 +385,7 @@ fn App() -> Html {
     use yew_router::prelude::*;
 
     html! {
-        <>
-            <h1>{"Yew WASI SSR demo"}</h1>
-        </>
+        <h1>{"Yew WASI SSR demo"}</h1>
     }
 }
 

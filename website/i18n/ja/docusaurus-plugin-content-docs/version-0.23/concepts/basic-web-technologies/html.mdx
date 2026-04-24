@@ -1,0 +1,75 @@
+---
+title: 'html! マクロを使用してHTMLを処理する'
+description: 'これはHTMLですが、完全にそうではありません！'
+comment: 'ファイルを短く簡潔に保つようにしてください。これは、読者がYewのコンポーネントをより簡単に理解できるようにするためであり、正確なAPIドキュメントを提供するためではありません。'
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+`html!` マクロを使用して、HTML に似た式を記述できます。Yew はバックグラウンドでそれを DOM を表現する Rust コードに変換します。
+
+```rust
+use yew::prelude::*;
+
+let my_header: Html = html! {
+    <img src="img_girl.jpg" alt="Girl in a jacket" width="500" height="600" />
+};
+```
+
+フォーマットされた式と同様に、波括弧を使用して周囲のコンテキストの値を HTML に埋め込むことができます：
+
+```rust
+use yew::prelude::*;
+
+let header_text = "Hello world".to_string();
+let header_html: Html = html! {
+    <h1>{header_text}</h1>
+};
+
+let count: usize = 5;
+let counter_html: Html = html! {
+    <p>{"My age is: "}{count}</p>
+};
+
+let combined_html: Html = html! {
+    <div>{header_html}{counter_html}</div>
+};
+```
+
+`html!` を使用する際の重要なルールの 1 つは、1 つのラッピングノードしか返せないということです。複数の要素のリストをレンダリングするために、`html!` は空のタグ（フラグメント）の使用を許可しています。空のタグは名前のないタグで、それ自体は HTML 要素を生成しません。
+
+<Tabs>
+<TabItem value="Invalid" label="Invalid">
+
+```rust , compile_fail
+use yew::html;
+
+// エラー：ルート HTML 要素は1つだけ許可されています
+html! {
+
+    <div></div>
+    <p></p>
+
+};
+```
+
+</TabItem>
+<TabItem value="Valid" label="Valid">
+
+```rust
+use yew::html;
+
+// 修正：HTML 空のタグを使用してラップする
+html! {
+    <>
+        <div></div>
+        <p></p>
+    </>
+};
+```
+
+</TabItem>
+</Tabs>
+
+詳細については、[HTML の詳細](concepts/html/introduction.mdx)を参照してください。

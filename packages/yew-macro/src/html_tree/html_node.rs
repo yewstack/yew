@@ -1,17 +1,17 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{ToTokens, quote, quote_spanned};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::spanned::Spanned;
-use syn::Lit;
+use syn::{Expr, Lit};
 
 use super::ToNodeIterator;
-use crate::stringify::Stringify;
 use crate::PeekValue;
+use crate::stringify::Stringify;
 
 pub enum HtmlNode {
     Literal(Box<Lit>),
-    Expression(Box<TokenStream>),
+    Expression(Box<Expr>),
 }
 
 impl Parse for HtmlNode {
@@ -24,10 +24,10 @@ impl Parse for HtmlNode {
                         lit.span(),
                         "byte-strings can't be converted to HTML text
                          note: remove the `b` prefix or convert this to a `String`",
-                    ))
+                    ));
                 }
                 Lit::Verbatim(lit) => {
-                    return Err(syn::Error::new(lit.span(), "unsupported literal"))
+                    return Err(syn::Error::new(lit.span(), "unsupported literal"));
                 }
                 _ => (),
             }

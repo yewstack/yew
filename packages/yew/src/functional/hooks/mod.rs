@@ -28,6 +28,7 @@ use crate::functional::HookContext;
 /// Hooks are defined via the [`#[hook]`](crate::functional::hook) macro. It provides rewrites to
 /// hook invocations and ensures that hooks can only be called at the top-level of a function
 /// component or a hook. Please refer to its documentation on how to implement hooks.
+#[must_use = "hooks do nothing unless called inside a `#[hook]` or `#[component]` function"]
 pub trait Hook {
     /// The return type when a hook is run.
     type Output;
@@ -38,13 +39,12 @@ pub trait Hook {
 
 /// The blanket implementation of boxed hooks.
 #[doc(hidden)]
-#[allow(missing_debug_implementations, missing_docs)]
+#[expect(missing_debug_implementations)]
 pub struct BoxedHook<'hook, T> {
     inner: Box<dyn 'hook + FnOnce(&mut HookContext) -> T>,
 }
 
 impl<'hook, T> BoxedHook<'hook, T> {
-    #[allow(missing_docs)]
     pub fn new(inner: Box<dyn 'hook + FnOnce(&mut HookContext) -> T>) -> Self {
         Self { inner }
     }

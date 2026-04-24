@@ -1,8 +1,8 @@
 /// Original author of this code is [Nathan Ringo](https://github.com/remexre)
 /// Source: https://github.com/acmumn/mentoring/blob/master/web-client/src/view/markdown.rs
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
-use yew::virtual_dom::{VNode, VTag, VText};
 use yew::Html;
+use yew::virtual_dom::{VNode, VTag, VText};
 
 struct TableContext {
     next_cell_index: usize,
@@ -39,10 +39,13 @@ impl TagWriter {
     }
 
     fn add_child(&mut self, child: VNode) {
-        if let Some(host) = self.spine.last_mut() {
-            host.add_child(child);
-        } else {
-            self.root_children.push(child);
+        match self.spine.last_mut() {
+            Some(host) => {
+                host.add_child(child);
+            }
+            _ => {
+                self.root_children.push(child);
+            }
         }
     }
 

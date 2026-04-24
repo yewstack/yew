@@ -49,6 +49,38 @@ impl Component for List {
 }
 ```
 
+### String children
+
+When using `Children` (which is `ChildrenRenderer<VNode>`) as the prop type, string-like types
+such as `String`, `AttrValue`, `Rc<str>`, and `Cow<'static, str>` can be passed directly as
+children. They are automatically converted to text nodes.
+
+```rust
+use yew::prelude::*;
+
+#[derive(Properties, PartialEq)]
+pub struct TextProps {
+    pub children: Children,
+}
+
+#[component]
+fn Text(props: &TextProps) -> Html {
+    html! {
+        <span>{ for props.children.iter() }</span>
+    }
+}
+
+#[component]
+fn App() -> Html {
+    let s = String::from("world");
+    html! {
+        <Text>{"hello"}</Text>
+        <Text>{s}</Text>
+        <Text>{ format!("year {}", 2024) }</Text>
+    }
+}
+```
+
 ## Advanced usage
 
 ### Typed children
@@ -287,7 +319,7 @@ impl Component for Page {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <div class="page">
-                { ctx.props().sidebar.clone().map(Html::from).unwrap_or_default() }
+                { ctx.props().sidebar.clone() }
                 // ... page content
             </div>
         }
