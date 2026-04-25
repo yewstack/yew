@@ -110,6 +110,47 @@ A bare qualified-path expression like `<Type>::method(...)` collides with the
 
 :::
 
+:::note Imperative loops in the preamble
+
+Block-like Rust expressions (`for`, `while`, `loop`, `{...}`) auto-terminate as
+statements in Rust grammar - a trailing `;` is not folded into the statement.
+A bare imperative loop in a preamble:
+
+```rust , ignore
+html! {
+    for item in items.iter() {
+        let mut by_han = BTreeMap::new();
+        for src in &item.sources {              // imperative side-effect loop
+            by_han.entry(src.han_nom.clone()).or_default().push(src);
+        }
+        <div>{render(by_han)}</div>
+    }
+}
+```
+
+is parsed as html-`for` (emitting children) instead of as a Rust statement,
+and its body's `()` value cannot be converted to a `VNode`. Bind it with
+`let _ = ...;` so the parser sees a `Stmt::Local`:
+
+```rust , ignore
+html! {
+    for item in items.iter() {
+        let mut by_han = BTreeMap::new();
+        let _ = for src in &item.sources {
+            by_han.entry(src.han_nom.clone()).or_default().push(src);
+        };
+        <div>{render(by_han)}</div>
+    }
+}
+```
+
+The same applies to imperative `while`, `loop`, and bare-block `{...}`
+statements. `match` and `if` are not subject to this collision because their
+html-control-flow forms naturally accept the same body shapes as their
+imperative use.
+
+:::
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` loops">
 `while` and `while let` loops work the same way as `for`, producing a list of nodes from their

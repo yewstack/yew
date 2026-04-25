@@ -1,0 +1,55 @@
+error: this `for` block is fully Rust-parseable, so it is parsed as html-for here, but its body cannot produce any html nodes
+
+         = help: to run a Rust `for` here for side effects only, bind it with `let _ = ...;` so the parser sees a Rust statement: `let _ = for ... { ... };`
+
+  --> tests/html_macro/imperative-preamble-fail.rs:15:13
+   |
+15 | /             for i in 0..x {
+16 | |                 acc += i;
+17 | |             }
+   | |_____________^
+
+error: this `while` block is fully Rust-parseable, so it is parsed as html-while here, but its body cannot produce any html nodes
+
+         = help: to run a Rust `while` here for side effects only, bind it with `let _ = ...;` so the parser sees a Rust statement: `let _ = while ... { ... };`
+
+  --> tests/html_macro/imperative-preamble-fail.rs:26:13
+   |
+26 | /             while counter < 5 {
+27 | |                 counter += 1;
+28 | |             }
+   | |_____________^
+
+error: this `loop` block is fully Rust-parseable, so it is parsed as html-loop here, but its body cannot produce any html nodes
+
+         = help: to run a Rust `loop` here for side effects only, bind it with `let _ = ...;` so the parser sees a Rust statement: `let _ = loop ... { ... };`
+
+  --> tests/html_macro/imperative-preamble-fail.rs:37:13
+   |
+37 | /             loop {
+38 | |                 n += 1;
+39 | |                 if n > 3 { break; }
+40 | |             }
+   | |_____________^
+
+error: this `for` block is fully Rust-parseable, so it is parsed as html-for here, but its body cannot produce any html nodes
+
+         = help: to run a Rust `for` here for side effects only, bind it with `let _ = ...;` so the parser sees a Rust statement: `let _ = for ... { ... };`
+
+  --> tests/html_macro/imperative-preamble-fail.rs:49:13
+   |
+49 | /             for i in 0..3_u32 {
+50 | |                 acc += i;
+51 | |             }
+   | |_____________^
+
+error: this `for` block is fully Rust-parseable, so it is parsed as html-for here, but its body cannot produce any html nodes
+
+         = help: to run a Rust `for` here for side effects only, bind it with `let _ = ...;` so the parser sees a Rust statement: `let _ = for ... { ... };`
+
+  --> tests/html_macro/imperative-preamble-fail.rs:61:17
+   |
+61 | /                 for i in 0..3_u32 {
+62 | |                     acc += i;
+63 | |                 }
+   | |_________________^
