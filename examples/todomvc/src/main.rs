@@ -3,7 +3,6 @@ use state::{Entry, Filter, State};
 use strum::IntoEnumIterator;
 use web_sys::HtmlInputElement as InputElement;
 use yew::events::{FocusEvent, KeyboardEvent};
-use yew::html::Scope;
 use yew::{Classes, Component, Context, Html, NodeRef, TargetCast, classes, html};
 
 mod state;
@@ -88,82 +87,13 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let link = ctx.link();
         let hidden_class = if self.state.entries.is_empty() {
             "hidden"
         } else {
             ""
         };
-        html! {
-            <div class="todomvc-wrapper">
-                <section class="todoapp">
-                    <header class="header">
-                        <h1>{ "todos" }</h1>
-                        { self.view_input(ctx.link()) }
-                    </header>
-                    <section class={classes!("main", hidden_class)}>
-                        <input
-                            type="checkbox"
-                            class="toggle-all"
-                            id="toggle-all"
-                            checked={self.state.is_all_completed()}
-                            onclick={ctx.link().callback(|_| Msg::ToggleAll)}
-                        />
-                        <label for="toggle-all" />
-                        <ul class="todo-list">
-                            { for self
-                                .state
-                                .entries
-                                .iter()
-                                .enumerate()
-                                .filter(|(_, entry)| self.state.filter.fits(entry))
-                                .map(|(i, e)| self.view_entry((i, e), ctx.link()))
-                            }
-                        </ul>
-                    </section>
-                    <footer class={classes!("footer", hidden_class)}>
-                        <span class="todo-count">
-                            <strong>{ self.state.total() }</strong>
-                            { " item(s) left" }
-                        </span>
-                        <ul class="filters">
-                            { for Filter::iter().map(|flt| self.view_filter(flt, ctx.link())) }
-                        </ul>
-                        <button class="clear-completed" onclick={ctx.link().callback(|_| Msg::ClearCompleted)}>
-                            { format!("Clear completed ({})", self.state.total_completed()) }
-                        </button>
-                    </footer>
-                </section>
-                <footer class="info">
-                    <p>{ "Double-click to edit a todo" }</p>
-                    <p>{ "Written by " }<a href="https://github.com/DenisKolodin/" target="_blank">{ "Denis Kolodin" }</a></p>
-                    <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
-                </footer>
-            </div>
-        }
-    }
-}
-
-impl App {
-    fn view_filter(&self, filter: Filter, link: &Scope<Self>) -> Html {
-        let cls = if self.state.filter == filter {
-            "selected"
-        } else {
-            "not-selected"
-        };
-        html! {
-            <li>
-                <a class={cls}
-                   href={filter.as_href()}
-                   onclick={link.callback(move |_| Msg::SetFilter(filter))}
-                >
-                    { filter }
-                </a>
-            </li>
-        }
-    }
-
-    fn view_input(&self, link: &Scope<Self>) -> Html {
-        let onkeypress = link.batch_callback(|e: KeyboardEvent| {
+        let new_todo_onkeypress = link.batch_callback(|e: KeyboardEvent| {
             if e.key() == "Enter" {
                 let input: InputElement = e.target_unchecked_into();
                 let value = input.value();
@@ -174,73 +104,121 @@ impl App {
             }
         });
         html! {
-            // You can use standard Rust comments. One line:
-            // <li></li>
-            <input
-                class="new-todo"
-                placeholder="What needs to be done?"
-                {onkeypress}
-            />
-            /* Or multiline:
-            <ul>
-                <li></li>
-            </ul>
-            */
-        }
-    }
-
-    fn view_entry(&self, (idx, entry): (usize, &Entry), link: &Scope<Self>) -> Html {
-        let mut class = Classes::from("todo");
-        if entry.editing {
-            class.push(" editing");
-        }
-        if entry.completed {
-            class.push(" completed");
-        }
-        html! {
-            <li {class}>
-                <div class="view">
-                    <input
-                        type="checkbox"
-                        class="toggle"
-                        checked={entry.completed}
-                        onclick={link.callback(move |_| Msg::Toggle(idx))}
-                    />
-                    <label ondblclick={link.callback(move |_| Msg::ToggleEdit(idx))}>{ &entry.description }</label>
-                    <button class="destroy" onclick={link.callback(move |_| Msg::Remove(idx))} />
-                </div>
-                { self.view_entry_edit_input((idx, entry), link) }
-            </li>
-        }
-    }
-
-    fn view_entry_edit_input(&self, (idx, entry): (usize, &Entry), link: &Scope<Self>) -> Html {
-        let edit = move |input: InputElement| {
-            let value = input.value();
-            input.set_value("");
-            Msg::Edit((idx, value))
-        };
-
-        let onblur = link.callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
-
-        let onkeypress = link.batch_callback(move |e: KeyboardEvent| {
-            (e.key() == "Enter").then(|| edit(e.target_unchecked_into()))
-        });
-
-        if entry.editing {
-            html! {
-                <input
-                    class="edit"
-                    type="text"
-                    ref={self.focus_ref.clone()}
-                    value={self.state.edit_value.clone()}
-                    onmouseover={link.callback(|_| Msg::Focus)}
-                    {onblur}
-                    {onkeypress}
-                />
-            }
-        } else {
-            html! { <input type="hidden" /> }
+            <div class="todomvc-wrapper">
+                <section class="todoapp">
+                    <header class="header">
+                        <h1>{ "todos" }</h1>
+                        // You can use standard Rust comments. One line:
+                        // <li></li>
+                        <input
+                            class="new-todo"
+                            placeholder="What needs to be done?"
+                            onkeypress={new_todo_onkeypress}
+                        />
+                        /* Or multiline:
+                        <ul>
+                            <li></li>
+                        </ul>
+                        */
+                    </header>
+                    <section class={classes!("main", hidden_class)}>
+                        <input
+                            type="checkbox"
+                            class="toggle-all"
+                            id="toggle-all"
+                            checked={self.state.is_all_completed()}
+                            onclick={link.callback(|_| Msg::ToggleAll)}
+                        />
+                        <label for="toggle-all" />
+                        <ul class="todo-list">
+                            for (idx, entry) in self
+                                .state
+                                .entries
+                                .iter()
+                                .enumerate()
+                                .filter(|(_, e)| self.state.filter.fits(e))
+                            {
+                                let class = {
+                                    let mut c = Classes::from("todo");
+                                    if entry.editing {
+                                        c.push(" editing");
+                                    }
+                                    if entry.completed {
+                                        c.push(" completed");
+                                    }
+                                    c
+                                };
+                                let edit = move |input: InputElement| {
+                                    let value = input.value();
+                                    input.set_value("");
+                                    Msg::Edit((idx, value))
+                                };
+                                let onblur = link
+                                    .callback(move |e: FocusEvent| edit(e.target_unchecked_into()));
+                                let onkeypress = link.batch_callback(move |e: KeyboardEvent| {
+                                    (e.key() == "Enter").then(|| edit(e.target_unchecked_into()))
+                                });
+                                <li {class}>
+                                    <div class="view">
+                                        <input
+                                            type="checkbox"
+                                            class="toggle"
+                                            checked={entry.completed}
+                                            onclick={link.callback(move |_| Msg::Toggle(idx))}
+                                        />
+                                        <label ondblclick={link.callback(move |_| Msg::ToggleEdit(idx))}>{ &entry.description }</label>
+                                        <button class="destroy" onclick={link.callback(move |_| Msg::Remove(idx))} />
+                                    </div>
+                                    if entry.editing {
+                                        <input
+                                            class="edit"
+                                            type="text"
+                                            ref={self.focus_ref.clone()}
+                                            value={self.state.edit_value.clone()}
+                                            onmouseover={link.callback(|_| Msg::Focus)}
+                                            {onblur}
+                                            {onkeypress}
+                                        />
+                                    } else {
+                                        <input type="hidden" />
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </section>
+                    <footer class={classes!("footer", hidden_class)}>
+                        <span class="todo-count">
+                            <strong>{ self.state.total() }</strong>
+                            { " item(s) left" }
+                        </span>
+                        <ul class="filters">
+                            for filter in Filter::iter() {
+                                let cls = if self.state.filter == filter {
+                                    "selected"
+                                } else {
+                                    "not-selected"
+                                };
+                                <li>
+                                    <a class={cls}
+                                       href={filter.as_href()}
+                                       onclick={link.callback(move |_| Msg::SetFilter(filter))}
+                                    >
+                                        { filter }
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                        <button class="clear-completed" onclick={link.callback(|_| Msg::ClearCompleted)}>
+                            { format!("Clear completed ({})", self.state.total_completed()) }
+                        </button>
+                    </footer>
+                </section>
+                <footer class="info">
+                    <p>{ "Double-click to edit a todo" }</p>
+                    <p>{ "Written by " }<a href="https://github.com/DenisKolodin/" target="_blank">{ "Denis Kolodin" }</a></p>
+                    <p>{ "Part of " }<a href="http://todomvc.com/" target="_blank">{ "TodoMVC" }</a></p>
+                </footer>
+            </div>
         }
     }
 }

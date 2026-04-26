@@ -1,8 +1,6 @@
-use std::fmt::Write;
 use std::iter;
 
 use rand::RngExt;
-use yew::{Html, html};
 
 use crate::math::{self, Mean, Vector2D, WeightedMean};
 use crate::settings::Settings;
@@ -10,10 +8,10 @@ use crate::simulation::SIZE;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Boid {
-    position: Vector2D,
-    velocity: Vector2D,
-    radius: f64,
-    hue: f64,
+    pub position: Vector2D,
+    pub velocity: Vector2D,
+    pub radius: f64,
+    pub hue: f64,
 }
 
 impl Boid {
@@ -123,32 +121,6 @@ impl Boid {
             boid.update(settings, visible_boids);
         }
     }
-
-    pub fn render(&self) -> Html {
-        let color = format!("hsl({:.3}rad, 100%, 50%)", self.hue);
-
-        let mut points = String::new();
-        for offset in iter_shape_points(self.radius, self.velocity.angle()) {
-            let Vector2D { x, y } = self.position + offset;
-
-            // Write to string will never fail.
-            let _ = write!(points, "{x:.2},{y:.2} ");
-        }
-
-        html! { <polygon {points} fill={color} /> }
-    }
-}
-
-fn iter_shape_points(radius: f64, rotation: f64) -> impl Iterator<Item = Vector2D> {
-    const SHAPE: [(f64, f64); 3] = [
-        (0. * math::FRAC_TAU_3, 2.0),
-        (1. * math::FRAC_TAU_3, 1.0),
-        (2. * math::FRAC_TAU_3, 1.0),
-    ];
-    SHAPE
-        .iter()
-        .copied()
-        .map(move |(angle, radius_mul)| Vector2D::from_polar(angle + rotation, radius_mul * radius))
 }
 
 #[derive(Debug)]

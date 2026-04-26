@@ -15,23 +15,25 @@ pub fn PostList() -> Html {
 
     let posts = {
         let start_seed = (current_page - 1) * ITEMS_PER_PAGE;
-        let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
-            html! {
-                <li class="list-item mb-5">
-                    <PostCard seed={start_seed + seed_offset} />
-                </li>
-            }
-        });
+        let half = ITEMS_PER_PAGE / 2;
         html! {
             <div class="columns">
                 <div class="column">
                     <ul class="list">
-                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / 2) }
+                        for seed_offset in 0..half {
+                            <li class="list-item mb-5">
+                                <PostCard seed={start_seed + seed_offset} />
+                            </li>
+                        }
                     </ul>
                 </div>
                 <div class="column">
                     <ul class="list">
-                        { for cards }
+                        for seed_offset in half..ITEMS_PER_PAGE {
+                            <li class="list-item mb-5">
+                                <PostCard seed={start_seed + seed_offset} />
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

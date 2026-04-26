@@ -1,5 +1,4 @@
 use gloo::timers::callback::Interval;
-use yew::html::Scope;
 use yew::{Component, Context, Html, classes, html};
 
 mod conway;
@@ -18,21 +17,6 @@ pub struct App {
     active: bool,
     conway: conway::Conway,
     _interval: Interval,
-}
-
-impl App {
-    fn view_cellule(&self, row: usize, col: usize, link: &Scope<Self>) -> Html {
-        let status = if self.conway.alive(row, col) {
-            "cellule-live"
-        } else {
-            "cellule-dead"
-        };
-        html! {
-            <div class={classes!("game-cellule", status)}
-                onclick={link.callback(move |_| Msg::ToggleCellule((row,col)))}>
-            </div>
-        }
-    }
 }
 
 impl Component for App {
@@ -96,9 +80,12 @@ impl Component for App {
                     <section class="game-area">
                         <div class="game-of-life">
                             for (row, cellules) in self.conway.cellules.chunks(self.conway.width).enumerate() {
-                                let cells = cellules.iter().enumerate().map(|(col, _)| self.view_cellule(row, col, ctx.link()));
                                 <div class="game-row">
-                                    { for cells }
+                                    for (col, _) in cellules.iter().enumerate() {
+                                        <div class={classes!("game-cellule", if self.conway.alive(row, col) {"cellule-live"} else {"cellule-dead"})}
+                                            onclick={ctx.link().callback(move |_| Msg::ToggleCellule((row,col)))}>
+                                        </div>
+                                    }
                                 </div>
                             }
                         </div>

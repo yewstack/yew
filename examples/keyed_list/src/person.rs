@@ -34,7 +34,7 @@ impl PersonInfo {
         }
     }
 
-    fn render(&self) -> Html {
+    pub fn render(&self) -> Html {
         html! {
             <div class="card w-50 card_style">
                 <div class="card-body">
@@ -49,7 +49,7 @@ impl PersonInfo {
 
 #[derive(Debug, Eq, PartialEq, Properties)]
 pub struct PersonProps {
-    info: PersonInfo,
+    pub info: PersonInfo,
 }
 
 pub struct PersonComponent;
@@ -89,33 +89,6 @@ impl PersonType {
             Self::Inline(info)
         } else {
             Self::Component(info)
-        }
-    }
-
-    pub fn render(&self, keyed: bool) -> Html {
-        match self {
-            Self::Inline(info) => {
-                if keyed {
-                    html! {
-                        <div key={info.id.to_string()} class="text-danger" id={info.id.to_string()}>
-                            { info.render() }
-                        </div>
-                    }
-                } else {
-                    html! {
-                        <div class="text-danger" id={info.id.to_string()}>
-                            { info.render() }
-                        </div>
-                    }
-                }
-            }
-            Self::Component(info) => {
-                if keyed {
-                    html! { <PersonComponent key={info.id.to_string()} info={info.clone()} /> }
-                } else {
-                    html! { <PersonComponent info={info.clone()} /> }
-                }
-            }
         }
     }
 }

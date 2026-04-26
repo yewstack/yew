@@ -115,27 +115,7 @@ fn render_post(post: &content::Post) -> Html {
         }
     };
 
-    let view_content = {
-        let mut show_hero = false;
-        let parts: Vec<Html> = post
-            .content
-            .iter()
-            .map(|part| match part {
-                PostPart::Section(section) => {
-                    let html = render_section(section, show_hero);
-                    show_hero = true;
-                    html
-                }
-                PostPart::Quote(quote) => {
-                    show_hero = false;
-                    render_quote(quote)
-                }
-            })
-            .collect();
-        html! {
-            {for parts}
-        }
-    };
+    let mut show_hero = false;
 
     html! {
         <section class="hero is-medium is-light has-background">
@@ -157,7 +137,23 @@ fn render_post(post: &content::Post) -> Html {
                 </div>
             </div>
         </section>
-        <div class="section container">{ view_content }</div>
+        <div class="section container">
+            for part in post.content.iter() {
+                match part {
+                    PostPart::Section(section) => {
+                        let rendered = render_section(section, show_hero);
+                        // show hero between sections
+                        show_hero = true;
+                        { rendered }
+                    }
+                    PostPart::Quote(quote) => {
+                        // don't show hero after a quote
+                        show_hero = false;
+                        { render_quote(quote) }
+                    }
+                }
+            }
+        </div>
     }
 }
 

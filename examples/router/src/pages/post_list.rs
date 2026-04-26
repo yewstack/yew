@@ -47,26 +47,9 @@ impl Component for PostList {
         true
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let page = self.page;
-
-        html! {
-            <div class="section container">
-                <h1 class="title">{ "Posts" }</h1>
-                <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
-                { self.view_posts(ctx) }
-                <Pagination
-                    {page}
-                    total_pages={TOTAL_PAGES}
-                    route_to_page={Route::Posts}
-                />
-            </div>
-        }
-    }
-}
-impl PostList {
-    fn view_posts(&self, _ctx: &Context<Self>) -> Html {
-        let start_seed = (self.page - 1) * ITEMS_PER_PAGE;
+        let start_seed = (page - 1) * ITEMS_PER_PAGE;
         let mut cards = (0..ITEMS_PER_PAGE).map(|seed_offset| {
             html! {
                 <li class="list-item mb-5">
@@ -74,18 +57,32 @@ impl PostList {
                 </li>
             }
         });
+
         html! {
-            <div class="columns">
-                <div class="column">
-                    <ul class="list">
-                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / 2) }
-                    </ul>
+            <div class="section container">
+                <h1 class="title">{ "Posts" }</h1>
+                <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
+                <div class="columns">
+                    <div class="column">
+                        <ul class="list">
+                            for card in cards.by_ref().take(ITEMS_PER_PAGE as usize / 2) {
+                                { card }
+                            }
+                        </ul>
+                    </div>
+                    <div class="column">
+                        <ul class="list">
+                            for card in cards {
+                                { card }
+                            }
+                        </ul>
+                    </div>
                 </div>
-                <div class="column">
-                    <ul class="list">
-                        { for cards }
-                    </ul>
-                </div>
+                <Pagination
+                    {page}
+                    total_pages={TOTAL_PAGES}
+                    route_to_page={Route::Posts}
+                />
             </div>
         }
     }

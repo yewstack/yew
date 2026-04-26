@@ -6,6 +6,8 @@ use web_sys::{HtmlElement, HtmlInputElement};
 use yew::html::Scope;
 use yew::prelude::*;
 
+use crate::person::PersonComponent;
+
 mod person;
 mod random;
 
@@ -274,7 +276,28 @@ impl App {
                 <p class="h5">{ "Ids: " }{ ids }</p>
                 <hr />
                 <div class="persons">
-                    { for self.persons.iter().map(|p| p.render(self.keyed)) }
+                    for p in &self.persons {
+                        match p {
+                            PersonType::Inline(info) => {
+                                if self.keyed {
+                                    <div key={info.id.to_string()} class="text-danger" id={info.id.to_string()}>
+                                        { info.render() }
+                                    </div>
+                                } else {
+                                    <div class="text-danger" id={info.id.to_string()}>
+                                        { info.render() }
+                                    </div>
+                                }
+                            }
+                            PersonType::Component(info) => {
+                                if self.keyed {
+                                    <PersonComponent key={info.id.to_string()} info={info.clone()} />
+                                } else {
+                                    <PersonComponent info={info.clone()} />
+                                }
+                            }
+                        }
+                    }
                 </div>
             </div>
         }

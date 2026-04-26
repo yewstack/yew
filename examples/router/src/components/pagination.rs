@@ -69,11 +69,10 @@ impl Pagination {
         if len > max_links {
             let last_link = self.render_link(pages.next_back().unwrap(), props);
             // remove 1 for the ellipsis and 1 for the last link
-            let links = pages
-                .take(max_links - 2)
-                .map(|page| self.render_link(page, props));
             html! {
-                { for links }
+                for page in pages.take(max_links - 2) {
+                    { self.render_link(page, props) }
+                }
                 <li><span class="pagination-ellipsis">{ ELLIPSIS }</span></li>
                 { last_link }
             }

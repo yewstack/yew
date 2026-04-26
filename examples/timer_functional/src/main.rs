@@ -122,16 +122,6 @@ fn App() -> Html {
         timeout_handle: None,
     });
 
-    let mut key = 0;
-    let messages: Html = state
-        .messages
-        .iter()
-        .map(|message| {
-            key += 1;
-            html! { <p {key}>{ message }</p> }
-        })
-        .collect();
-
     let has_job = state.interval_handle.is_some() || state.timeout_handle.is_some();
 
     let on_add_timeout = {
@@ -163,7 +153,7 @@ fn App() -> Html {
     };
 
     let on_cancel = Callback::from({
-        let (_, dispatcher) = state.into_inner();
+        let dispatcher = state.dispatcher();
 
         move |_: MouseEvent| {
             dispatcher.dispatch(TimerAction::Cancel);
@@ -179,7 +169,9 @@ fn App() -> Html {
         <div id="wrapper">
             <Clock />
             <div id="messages">
-                { messages }
+                for (key, message) in state.messages.iter().enumerate() {
+                    <p {key}>{ message }</p>
+                }
             </div>
         </div>
     )

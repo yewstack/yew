@@ -101,20 +101,23 @@ pub fn Post(props: &Props) -> Html {
         // don't show hero for the first section
         let mut show_hero = false;
 
-        let parts = post.content.iter().map(|part| match part {
-            PostPart::Section(section) => {
-                let html = render_section(section, show_hero);
-                // show hero between sections
-                show_hero = true;
-                html
+        html! {
+            for part in post.content.iter() {
+                match part {
+                    PostPart::Section(section) => {
+                        let rendered = render_section(section, show_hero);
+                        // show hero between sections
+                        show_hero = true;
+                        {rendered}
+                    }
+                    PostPart::Quote(quote) => {
+                        // don't show hero after a quote
+                        show_hero = false;
+                        {render_quote(quote)}
+                    }
+                }
             }
-            PostPart::Quote(quote) => {
-                // don't show hero after a quote
-                show_hero = false;
-                render_quote(quote)
-            }
-        });
-        html! {{for parts}}
+        }
     };
 
     html! {

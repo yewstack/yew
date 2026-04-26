@@ -97,33 +97,28 @@ impl Component for App {
                     })}
                 />
                 <div id="preview-area">
-                    { for self.files.iter().map(Self::view_file) }
-                </div>
-            </div>
-        }
-    }
-}
-
-impl App {
-    fn view_file(file: &FileDetails) -> Html {
-        let file_type = file.file_type.to_string();
-        let src = format!("data:{};base64,{}", file_type, STANDARD.encode(&file.data));
-        html! {
-            <div class="preview-tile">
-                <p class="preview-name">{ &file.name }</p>
-                <div class="preview-media">
-                    if file.file_type.contains("image") {
-                        <img src={src} />
-                    } else if file.file_type.contains("video") {
-                        <video controls={true}>
-                            <source src={src} type={ file_type }/>
-                        </video>
+                    for file in &self.files {
+                        let file_type = file.file_type.to_string();
+                        let src = format!("data:{};base64,{}", file_type, STANDARD.encode(&file.data));
+                        <div class="preview-tile">
+                            <p class="preview-name">{ &file.name }</p>
+                            <div class="preview-media">
+                                if file.file_type.contains("image") {
+                                    <img src={src} />
+                                } else if file.file_type.contains("video") {
+                                    <video controls={true}>
+                                        <source src={src} type={ file_type }/>
+                                    </video>
+                                }
+                            </div>
+                        </div>
                     }
                 </div>
             </div>
         }
     }
 }
+
 fn main() {
     yew::Renderer::<App>::new().render();
 }

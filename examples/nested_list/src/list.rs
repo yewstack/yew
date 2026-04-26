@@ -57,26 +57,21 @@ impl Component for List {
                 <div class={classes!("list", inactive)}>
                     { &ctx.props().header }
                     <div class="items">
-                        { Self::view_items(&ctx.props().children) }
+                        for (i, mut c) in ctx
+                            .props()
+                            .children
+                            .iter()
+                            .filter(|c| !c.props.hide)
+                            .cloned()
+                            .enumerate()
+                        {
+                            let props = c.get_mut();
+                            props.name = format!("#{} - {}", i + 1, props.name).into();
+                            { c }
+                        }
                     </div>
                 </div>
             </div>
         }
-    }
-}
-
-impl List {
-    fn view_items(children: &IArray<VChild<ListItem>>) -> Html {
-        children
-            .iter()
-            .filter(|c| !c.props.hide)
-            .cloned()
-            .enumerate()
-            .map(|(i, mut c)| {
-                let props = c.get_mut();
-                props.name = format!("#{} - {}", i + 1, props.name).into();
-                c
-            })
-            .collect::<Html>()
     }
 }
