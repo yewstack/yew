@@ -108,25 +108,19 @@ impl Component for Simulation {
                 for boid in &self.boids {
 
                     let color = format!("hsl({:.3}rad, 100%, 50%)", boid.hue);
-
                     let mut points = String::new();
-
-                    const SHAPE: [(f64, f64); 3] = [
+                    for offset in [
                         (0. * math::FRAC_TAU_3, 2.0),
                         (1. * math::FRAC_TAU_3, 1.0),
                         (2. * math::FRAC_TAU_3, 1.0),
-                    ];
-
-                    for offset in SHAPE
+                    ]
                             .iter()
                             .copied()
                             .map(move |(angle, radius_mul)| Vector2D::from_polar(angle + boid.velocity.angle(), radius_mul * boid.radius)) {
                         let Vector2D { x, y } = boid.position + offset;
-
                         // Write to string will never fail.
                         let _ = write!(points, "{x:.2},{y:.2} ");
                     };
-
 
                     <polygon {points} fill={color} />
                 }
