@@ -136,6 +136,7 @@ impl Attributes {
         fn collect(src: &Attributes) -> HashMap<&str, &AttributeOrProperty> {
             use Attributes::*;
 
+            #[expect(deprecated)]
             match src {
                 Static(arr) => (*arr).iter().map(|(k, v)| (*k, v)).collect(),
                 Dynamic { keys, values } => keys
@@ -199,6 +200,7 @@ impl Apply for Attributes {
     type Element = Element;
 
     fn apply(self, _root: &BSubtree, el: &Element) -> Self {
+        #[expect(deprecated)]
         match &self {
             Self::Static(arr) => {
                 for (k, v) in arr.iter() {
@@ -229,6 +231,7 @@ impl Apply for Attributes {
 
         let ancestor = std::mem::replace(bundle, self);
         let bundle = &*bundle; // reborrow it immutably from here
+        #[expect(deprecated)]
         match (bundle, ancestor) {
             // Hot path
             (Self::Static(new), Self::Static(old)) if ptr_eq(new, old) => (),

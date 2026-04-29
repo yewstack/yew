@@ -381,8 +381,13 @@ impl VTag {
     ///
     /// Not every attribute works when it set as an attribute. We use workarounds for:
     /// `value` and `checked`.
+    #[track_caller]
     pub fn add_attribute(&mut self, key: &'static str, value: impl Into<AttrValue>) {
-        self.attributes.get_mut_index_map().insert(
+        assert!(
+            Attributes::is_valid_attr_key(key),
+            "{key:?} is not a valid attribute name"
+        );
+        self.attributes.get_mut_index_map_unchecked().insert(
             AttrValue::Static(key),
             AttributeOrProperty::Attribute(value.into()),
         );
@@ -391,8 +396,13 @@ impl VTag {
     /// Set the given key as property on the element
     ///
     /// [`js_sys::Reflect`] is used for setting properties.
+    #[track_caller]
     pub fn add_property(&mut self, key: &'static str, value: impl Into<JsValue>) {
-        self.attributes.get_mut_index_map().insert(
+        assert!(
+            Attributes::is_valid_attr_key(key),
+            "{key:?} is not a valid attribute name"
+        );
+        self.attributes.get_mut_index_map_unchecked().insert(
             AttrValue::Static(key),
             AttributeOrProperty::Property(value.into()),
         );
@@ -408,7 +418,11 @@ impl VTag {
 
     #[doc(hidden)]
     pub fn __macro_push_attr(&mut self, key: &'static str, value: impl IntoPropValue<AttrValue>) {
-        self.attributes.get_mut_index_map().insert(
+        debug_assert!(
+            Attributes::is_valid_attr_key(key),
+            "{key:?} is not a valid attribute name"
+        );
+        self.attributes.get_mut_index_map_unchecked().insert(
             AttrValue::from(key),
             AttributeOrProperty::Attribute(value.into_prop_value()),
         );
@@ -729,5 +743,20 @@ mod ssr_tests {
             s,
             r#"<style>html { background: black } body > a { color: white } </style>"#
         );
+    }
+
+    #[cfg_attr(not(target_os = "wasi"), test)]
+    #[cfg_attr(target_os = "wasi", test(flavor = "current_thread"))]
+    #[should_panic(expected = "\"x onerror=\\\"prompt('failed')\" is not a valid attribute name")]
+    async fn test_should_panic_invalid_attr() {
+        #[component]
+        fn Comp() -> Html {
+            html! { <div "x onerror=\"prompt('failed')"=";"></div> }
+        }
+
+        ServerRenderer::<Comp>::new()
+            .hydratable(false)
+            .render()
+            .await;
     }
 }

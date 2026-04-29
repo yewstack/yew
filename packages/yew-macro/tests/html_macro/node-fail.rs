@@ -1,3 +1,4 @@
+#![allow(uncommon_codepoints)]
 use yew::prelude::*;
 
 fn compile_fail() {
@@ -15,6 +16,8 @@ fn compile_fail() {
     html! {
         not_node()
     };
+
+    html! { <a 𐊖𐊗𐊒𐊓="value"></a> };
 }
 
 fn main() {}

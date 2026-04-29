@@ -41,3 +41,9 @@ fn html_nested_macro_on_html_element() {
         <input/>
     };
 }
+
+#[test]
+#[should_panic(expected = "\"x onerror=\\\"prompt('failed')\" is not a valid attribute name")]
+fn dynamic_attrs_catch_bad_names() {
+    let _ = html! { <div "x onerror=\"prompt('failed')"=";"></div> };
+}
