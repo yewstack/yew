@@ -156,3 +156,46 @@ html! {
 Arms with a single element can omit braces. Arms with multiple children or `let` bindings require braces.
 
 `match` supports all standard Rust patterns including OR-patterns (`A | B`), destructuring, and `if` guards. Exhaustiveness is checked by the Rust compiler.
+
+## Loops inside `if`/`match` bodies
+
+`for`, `while`, and `loop` inside an `if`/`else if`/`else`/`match`-arm body
+follow the same rules they do at the top level of `html!`, with one caveat:
+if the loop body is fully Rust-parseable (no html elements anywhere inside),
+the macro takes the loop as a Rust statement instead of html-control-flow.
+
+The most common way to hit this is a loop whose only child is a bare
+`{expr}` block:
+
+```rust , ignore
+// Compiles. The for is at the top level, parsed as html-`for`.
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// Does NOT compile. The for is inside an `if`, parsed as a Rust statement;
+// rustc then complains that the body returns a value where `()` is expected.
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+Wrap the child in an html element to keep it as html-`for`:
+
+```rust , ignore
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+```
+
+See [Lists](./lists.mdx) for the full set of workarounds.

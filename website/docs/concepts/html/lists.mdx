@@ -148,6 +148,70 @@ html! {
 
 :::
 
+:::caution `for` with a bare `{expr}` body inside `if`/`match`/`while`/another `for`
+
+A `for` whose only child is a bare `{expr}` block renders one node per
+iteration at the **top level** of an `html!`, but the same code nested
+inside an `if`/`match` arm/`while`/another `for` body is rejected with a
+`mismatched types: expected (), found T` error. The two positions use
+different parsing strategies, and the nested one tries to parse the loop
+as a Rust statement first. If the body is fully Rust-parseable (which a
+bare `{expr}` block is), it stops being html-control-flow.
+
+```rust , ignore
+// Works: the for is at the top level.
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// Does NOT compile: the for is nested inside an `if`.
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+To render `my_foo` 9 times conditionally, pick one of:
+
+```rust , ignore
+// 1. Wrap the child in an html element (recommended).
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+
+// 2. Push the for to the top level of a nested `html!`.
+html! {
+    if condition {
+        { html! {
+            for _ in 0..9 {
+                {my_foo}
+            }
+        } }
+    }
+}
+
+// 3. Build the list with an iterator and `collect::<Html>()`.
+html! {
+    if condition {
+        { (0..9).map(|_| html!({my_foo})).collect::<Html>() }
+    }
+}
+```
+
+The same rule applies inside `match` arms, `while` bodies, and the body
+of an outer `for`.
+
+:::
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` loops">
 `while` and `while let` loops work the same way as `for`, producing a list of nodes from their

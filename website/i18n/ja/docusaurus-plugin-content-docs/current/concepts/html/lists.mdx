@@ -99,6 +99,63 @@ let mut rendered = Vec::new();
 
 :::
 
+:::caution `if` / `match` / `while` / 外側の `for` の内部で本体が裸の `{expr}` だけの `for`
+
+`for` ループの本体に裸の `{expr}` ブロックしか書かれていない場合、`html!` の**トップレベル**にあれば反復ごとに 1 ノードずつ描画されます。ところが同じコードを `if` / `match` のアーム / `while` / 外側の `for` の本体に入れ子で置くと、`mismatched types: expected (), found T` というエラーで拒否されます。トップレベルと入れ子の位置とでは解析方針が異なり、入れ子の位置ではループをまず Rust の文として解析しようとします。本体が完全に Rust として解析可能であれば（裸の `{expr}` ブロックはまさにそうです）、html の制御フローとして扱われなくなります。
+
+```rust , ignore
+// コンパイル可能：for はトップレベルにあります。
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// コンパイル不可：for は `if` の内部に入れ子になっています。
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+`my_foo` を条件付きで 9 回描画したい場合は、次のいずれかを選んでください：
+
+```rust , ignore
+// 1. 子要素を html 要素で囲む（推奨）。
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+
+// 2. for をネストした `html!` のトップレベルへ移す。
+html! {
+    if condition {
+        { html! {
+            for _ in 0..9 {
+                {my_foo}
+            }
+        } }
+    }
+}
+
+// 3. イテレータと `collect::<Html>()` でリストを組み立てる。
+html! {
+    if condition {
+        { (0..9).map(|_| html!({my_foo})).collect::<Html>() }
+    }
+}
+```
+
+同じ規則は `match` のアーム本体、`while` の本体、外側の `for` の本体にも当てはまります。
+
+:::
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` ループ">
 `while` および `while let` ループは `for` と同じように動作し、本体からノードのリストを生成します。`for` 本体で受け付けられるすべての文の形式（let バインディング、式文、アイテム、マクロ）がここでも受け付けられ、`if` ブロックと `break` / `continue` も使えます。

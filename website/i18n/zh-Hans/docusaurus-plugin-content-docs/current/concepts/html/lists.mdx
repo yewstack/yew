@@ -99,6 +99,63 @@ let mut rendered = Vec::new();
 
 :::
 
+:::caution 在 `if` / `match` / `while` / 外层 `for` 内部使用 `{expr}` 作为 `for` 循环体
+
+如果 `for` 循环体只包含一个裸 `{expr}` 块，在 `html!` 的**最外层**位置可以正常工作，每次迭代渲染一个节点；但同样的代码嵌套在 `if` / `match` 分支 / `while` / 另一个 `for` 体内时会被拒绝，并报告 `mismatched types: expected (), found T`。这两个位置使用的解析策略不同：嵌套位置会先尝试把循环解析为 Rust 语句。如果循环体能完全被 Rust 解析（裸 `{expr}` 块就是这种情况），它就不再被视为 html 控制流。
+
+```rust , ignore
+// 可以编译：for 位于最外层。
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// 无法编译：for 嵌套在 `if` 内部。
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+要在条件成立时把 `my_foo` 渲染 9 次，请选择以下任一方式：
+
+```rust , ignore
+// 1. 用 html 元素包裹子节点（推荐）。
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+
+// 2. 把 for 放进嵌套的 `html!` 顶层。
+html! {
+    if condition {
+        { html! {
+            for _ in 0..9 {
+                {my_foo}
+            }
+        } }
+    }
+}
+
+// 3. 用迭代器配合 `collect::<Html>()` 构建列表。
+html! {
+    if condition {
+        { (0..9).map(|_| html!({my_foo})).collect::<Html>() }
+    }
+}
+```
+
+同样的规则也适用于 `match` 分支、`while` 循环体以及外层 `for` 的循环体。
+
+:::
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` 循环">
 `while` 和 `while let` 循环的工作方式与 `for` 相同，也会从循环体中生成节点列表。`for` 循环体中支持的所有语句形式（let 绑定、表达式语句、项、宏）在这里同样可用，外加 `if` 块和 `break` / `continue`。
