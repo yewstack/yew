@@ -582,14 +582,17 @@ impl Parse for HtmlRootBraced {
 /// not Rust-parseable (e.g. an `<element/>` or `if cond { <node/> }` that the
 /// Rust expression grammar rejects).
 ///
-/// One pitfall: block-like Rust expressions (`for`, `while`, `loop`, `{...}`)
-/// auto-terminate as statements per Rust grammar, so a trailing `;` is not
-/// folded into the `Stmt`. Such expressions in preamble position parse as
-/// `Stmt::Expr(_, None)` and fall through to the html-control-flow parser.
-/// When the entire expression is Rust-parseable (no html elements anywhere
-/// inside), the user almost certainly wrote an imperative loop/block, not an
-/// html-emitting one - we surface a help message pointing at the
-/// `let _ = ...;` workaround.
+/// `for`, `while`, and `loop` auto-terminate as statements in Rust grammar, so
+/// in preamble position they parse as `Stmt::Expr(_, None)`. When the fork
+/// succeeds at parsing one as a full Rust `Stmt`, the entire expression
+/// (header, body, all nested calls) was Rust-parseable, which means it
+/// contains no html elements and cannot be a misread of html-control-flow.
+/// We accept it as a preamble statement so users can write side-effect loops
+/// without a trailing `;` or a `let _ =` binding.
+///
+/// `if` and `match` are handled separately by the html-control-flow parser
+/// because their bodies routinely contain VNode-convertible expressions.
+/// Bare `{...}` blocks stay as html-block-as-child (`{ render(item) }`).
 pub(super) fn parse_preamble_stmts(input: ParseStream) -> syn::Result<Vec<syn::Stmt>> {
     let mut stmts = Vec::new();
     loop {
@@ -599,21 +602,7 @@ pub(super) fn parse_preamble_stmts(input: ParseStream) -> syn::Result<Vec<syn::S
             Ok(syn::Stmt::Item(_)) => true,
             Ok(syn::Stmt::Expr(_, Some(_))) => true,
             Ok(syn::Stmt::Macro(m)) => m.semi_token.is_some(),
-            Ok(syn::Stmt::Expr(expr, None)) => {
-                if let Some(kind) = imperative_blocklike_kind(&expr) {
-                    proc_macro_error::emit_error!(
-                        expr,
-                        "this `{}` block is fully Rust-parseable, so it is parsed as html-{} \
-                         here, but its body cannot produce any html nodes",
-                        kind, kind;
-                        help = "to run a Rust `{}` here for side effects only, bind it with \
-                                `let _ = ...;` so the parser sees a Rust statement: \
-                                `let _ = {} ... {{ ... }};`",
-                                kind, kind
-                    );
-                }
-                false
-            }
+            Ok(syn::Stmt::Expr(expr, None)) => is_imperative_blocklike(&expr),
             _ => false,
         };
         if !is_preamble {
@@ -625,23 +614,14 @@ pub(super) fn parse_preamble_stmts(input: ParseStream) -> syn::Result<Vec<syn::S
     Ok(stmts)
 }
 
-/// Block-like Rust expressions whose appearance in preamble position
-/// (`Stmt::Expr(_, None)`, fully Rust-parseable) almost always indicates
-/// imperative intent rather than html-emission.
-///
-/// Excluded:
-/// - `if` / `match`: their bodies frequently contain plain expressions that produce
-///   VNode-convertible values, where the html-control-flow form is genuinely intended.
-/// - bare `{...}` blocks: the canonical html-block-as-child syntax, e.g. `{ render(item) }` and
-///   `{"text"}`, parses as `Stmt::Expr(ExprBlock, None)` and would generate a flood of false
-///   positives.
-fn imperative_blocklike_kind(expr: &syn::Expr) -> Option<&'static str> {
-    match expr {
-        syn::Expr::ForLoop(_) => Some("for"),
-        syn::Expr::While(_) => Some("while"),
-        syn::Expr::Loop(_) => Some("loop"),
-        _ => None,
-    }
+/// Whether `expr` is an imperative block-like Rust expression (`for`, `while`,
+/// `loop`) that should be accepted as a preamble statement when it appears
+/// without a trailing `;`.
+fn is_imperative_blocklike(expr: &syn::Expr) -> bool {
+    matches!(
+        expr,
+        syn::Expr::ForLoop(_) | syn::Expr::While(_) | syn::Expr::Loop(_)
+    )
 }
 
 /// Parse `break [label] [value]` forgivingly: first try syn's full

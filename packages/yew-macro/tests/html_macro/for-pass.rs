@@ -390,4 +390,110 @@ fn main() {
         0
     }
     let _ = return_value_from_unbraced_arm();
+
+    // Imperative block-like preambles (`for`, `while`, `loop`, `{...}`) with a
+    // trailing `;` parse as `Stmt::Expr(_, Some(_))` and are accepted as
+    // preamble. The bare form (no `;`) is auto-detected by the preamble
+    // parser; these test that the explicit `;` form keeps working too.
+    {
+        let mut sink: ::std::vec::Vec<::std::primitive::i32> = ::std::vec::Vec::new();
+        _ = ::yew::html!{
+            for x in 0..3_i32 {
+                let mut acc: ::std::primitive::i32 = 0;
+                for i in 0..x {
+                    acc += i;
+                };
+                sink.push(acc);
+                <span>{acc}</span>
+            }
+        };
+        _ = sink;
+    }
+    {
+        let mut sink: ::std::vec::Vec<::std::primitive::i32> = ::std::vec::Vec::new();
+        _ = ::yew::html!{
+            for _x in 0..3_i32 {
+                let mut counter: ::std::primitive::i32 = 0;
+                while counter < 3 {
+                    counter += 1;
+                };
+                sink.push(counter);
+                <span>{counter}</span>
+            }
+        };
+        _ = sink;
+    }
+    {
+        let mut sink: ::std::vec::Vec<::std::primitive::i32> = ::std::vec::Vec::new();
+        _ = ::yew::html!{
+            for _x in 0..2_i32 {
+                let mut n: ::std::primitive::i32 = 0;
+                loop {
+                    n += 1;
+                    if n > 2 { break; }
+                };
+                sink.push(n);
+                <span>{n}</span>
+            }
+        };
+        _ = sink;
+    }
+    {
+        let mut sink: ::std::vec::Vec<::std::primitive::i32> = ::std::vec::Vec::new();
+        _ = ::yew::html!{
+            for x in 0..3_i32 {
+                {
+                    sink.push(x * 10);
+                };
+                <span>{x}</span>
+            }
+        };
+        _ = sink;
+    }
+
+    // Same pattern in a braced match arm preamble.
+    _ = ::yew::html!{
+        match 1_i32 {
+            0 => <span>{"zero"}</span>,
+            _ => {
+                let mut acc: ::std::primitive::i32 = 0;
+                for i in 0..3_i32 {
+                    acc += i;
+                };
+                <span>{acc}</span>
+            }
+        }
+    };
+
+    // Same pattern in a `while` body preamble.
+    {
+        let mut counter: ::std::primitive::i32 = 0;
+        _ = ::yew::html!{
+            while counter < 2 {
+                let mut acc: ::std::primitive::i32 = 0;
+                for i in 0..counter {
+                    acc += i;
+                };
+                counter += 1;
+                <span>{acc}</span>
+            }
+        };
+        _ = counter;
+    }
+
+    // The `let _ = ...;` form also works, for users who prefer it.
+    {
+        let mut sink: ::std::vec::Vec<::std::primitive::i32> = ::std::vec::Vec::new();
+        _ = ::yew::html!{
+            for x in 0..3_i32 {
+                let mut acc: ::std::primitive::i32 = 0;
+                let _ = for i in 0..x {
+                    acc += i;
+                };
+                sink.push(acc);
+                <span>{acc}</span>
+            }
+        };
+        _ = sink;
+    }
 }

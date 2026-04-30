@@ -343,3 +343,79 @@ async fn for_break_workaround_with_braced_arm() {
         "<span>0</span><span>1</span><span>2</span>"
     );
 }
+
+#[wasm_bindgen_test]
+async fn for_imperative_inner_for_runs_as_preamble() {
+    // A bare imperative `for` (no trailing `;`) inside an html-`for` body
+    // is auto-detected as a preamble Rust statement, not html-control-flow.
+    // Each outer iteration runs the inner side-effect loop and then emits
+    // a single `<span>` with the accumulated value.
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="result">
+                for x in 0..3_u32 {
+                    let mut acc: u32 = 0;
+                    for i in 0..=x {
+                        acc += i;
+                    }
+                    <span>{acc}</span>
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(
+        render_and_read::<App>().await,
+        "<span>0</span><span>1</span><span>3</span>"
+    );
+}
+
+#[wasm_bindgen_test]
+async fn for_imperative_inner_while_runs_as_preamble() {
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="result">
+                for _x in 0..2_u32 {
+                    let mut counter: u32 = 0;
+                    while counter < 3 {
+                        counter += 1;
+                    }
+                    <span>{counter}</span>
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(
+        render_and_read::<App>().await,
+        "<span>3</span><span>3</span>"
+    );
+}
+
+#[wasm_bindgen_test]
+async fn for_imperative_inner_loop_runs_as_preamble() {
+    #[component]
+    fn App() -> Html {
+        html! {
+            <div id="result">
+                for x in 1..=3_u32 {
+                    let mut n: u32 = 0;
+                    loop {
+                        n += 1;
+                        if n >= x {
+                            break;
+                        }
+                    }
+                    <span>{n}</span>
+                }
+            </div>
+        }
+    }
+
+    assert_eq!(
+        render_and_read::<App>().await,
+        "<span>1</span><span>2</span><span>3</span>"
+    );
+}
