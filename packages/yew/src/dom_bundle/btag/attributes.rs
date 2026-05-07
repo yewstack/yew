@@ -317,7 +317,7 @@ mod tests {
             AttrValue::Static("href") => AttributeOrProperty::Property(JsValue::from_str("https://example.com/")),
             AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
         };
-        let attrs = Attributes::IndexMap(Rc::new(attrs));
+        let attrs = Attributes::from_index_map(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -344,7 +344,7 @@ mod tests {
             AttrValue::Static("href") => AttributeOrProperty::Attribute(AttrValue::from("https://example.com/")),
             AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
         };
-        let attrs = Attributes::IndexMap(Rc::new(attrs));
+        let attrs = Attributes::from_index_map(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -364,7 +364,7 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[(
+        let attrs = Attributes::from_static(&[(
             "class",
             AttributeOrProperty::Attribute(AttrValue::Static("thing")),
         )]);

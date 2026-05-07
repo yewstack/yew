@@ -423,7 +423,7 @@ impl ToTokens for HtmlElement {
                 .chain(boolean_attrs)
                 .chain(class_attr)
                 .collect::<Vec<(Key, Value, Option<PropDirective>)>>();
-            // Refer to `Attributes::*_unchecked` for
+            // Refer to `Attributes::*_unchecked` for why this checks ssr safety
             let all_attrs_ssr_safe = attrs.iter().all(|(key, ..)| key.can_use_unchecked_attrs());
             try_into_static(&attrs, all_attrs_ssr_safe).or_else(|| try_into_dynamic(&attrs, all_attrs_ssr_safe)).unwrap_or_else(|| {
                 let results = attrs.iter()
