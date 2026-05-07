@@ -235,7 +235,7 @@ impl ToTokens for HtmlElement {
                             if value.chars().any(|c| c > '\u{FFFF}') {
                                 tokens.extend(quote_spanned! {dashed_name.span()=>::core::compile_error!(
                                     "Identifier contains characters above \\u{FFFF}. This is known to cause browser \
-                                    incompatibilites and inconsistent parsing behaviour and is not allowed."
+                                    incompatibilities and inconsistent parsing behaviour and is not allowed."
                                 )})
                             } else {
                                 dashed_name.to_tokens(tokens)
