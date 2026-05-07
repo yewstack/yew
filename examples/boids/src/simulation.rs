@@ -120,7 +120,7 @@ impl Component for Simulation {
                         let Vector2D { x, y } = boid.position + offset;
                         // Write to string will never fail.
                         let _ = write!(points, "{x:.2},{y:.2} ");
-                    };
+                    }
 
                     <polygon {points} fill={color} />
                 }
