@@ -1,33 +1,39 @@
 error: unexpected token, expected `}`
- --> tests/html_macro/node-fail.rs:4:29
+ --> tests/html_macro/node-fail.rs:5:29
   |
-4 |     html! { <span>{ "valid" "invalid" }</span> };
+5 |     html! { <span>{ "valid" "invalid" }</span> };
   |                             ^^^^^^^^^
 
 error: byte-strings can't be converted to HTML text
                                 note: remove the `b` prefix or convert this to a `String`
-  --> tests/html_macro/node-fail.rs:10:14
+  --> tests/html_macro/node-fail.rs:11:14
    |
-10 |     html! {  b"str" };
+11 |     html! {  b"str" };
    |              ^^^^^^
 
 error: byte-strings can't be converted to HTML text
                                 note: remove the `b` prefix or convert this to a `String`
-  --> tests/html_macro/node-fail.rs:12:22
+  --> tests/html_macro/node-fail.rs:13:22
    |
-12 |     html! {  <span>{ b"str" }</span> };
+13 |     html! {  <span>{ b"str" }</span> };
    |                      ^^^^^^
 
+error: Identifier contains characters above \u{FFFF}. This is known to cause browser incompatibilities and inconsistent parsing behaviour and is not allowed.
+  --> tests/html_macro/node-fail.rs:20:16
+   |
+20 |     html! { <a 𐊖𐊗𐊒𐊓="value"></a> };
+   |                ^^^^
+
 error[E0425]: cannot find value `invalid` in this scope
- --> tests/html_macro/node-fail.rs:6:13
+ --> tests/html_macro/node-fail.rs:7:13
   |
-6 |     html! { invalid };
+7 |     html! { invalid };
   |             ^^^^^^^ not found in this scope
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
- --> tests/html_macro/node-fail.rs:5:13
+ --> tests/html_macro/node-fail.rs:6:13
   |
-5 |     html! { () };
+6 |     html! { () };
   |             ^^ `()` cannot be formatted with the default formatter
   |
   = help: the trait `std::fmt::Display` is not implemented for `()`
@@ -47,9 +53,9 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
   = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> tests/html_macro/node-fail.rs:16:9
+  --> tests/html_macro/node-fail.rs:17:9
    |
-16 |         not_node()
+17 |         not_node()
    |         ^^^^^^^^ `()` cannot be formatted with the default formatter
    |
    = help: the trait `std::fmt::Display` is not implemented for `()`

@@ -99,6 +99,63 @@ let mut rendered = Vec::new();
 
 :::
 
+:::caution 在 `if` / `match` / `while` / 外層 `for` 內部使用 `{expr}` 作為 `for` 迴圈主體
+
+如果 `for` 迴圈主體只包含一個裸 `{expr}` 區塊，在 `html!` 的**最外層**位置可以正常運作，每次迭代會渲染一個節點；但同樣的程式碼嵌套在 `if` / `match` 分支 / `while` / 另一個 `for` 主體內時會被拒絕，並回報 `mismatched types: expected (), found T`。這兩個位置使用不同的剖析策略：嵌套位置會先嘗試將迴圈解析為 Rust 陳述式。如果迴圈主體能完全被 Rust 剖析（裸 `{expr}` 區塊就是這種情況），它就不再被視為 html 控制流。
+
+```rust , ignore
+// 可以編譯：for 位於最外層。
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// 無法編譯：for 嵌套在 `if` 內部。
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+要在條件成立時把 `my_foo` 渲染 9 次，請選擇以下任一方式：
+
+```rust , ignore
+// 1. 用 html 元素包裹子節點（建議做法）。
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+
+// 2. 把 for 放進巢狀 `html!` 的最外層。
+html! {
+    if condition {
+        { html! {
+            for _ in 0..9 {
+                {my_foo}
+            }
+        } }
+    }
+}
+
+// 3. 使用迭代器搭配 `collect::<Html>()` 建構清單。
+html! {
+    if condition {
+        { (0..9).map(|_| html!({my_foo})).collect::<Html>() }
+    }
+}
+```
+
+同樣的規則也適用於 `match` 分支、`while` 迴圈主體以及外層 `for` 的迴圈主體。
+
+:::
+
   </TabItem>
   <TabItem value="`while` loops" label="`while` 迴圈">
 `while` 和 `while let` 迴圈的運作方式與 `for` 相同，也會從迴圈主體中生成節點清單。`for` 迴圈主體中支援的所有陳述式形式（let 綁定、運算式陳述式、項目、巨集）在這裡同樣可用，此外還有 `if` 區塊以及 `break` / `continue`。

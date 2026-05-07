@@ -156,3 +156,42 @@ html! {
 單元素 arm 可以省略大括號。含多個子節點或 `let` 綁定的 arm 需要大括號。
 
 `match` 支援所有標準 Rust 模式，包括 OR 模式（`A | B`）、解構和 `if` 守衛。窮舉性由 Rust 編譯器檢查。
+
+## `if` / `match` 主體內部的迴圈
+
+`if` / `else if` / `else` / `match` 分支主體內部的 `for`、`while`、`loop` 與 `html!` 最外層位置的規則相同，但有一個例外：如果迴圈主體可以被 Rust 完整剖析（內部任何位置都沒有 html 元素），巨集會把這個迴圈視為 Rust 陳述式而不是 html 控制流。
+
+最常見的觸發情形是迴圈主體裡只有一個裸 `{expr}` 區塊：
+
+```rust , ignore
+// 可以編譯。for 在最外層，被解析為 html-`for`。
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// 無法編譯。for 在 `if` 內部，被解析為 Rust 陳述式；
+// 之後 rustc 會回報迴圈主體傳回的型別不是 `()`。
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+把子節點用 html 元素包起來即可保留 html-`for` 行為：
+
+```rust , ignore
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+```
+
+完整的解決方法集合請參見[清單](./lists.mdx)。

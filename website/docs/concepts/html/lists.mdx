@@ -25,10 +25,10 @@ html! {
 };
 ```
 
-`for` loop bodies accept Rust statements before the html children. Any
-terminated statement works: `let` bindings, expression statements ending in
-`;`, item definitions (`fn`, `struct`, `use`, ...), and macro invocations with
-`;`.
+`for` loop bodies accept Rust statements before the html children: `let`
+bindings, expression statements ending in `;`, item definitions (`fn`,
+`struct`, `use`, ...), macro invocations with `;`, and imperative `for`,
+`while`, or `loop` blocks for side effects.
 
 ```rust , ignore
 use yew::prelude::*;
@@ -37,7 +37,12 @@ html! {
     for item in items {
         let label = format!("{}: {}", item.id, item.name);
         let class = if item.active { "active" } else { "inactive" };
-        <div class={class}>{label}</div>
+        let mut tags = String::new();
+        for tag in &item.tags {
+            tags.push_str(tag);
+            tags.push(' ');
+        }
+        <div class={class} data-tags={tags}>{label}</div>
     }
 };
 ```
@@ -112,15 +117,15 @@ A bare qualified-path expression like `<Type>::method(...)` collides with the
 
 :::note Imperative loops in the preamble
 
-Block-like Rust expressions (`for`, `while`, `loop`, `{...}`) auto-terminate as
-statements in Rust grammar - a trailing `;` is not folded into the statement.
-A bare imperative loop in a preamble:
+A nested `for`, `while`, or `loop` whose body has only Rust statements (no
+html elements anywhere inside) is detected as a Rust statement, not as
+html-control-flow. So this works as written:
 
 ```rust , ignore
 html! {
     for item in items.iter() {
         let mut by_han = BTreeMap::new();
-        for src in &item.sources {              // imperative side-effect loop
+        for src in &item.sources {
             by_han.entry(src.han_nom.clone()).or_default().push(src);
         }
         <div>{render(by_han)}</div>
@@ -128,26 +133,82 @@ html! {
 }
 ```
 
-is parsed as html-`for` (emitting children) instead of as a Rust statement,
-and its body's `()` value cannot be converted to a `VNode`. Bind it with
-`let _ = ...;` so the parser sees a `Stmt::Local`:
+If you mix html into the inner loop, the macro takes that loop as
+html-control-flow instead and emits its children per iteration:
 
 ```rust , ignore
 html! {
     for item in items.iter() {
-        let mut by_han = BTreeMap::new();
-        let _ = for src in &item.sources {
-            by_han.entry(src.han_nom.clone()).or_default().push(src);
-        };
-        <div>{render(by_han)}</div>
+        for tag in &item.tags {
+            <span class="tag">{tag}</span>
+        }
     }
 }
 ```
 
-The same applies to imperative `while`, `loop`, and bare-block `{...}`
-statements. `match` and `if` are not subject to this collision because their
-html-control-flow forms naturally accept the same body shapes as their
-imperative use.
+:::
+
+:::caution `for` with a bare `{expr}` body inside `if`/`match`/`while`/another `for`
+
+A `for` whose only child is a bare `{expr}` block renders one node per
+iteration at the **top level** of an `html!`, but the same code nested
+inside an `if`/`match` arm/`while`/another `for` body is rejected with a
+`mismatched types: expected (), found T` error. The two positions use
+different parsing strategies, and the nested one tries to parse the loop
+as a Rust statement first. If the body is fully Rust-parseable (which a
+bare `{expr}` block is), it stops being html-control-flow.
+
+```rust , ignore
+// Works: the for is at the top level.
+html! {
+    for _ in 0..9 {
+        {my_foo}
+    }
+}
+
+// Does NOT compile: the for is nested inside an `if`.
+html! {
+    if condition {
+        for _ in 0..9 {
+            {my_foo}
+        }
+    }
+}
+```
+
+To render `my_foo` 9 times conditionally, pick one of:
+
+```rust , ignore
+// 1. Wrap the child in an html element (recommended).
+html! {
+    if condition {
+        for _ in 0..9 {
+            <span>{my_foo}</span>
+        }
+    }
+}
+
+// 2. Push the for to the top level of a nested `html!`.
+html! {
+    if condition {
+        { html! {
+            for _ in 0..9 {
+                {my_foo}
+            }
+        } }
+    }
+}
+
+// 3. Build the list with an iterator and `collect::<Html>()`.
+html! {
+    if condition {
+        { (0..9).map(|_| html!({my_foo})).collect::<Html>() }
+    }
+}
+```
+
+The same rule applies inside `match` arms, `while` bodies, and the body
+of an outer `for`.
 
 :::
 
@@ -155,7 +216,8 @@ imperative use.
   <TabItem value="`while` loops" label="`while` loops">
 `while` and `while let` loops work the same way as `for`, producing a list of nodes from their
 body. All the statement forms accepted by `for` bodies (let bindings, expression statements,
-items, macros) are also accepted here, along with `if` blocks and `break`/`continue`.
+items, macros, and imperative `for`/`while`/`loop` blocks) are also accepted here, along with
+`if` blocks and `break`/`continue`.
 
 ```rust
 use yew::prelude::*;

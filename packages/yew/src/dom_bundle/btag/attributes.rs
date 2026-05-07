@@ -136,6 +136,7 @@ impl Attributes {
         fn collect(src: &Attributes) -> HashMap<&str, &AttributeOrProperty> {
             use Attributes::*;
 
+            #[expect(deprecated)]
             match src {
                 Static(arr) => (*arr).iter().map(|(k, v)| (*k, v)).collect(),
                 Dynamic { keys, values } => keys
@@ -199,6 +200,7 @@ impl Apply for Attributes {
     type Element = Element;
 
     fn apply(self, _root: &BSubtree, el: &Element) -> Self {
+        #[expect(deprecated)]
         match &self {
             Self::Static(arr) => {
                 for (k, v) in arr.iter() {
@@ -229,6 +231,7 @@ impl Apply for Attributes {
 
         let ancestor = std::mem::replace(bundle, self);
         let bundle = &*bundle; // reborrow it immutably from here
+        #[expect(deprecated)]
         match (bundle, ancestor) {
             // Hot path
             (Self::Static(new), Self::Static(old)) if ptr_eq(new, old) => (),
@@ -314,7 +317,7 @@ mod tests {
             AttrValue::Static("href") => AttributeOrProperty::Property(JsValue::from_str("https://example.com/")),
             AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
         };
-        let attrs = Attributes::IndexMap(Rc::new(attrs));
+        let attrs = Attributes::from_index_map(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -341,7 +344,7 @@ mod tests {
             AttrValue::Static("href") => AttributeOrProperty::Attribute(AttrValue::from("https://example.com/")),
             AttrValue::Static("alt") => AttributeOrProperty::Property(JsValue::from_str("somewhere")),
         };
-        let attrs = Attributes::IndexMap(Rc::new(attrs));
+        let attrs = Attributes::from_index_map(Rc::new(attrs));
         let (element, btree) = create_element();
         attrs.apply(&btree, &element);
         assert_eq!(
@@ -361,7 +364,7 @@ mod tests {
 
     #[test]
     fn class_is_always_attrs() {
-        let attrs = Attributes::Static(&[(
+        let attrs = Attributes::from_static(&[(
             "class",
             AttributeOrProperty::Attribute(AttrValue::Static("thing")),
         )]);

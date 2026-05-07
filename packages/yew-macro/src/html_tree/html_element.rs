@@ -204,6 +204,15 @@ impl ToTokens for HtmlElement {
                 Dynamic(Expr),
             }
 
+            impl Key {
+                fn can_use_unchecked_attrs(&self) -> bool {
+                    match self {
+                        Self::Static(_) => true,
+                        Self::Dynamic(_) => false,
+                    }
+                }
+            }
+
             impl From<&PropLabel> for Key {
                 fn from(value: &PropLabel) -> Self {
                     match value {
@@ -216,7 +225,22 @@ impl ToTokens for HtmlElement {
             impl ToTokens for Key {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
                     match self {
-                        Key::Static(dashed_name) => dashed_name.to_tokens(tokens),
+                        Key::Static(dashed_name) => {
+                            let value = dashed_name.value();
+                            // `value` is always a html dashed name, hence consists of chars with
+                            // XID_Continue, or XID_Start. Those notable
+                            // do not include whitespace or control characters, nor the special
+                            // sets. We do want to check though for
+                            // "high" unicode chars above \uFFFF
+                            if value.chars().any(|c| c > '\u{FFFF}') {
+                                tokens.extend(quote_spanned! {dashed_name.span()=>::core::compile_error!(
+                                    "Identifier contains characters above \\u{FFFF}. This is known to cause browser \
+                                    incompatibilities and inconsistent parsing behaviour and is not allowed."
+                                )})
+                            } else {
+                                dashed_name.to_tokens(tokens)
+                            }
+                        }
                         Key::Dynamic(expr) => expr.to_tokens(tokens),
                     }
                 }
@@ -307,7 +331,10 @@ impl ToTokens for HtmlElement {
                     });
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
-            fn try_into_static(src: &[(Key, Value, Option<PropDirective>)]) -> Option<TokenStream> {
+            fn try_into_static(
+                src: &[(Key, Value, Option<PropDirective>)],
+                all_attr_names_ssr_safe: bool,
+            ) -> Option<TokenStream> {
                 if src.iter().any(|(k, _, d)| {
                     matches!(k, Key::Dynamic(_))
                         || matches!(d, Some(PropDirective::ApplyAsProperty(_)))
@@ -334,13 +361,19 @@ impl ToTokens for HtmlElement {
                     };
                     kv.push(quote! { ( #k, #v) });
                 }
+                let to_attributes = if all_attr_names_ssr_safe {
+                    quote! { ::yew::virtual_dom::Attributes::from_static_unchecked }
+                } else {
+                    quote! { ::yew::virtual_dom::Attributes::from_static }
+                };
 
-                Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
+                Some(quote! { #to_attributes( &[#(#kv),*] ) })
             }
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Dynamic`
             fn try_into_dynamic(
                 src: &[(Key, Value, Option<PropDirective>)],
+                all_attr_names_ssr_safe: bool,
             ) -> Option<TokenStream> {
                 if src.iter().any(|(k, ..)| {
                     !matches!(
@@ -373,11 +406,16 @@ impl ToTokens for HtmlElement {
                     };
                     quote! { #value }
                 });
+                let to_attributes = if all_attr_names_ssr_safe {
+                    quote! { ::yew::virtual_dom::Attributes::from_dynamic_values_unchecked }
+                } else {
+                    quote! { ::yew::virtual_dom::Attributes::from_dynamic_values }
+                };
                 Some(quote! {
-                    ::yew::virtual_dom::Attributes::Dynamic{
-                        keys: &[#(#keys),*],
-                        values: ::std::boxed::Box::new([#(#values),*]),
-                    }
+                    #to_attributes (
+                        &[#(#keys),*],
+                        ::std::boxed::Box::new([#(#values),*]),
+                    )
                 })
             }
 
@@ -385,7 +423,9 @@ impl ToTokens for HtmlElement {
                 .chain(boolean_attrs)
                 .chain(class_attr)
                 .collect::<Vec<(Key, Value, Option<PropDirective>)>>();
-            try_into_static(&attrs).or_else(|| try_into_dynamic(&attrs)).unwrap_or_else(|| {
+            // Refer to `Attributes::*_unchecked` for why this checks ssr safety
+            let all_attrs_ssr_safe = attrs.iter().all(|(key, ..)| key.can_use_unchecked_attrs());
+            try_into_static(&attrs, all_attrs_ssr_safe).or_else(|| try_into_dynamic(&attrs, all_attrs_ssr_safe)).unwrap_or_else(|| {
                 let results = attrs.iter()
                     .map(|(k, v, directive)| {
                         let value = match directive {
@@ -406,7 +446,7 @@ impl ToTokens for HtmlElement {
                         quote! { (::std::convert::Into::into(#k), #value) }
                     });
                 quote! {
-                    ::yew::virtual_dom::Attributes::IndexMap(
+                    ::yew::virtual_dom::Attributes::from_index_map(
                         ::std::rc::Rc::new(
                             ::std::iter::Iterator::collect(
                                 ::std::iter::Iterator::filter_map(
