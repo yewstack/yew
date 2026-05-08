@@ -14,8 +14,8 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-gloo-net = { version = "0.6", features = ["http"] }
-lru = "0.16"
+gloo-net = { version = "0.7", features = ["http"] }
+lru = "0.18"
 wasm-bindgen-futures = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
