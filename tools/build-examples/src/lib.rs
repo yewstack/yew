@@ -5,7 +5,12 @@ use serde::Deserialize;
 use toml::Table;
 
 /// Examples that don't use Trunk for building
-pub const NO_TRUNK_EXAMPLES: [&str; 3] = ["simple_ssr", "ssr_router", "wasi_ssr_module"];
+pub const NO_TRUNK_EXAMPLES: [&str; 4] = [
+    "simple_ssr",
+    "actix_ssr_router",
+    "axum_ssr_router",
+    "wasi_ssr_module",
+];
 
 #[derive(Deserialize)]
 struct GitHubRelease {
