@@ -181,6 +181,27 @@ impl Attributes {
         }
     }
 
+    /// Like [`set`](Self::set), but skips writing an `Attribute` when the
+    /// element already carries the same value.
+    #[cfg(feature = "hydration")]
+    fn set_if_changed(el: &Element, key: &str, value: &AttributeOrProperty) {
+        match value {
+            AttributeOrProperty::Attribute(value) => {
+                let key = intern(key);
+                if el.get_attribute(key).as_deref() != Some(value.as_ref()) {
+                    el.set_attribute(key, value).expect("invalid attribute key");
+                }
+            }
+            AttributeOrProperty::Static(value) => {
+                let key = intern(key);
+                if el.get_attribute(key).as_deref() != Some(*value) {
+                    el.set_attribute(key, value).expect("invalid attribute key");
+                }
+            }
+            AttributeOrProperty::Property(_) => Self::set(el, key, value),
+        }
+    }
+
     fn remove(el: &Element, key: &str, old_value: &AttributeOrProperty) {
         match old_value {
             AttributeOrProperty::Attribute(_) => el
@@ -217,6 +238,30 @@ impl Apply for Attributes {
             Self::IndexMap(m) => {
                 for (k, v) in m.iter() {
                     Self::set(el, k, v)
+                }
+            }
+        }
+        self
+    }
+
+    #[cfg(feature = "hydration")]
+    fn hydrate(self, _root: &BSubtree, el: &Element) -> Self {
+        match &self {
+            Self::Static(arr) => {
+                for (k, v) in arr.iter() {
+                    Self::set_if_changed(el, k, v);
+                }
+            }
+            Self::Dynamic { keys, values } => {
+                for (k, v) in keys.iter().zip(values.iter()) {
+                    if let Some(v) = v {
+                        Self::set_if_changed(el, k, v)
+                    }
+                }
+            }
+            Self::IndexMap(m) => {
+                for (k, v) in m.iter() {
+                    Self::set_if_changed(el, k, v)
                 }
             }
         }

@@ -35,6 +35,17 @@ trait Apply {
 
     /// Apply diff between [self] and `bundle` to [Element](Self::Element).
     fn apply_diff(self, root: &BSubtree, el: &Self::Element, bundle: &mut Self::Bundle);
+
+    /// Apply contained values to an existing [Element](Self::Element).
+    ///
+    /// The default implementation delegates to [`apply`](Self::apply).
+    #[cfg(feature = "hydration")]
+    fn hydrate(self, root: &BSubtree, el: &Self::Element) -> Self::Bundle
+    where
+        Self: Sized,
+    {
+        self.apply(root, el)
+    }
 }
 
 /// [BTag] fields that are specific to different [BTag] kinds.
@@ -401,8 +412,8 @@ mod feat_hydration {
                     );
                 }
             }
-            // We simply register listeners and update all attributes.
-            let attributes = attributes.apply(root, &el);
+            // Register listeners and attributes.
+            let attributes = attributes.hydrate(root, &el);
             let listeners = listeners.apply(root, &el);
 
             // For input and textarea elements, we update their value anyways.
