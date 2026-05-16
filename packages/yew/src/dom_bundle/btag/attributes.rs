@@ -192,12 +192,6 @@ impl Attributes {
                     el.set_attribute(key, value).expect("invalid attribute key");
                 }
             }
-            AttributeOrProperty::Static(value) => {
-                let key = intern(key);
-                if el.get_attribute(key).as_deref() != Some(*value) {
-                    el.set_attribute(key, value).expect("invalid attribute key");
-                }
-            }
             AttributeOrProperty::Property(_) => Self::set(el, key, value),
         }
     }
@@ -246,6 +240,7 @@ impl Apply for Attributes {
 
     #[cfg(feature = "hydration")]
     fn hydrate(self, _root: &BSubtree, el: &Element) -> Self {
+        #[expect(deprecated)]
         match &self {
             Self::Static(arr) => {
                 for (k, v) in arr.iter() {
