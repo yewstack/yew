@@ -8,7 +8,7 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
-zxcvbn = "3.1.0"
+zxcvbn = "3.1.1"
 js-sys.workspace = true
 web-sys = { workspace = true, features = ["Event","EventTarget","InputEvent"] }
 wasm-bindgen.workspace = true
