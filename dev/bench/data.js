@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780487756322,
+  "lastUpdate": 1780489731707,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -60637,6 +60637,178 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.23.0-keyed 43_first-paint",
             "value": 406.8,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "4bc385737196e511902b41706359134470897d39",
+          "message": "chore(deps): bump the cargo-deps group across 1 directory with 18 updates (#4163)\n\nBumps the cargo-deps group with 18 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [tokio](https://github.com/tokio-rs/tokio) | `1.51.0` | `1.52.3` |\n| [clap](https://github.com/clap-rs/clap) | `4.6.0` | `4.6.1` |\n| [serde_json](https://github.com/serde-rs/json) | `1.0.149` | `1.0.150` |\n| [log](https://github.com/rust-lang/log) | `0.4.29` | `0.4.31` |\n| [reqwest](https://github.com/seanmonstar/reqwest) | `0.13.2` | `0.13.4` |\n| [axum](https://github.com/tokio-rs/axum) | `0.8.8` | `0.8.9` |\n| [indexmap](https://github.com/indexmap-rs/indexmap) | `2.13.1` | `2.14.0` |\n| [gloo-net](https://github.com/rustwasm/gloo) | `0.6.0` | `0.7.0` |\n| [lru](https://github.com/jeromefroe/lru-rs) | `0.16.3` | `0.18.0` |\n| [matchit](https://github.com/ibraheemdev/matchit) | `0.9.1` | `0.9.2` |\n| [average](https://github.com/vks/average) | `0.16.0` | `0.17.0` |\n| [tabled](https://github.com/zhiburt/tabled) | `0.20.0` | `0.21.0` |\n| [libc](https://github.com/rust-lang/libc) | `0.2.184` | `0.2.186` |\n| [tower-http](https://github.com/tower-rs/tower-http) | `0.6.8` | `0.6.11` |\n| [hyper](https://github.com/hyperium/hyper) | `1.9.0` | `1.10.1` |\n| [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark) | `0.13.3` | `0.13.4` |\n| [zxcvbn](https://github.com/shssoichiro/zxcvbn-rs) | `3.1.0` | `3.1.1` |\n| [uuid](https://github.com/uuid-rs/uuid) | `1.23.0` | `1.23.2` |\n\n\n\nUpdates `tokio` from 1.51.0 to 1.52.3\n- [Release notes](https://github.com/tokio-rs/tokio/releases)\n- [Commits](https://github.com/tokio-rs/tokio/compare/tokio-1.51.0...tokio-1.52.3)\n\nUpdates `clap` from 4.6.0 to 4.6.1\n- [Release notes](https://github.com/clap-rs/clap/releases)\n- [Changelog](https://github.com/clap-rs/clap/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.6.0...clap_complete-v4.6.1)\n\nUpdates `serde_json` from 1.0.149 to 1.0.150\n- [Release notes](https://github.com/serde-rs/json/releases)\n- [Commits](https://github.com/serde-rs/json/compare/v1.0.149...v1.0.150)\n\nUpdates `log` from 0.4.29 to 0.4.31\n- [Release notes](https://github.com/rust-lang/log/releases)\n- [Changelog](https://github.com/rust-lang/log/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/log/compare/0.4.29...0.4.31)\n\nUpdates `reqwest` from 0.13.2 to 0.13.4\n- [Release notes](https://github.com/seanmonstar/reqwest/releases)\n- [Changelog](https://github.com/seanmonstar/reqwest/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/seanmonstar/reqwest/compare/v0.13.2...v0.13.4)\n\nUpdates `axum` from 0.8.8 to 0.8.9\n- [Release notes](https://github.com/tokio-rs/axum/releases)\n- [Changelog](https://github.com/tokio-rs/axum/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/tokio-rs/axum/compare/axum-v0.8.8...axum-v0.8.9)\n\nUpdates `indexmap` from 2.13.1 to 2.14.0\n- [Changelog](https://github.com/indexmap-rs/indexmap/blob/main/RELEASES.md)\n- [Commits](https://github.com/indexmap-rs/indexmap/compare/2.13.1...2.14.0)\n\nUpdates `gloo-net` from 0.6.0 to 0.7.0\n- [Release notes](https://github.com/rustwasm/gloo/releases)\n- [Changelog](https://github.com/ranile/gloo/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rustwasm/gloo/compare/0.6.0...gloo-net-v0.7.0)\n\nUpdates `lru` from 0.16.3 to 0.18.0\n- [Changelog](https://github.com/jeromefroe/lru-rs/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/jeromefroe/lru-rs/compare/0.16.3...0.18.0)\n\nUpdates `matchit` from 0.9.1 to 0.9.2\n- [Release notes](https://github.com/ibraheemdev/matchit/releases)\n- [Commits](https://github.com/ibraheemdev/matchit/compare/v0.9.1...v0.9.2)\n\nUpdates `average` from 0.16.0 to 0.17.0\n- [Commits](https://github.com/vks/average/commits)\n\nUpdates `tabled` from 0.20.0 to 0.21.0\n- [Changelog](https://github.com/zhiburt/tabled/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/zhiburt/tabled/commits)\n\nUpdates `libc` from 0.2.184 to 0.2.186\n- [Release notes](https://github.com/rust-lang/libc/releases)\n- [Changelog](https://github.com/rust-lang/libc/blob/0.2.186/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/libc/compare/0.2.184...0.2.186)\n\nUpdates `tower-http` from 0.6.8 to 0.6.11\n- [Release notes](https://github.com/tower-rs/tower-http/releases)\n- [Commits](https://github.com/tower-rs/tower-http/compare/tower-http-0.6.8...tower-http-0.6.11)\n\nUpdates `hyper` from 1.9.0 to 1.10.1\n- [Release notes](https://github.com/hyperium/hyper/releases)\n- [Changelog](https://github.com/hyperium/hyper/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/hyperium/hyper/compare/v1.9.0...v1.10.1)\n\nUpdates `pulldown-cmark` from 0.13.3 to 0.13.4\n- [Release notes](https://github.com/raphlinus/pulldown-cmark/releases)\n- [Commits](https://github.com/raphlinus/pulldown-cmark/compare/v0.13.3...v0.13.4)\n\nUpdates `zxcvbn` from 3.1.0 to 3.1.1\n- [Changelog](https://github.com/shssoichiro/zxcvbn-rs/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/shssoichiro/zxcvbn-rs/compare/v3.1.0...v3.1.1)\n\nUpdates `uuid` from 1.23.0 to 1.23.2\n- [Release notes](https://github.com/uuid-rs/uuid/releases)\n- [Commits](https://github.com/uuid-rs/uuid/compare/v1.23.0...v1.23.2)\n\n---\nupdated-dependencies:\n- dependency-name: average\n  dependency-version: 0.17.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: axum\n  dependency-version: 0.8.9\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: clap\n  dependency-version: 4.6.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: gloo-net\n  dependency-version: 0.7.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: hyper\n  dependency-version: 1.10.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: indexmap\n  dependency-version: 2.14.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: libc\n  dependency-version: 0.2.186\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: log\n  dependency-version: 0.4.31\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: lru\n  dependency-version: 0.18.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: matchit\n  dependency-version: 0.9.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: pulldown-cmark\n  dependency-version: 0.13.4\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: reqwest\n  dependency-version: 0.13.4\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: serde_json\n  dependency-version: 1.0.150\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: tabled\n  dependency-version: 0.21.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: tokio\n  dependency-version: 1.52.3\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: tower-http\n  dependency-version: 0.6.11\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: uuid\n  dependency-version: 1.23.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: zxcvbn\n  dependency-version: 3.1.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-06-03T12:15:37Z",
+          "url": "https://github.com/yewstack/yew/commit/4bc385737196e511902b41706359134470897d39"
+        },
+        "date": 1780489728474,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.23.0-keyed 01_run1k",
+            "value": 101.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 02_replace1k",
+            "value": 119.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 73.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 04_select1k",
+            "value": 42.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 05_swap1k",
+            "value": 80.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 06_remove-one-1k",
+            "value": 51.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 07_create10k",
+            "value": 1136.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 111.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 09_clear1k_x8",
+            "value": 60.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 21_ready-memory",
+            "value": 2.2506208419799805,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 22_run-memory",
+            "value": 2.701167106628418,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 25_run-clear-memory",
+            "value": 5.213372230529785,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 41_size-uncompressed",
+            "value": 173.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 42_size-compressed",
+            "value": 56.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 43_first-paint",
+            "value": 436.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 01_run1k",
+            "value": 99.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 02_replace1k",
+            "value": 117.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 51.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 04_select1k",
+            "value": 14.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 05_swap1k",
+            "value": 58.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 06_remove-one-1k",
+            "value": 38.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 07_create10k",
+            "value": 1134.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 113.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 09_clear1k_x8",
+            "value": 58.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 21_ready-memory",
+            "value": 2.264956474304199,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 22_run-memory",
+            "value": 6.232769966125488,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 25_run-clear-memory",
+            "value": 5.000339508056641,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 41_size-uncompressed",
+            "value": 169.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 42_size-compressed",
+            "value": 55.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 43_first-paint",
+            "value": 417.3,
             "unit": ""
           }
         ]
