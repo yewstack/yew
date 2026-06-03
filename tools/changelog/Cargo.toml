@@ -10,7 +10,7 @@ rust-version.workspace = true
 [dependencies]
 anyhow.workspace = true
 chrono = "0.4"
-git2 = "0.20"
+git2 = "0.21"
 regex = "1"
 reqwest = { workspace = true, features = ["blocking", "json"] }
 serde = { workspace = true, features = ["derive"] }

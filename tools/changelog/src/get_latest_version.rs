@@ -12,7 +12,7 @@ pub fn get_latest_version(package: &YewPackage) -> Result<Version> {
         .tag_names(Some(&search_pattern))?
         .iter()
         .filter_map(|mb_tag| {
-            mb_tag.map(|tag| {
+            mb_tag.ok().flatten().map(|tag| {
                 let version = tag.replace(&common_tag_pattern, "");
                 Version::parse(&version)
             })
