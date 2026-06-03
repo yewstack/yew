@@ -9,8 +9,17 @@ struct UuidResponse {
 
 #[cfg(feature = "ssr")]
 async fn fetch_uuid() -> Uuid {
-    // reqwest works for both non-wasm and wasm targets.
-    let resp = reqwest::get("https://httpbin.org/uuid").await.unwrap();
+    let client = reqwest::Client::builder()
+        .user_agent("yew-simple-ssr-example")
+        .build()
+        .unwrap();
+    let resp = client
+        .get("https://httpbingo.org/uuid")
+        .send()
+        .await
+        .unwrap()
+        .error_for_status()
+        .unwrap();
     let uuid_resp = resp.json::<UuidResponse>().await.unwrap();
 
     uuid_resp.uuid
