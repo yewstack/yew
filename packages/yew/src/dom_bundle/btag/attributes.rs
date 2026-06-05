@@ -181,16 +181,22 @@ impl Attributes {
         }
     }
 
-    /// Like [`set`](Self::set), but skips writing an `Attribute` when the
-    /// element already carries the same value.
+    /// Applies a value during hydration.
+    ///
+    /// Hydration assumes the DOM already matches the server-rendered HTML, so
+    /// attributes are left untouched: re-writing them would needlessly trigger
+    /// side effects. In debug builds we only assert that the existing attribute
+    /// matches the expected value. Properties are not reflected in the HTML, so
+    /// they are always set.
     #[cfg(feature = "hydration")]
-    fn set_if_changed(el: &Element, key: &str, value: &AttributeOrProperty) {
+    fn hydrate_set(el: &Element, key: &str, value: &AttributeOrProperty) {
         match value {
             AttributeOrProperty::Attribute(value) => {
-                let key = intern(key);
-                if el.get_attribute(key).as_deref() != Some(value.as_ref()) {
-                    el.set_attribute(key, value).expect("invalid attribute key");
-                }
+                debug_assert_eq!(
+                    el.get_attribute(key).as_deref(),
+                    Some(value.as_ref()),
+                    "attribute `{key}` does not match the server-rendered value during hydration",
+                );
             }
             AttributeOrProperty::Property(_) => Self::set(el, key, value),
         }
@@ -244,19 +250,19 @@ impl Apply for Attributes {
         match &self {
             Self::Static(arr) => {
                 for (k, v) in arr.iter() {
-                    Self::set_if_changed(el, k, v);
+                    Self::hydrate_set(el, k, v);
                 }
             }
             Self::Dynamic { keys, values } => {
                 for (k, v) in keys.iter().zip(values.iter()) {
                     if let Some(v) = v {
-                        Self::set_if_changed(el, k, v)
+                        Self::hydrate_set(el, k, v)
                     }
                 }
             }
             Self::IndexMap(m) => {
                 for (k, v) in m.iter() {
-                    Self::set_if_changed(el, k, v)
+                    Self::hydrate_set(el, k, v)
                 }
             }
         }

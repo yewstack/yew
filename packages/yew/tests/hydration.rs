@@ -1,6 +1,7 @@
 #![cfg(feature = "hydration")]
 #![cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 
+use std::cell::RefCell;
 use std::ops::Range;
 use std::rc::Rc;
 use std::time::Duration;
@@ -9,6 +10,7 @@ mod common;
 
 use common::{obtain_result, obtain_result_by_id};
 use wasm_bindgen::JsCast;
+use wasm_bindgen::closure::Closure;
 use wasm_bindgen_futures::spawn_local;
 use wasm_bindgen_test::*;
 use web_sys::{HtmlElement, HtmlTextAreaElement};
@@ -1259,4 +1261,61 @@ async fn hydration_suspended_child_does_not_trap_sibling_slot() {
         result.as_str(),
         r#"<p class="new-sibling">new sibling</p><div class="suspended">child</div>"#,
     );
+}
+
+#[wasm_bindgen_test]
+async fn hydration_does_not_reapply_matching_attributes() {
+    #[component(App)]
+    fn app() -> Html {
+        html! {
+            <div id="result">
+                <img class="pic" src="/picture.png" alt="a picture" />
+            </div>
+        }
+    }
+
+    let s = ServerRenderer::<App>::new().render().await;
+
+    gloo::utils::document()
+        .query_selector("#output")
+        .unwrap()
+        .unwrap()
+        .set_inner_html(&s);
+
+    scheduler::flush().await;
+
+    let img = gloo::utils::document()
+        .query_selector("#output .pic")
+        .unwrap()
+        .unwrap();
+
+    let mutations = Rc::new(RefCell::new(0usize));
+    let observer = {
+        let mutations = mutations.clone();
+        let callback = Closure::<dyn FnMut(js_sys::Array)>::new(move |records: js_sys::Array| {
+            *mutations.borrow_mut() += records.length() as usize;
+        });
+        let observer = web_sys::MutationObserver::new(callback.as_ref().unchecked_ref()).unwrap();
+        callback.forget();
+        observer
+    };
+    let init = web_sys::MutationObserverInit::new();
+    init.set_attributes(true);
+    observer.observe_with_options(&img, &init).unwrap();
+
+    Renderer::<App>::with_root(gloo::utils::document().get_element_by_id("output").unwrap())
+        .hydrate();
+
+    scheduler::flush().await;
+    observer.disconnect();
+
+    assert_eq!(
+        *mutations.borrow(),
+        0,
+        "hydration must not re-apply attributes that already match the DOM",
+    );
+
+    assert_eq!(img.get_attribute("src").as_deref(), Some("/picture.png"));
+    assert_eq!(img.get_attribute("alt").as_deref(), Some("a picture"));
+    assert_eq!(img.get_attribute("class").as_deref(), Some("pic"));
 }

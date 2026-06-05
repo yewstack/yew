@@ -92,7 +92,13 @@ trybuild = { workspace = true }
 
 [dev-dependencies.web-sys]
 workspace = true
-features = ["ShadowRootInit", "ShadowRootMode", "HtmlButtonElement"]
+features = [
+  "ShadowRootInit",
+  "ShadowRootMode",
+  "HtmlButtonElement",
+  "MutationObserver",
+  "MutationObserverInit",
+]
 
 [features]
 ssr = ["dep:html-escape", "dep:base64ct", "dep:bincode"]
