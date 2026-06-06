@@ -464,87 +464,163 @@ fn app() -> Html {
   fetch 呼び出しを行うために使用します。
 - [`serde`](https://serde.rs) とその派生特性
   JSON 応答をデシリアライズするために使用します。
-- [`wasm-bindgen-futures`](https://crates.io/crates/wasm-bindgen-futures)
-  Rust の Future を Promise として実行するために使用します。
 
 `Cargo.toml` ファイルの依存関係を更新しましょう：
 
-```toml title="Cargo.toml"
+```toml title="Cargo.toml" {2-6}
 [dependencies]
-gloo-net = "0.6"
-serde = { version = "1.0", features = ["derive"] }
-wasm-bindgen-futures = "0.4"
+-yew = { version = "0.22", features = ["csr"] }
++yew = { version = "0.22", features = ["csr", "serde"] }
++gloo-net = "0.6"
++serde = { version = "1.0", features = ["derive"] }
 ```
+
+Yew の `serde` 機能は `serde` クレートとの統合を有効にします。ここで重要なのは、`AttrValue` に対する `serde::Deserialize` の実装が追加される点です。
 
 :::note
 依存関係を選択する際には、それらが `wasm32` と互換性があることを確認してください！そうでない場合、アプリケーションを実行することはできません。
 :::
 
-`Deserialize` 特性を派生するように `Video` 構造体を更新します：
+インポートを更新します:
 
-```rust ,ignore {1, 3-4}
-+ use serde::Deserialize;
+```rust {2}
+use yew::prelude::*;
++use serde::Deserialize;
+```
 
-- #[derive(Clone, PartialEq)]
-+ #[derive(Clone, PartialEq, Deserialize)]
+`Video` 構造体が `Deserialize` トレイトを derive するように更新します:
+
+```rust {1-2}
+-#[derive(Clone, PartialEq)]
++#[derive(Clone, PartialEq, Deserialize)]
 struct Video {
     id: usize,
-    title: String,
-    speaker: String,
-    url: String,
+    title: AttrValue,
+    speaker: AttrValue,
+    url: AttrValue,
 }
 ```
 
-最後のステップとして、ハードコーディングされたデータを使用するのではなく、fetch リクエストを行うように `App` コンポーネントを更新する必要があります。
+次に、データを取得できるように `App` コンポーネントを更新する必要があります。これを行う現代的な Yew の方法は、[`use_future`](https://docs.rs/yew/0.23.0/yew/suspense/fn.use_future.html) と [`<Suspense>`](https://yew.rs/docs/concepts/suspense) を使うことです。
 
-```rust ,ignore {1,5-25,34-35}
-+ use gloo_net::http::Request;
+また、フックが使えない場合、たとえば struct コンポーネントや通常の関数内では、代わりに [`yew::platform::spawn_local`](https://docs.rs/yew/latest/yew/platform/fn.spawn_local.html) を使うこともできます。
 
-#[component(App)]
-fn app() -> Html {
--    let videos = vec![
--        // ...
--    ]
-+    let videos = use_state(|| vec![]);
-+    {
-+        let videos = videos.clone();
-+        use_effect_with((), move |_| {
-+            let videos = videos.clone();
-+            wasm_bindgen_futures::spawn_local(async move {
-+                let fetched_videos: Vec<Video> = Request::get("https://yew.rs/tutorial/data.json")
-+                    .send()
-+                    .await
-+                    .unwrap()
-+                    .json()
-+                    .await
-+                    .unwrap();
-+                videos.set(fetched_videos);
-+            });
-+            || ()
-+        });
+`use_future` は非同期処理が完了するまでコンポーネントをサスペンドし、その間 `<Suspense>` はフォールバック UI（たとえばローディングインジケーター）を表示します。
+
+インポートを更新します:
+
+```rust {3-4}
+use yew::prelude::*;
+use serde::Deserialize;
++use gloo_net::http::Request;
++use yew::suspense::use_future;
+```
+
+データ取得ロジックは、`HtmlResult` を返す子コンポーネント (`VideosFetcher`) に分割し、親の `App` はそれを `<Suspense>` で包みます:
+
+```rust {2-6,8-39}
+use yew::suspense::use_future;
++#[derive(Properties, PartialEq)]
++struct VideosFetchProps {
++    on_click: Callback<Video>,
++    selected_video: Option<Video>,
++}
+
++#[component]
++fn VideosFetcher(
++    VideosFetchProps {
++        on_click,
++        selected_video,
++    }: &VideosFetchProps,
++) -> HtmlResult {
++    let videos = use_future(|| async {
++        Request::get("https://yew.rs/tutorial/data.json")
++            .send()
++            .await?
++            .json::<Vec<Video>>()
++            .await
++    })?;
++
++    match &*videos {
++        Ok(videos) => Ok(html! {
++            <>
++                <div>
++                    <h3>{ "Videos to watch" }</h3>
++                    <VideosList videos={videos.clone()} on_click={on_click.clone()} />
++                </div>
++                if let Some(video) = selected_video {
++                    <VideoDetails video={video.clone()} />
++                }
++            </>
++        }),
++        Err(err) => Ok(html! {
++            <p>{format!("Error fetching videos: {err}")}</p>
++        }),
 +    }
++}
+```
+
+次に、この新しいコンポーネントを `App` コンポーネント内で使用します
+
+```rust {3-28,33-47}
+#[component]
+fn App() -> Html {
+-   let videos = vec![
+-       Video {
+-           id: 1,
+-           title: "Building and breaking things".into(),
+-           speaker: "John Doe".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
+-       },
+-       Video {
+-           id: 2,
+-           title: "The development process".into(),
+-           speaker: "Jane Smith".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
+-       },
+-       Video {
+-           id: 3,
+-           title: "The Web 7.0".into(),
+-           speaker: "Matt Miller".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
+-       },
+-       Video {
+-           id: 4,
+-           title: "Mouseless development".into(),
+-           speaker: "Tom Jerry".into(),
+-           url: "https://youtu.be/PsaFVLr8t4E".into(),
+-       },
+-   ];
 
     // ...
 
     html! {
-        <>
-            <h1>{ "RustConf Explorer" }</h1>
-            <div>
-                <h3>{"Videos to watch"}</h3>
--                <VideosList videos={videos} on_click={on_video_select.clone()} />
-+                <VideosList videos={(*videos).clone()} on_click={on_video_select.clone()} />
-            </div>
-            { for details }
-        </>
+-       <h1>{ "RustConf Explorer" }</h1>
+-       <div>
+-           <h3>{ "Videos to watch" }</h3>
+-           <VideosList {videos} on_click={on_video_select} />
+-       </div>
+-       if let Some(video) = &*selected_video {
+-           <VideoDetails video={video.clone()} />
+-       }
++       <h1>{ "RustConf Explorer" }</h1>
++       <Suspense fallback={html! {<p> {"Loading..."} </p>}} >
++           <VideosFetcher
++                   on_click={on_video_select}
++                   selected_video={(*selected_video).clone()}
++               />
++       </Suspense>
     }
 }
 ```
 
 :::note
-ここでは `unwrap` を使用していますが、これはデモアプリケーションのためです。実際のアプリケーションでは、[適切なエラーハンドリング](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html)を行うことをお勧めします。
+`use_future` の呼び出しでは、サスペンド状態を伝播させるために `?` を使っています。サスペンス対応のフックを使う場合、コンポーネントは `Html` ではなく `HtmlResult` を返します。親コンポーネントはこれを `<Suspense fallback=...>` で包み、データ取得中にローディングインジケーターを表示します。
 :::
 
-さて、ブラウザを確認して、すべてが期待通りに動作しているかを確認しましょう……CORS の問題がなければ。これを解決するために、プロキシサーバーが必要です。幸いなことに、trunk はこの機能を提供しています。
+では、ブラウザを見て、すべてが期待どおりに動作していることを確認しましょう……と言いたいところですが、CORS のせいでそうはいきません。
+
+これを解決するには、プロキシサーバーが必要です。幸い、Trunk にはその機能が用意されています。
 
 これらの行を更新します：
 
@@ -562,6 +638,25 @@ trunk serve --proxy-backend=https://yew.rs/tutorial
 ```
 
 ページをリフレッシュすると、すべてが期待通りに動作するはずです。
+
+データの読み込みが非常に速いため、ローディングテキストが見えない場合があります。確認したい場合は、`TimeoutFuture` を使って `use_future` フック内に人工的な遅延を追加できます。まず、`Cargo.toml` に `gloo-timers` を追加します。
+
+```toml
+gloo-timers = { version = "0.3", features = ["futures"] }
+```
+
+次に、フック内に遅延を追加します
+
+```
+let videos = use_future(|| async {
++   gloo_timers::future::TimeoutFuture::new(3_000).await; // 3 second delay
+    Request::get("/tutorial/data.json")
+        .send()
+        .await?
+        .json::<Vec<Video>>()
+        .await
+})?;
+```
 
 ## まとめ
 
