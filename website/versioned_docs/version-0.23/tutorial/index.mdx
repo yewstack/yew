@@ -471,11 +471,11 @@ videos list from an external source. For this we will need to add the following 
 
 Let's update the dependencies in `Cargo.toml` file:
 
-```toml title="Cargo.toml" {2-6}
+```toml title="Cargo.toml" {2-5}
 [dependencies]
 -yew = { version = "0.23", features = ["csr"] }
 +yew = { version = "0.23", features = ["csr", "serde"] }
-+gloo-net = "0.6"
++gloo-net = "0.7"
 +serde = { version = "1.0", features = ["derive"] }
 ```
 
@@ -509,7 +509,7 @@ struct Video {
 
 Now we need to update our `App` component to fetch data. The modern yew way to do this is with [`use_future`](https://docs.rs/yew/0.23.0/yew/suspense/fn.use_future.html) and [`<Suspense>`](https://yew.rs/docs/concepts/suspense).
 
-Alternatively, you can use [`yew::platform::spawn_local`](https://docs.rs/yew/latest/yew/platform/fn.spawn_local.html)
+Alternatively, you can use [`yew::platform::spawn_local`](https://docs.rs/yew/0.23.0/yew/platform/fn.spawn_local.html)
 if hooks are unavailable, such as within struct components or standard functions.
 
 `use_future` suspends the component until the async operation completes, and `<Suspense>` shows a

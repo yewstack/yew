@@ -471,11 +471,11 @@ videos list from an external source. For this we will need to add the following 
 
 Let's update the dependencies in `Cargo.toml` file:
 
-```toml title="Cargo.toml" {2-6}
+```toml title="Cargo.toml" {2-5}
 [dependencies]
 -yew = { version = "0.22", features = ["csr"] }
 +yew = { version = "0.22", features = ["csr", "serde"] }
-+gloo-net = "0.6"
++gloo-net = "0.7"
 +serde = { version = "1.0", features = ["derive"] }
 ```
 

@@ -467,11 +467,11 @@ fn app() -> Html {
 
 让我们更新 `Cargo.toml` 文件中的依赖项：
 
-```toml title="Cargo.toml" {2-6}
+```toml title="Cargo.toml" {2-5}
 [dependencies]
 -yew = { version = "0.23", features = ["csr"] }
 +yew = { version = "0.23", features = ["csr", "serde"] }
-+gloo-net = "0.6"
++gloo-net = "0.7"
 +serde = { version = "1.0", features = ["derive"] }
 ```
 
@@ -505,7 +505,7 @@ struct Video {
 
 接下来我们需要更新 `App` 组件，让它能够获取数据。现代 Yew 的做法是使用 [`use_future`](https://docs.rs/yew/0.23.0/yew/suspense/fn.use_future.html) 和 [`<Suspense>`](https://yew.rs/docs/concepts/suspense)。
 
-另一种方式是使用 [`yew::platform::spawn_local`](https://docs.rs/yew/latest/yew/platform/fn.spawn_local.html)，
+另一种方式是使用 [`yew::platform::spawn_local`](https://docs.rs/yew/0.23.0/yew/platform/fn.spawn_local.html)，
 如果 hooks 无法使用，例如在 struct component 或普通函数中时，可以采用这种方式。
 
 `use_future` 会在异步操作完成前挂起该组件，而 `<Suspense>` 则会在这段期间显示
