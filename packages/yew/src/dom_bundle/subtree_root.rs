@@ -401,24 +401,14 @@ impl SubtreeData {
         &'s self,
         event: &'s Event,
     ) -> Option<impl 's + Iterator<Item = (&'s SubtreeData, Element)>> {
-        // The `composed_path().length()` is used as a cache key because it changes
-        // as the event crosses shadow-root boundaries — handlers installed on outer
-        // subtrees see a longer path, handlers on inner subtrees see a shorter one.
-        // A length mismatch therefore triggers re-derivation, which is correct for
-        // open shadow roots (their internals are visible in the path).
-        //
-        // Closed shadow roots break this scheme: when the browser retargets an event
-        // entering a closed shadow root the composed path is truncated, so the length
-        // changes even though the event object _is_ the same one already being
-        // processed by an outer handler. Re-derivation then sees only the shadow host
-        // as the target and may assign responsibility to the wrong subtree, causing
-        // missed handlers or double dispatch.
-        //
-        // Known limitation: correct event delegation for `ShadowRootMode::Closed` is
-        // not implemented. All other frameworks face the same restriction imposed by
-        // the browser's deliberate information hiding. A proper fix would require an
-        // out-of-band channel (e.g. a WeakMap keyed on the event's identity) that the
-        // browser does not currently expose across closed shadow boundaries.
+        // Note: the event is not necessarily identically the same object for all installed
+        // handlers hence this cache can be unreliable. Hence the cached responsible_tree_id
+        // might be missing. On the other hand, due to event retargeting at shadow roots,
+        // the cache might be wrong! Keep in mind that we handle events in the capture
+        // phase, so top-down. When descending and retargeting into closed shadow-dom, the
+        // event might have been handled 'prematurely'. TODO: figure out how to prevent this
+        // and establish correct event handling for closed shadow root. Note: Other
+        // frameworks also get this wrong and dispatch such events multiple times.
         let event_path = event.composed_path();
         let derived_cached_key = event_path.length();
         let cached_branding = if matches!(event.cache_key(), Some(cache_key) if cache_key == derived_cached_key)

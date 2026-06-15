@@ -198,35 +198,50 @@ fn strip_basename_prefix<'a>(path: &'a str, basename: &str) -> Option<&'a str> {
 
 #[cfg(test)]
 mod tests {
-    use super::strip_basename_prefix;
+    use std::borrow::Cow;
 
-    #[test]
-    fn test_strip_exact_match() {
-        assert_eq!(strip_basename_prefix("/base", "/base"), Some(""));
+    use crate::history::{AnyHistory, MemoryHistory};
+
+    use super::Navigator;
+
+    fn make_nav(basename: Option<&str>) -> Navigator {
+        Navigator::new(
+            AnyHistory::from(MemoryHistory::default()),
+            basename.map(str::to_owned),
+        )
     }
 
     #[test]
-    fn test_strip_with_trailing_path() {
-        assert_eq!(strip_basename_prefix("/base/page", "/base"), Some("/page"));
-        assert_eq!(strip_basename_prefix("/base/a/b/c", "/base"), Some("/a/b/c"));
+    fn strip_exact_match() {
+        let nav = make_nav(Some("/base"));
+        assert_eq!(nav.strip_basename(Cow::from("/base")), "/");
     }
 
     #[test]
-    fn test_strip_partial_segment_rejected() {
-        // basename `/base` must NOT strip `/baseball`, `/base-2`, or `/basefoo`
-        assert_eq!(strip_basename_prefix("/baseball", "/base"), None);
-        assert_eq!(strip_basename_prefix("/base-2", "/base"), None);
-        assert_eq!(strip_basename_prefix("/basefoo", "/base"), None);
+    fn strip_with_trailing_path() {
+        let nav = make_nav(Some("/base"));
+        assert_eq!(nav.strip_basename(Cow::from("/base/page")), "/page");
+        assert_eq!(nav.strip_basename(Cow::from("/base/a/b/c")), "/a/b/c");
     }
 
     #[test]
-    fn test_strip_no_match() {
-        assert_eq!(strip_basename_prefix("/other/page", "/base"), None);
+    fn strip_partial_segment_rejected() {
+        let nav = make_nav(Some("/base"));
+        // `/base` must NOT be stripped from paths that merely start with those bytes
+        assert_eq!(nav.strip_basename(Cow::from("/baseball")), "/baseball");
+        assert_eq!(nav.strip_basename(Cow::from("/base-2")), "/base-2");
+        assert_eq!(nav.strip_basename(Cow::from("/basefoo")), "/basefoo");
     }
 
     #[test]
-    fn test_strip_empty_basename() {
-        // Empty basename: everything is a valid match, path unchanged
-        assert_eq!(strip_basename_prefix("/page", ""), Some("/page"));
+    fn strip_no_match() {
+        let nav = make_nav(Some("/base"));
+        assert_eq!(nav.strip_basename(Cow::from("/other/page")), "/other/page");
+    }
+
+    #[test]
+    fn strip_no_basename() {
+        let nav = make_nav(None);
+        assert_eq!(nav.strip_basename(Cow::from("/any/path")), "/any/path");
     }
 }

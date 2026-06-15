@@ -186,20 +186,36 @@ fn parse_variants_attributes(
         ));
     }
 
-    // Detect duplicate route strings at compile time so they don't become
-    // a runtime panic inside `build_router`.
+    // Validate all routes against each other using the same `matchit` router
+    // that `build_router` uses at runtime. This turns what would be a runtime
+    // panic into a compile-time diagnostic.
     {
-        let mut seen: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+        let mut router: matchit::Router<usize> = matchit::Router::new();
         for (idx, lit) in ats.iter().enumerate() {
             let val = lit.value();
-            if let Some(&prev) = seen.get(&val) {
-                let _ = prev;
-                return Err(syn::Error::new_spanned(
-                    lit,
-                    format!("route `{val}` is defined more than once"),
-                ));
+            if let Err(e) = router.insert(val.clone(), idx) {
+                use matchit::InsertError;
+                let msg = match &e {
+                    InsertError::Conflict { with } => {
+                        format!("route `{val}` conflicts with already-registered route `{with}`")
+                    }
+                    InsertError::InvalidParamSegment => {
+                        format!("route `{val}`: only one parameter is allowed per path segment")
+                    }
+                    InsertError::InvalidParam => {
+                        format!(
+                            "route `{val}`: parameters must use the `{{name}}` or `{{*name}}` syntax"
+                        )
+                    }
+                    InsertError::InvalidCatchAll => {
+                        format!(
+                            "route `{val}`: catch-all parameters are only allowed at the end of a route"
+                        )
+                    }
+                    _ => format!("route `{val}` is invalid: {e}"),
+                };
+                return Err(syn::Error::new_spanned(lit, msg));
             }
-            seen.insert(val, idx);
         }
     }
 

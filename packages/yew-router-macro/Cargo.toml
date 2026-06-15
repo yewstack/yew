@@ -15,6 +15,7 @@ proc-macro = true
 proc-macro2.workspace = true
 quote.workspace = true
 syn = { workspace = true, features = ["full","extra-traits"] }
+matchit = "0.9"
 
 [dev-dependencies]
 rustversion.workspace = true
