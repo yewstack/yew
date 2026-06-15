@@ -1,0 +1,5 @@
+error: route `/foo` is defined more than once
+ --> tests/routable_derive/duplicate-route-fail.rs:5:10
+  |
+5 |     #[at("/foo")]
+  |          ^^^^^^

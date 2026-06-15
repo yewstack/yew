@@ -18,9 +18,12 @@ pub type Router = matchit::Router<String>;
 pub fn build_router<R: Routable>() -> Router {
     let mut router = Router::new();
     R::routes().iter().for_each(|&path| {
-        router
-            .insert(path, path.to_string())
-            .unwrap_or_else(|e| panic!("failed to insert route {path:?}: {e}"));
+        router.insert(path, path.to_string()).unwrap_or_else(|e| {
+            panic!(
+                "route `{path}` conflicts with an already-registered route: {e}\n\
+                 hint: check your `#[derive(Routable)]` enum for overlapping patterns"
+            )
+        });
     });
 
     router

@@ -8,7 +8,7 @@ use yew::virtual_dom::AttrValue;
 
 use crate::history::{AnyHistory, BrowserHistory, HashHistory, History, Location};
 use crate::navigator::Navigator;
-use crate::utils::{base_url, strip_slash_suffix};
+use crate::utils::{fetch_base_url, strip_slash_suffix};
 
 /// Props for [`Router`].
 #[derive(Properties, PartialEq, Clone)]
@@ -178,8 +178,11 @@ pub fn browser_router(props: &ConcreteRouterProps) -> Html {
     let ConcreteRouterProps { children, basename } = props.clone();
     let history = use_state(|| AnyHistory::from(BrowserHistory::new()));
 
-    // We acknowledge based in `<base href="..." />`
-    let basename = basename.map(|m| m.to_string()).or_else(base_url);
+    // Read the live DOM on every render so that a `<base href>` change made
+    // before this component mounts is always reflected. `base_url()` is not
+    // used here because its `Once`-based cache can become stale when the
+    // document head is mutated (e.g. in multi-app documents or test harnesses).
+    let basename = basename.map(|m| m.to_string()).or_else(fetch_base_url);
 
     html! {
         <BaseRouter history={(*history).clone()} {basename}>

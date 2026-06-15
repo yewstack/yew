@@ -171,9 +171,8 @@ impl Navigator {
     pub(crate) fn strip_basename<'a>(&self, path: Cow<'a, str>) -> Cow<'a, str> {
         match self.basename() {
             Some(m) => {
-                let mut path = path
-                    .strip_prefix(m)
-                    .map(|m| Cow::from(m.to_owned()))
+                let mut path = strip_basename_prefix(&path, m)
+                    .map(|rest| Cow::Owned(rest.to_owned()))
                     .unwrap_or(path);
 
                 if !path.starts_with('/') {
@@ -184,5 +183,50 @@ impl Navigator {
             }
             None => path,
         }
+    }
+}
+
+/// Strips `basename` from the start of `path`, enforcing a segment boundary.
+///
+/// Returns the remainder after stripping, or `None` when the prefix either
+/// doesn't match or matches only a partial path segment (e.g. basename `/base`
+/// must not strip `/baseball`).
+fn strip_basename_prefix<'a>(path: &'a str, basename: &str) -> Option<&'a str> {
+    path.strip_prefix(basename)
+        .filter(|rest| rest.is_empty() || rest.starts_with('/'))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::strip_basename_prefix;
+
+    #[test]
+    fn test_strip_exact_match() {
+        assert_eq!(strip_basename_prefix("/base", "/base"), Some(""));
+    }
+
+    #[test]
+    fn test_strip_with_trailing_path() {
+        assert_eq!(strip_basename_prefix("/base/page", "/base"), Some("/page"));
+        assert_eq!(strip_basename_prefix("/base/a/b/c", "/base"), Some("/a/b/c"));
+    }
+
+    #[test]
+    fn test_strip_partial_segment_rejected() {
+        // basename `/base` must NOT strip `/baseball`, `/base-2`, or `/basefoo`
+        assert_eq!(strip_basename_prefix("/baseball", "/base"), None);
+        assert_eq!(strip_basename_prefix("/base-2", "/base"), None);
+        assert_eq!(strip_basename_prefix("/basefoo", "/base"), None);
+    }
+
+    #[test]
+    fn test_strip_no_match() {
+        assert_eq!(strip_basename_prefix("/other/page", "/base"), None);
+    }
+
+    #[test]
+    fn test_strip_empty_basename() {
+        // Empty basename: everything is a valid match, path unchanged
+        assert_eq!(strip_basename_prefix("/page", ""), Some("/page"));
     }
 }

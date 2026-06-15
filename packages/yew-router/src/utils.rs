@@ -11,8 +11,14 @@ thread_local! {
     static BASE_URL: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
-// This exists so we can cache the base url. It costs us a `to_string` call instead of a DOM API
-// call. Considering base urls are generally short, it *should* be less expensive.
+/// Returns the `<base href>` pathname, caching the result in a thread-local after the first call.
+///
+/// # Caveats
+///
+/// The cached value is never invalidated. If `<base href>` is mutated after
+/// the first call the stale value will be returned forever. Prefer
+/// [`fetch_base_url`] when you need a live read, e.g. inside components that
+/// may mount after the document head has been modified.
 pub fn base_url() -> Option<String> {
     BASE_URL_LOADED.call_once(|| {
         BASE_URL.with(|val| {

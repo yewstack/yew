@@ -186,6 +186,23 @@ fn parse_variants_attributes(
         ));
     }
 
+    // Detect duplicate route strings at compile time so they don't become
+    // a runtime panic inside `build_router`.
+    {
+        let mut seen: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+        for (idx, lit) in ats.iter().enumerate() {
+            let val = lit.value();
+            if let Some(&prev) = seen.get(&val) {
+                let _ = prev;
+                return Err(syn::Error::new_spanned(
+                    lit,
+                    format!("route `{val}` is defined more than once"),
+                ));
+            }
+            seen.insert(val, idx);
+        }
+    }
+
     Ok((not_founds.into_iter().next(), ats))
 }
 
