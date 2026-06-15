@@ -204,12 +204,14 @@ fn parse_variants_attributes(
                     }
                     InsertError::InvalidParam => {
                         format!(
-                            "route `{val}`: parameters must use the `{{name}}` or `{{*name}}` syntax"
+                            "route `{val}`: parameters must use the `{{name}}` or `{{*name}}` \
+                             syntax"
                         )
                     }
                     InsertError::InvalidCatchAll => {
                         format!(
-                            "route `{val}`: catch-all parameters are only allowed at the end of a route"
+                            "route `{val}`: catch-all parameters are only allowed at the end of a \
+                             route"
                         )
                     }
                     _ => format!("route `{val}` is invalid: {e}"),

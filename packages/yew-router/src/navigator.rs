@@ -200,9 +200,8 @@ fn strip_basename_prefix<'a>(path: &'a str, basename: &str) -> Option<&'a str> {
 mod tests {
     use std::borrow::Cow;
 
-    use crate::history::{AnyHistory, MemoryHistory};
-
     use super::Navigator;
+    use crate::history::{AnyHistory, MemoryHistory};
 
     fn make_nav(basename: Option<&str>) -> Navigator {
         Navigator::new(

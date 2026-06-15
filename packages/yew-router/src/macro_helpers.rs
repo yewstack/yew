@@ -27,15 +27,12 @@ pub fn build_router<R: Routable>() -> Router {
                 InsertError::InvalidParamSegment => {
                     "only one parameter is allowed per path segment".to_owned()
                 }
-                InsertError::InvalidParam => {
-                    "parameters must be registered with a valid name and matching braces \
-                     (use `{name}` or `{*name}`)"
-                        .to_owned()
-                }
-                InsertError::InvalidCatchAll => {
-                    "catch-all parameters (`{*name}`) are only allowed at the end of a route"
-                        .to_owned()
-                }
+                InsertError::InvalidParam => "parameters must be registered with a valid name and \
+                                              matching braces (use `{name}` or `{*name}`)"
+                    .to_owned(),
+                InsertError::InvalidCatchAll => "catch-all parameters (`{*name}`) are only \
+                                                 allowed at the end of a route"
+                    .to_owned(),
                 _ => e.to_string(),
             };
             panic!("invalid route `{path}`: {detail}");
