@@ -18,25 +18,9 @@ pub type Router = matchit::Router<String>;
 pub fn build_router<R: Routable>() -> Router {
     let mut router = Router::new();
     R::routes().iter().for_each(|&path| {
-        router.insert(path, path.to_string()).unwrap_or_else(|e| {
-            use matchit::InsertError;
-            let detail = match &e {
-                InsertError::Conflict { with } => {
-                    format!("conflicts with already-registered route `{with}`")
-                }
-                InsertError::InvalidParamSegment => {
-                    "only one parameter is allowed per path segment".to_owned()
-                }
-                InsertError::InvalidParam => "parameters must be registered with a valid name and \
-                                              matching braces (use `{name}` or `{*name}`)"
-                    .to_owned(),
-                InsertError::InvalidCatchAll => "catch-all parameters (`{*name}`) are only \
-                                                 allowed at the end of a route"
-                    .to_owned(),
-                _ => e.to_string(),
-            };
-            panic!("invalid route `{path}`: {detail}");
-        });
+        router
+            .insert(path, path.to_string())
+            .unwrap_or_else(|e| panic!("failed to insert route {path:?}: {e}"));
     });
 
     router
