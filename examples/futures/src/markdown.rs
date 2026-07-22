@@ -240,7 +240,9 @@ impl TagWriter {
             Event::Rule => self.add_child(VTag::new("hr").into()),
             Event::SoftBreak => self.add_child(VText::new("\n").into()),
             Event::HardBreak => self.add_child(VTag::new("br").into()),
-            _ => gloo::console::log!(format!("Unhandled event: {ev:#?}")),
+            _ => {
+                gloo::console::log!(format!("Unhandled event: {ev:#?}"));
+            }
         };
     }
 }

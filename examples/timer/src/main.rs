@@ -37,8 +37,9 @@ impl Component for App {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        let standalone_handle =
-            Interval::new(10, || console::debug!("Example of a standalone callback."));
+        let standalone_handle = Interval::new(10, || {
+            console::debug!("Example of a standalone callback.");
+        });
 
         let clock_handle = {
             let link = ctx.link().clone();
