@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781694931729,
+  "lastUpdate": 1784717493048,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -61153,6 +61153,178 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.23.0-keyed 43_first-paint",
             "value": 402.2,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "WorldSEnder",
+            "username": "WorldSEnder",
+            "email": "WorldSEnder@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "0539d37ba48bd1a39fd792b5bf10366ea8288413",
+          "message": "fix timer and futures example lint (#4190)\n\nboth impacted by trailing semicolon in macro used in expression position,\nwhich is a lint that became active recently in nightly rust",
+          "timestamp": "2026-07-22T10:37:45Z",
+          "url": "https://github.com/yewstack/yew/commit/0539d37ba48bd1a39fd792b5bf10366ea8288413"
+        },
+        "date": 1784717489971,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.23.0-keyed 01_run1k",
+            "value": 102.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 02_replace1k",
+            "value": 115.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 72.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 04_select1k",
+            "value": 42.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 05_swap1k",
+            "value": 81.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 06_remove-one-1k",
+            "value": 50.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 07_create10k",
+            "value": 1183,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 114.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 09_clear1k_x8",
+            "value": 70.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 21_ready-memory",
+            "value": 2.278850555419922,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 22_run-memory",
+            "value": 2.7125110626220703,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 25_run-clear-memory",
+            "value": 5.158148765563965,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 41_size-uncompressed",
+            "value": 173.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 42_size-compressed",
+            "value": 56.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 43_first-paint",
+            "value": 443,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 01_run1k",
+            "value": 108,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 02_replace1k",
+            "value": 115.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 50.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 04_select1k",
+            "value": 13.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 05_swap1k",
+            "value": 58.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 06_remove-one-1k",
+            "value": 37.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 07_create10k",
+            "value": 1161.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 116.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 09_clear1k_x8",
+            "value": 65.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 21_ready-memory",
+            "value": 2.3499069213867188,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 22_run-memory",
+            "value": 6.361103057861328,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 25_run-clear-memory",
+            "value": 5.1744489669799805,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 41_size-uncompressed",
+            "value": 169.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 42_size-compressed",
+            "value": 55.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 43_first-paint",
+            "value": 417.7,
             "unit": ""
           }
         ]
