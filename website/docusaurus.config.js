@@ -188,6 +188,7 @@ module.exports = {
     ],
     plugins: [
         'docusaurus-plugin-sass',
+        'docusaurus-plugin-copy-page-button',
         [
             '@docusaurus/plugin-content-docs',
             {
