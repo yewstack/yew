@@ -56,6 +56,6 @@
         "@typescript-eslint/parser": "^8.65.0",
         "dir-compare": "^5.0.0",
         "prettier": "^3.9.6",
-        "typescript": "^6.0.3"
+        "typescript": "^7.0.2"
     }
 }
