@@ -27,7 +27,7 @@
         "file-loader": "^6.2.0",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
-        "sass": "^1.101.7",
+        "sass": "^1.102.0",
         "url-loader": "^4.1.1",
         "yew-docs": "file:"
     },
@@ -56,6 +56,6 @@
         "@typescript-eslint/parser": "^8.65.0",
         "dir-compare": "^5.0.0",
         "prettier": "^3.9.6",
-        "typescript": "^6.0.3"
+        "typescript": "^7.0.2"
     }
 }
