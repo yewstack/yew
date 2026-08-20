@@ -64,7 +64,7 @@ jobs:
       - name: Setup js-framework-benchmark
         working-directory: js-framework-benchmark
         run: |
-          npm ci
+          npm ci --legacy-peer-deps
           npm run install-server
           npm run install-webdriver-ts
 
@@ -79,16 +79,16 @@ jobs:
       - name: Build benchmark-struct app
         working-directory: yew/tools/benchmark-struct
         run: |
-          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build \
+          wasm-pack build \
             --release \
             --target web \
             --no-typescript \
             --out-name js-framework-benchmark-yew \
-            --out-dir $STRUCT_BUILD_DIR
+            --out-dir "$STRUCT_BUILD_DIR"
 
       - name: Show built benchmark-struct benchmark files
         run: |
-          ls -lauh js-framework-benchmark/frameworks/keyed/yew/bundled-dist/
+          ls -lauh "$STRUCT_BUILD_DIR"
 
       - name: Setup yew-hooks benchmark
         run: |
@@ -101,16 +101,16 @@ jobs:
       - name: Build benchmark-hooks app
         working-directory: yew/tools/benchmark-hooks
         run: |
-          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build \
+          wasm-pack build \
             --release \
             --target web \
             --no-typescript \
             --out-name js-framework-benchmark-yew-hooks \
-            --out-dir $HOOKS_BUILD_DIR
+            --out-dir "$HOOKS_BUILD_DIR"
 
       - name: Show built benchmark-hooks benchmark files
         run: |
-          ls -lauh js-framework-benchmark/frameworks/keyed/yew-hooks/bundled-dist/
+          ls -lauh "$HOOKS_BUILD_DIR"
 
       - name: Run js-framework-benchmark server
         working-directory: js-framework-benchmark
