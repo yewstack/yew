@@ -240,6 +240,7 @@ pub fn hook_impl(hook: HookFn) -> syn::Result<TokenStream> {
         }
 
         #[cfg(doctest)]
+        #[allow(rust_analyzer::inactive_code)]
         #original_fn
     };
 
