@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download Artifact
         uses: actions/download-artifact@v8

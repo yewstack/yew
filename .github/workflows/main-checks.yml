@@ -18,7 +18,7 @@ jobs:
     name: spellcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Check spelling
         uses: crate-ci/typos@v1.47.0
 
@@ -26,7 +26,7 @@ jobs:
     name: Documentation Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -74,7 +74,7 @@ jobs:
           - stable
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -126,7 +126,7 @@ jobs:
           - nightly
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -157,7 +157,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -179,7 +179,7 @@ jobs:
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: discover
         run: |
           matrix=$(
@@ -202,7 +202,7 @@ jobs:
       matrix: ${{ fromJson(needs.macro_tests_discovery.outputs.matrix) }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
@@ -227,7 +227,7 @@ jobs:
           - nightly
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -264,7 +264,7 @@ jobs:
           - stable
           - nightly
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -308,7 +308,7 @@ jobs:
             trunk_dir: examples/simple_ssr
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
