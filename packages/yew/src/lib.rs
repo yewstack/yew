@@ -276,6 +276,7 @@ pub mod context;
 mod dom_bundle;
 pub mod functional;
 pub mod html;
+pub mod lazy;
 pub mod platform;
 pub mod scheduler;
 mod sealed;
