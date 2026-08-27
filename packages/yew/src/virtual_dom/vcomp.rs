@@ -10,10 +10,10 @@ use futures::future::{FutureExt, LocalBoxFuture};
 use web_sys::Element;
 
 use super::Key;
-#[cfg(feature = "hydration")]
-use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
-use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot};
+use crate::dom_bundle::{BSubtree, DomSlot};
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::{Fragment, SlotBulletin};
 use crate::html::BaseComponent;
 #[cfg(feature = "csr")]
 use crate::html::Scoped;
@@ -65,7 +65,7 @@ pub(crate) trait Mountable {
         parent_scope: &AnyScope,
         parent: Element,
         slot: DomSlot,
-    ) -> (Box<dyn Scoped>, DynamicDomSlot);
+    ) -> (Box<dyn Scoped>, DomSlot);
 
     #[cfg(feature = "csr")]
     fn reuse(self: Box<Self>, scope: &dyn Scoped, slot: DomSlot);
@@ -86,8 +86,8 @@ pub(crate) trait Mountable {
         parent_scope: &AnyScope,
         parent: Element,
         fragment: &mut Fragment,
-        prev_next_sibling: &mut Option<DynamicDomSlot>,
-    ) -> (Box<dyn Scoped>, DynamicDomSlot);
+        prev_next_sibling: &mut SlotBulletin<'_>,
+    ) -> (Box<dyn Scoped>, DomSlot);
 }
 
 pub(crate) struct PropsWrapper<COMP: BaseComponent> {
@@ -126,7 +126,7 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &AnyScope,
         parent: Element,
         slot: DomSlot,
-    ) -> (Box<dyn Scoped>, DynamicDomSlot) {
+    ) -> (Box<dyn Scoped>, DomSlot) {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         let own_slot = scope.mount_in_place(root.clone(), parent, slot, self.props);
 
@@ -164,8 +164,8 @@ impl<COMP: BaseComponent> Mountable for PropsWrapper<COMP> {
         parent_scope: &AnyScope,
         parent: Element,
         fragment: &mut Fragment,
-        prev_next_sibling: &mut Option<DynamicDomSlot>,
-    ) -> (Box<dyn Scoped>, DynamicDomSlot) {
+        prev_next_sibling: &mut SlotBulletin<'_>,
+    ) -> (Box<dyn Scoped>, DomSlot) {
         let scope: Scope<COMP> = Scope::new(Some(parent_scope.clone()));
         let own_slot =
             scope.hydrate_in_place(root, parent, fragment, self.props, prev_next_sibling);

@@ -2,8 +2,6 @@
 
 mod common;
 
-use std::rc::Rc;
-
 use common::obtain_result;
 use wasm_bindgen_test::*;
 use yew::prelude::*;

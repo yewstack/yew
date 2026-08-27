@@ -224,7 +224,7 @@ impl Reconcilable for VSuspense {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
+    use crate::dom_bundle::{Fragment, Hydratable, SlotBulletin};
     use crate::virtual_dom::Collectable;
 
     impl Hydratable for VSuspense {
@@ -234,7 +234,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-            previous_next_sibling: &mut Option<DynamicDomSlot>,
+            previous_next_sibling: &mut SlotBulletin<'_>,
         ) -> Self::Bundle {
             let detached_parent = document()
                 .create_element("div")

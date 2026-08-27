@@ -94,7 +94,7 @@ mod feat_hydration {
     use web_sys::Node;
 
     use super::*;
-    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
+    use crate::dom_bundle::{Fragment, Hydratable, SlotBulletin};
 
     impl Hydratable for VText {
         fn hydrate(
@@ -103,7 +103,7 @@ mod feat_hydration {
             _parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-            previous_next_sibling: &mut Option<DynamicDomSlot>,
+            previous_next_sibling: &mut SlotBulletin<'_>,
         ) -> Self::Bundle {
             let create_at = |next_sibling: Option<Node>, text: AttrValue| {
                 // If there are multiple text nodes placed back-to-back in SSR, it may be parsed as
@@ -140,10 +140,7 @@ mod feat_hydration {
                 }
                 _ => create_at(fragment.sibling_at_end().cloned(), self.text),
             };
-            if let Some(previous_next_sibling) = previous_next_sibling {
-                previous_next_sibling.reassign(DomSlot::at(btext.text_node.clone().into()));
-            }
-            *previous_next_sibling = None;
+            previous_next_sibling.write_at_node(btext.text_node.clone().into());
             btext
         }
     }

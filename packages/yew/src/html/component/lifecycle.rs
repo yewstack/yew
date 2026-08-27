@@ -8,10 +8,10 @@ use web_sys::Element;
 
 use super::BaseComponent;
 use super::scope::{AnyScope, Scope};
-#[cfg(feature = "hydration")]
-use crate::dom_bundle::Fragment;
 #[cfg(feature = "csr")]
 use crate::dom_bundle::{BSubtree, Bundle, DomSlot, DynamicDomSlot};
+#[cfg(feature = "hydration")]
+use crate::dom_bundle::{Fragment, SlotBulletin};
 #[cfg(feature = "hydration")]
 use crate::html::RenderMode;
 use crate::html::{Html, RenderError};
@@ -545,6 +545,7 @@ impl ComponentState {
                 // We schedule a "first" render to run immediately after hydration.
                 // Most notably, only this render will trigger the "rendered" callback, hence we
                 // want to prioritize this.
+
                 scheduler::push_component_priority_render(
                     self.comp_id,
                     Box::new(RenderRunner {
@@ -559,7 +560,8 @@ impl ComponentState {
                     parent,
                     fragment,
                     new_vdom,
-                    &mut Some(own_slot.clone()),
+                    // own_slot is alive for the call
+                    &mut SlotBulletin::start(own_slot),
                 );
 
                 // We trim all text nodes before checking as it's likely these are whitespaces.

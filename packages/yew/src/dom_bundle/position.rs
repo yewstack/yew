@@ -1,8 +1,5 @@
 //! Structs for keeping track where in the DOM a node belongs
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use web_sys::{Element, Node};
 
 /// A position in the list of children of an implicit parent [`Element`].
@@ -17,14 +14,7 @@ pub(crate) struct DomSlot {
 #[derive(Clone)]
 enum DomSlotVariant {
     Node(Option<Node>),
-    Chained(DynamicDomSlot),
-}
-
-/// A dynamic dom slot can be reassigned. This change is also seen by the [`DomSlot`] from
-/// [`Self::to_position`] before the reassignment took place.
-#[derive(Clone)]
-pub(crate) struct DynamicDomSlot {
-    target: Rc<RefCell<DomSlot>>,
+    Chained(DynamicDomSlotHandle),
 }
 
 impl std::fmt::Debug for DomSlot {
@@ -40,43 +30,62 @@ impl std::fmt::Debug for DomSlot {
     }
 }
 
+mod forest;
+use forest::{LinkHandle, LinkOwner, with_forest};
+
+/// A dynamic dom slot can be reassigned. This change is also seen by the [`DomSlot`] from
+/// [`Self::to_position`] before the reassignment took place.
+pub(crate) struct DynamicDomSlot {
+    link: LinkOwner,
+}
+
 impl std::fmt::Debug for DynamicDomSlot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", *self.target.borrow())
+        write!(f, "#{:?} -> {:?}", self.link, self.to_position())
     }
 }
 
+#[derive(Clone)]
+struct DynamicDomSlotHandle {
+    link: LinkHandle,
+}
+
 mod trap_impl {
-    use super::Node;
-    #[cfg(debug_assertions)]
-    thread_local! {
+    use std::cell::OnceCell;
+
+    use super::{LinkHandle, Node};
+
+    pub struct TrapContext {
         // A special marker element that should not be referenced
-        static TRAP: Node = gloo::utils::document().create_element("div").unwrap().into();
+        pub trap: Node,
+        #[allow(unused)]
+        pub handle: OnceCell<LinkHandle>,
     }
-    /// Get a "trap" node, or None if compiled without debug_assertions
-    #[cfg(feature = "hydration")]
-    pub fn get_trap_node() -> Option<Node> {
-        #[cfg(debug_assertions)]
+    #[cfg(all(debug_assertions, feature = "hydration"))]
+    thread_local! {
+        static CTX: TrapContext = TrapContext {
+            trap: gloo::utils::document().create_element("div").unwrap().into(),
+            handle: OnceCell::new(),
+        };
+    }
+    #[inline]
+    pub fn with_trap_ctx<R>(f: impl FnOnce(Option<&TrapContext>) -> R) -> R {
+        #[cfg(all(debug_assertions, feature = "hydration"))]
         {
-            TRAP.with(|trap| Some(trap.clone()))
+            CTX.with(|ctx| f(Some(ctx)))
         }
-        #[cfg(not(debug_assertions))]
+        #[cfg(not(all(debug_assertions, feature = "hydration")))]
         {
-            None
+            f(None)
         }
     }
     #[inline]
+    pub fn with_trap_ref<R>(f: impl FnOnce(Option<&Node>) -> R) -> R {
+        with_trap_ctx(|ctx| f(ctx.map(|ctx| &ctx.trap)))
+    }
+    #[inline]
     pub fn is_trap(node: &Node) -> bool {
-        #[cfg(debug_assertions)]
-        {
-            TRAP.with(|trap| node == trap)
-        }
-        #[cfg(not(debug_assertions))]
-        {
-            // When not running with debug_assertions, there is no trap node
-            let _ = node;
-            false
-        }
+        with_trap_ref(|trap| trap == Some(node))
     }
 }
 
@@ -95,13 +104,6 @@ impl DomSlot {
         Self {
             variant: DomSlotVariant::Node(next_sibling),
         }
-    }
-
-    /// A new "placeholder" [DomSlot] that should not be used to insert nodes
-    #[inline]
-    #[cfg(feature = "hydration")]
-    pub fn new_debug_trapped() -> Self {
-        Self::create(trap_impl::get_trap_node())
     }
 
     /// Get the [Node] that comes just after the position, or `None` if this denotes the position at
@@ -157,76 +159,154 @@ impl DynamicDomSlot {
     /// Create a dynamic dom slot that initially represents ("targets") the same slot as the
     /// argument.
     pub fn new(initial_position: DomSlot) -> Self {
-        Self {
-            target: Rc::new(RefCell::new(initial_position)),
-        }
-    }
-
-    #[cfg(feature = "hydration")]
-    pub fn new_debug_trapped() -> Self {
-        Self::new(DomSlot::new_debug_trapped())
-    }
-
-    /// Move out of self, leaving behind a trapped slot. `self` should not be used afterwards.
-    /// Used during the transition from a hydrating to a rendered component to move state between
-    /// enum variants.
-    #[cfg(feature = "hydration")]
-    pub fn take(&mut self) -> Self {
-        std::mem::replace(self, Self::new(DomSlot::new_debug_trapped()))
+        let link = with_forest(|slots| slots.insert(initial_position.variant));
+        Self { link }
     }
 
     /// Change the [`DomSlot`] that is targeted. Subsequently, this will behave as if `self` was
     /// created from the passed DomSlot in the first place.
     pub fn reassign(&self, next_position: DomSlot) {
-        // TODO: is not defensive against accidental reference loops
-        *self.target.borrow_mut() = next_position;
+        self.clone_to_handle().reassign_unchecked(next_position);
     }
 
     /// Get a [`DomSlot`] that gets automatically updated when `self` gets reassigned. All such
     /// slots are equivalent to each other and point to the same position.
     pub fn to_position(&self) -> DomSlot {
+        self.clone_to_handle().into_position()
+    }
+
+    /// There can only be one owner of a dynamic dom slot. Reassigning a dom slot is only allowed
+    /// while that owner is still alive. All other accesses (e.g. through DomSlot) are followers
+    /// and should only read the value, but never write to it.
+    /// This does not imply that access is always serialized! Followers are allowed to write at any
+    /// point without prior synchronization, as long as they ensure that the owner is still alive.
+    fn clone_to_handle(&self) -> DynamicDomSlotHandle {
+        DynamicDomSlotHandle {
+            link: self.link.handle(),
+        }
+    }
+}
+
+impl Drop for DynamicDomSlot {
+    fn drop(&mut self) {
+        with_forest(|links| links.remove(&mut self.link));
+    }
+}
+
+impl DynamicDomSlotHandle {
+    fn into_position(self) -> DomSlot {
         DomSlot {
-            variant: DomSlotVariant::Chained(self.clone()),
+            variant: DomSlotVariant::Chained(self),
         }
     }
 
+    /// Reassign through a handle. This is only valid if the owning [DynamicDomSlot] is still alive.
+    fn reassign_unchecked(&self, next_position: DomSlot) {
+        // TODO: is not defensive against accidental reference loops
+        with_forest(|forest| {
+            forest.reassign(&self.link, next_position.variant);
+        });
+    }
+
     fn with_next_sibling<R>(&self, f: impl FnOnce(Option<&Node>) -> R) -> R {
-        // We use an iterative approach to traverse a possible long chain of references.
-        // See issue #3043 for why a recursive call is impossible for large lists in vdom.
-        //
-        // TODO: there could be some data structure that performs better here. E.g. a balanced tree
-        // with parent pointers come to mind, but they are a bit fiddly to implement in rust
-        //
-        // We traverse via raw pointers to avoid Rc refcount overhead (clone + drop) per hop, then
-        // clone the terminal next-sibling out of the chain before invoking `f`. Invoking `f` with
-        // no borrow held and no reliance on chain structure keeps the traversal sound: `f` runs
-        // arbitrary code (panic drop glue, `gloo::console::error`, tracing subscribers) that
-        // could, in principle, reassign a link in the chain and drop the last strong reference
-        // to the RefCell we would otherwise still borrow from.
-        //
-        // SAFETY: All RefCells visited by the loop remain live while we dereference them:
-        // - `self.target` (Rc) is alive because `self` is borrowed
-        // - Each DomSlot::Chained(DynamicDomSlot { target }) in the chain holds a strong Rc to the
-        //   next RefCell, so all links are transitively kept alive
-        // - Yew is single-threaded and the loop body does not run user code, so no mutable borrow
-        //   (e.g. from reassign()) can occur on any RefCell in the chain during traversal
-        // - Each RefCell::borrow() is dropped before advancing to the next hop
-        let node: Option<Node> = {
-            let mut ptr: *const RefCell<DomSlot> = Rc::as_ptr(&self.target);
-            loop {
-                let cell = unsafe { &*ptr };
-                let slot_ref = cell.borrow();
-                match &slot_ref.variant {
-                    DomSlotVariant::Node(n) => break n.clone(),
-                    DomSlotVariant::Chained(chain) => {
-                        ptr = Rc::as_ptr(&chain.target);
-                    }
-                }
-            }
-        };
+        let node = with_forest(|forest| forest.find_root(&self.link));
         f(node.as_ref())
     }
 }
+
+#[cfg(feature = "hydration")]
+mod feat_hydration {
+    use std::marker::PhantomData;
+
+    use web_sys::Node;
+
+    use super::{DomSlot, DynamicDomSlot, DynamicDomSlotHandle, with_forest};
+
+    #[inline]
+    fn with_trap_handle<R>(f: impl FnOnce(Option<DynamicDomSlotHandle>) -> R) -> R {
+        super::trap_impl::with_trap_ctx(|ctx| {
+            let handle = ctx.map(|ctx| {
+                let trap_link = ctx.handle.get_or_init(|| {
+                    with_forest(|forest| {
+                        let trap_link = forest.insert(DomSlot::at(ctx.trap.clone()).variant);
+                        forest.leak(trap_link)
+                    })
+                });
+                DynamicDomSlotHandle {
+                    link: trap_link.clone(),
+                }
+            });
+            f(handle)
+        })
+    }
+
+    fn trapped_position() -> DomSlot {
+        with_trap_handle(|handle| match handle {
+            Some(handle) => handle.into_position(),
+            None => DomSlot::at_end(),
+        })
+    }
+
+    impl DynamicDomSlot {
+        pub fn new_debug_trapped() -> Self {
+            Self::new(trapped_position())
+        }
+
+        /// Move out of self, leaving behind a trapped slot. `self` should not be used afterwards.
+        /// Used during the transition from a hydrating to a rendered component to move state
+        /// between enum variants.
+        pub fn take(&mut self) -> Self {
+            std::mem::replace(self, Self::new_debug_trapped())
+        }
+    }
+
+    pub struct SlotBulletin<'tree> {
+        prev_next_sibling: Option<DynamicDomSlotHandle>,
+        _owner: PhantomData<&'tree mut DynamicDomSlot>,
+    }
+    impl<'tree> SlotBulletin<'tree> {
+        pub fn start(slot: &'tree mut DynamicDomSlot) -> Self {
+            // We take a follower, but we are sure the owner is alive
+            Self {
+                prev_next_sibling: Some(slot.clone_to_handle()),
+                _owner: PhantomData,
+            }
+        }
+
+        pub fn new() -> Self {
+            Self {
+                prev_next_sibling: None,
+                _owner: PhantomData,
+            }
+        }
+
+        fn write(&mut self, pos: DomSlot) {
+            if let Some(slot) = &mut self.prev_next_sibling {
+                slot.reassign_unchecked(pos);
+            }
+        }
+
+        pub fn write_at_node(&mut self, node: Node) {
+            self.write(DomSlot::at(node));
+            self.prev_next_sibling = None;
+        }
+
+        // This method does not track that `inner_next_sibling` (which is the owner) lives for
+        // lifetime of this call. This must be done by the caller, which puts it somewhere in
+        // its component state
+        pub fn write_at_comp(&mut self, slot: DomSlot, inner_next_sibling: &DynamicDomSlot) {
+            self.write(slot);
+            self.prev_next_sibling = Some(inner_next_sibling.clone_to_handle());
+        }
+    }
+    impl Drop for SlotBulletin<'_> {
+        fn drop(&mut self) {
+            self.write(DomSlot::at_end())
+        }
+    }
+}
+#[cfg(feature = "hydration")]
+pub(crate) use feat_hydration::SlotBulletin;
 
 #[cfg(all(target_arch = "wasm32", not(target_os = "wasi")))]
 #[cfg(test)]
@@ -306,7 +386,7 @@ mod layout_tests {
     fn debug_printing() {
         // basic tests that these don't panic. We don't enforce any specific format.
         println!("At end: {:?}", DomSlot::at_end());
-        println!("Trapped: {:?}", DomSlot::new_debug_trapped());
+        println!("Trapped: {:?}", DynamicDomSlot::new_debug_trapped());
         println!(
             "At element: {:?}",
             DomSlot::at(document().create_element("p").unwrap().into())

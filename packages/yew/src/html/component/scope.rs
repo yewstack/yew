@@ -546,11 +546,11 @@ mod feat_csr {
             parent: Element,
             slot: DomSlot,
             props: Rc<COMP::Properties>,
-        ) -> DynamicDomSlot {
+        ) -> DomSlot {
             let bundle = Bundle::new();
             let sibling_slot = DynamicDomSlot::new(slot);
             let own_slot = DynamicDomSlot::new(sibling_slot.to_position());
-            let shared_slot = own_slot.clone();
+            let shared_slot = own_slot.to_position();
 
             let state = ComponentRenderState::Render {
                 bundle,
@@ -654,7 +654,7 @@ mod feat_hydration {
     use web_sys::{Element, HtmlScriptElement};
 
     use super::*;
-    use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot, Fragment};
+    use crate::dom_bundle::{BSubtree, DomSlot, DynamicDomSlot, Fragment, SlotBulletin};
     use crate::html::component::lifecycle::{ComponentRenderState, CreateRunner, RenderRunner};
     use crate::scheduler;
     use crate::virtual_dom::Collectable;
@@ -677,8 +677,8 @@ mod feat_hydration {
             parent: Element,
             fragment: &mut Fragment,
             props: Rc<COMP::Properties>,
-            prev_next_sibling: &mut Option<DynamicDomSlot>,
-        ) -> DynamicDomSlot {
+            prev_next_sibling: &mut SlotBulletin<'_>,
+        ) -> DomSlot {
             // This is very helpful to see which component is failing during hydration
             // which means this component may not having a stable layout / differs between
             // client-side and server-side.
@@ -705,16 +705,15 @@ mod feat_hydration {
                 _ => None,
             };
 
+            let sibling_slot = DynamicDomSlot::new_debug_trapped();
             let own_slot = match fragment.front().cloned() {
                 Some(first_node) => DynamicDomSlot::new(DomSlot::at(first_node)),
-                None => DynamicDomSlot::new(DomSlot::at_end()),
+                None => DynamicDomSlot::new(sibling_slot.to_position()),
             };
-            let shared_slot = own_slot.clone();
-            let sibling_slot = DynamicDomSlot::new_debug_trapped();
-            if let Some(prev_next_sibling) = prev_next_sibling {
-                prev_next_sibling.reassign(shared_slot.to_position());
-            }
-            *prev_next_sibling = Some(sibling_slot.clone());
+            // sibling must be reassignable, but only for this call hierarchy. Hence the owner is
+            // alive when that write in the sibling component happens.
+            prev_next_sibling.write_at_comp(own_slot.to_position(), &sibling_slot);
+            let shared_slot = own_slot.to_position();
             let state = ComponentRenderState::Hydration {
                 parent,
                 root,

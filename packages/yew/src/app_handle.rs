@@ -87,7 +87,7 @@ fn clear_element(host: &Element) {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::Fragment;
+    use crate::dom_bundle::{Fragment, SlotBulletin};
 
     impl<COMP> AppHandle<COMP>
     where
@@ -106,17 +106,13 @@ mod feat_hydration {
             let mut fragment = Fragment::collect_children(&host);
             let hosting_root = BSubtree::create_root(&host);
 
-            let mut previous_next_sibling = None;
             app.scope.hydrate_in_place(
                 hosting_root,
                 host.clone(),
                 &mut fragment,
                 Rc::clone(&props),
-                &mut previous_next_sibling,
+                &mut SlotBulletin::new(),
             );
-            if let Some(previous_next_sibling) = previous_next_sibling {
-                previous_next_sibling.reassign(DomSlot::at_end());
-            }
 
             // We remove all remaining nodes, this mimics the clear_element behaviour in
             // mount_with_props.

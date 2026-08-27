@@ -100,7 +100,7 @@ pub(super) trait Reconcilable {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{DynamicDomSlot, Fragment};
+    use crate::dom_bundle::{Fragment, SlotBulletin};
 
     pub(in crate::dom_bundle) trait Hydratable: Reconcilable {
         /// hydrates current tree.
@@ -121,7 +121,7 @@ mod feat_hydration {
             // `Node.insertAfter`) Hence, we pass an optional argument to inform of the
             // new hydrated node's position. This should end up assigning the same
             // position that would have been returned from `Self::attach` on creation.
-            prev_next_sibling: &mut Option<DynamicDomSlot>,
+            prev_next_sibling: &mut SlotBulletin<'_>,
         ) -> Self::Bundle;
     }
 }

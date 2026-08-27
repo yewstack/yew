@@ -6,7 +6,7 @@ use std::fmt;
 
 use web_sys::Element;
 
-use super::{BNode, BSubtree, DomSlot, DynamicDomSlot, Reconcilable, ReconcileTarget};
+use super::{BNode, BSubtree, DomSlot, Reconcilable, ReconcileTarget};
 use crate::html::{AnyScope, Scoped};
 use crate::virtual_dom::{Key, VComp};
 
@@ -16,7 +16,7 @@ pub(super) struct BComp {
     scope: Box<dyn Scoped>,
     /// An internal [`DomSlot`] passed around to track this components position. This
     /// will dynamically adjust when a lifecycle changes the render state of this component.
-    own_position: DynamicDomSlot,
+    own_position: DomSlot,
     key: Option<Key>,
 }
 
@@ -43,7 +43,7 @@ impl ReconcileTarget for BComp {
     fn shift(&self, next_parent: &Element, slot: DomSlot) -> DomSlot {
         self.scope.shift_node(next_parent.clone(), slot);
 
-        self.own_position.to_position()
+        self.own_position.clone()
     }
 }
 
@@ -64,14 +64,14 @@ impl Reconcilable for VComp {
             ..
         } = self;
 
-        let (scope, internal_ref) = mountable.mount(root, parent_scope, parent.to_owned(), slot);
+        let (scope, own_position) = mountable.mount(root, parent_scope, parent.to_owned(), slot);
 
         (
-            internal_ref.to_position(),
+            own_position.clone(),
             BComp {
                 type_id,
                 scope,
-                own_position: internal_ref,
+                own_position,
                 key,
             },
         )
@@ -106,14 +106,14 @@ impl Reconcilable for VComp {
 
         bcomp.key = key;
         mountable.reuse(bcomp.scope.borrow(), slot);
-        bcomp.own_position.to_position()
+        bcomp.own_position.clone()
     }
 }
 
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{Fragment, Hydratable};
+    use crate::dom_bundle::{Fragment, Hydratable, SlotBulletin};
 
     impl Hydratable for VComp {
         fn hydrate(
@@ -122,7 +122,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-            prev_next_sibling: &mut Option<DynamicDomSlot>,
+            prev_next_sibling: &mut SlotBulletin<'_>,
         ) -> Self::Bundle {
             let VComp {
                 type_id,
@@ -207,19 +207,19 @@ mod tests {
 
     #[test]
     fn set_properties_to_component() {
-        html! {
+        let _ = html! {
             <Comp />
         };
 
-        html! {
+        let _ = html! {
             <Comp field_1=1 />
         };
 
-        html! {
+        let _ = html! {
             <Comp field_2=2 />
         };
 
-        html! {
+        let _ = html! {
             <Comp field_1=1 field_2=2 />
         };
 
@@ -228,7 +228,7 @@ mod tests {
             field_2: 1,
         };
 
-        html! {
+        let _ = html! {
             <Comp ..props />
         };
     }

@@ -60,7 +60,7 @@ fn main() -> ExitCode {
 
         println!("::endgroup::");
         if !sample_success {
-            eprintln!("::error ::{example}  failed to build");
+            println!("::error ::{example} failed to build");
             failure = true;
         }
     }

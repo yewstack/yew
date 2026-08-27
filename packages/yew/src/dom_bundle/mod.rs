@@ -32,6 +32,8 @@ use braw::BRaw;
 use bsuspense::BSuspense;
 use btag::{BTag, Registry};
 use btext::BText;
+#[cfg(feature = "hydration")]
+pub(crate) use position::SlotBulletin;
 pub(crate) use position::{DomSlot, DynamicDomSlot};
 use subtree_root::EventDescriptor;
 pub use subtree_root::{BSubtree, set_event_bubbling};
@@ -94,7 +96,7 @@ mod feat_hydration {
             parent: &Element,
             fragment: &mut Fragment,
             node: VNode,
-            previous_next_sibling: &mut Option<DynamicDomSlot>,
+            previous_next_sibling: &mut SlotBulletin<'_>,
         ) -> Self {
             let bundle = node.hydrate(root, parent_scope, parent, fragment, previous_next_sibling);
             Self(bundle)

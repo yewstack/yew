@@ -267,7 +267,7 @@ impl fmt::Debug for BNode {
 #[cfg(feature = "hydration")]
 mod feat_hydration {
     use super::*;
-    use crate::dom_bundle::{DynamicDomSlot, Fragment, Hydratable};
+    use crate::dom_bundle::{Fragment, Hydratable, SlotBulletin};
 
     impl Hydratable for VNode {
         fn hydrate(
@@ -276,7 +276,7 @@ mod feat_hydration {
             parent_scope: &AnyScope,
             parent: &Element,
             fragment: &mut Fragment,
-            prev_next_sibling: &mut Option<DynamicDomSlot>,
+            prev_next_sibling: &mut SlotBulletin<'_>,
         ) -> Self::Bundle {
             match self {
                 VNode::VTag(vtag) => RcExt::unwrap_or_clone(vtag)
