@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 js-sys.workspace = true
 yew = { path = "../../packages/yew", features = ["csr"] }
-base64 = "0.22.1"
+base64 = "0.23.1"
 gloo.workspace = true
 
 [dependencies.web-sys]
