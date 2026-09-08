@@ -93,6 +93,11 @@ impl<E: fmt::Display> fmt::Display for LinkError<E> {
     }
 }
 
+#[cfg(any(test, all(target_arch = "wasm32", not(feature = "ssr"))))]
+fn should_cache_result<T, E>(result: &Result<T, LinkError<E>>) -> bool {
+    !matches!(result, Err(LinkError::Internal(_)))
+}
+
 /// Handle returned by [`use_linked_state`].
 ///
 /// Provides access to the resolved data, a [`refresh`](Self::refresh)
@@ -314,6 +319,9 @@ type Cache = Rc<RefCell<HashMap<CacheKey, serde_json::Value>>>;
 type InFlight = Rc<RefCell<HashMap<CacheKey, Suspension>>>;
 
 #[cfg(target_arch = "wasm32")]
+type Completed = Rc<RefCell<HashMap<CacheKey, serde_json::Value>>>;
+
+#[cfg(target_arch = "wasm32")]
 type Refreshing = Rc<RefCell<HashSet<CacheKey>>>;
 
 #[derive(Clone)]
@@ -321,6 +329,8 @@ struct LinkContextInner {
     cache: Cache,
     #[cfg(target_arch = "wasm32")]
     in_flight: InFlight,
+    #[cfg(target_arch = "wasm32")]
+    completed: Completed,
     #[cfg(target_arch = "wasm32")]
     refreshing: Refreshing,
     endpoint: AttrValue,
@@ -334,6 +344,7 @@ impl PartialEq for LinkContextInner {
             #[cfg(target_arch = "wasm32")]
             {
                 Rc::ptr_eq(&self.in_flight, &other.in_flight)
+                    && Rc::ptr_eq(&self.completed, &other.completed)
                     && Rc::ptr_eq(&self.refreshing, &other.refreshing)
             }
             #[cfg(not(target_arch = "wasm32"))]
@@ -463,12 +474,16 @@ pub fn LinkProvider(props: &LinkProviderProps) -> Html {
     #[cfg(target_arch = "wasm32")]
     let in_flight: InFlight = (*use_ref(|| Rc::new(RefCell::new(HashMap::new())))).clone();
     #[cfg(target_arch = "wasm32")]
+    let completed: Completed = (*use_ref(|| Rc::new(RefCell::new(HashMap::new())))).clone();
+    #[cfg(target_arch = "wasm32")]
     let refreshing: Refreshing = (*use_ref(|| Rc::new(RefCell::new(HashSet::new())))).clone();
 
     let ctx = LinkContextInner {
         cache,
         #[cfg(target_arch = "wasm32")]
         in_flight,
+        #[cfg(target_arch = "wasm32")]
+        completed,
         #[cfg(target_arch = "wasm32")]
         refreshing,
         endpoint: props.endpoint.clone(),
@@ -572,6 +587,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
 
         let refresh = {
             let cache = link_ctx.cache.clone();
+            let completed = link_ctx.completed.clone();
             let refreshing = link_ctx.refreshing.clone();
             let key = key.clone();
             let link_ctx = link_ctx.clone();
@@ -579,6 +595,7 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
             let force_update = force_update.clone();
             let has_refreshed = has_refreshed.clone();
             Callback::from(move |()| {
+                let completed = completed.clone();
                 refreshing.borrow_mut().insert(key.clone());
                 has_refreshed.set(true);
 
@@ -594,14 +611,12 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
 
                     refreshing.borrow_mut().remove(&key);
 
-                    let should_cache = match &result {
-                        Ok(_) | Err(LinkError::Resolve(_)) => true,
-                        Err(LinkError::Internal(_)) => false,
-                    };
+                    let should_cache = should_cache_result(&result);
                     if should_cache {
                         if let Ok(json_val) = serde_json::to_value(&result) {
-                            cache.borrow_mut().put(key, json_val);
+                            cache.borrow_mut().put(key.clone(), json_val);
                         }
+                        completed.borrow_mut().remove(&key);
                     }
 
                     inner_force_update.force_update();
@@ -636,6 +651,16 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
             }
         }
 
+        if let Some(completed_val) = link_ctx.completed.borrow().get(&key).cloned() {
+            if let Ok(result) = serde_json::from_value::<Prepared<T, T::Error>>(completed_val) {
+                return Ok(LinkedStateHandle {
+                    result: result.map(Rc::new),
+                    refresh,
+                    refreshing: is_refreshing,
+                });
+            }
+        }
+
         if let Some(sus) = link_ctx.in_flight.borrow().get(&key).cloned() {
             if !sus.resumed() {
                 return Err(sus);
@@ -660,20 +685,41 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
 
                 link_ctx.in_flight.borrow_mut().remove(&key);
 
-                let should_cache = match &result {
-                    Ok(_) | Err(LinkError::Resolve(_)) => true,
-                    Err(LinkError::Internal(_)) => false,
-                };
+                let should_cache = should_cache_result(&result);
                 if should_cache {
                     if let Ok(json_val) = serde_json::to_value(&result) {
-                        link_ctx.cache.borrow_mut().put(key, json_val);
+                        link_ctx.cache.borrow_mut().put(key.clone(), json_val);
                     }
+                    link_ctx.completed.borrow_mut().remove(&key);
+                } else if let Ok(json_val) = serde_json::to_value(&result) {
+                    // Keep transient initial failures outside the LRU cache so the completed
+                    // suspension can surface the error without issuing another request.
+                    link_ctx
+                        .completed
+                        .borrow_mut()
+                        .insert(key.clone(), json_val);
                 }
             }
         });
 
         link_ctx.in_flight.borrow_mut().insert(key, sus.clone());
         Err(sus)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{LinkError, should_cache_result};
+
+    #[test]
+    fn internal_errors_are_not_cached_but_completed_initial_results_are_supported() {
+        let internal: Result<(), LinkError<()>> = Err(LinkError::Internal("offline".into()));
+        let resolved: Result<(), LinkError<()>> = Err(LinkError::Resolve(()));
+        let success: Result<(), LinkError<()>> = Ok(());
+
+        assert!(!should_cache_result(&internal));
+        assert!(should_cache_result(&resolved));
+        assert!(should_cache_result(&success));
     }
 }
 
