@@ -22,6 +22,13 @@ wasm-bindgen-futures = { workspace = true }
 axum = { workspace = true, optional = true }
 actix-web = { workspace = true, optional = true }
 
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+gloo.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-test.workspace = true
+web-sys.workspace = true
+yew = { path = "../yew", features = ["csr"] }
+
 [features]
 default = []
 ssr = ["yew/ssr"]
