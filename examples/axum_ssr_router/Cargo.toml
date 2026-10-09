@@ -33,7 +33,7 @@ tracing-subscriber.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
 axum = { workspace = true }
 tower = { version = "0.5", features = ["make"] }
-tower-http = { version = "0.6", features = ["fs", "cors"] }
+tower-http = { version = "0.7", features = ["fs", "cors"] }
 env_logger = "0.11"
 clap = { workspace = true }
 hyper = { version = "1.10", features = ["server", "http1"] }
