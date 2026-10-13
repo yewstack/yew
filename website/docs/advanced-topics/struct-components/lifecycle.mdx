@@ -8,9 +8,35 @@ stages in the lifecycle of a component.
 
 ## Lifecycle
 
-:::important contribute
-`Contribute to our docs:` [Add a diagram of the component lifecycle](https://github.com/yewstack/yew/issues/1915)
-:::
+The diagram summarizes an ordinary client-side lifecycle without suspension.
+It shows phases and render requests, not an exact scheduler trace or one render
+per message.
+
+![Component lifecycle: creation leads to a render pass and a mounted component. Messages call update, and changed properties call changed. These handlers can request another render or return without one. Unmounting calls destroy before the DOM is detached.](/img/component-lifecycle.svg)
+
+[Edit diagram](https://svgdiagram.ai/diagram-sources/yew-component-lifecycle?version=1).
+
+- **Initial render:** `create` is followed by `view`, DOM reconciliation and
+  `rendered(ctx, true)`. Child components finish their `rendered` callbacks
+  before their parent's `rendered` callback.
+- **Messages:** `update(ctx, msg)` can change state. Returning `true` requests a
+  render; returning `false` does not request one for that update.
+- **Properties:** when properties differ, `changed(ctx, old_props)` can request
+  a render in the same way. The context contains the new properties.
+- **Later renders:** `view` describes the new tree; after reconciliation,
+  `rendered(ctx, false)` runs. Yew may batch or optimize render requests, so do
+  not rely on a fixed number of `view` or `rendered` calls.
+- **Removal:** `destroy` runs before DOM detachment and provides a place to clean
+  up resources.
+
+A `false` return does not cancel another already-pending render request. A
+message sent from `rendered` starts another update; always requesting a render
+there creates the loop described [below](#infinite-loops). Server-side rendering,
+hydration and suspension have additional behavior outside this overview.
+
+[Editable SVG](/img/component-lifecycle.svg) · [Graphviz source](/img/component-lifecycle.dot).
+The Graphviz source records the same phases and transitions for editing with
+standard tooling; its layout differs from this SVG.
 
 ## Lifecycle Methods
 
@@ -206,7 +232,7 @@ when props are changed.
 
 ### Destroy
 
-After Components are unmounted from the DOM, Yew calls the `destroy` lifecycle method; this is
+Before components are unmounted from the DOM, Yew calls the `destroy` lifecycle method; this is
 necessary if you need to undertake operations to clean up after earlier actions of a component
 before it is destroyed. This method is optional and does nothing by default.
 
