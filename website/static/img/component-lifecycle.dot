@@ -1,0 +1,20 @@
+digraph ComponentLifecycle {
+  graph [rankdir=TB, bgcolor="transparent", nodesep=0.5, ranksep=0.7];
+  node [shape=box, style="rounded,filled", fillcolor="#f7f9fc", color="#cad5df", fontname="Arial"];
+  edge [color="#698879", fontname="Arial", fontsize=11];
+  start [shape=point, label="", width=0.15];
+  create [label="Creating\ncreate(ctx)"];
+  render [label="Render pass\nview, DOM, rendered"];
+  idle [label="Mounted\nAwaiting input"];
+  input [label="Handling input\nupdate(msg) / changed(props)"];
+  destroy [label="Removing\ndestroy(ctx), DOM detach"];
+  end [shape=doublecircle, label="", width=0.15];
+  start -> create;
+  create -> render [label="Initial render"];
+  render -> idle [label="DOM reconciled"];
+  idle -> input [label="Message / props"];
+  input -> render [label="Requests render"];
+  input -> idle [label="No render needed"];
+  idle -> destroy [label="Unmount"];
+  destroy -> end [label="Cleanup complete"];
+}
