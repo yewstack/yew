@@ -26,7 +26,7 @@ wasm-bindgen.workspace = true
 yew-macro = { version = "^0.23.0", path = "../yew-macro" }
 thiserror.workspace = true
 futures = { workspace = true, features = ["std"] }
-html-escape = { version = "0.2.13", optional = true }
+html-escape = { version = "0.3.0", optional = true }
 implicit-clone = { workspace = true, features = ["map"] }
 base64ct = { version = "1.6.0", features = ["std"], optional = true }
 bincode = { workspace = true, optional = true }
