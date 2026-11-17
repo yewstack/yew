@@ -262,7 +262,7 @@ pub use yew_macro::html_nested;
 ///
 /// [`html!`]: ./macro.html.html
 /// [`Properties`]: ./html/trait.Properties.html
-/// [Yew Docs]: https://yew.rs/concepts/components/properties
+/// [Yew Docs]: https://yew.rs/docs/next/concepts/function-components/properties
 pub use yew_macro::props;
 
 /// This module contains macros which implements html! macro and JSX-like templates

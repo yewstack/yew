@@ -162,7 +162,7 @@ pub trait Component: Sized + 'static {
 
     /// Components define their visual layout using a JSX-style syntax through the use of the
     /// `html!` procedural macro. The full guide to using the macro can be found in [Yew's
-    /// documentation](https://yew.rs/concepts/html).
+    /// documentation](https://yew.rs/docs/next/concepts/html).
     ///
     /// Note that `view()` calls do not always follow a render request from `update()` or
     /// `changed()`. Yew may optimize some calls out to reduce virtual DOM tree generation overhead.
