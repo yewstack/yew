@@ -5229,6 +5229,7 @@ dependencies = [
 name = "yew-router-macro"
 version = "0.20.0"
 dependencies = [
+ "matchit 0.9.2",
  "proc-macro2",
  "quote",
  "rustversion",
