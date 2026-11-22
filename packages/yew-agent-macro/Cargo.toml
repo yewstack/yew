@@ -23,3 +23,6 @@ syn = { workspace = true, features = ["full", "extra-traits"] }
 rustversion.workspace = true
 trybuild = { workspace = true }
 yew-agent = { path = "../yew-agent" }
+
+[lints]
+workspace = true

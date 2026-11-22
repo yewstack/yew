@@ -19,3 +19,6 @@ clap = { workspace = true }
 
 [target.'cfg(unix)'.dependencies]
 jemallocator = "0.5.4"
+
+[lints]
+workspace = true

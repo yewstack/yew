@@ -13,3 +13,6 @@ js-sys.workspace = true
 web-sys = { workspace = true, features = [ "HtmlInputElement" ] }
 serde = { workspace = true, features = ["derive"] }
 postcard = "1.0.10"
+
+[lints]
+workspace = true

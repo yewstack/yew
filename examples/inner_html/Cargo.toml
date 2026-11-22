@@ -13,3 +13,6 @@ gloo.workspace = true
 [dependencies.web-sys]
 workspace = true
 features = ["console", "Document", "Element", "Node", "Window"]
+
+[lints]
+workspace = true

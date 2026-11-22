@@ -6,9 +6,6 @@ build = "build.rs"
 publish = false
 rust-version.workspace = true
 
-[dependencies]
-yew-agent = { path = "../../packages/yew-agent/" }
-
 [dev-dependencies]
 derive_more = { version = "2.1", features = ["from"] }
 gloo.workspace = true
@@ -43,3 +40,6 @@ features = [
 
 [build-dependencies]
 glob = "0.3"
+
+[lints]
+workspace = true

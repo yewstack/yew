@@ -13,3 +13,6 @@ harness = false
 [dependencies]
 divan = "0.1.14"
 yew = { path = "../../packages/yew" }
+
+[lints]
+workspace = true

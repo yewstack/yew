@@ -7,4 +7,6 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 yew = { path = "../../packages/yew", features = ["csr"] }
-yew-agent = { path = "../../packages/yew-agent" }
+
+[lints]
+workspace = true

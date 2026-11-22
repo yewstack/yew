@@ -11,3 +11,6 @@ implicit-clone = { workspace = true }
 log.workspace = true
 wasm-logger.workspace = true
 yew = { path = "../../packages/yew", features = ["csr"] }
+
+[lints]
+workspace = true

@@ -55,3 +55,6 @@ yew-link = { path = "../../packages/yew-link", features = ["hydration"] }
 [features]
 ssr = ["yew/ssr", "yew-link/ssr", "yew-link/axum"]
 hydration = ["yew/hydration", "yew-link/hydration"]
+
+[lints]
+workspace = true

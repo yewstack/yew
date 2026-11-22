@@ -21,3 +21,6 @@ features = [
   'WebGlShader',
   'WebGlUniformLocation',
 ]
+
+[lints]
+workspace = true

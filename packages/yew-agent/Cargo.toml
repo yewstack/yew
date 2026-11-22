@@ -21,3 +21,6 @@ yew-agent-macro = { version = "0.4", path = "../yew-agent-macro" }
 
 [dev-dependencies]
 serde = { workspace = true }
+
+[lints]
+workspace = true

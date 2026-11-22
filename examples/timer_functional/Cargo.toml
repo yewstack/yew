@@ -10,3 +10,6 @@ license = "MIT OR Apache-2.0"
 gloo.workspace = true
 js-sys.workspace = true
 yew = { path = "../../packages/yew", features = ["csr"] }
+
+[lints]
+workspace = true
