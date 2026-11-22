@@ -17,3 +17,6 @@ serde = { workspace = true, features = ["derive"] }
 strum = { workspace = true, features = ["derive"] }
 clap = { workspace = true }
 semver = "1.0"
+
+[lints]
+workspace = true

@@ -40,3 +40,6 @@ yew = { path = "../../packages/yew", features = ["hydration"] }
 [features]
 hydration = ["yew/hydration"]
 ssr = ["yew/ssr"]
+
+[lints]
+workspace = true

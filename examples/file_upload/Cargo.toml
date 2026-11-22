@@ -15,3 +15,6 @@ gloo.workspace = true
 [dependencies.web-sys]
 workspace = true
 features = ["DataTransfer"]
+
+[lints]
+workspace = true

@@ -25,3 +25,6 @@ getrandom_03 = { workspace = true }
 [[bin]]
 name = "function_router"
 required-features = ["yew/csr"]
+
+[lints]
+workspace = true

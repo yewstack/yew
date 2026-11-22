@@ -11,3 +11,6 @@ yew = { path = "../../packages/yew", features = ["csr"] }
 js-sys.workspace = true
 gloo.workspace = true
 wasm-bindgen.workspace = true
+
+[lints]
+workspace = true

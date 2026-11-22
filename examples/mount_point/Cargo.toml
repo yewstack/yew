@@ -22,3 +22,6 @@ features = [
   "Node",
   "Window"
 ]
+
+[lints]
+workspace = true
