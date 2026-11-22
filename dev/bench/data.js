@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795369924265,
+  "lastUpdate": 1795370620946,
   "repoUrl": "https://github.com/yewstack/yew",
   "entries": {
     "Yew master branch benchmarks (Lower is better)": [
@@ -61841,6 +61841,178 @@ window.BENCHMARK_DATA = {
           {
             "name": "yew-v0.23.0-keyed 43_first-paint",
             "value": 415.1,
+            "unit": ""
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]",
+            "email": "49699333+dependabot[bot]@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "d14738a8815d372f74742c08b164e7309401ec46",
+          "message": "chore(deps): bump the cargo-deps group across 1 directory with 30 updates (#4250)\n\nBumps the cargo-deps group with 30 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [tokio](https://github.com/tokio-rs/tokio) | `1.52.3` | `1.54.1` |\n| [proc-macro2](https://github.com/dtolnay/proc-macro2) | `1.0.106` | `1.0.107` |\n| [quote](https://github.com/dtolnay/quote) | `1.0.45` | `1.0.47` |\n| [syn](https://github.com/dtolnay/syn) | `2.0.117` | `2.0.119` |\n| [trybuild](https://github.com/dtolnay/trybuild) | `1.0.116` | `1.0.119` |\n| [clap](https://github.com/clap-rs/clap) | `4.6.1` | `4.6.8` |\n| [serde](https://github.com/serde-rs/serde) | `1.0.228` | `1.0.229` |\n| [serde_json](https://github.com/serde-rs/json) | `1.0.150` | `1.0.154` |\n| [futures](https://github.com/rust-lang/futures-rs) | `0.3.32` | `0.3.34` |\n| [log](https://github.com/rust-lang/log) | `0.4.31` | `0.4.35` |\n| [getrandom](https://github.com/rust-random/getrandom) | `0.4.2` | `0.4.3` |\n| [rustversion](https://github.com/dtolnay/rustversion) | `1.0.22` | `1.0.23` |\n| [anyhow](https://github.com/dtolnay/anyhow) | `1.0.102` | `1.0.104` |\n| [chrono](https://github.com/chronotope/chrono) | `0.4.44` | `0.4.45` |\n| [thiserror](https://github.com/dtolnay/thiserror) | `2.0.18` | `2.0.21` |\n| [reqwest](https://github.com/seanmonstar/reqwest) | `0.13.4` | `0.13.5` |\n| [indexmap](https://github.com/indexmap-rs/indexmap) | `2.14.0` | `2.14.2` |\n| [indicatif](https://github.com/console-rs/indicatif) | `0.18.4` | `0.18.6` |\n| [regex](https://github.com/rust-lang/regex) | `1.12.3` | `1.13.2` |\n| [toml](https://github.com/toml-rs/toml) | `1.1.2+spec-1.1.0` | `1.2.1+spec-1.1.0` |\n| [libc](https://github.com/rust-lang/libc) | `0.2.186` | `0.2.191` |\n| [glob](https://github.com/rust-lang/glob) | `0.3.3` | `0.3.4` |\n| [bytes](https://github.com/tokio-rs/bytes) | `1.11.1` | `1.12.2` |\n| [env_logger](https://github.com/rust-cli/env_logger) | `0.11.10` | `0.11.11` |\n| [hyper-util](https://github.com/hyperium/hyper-util) | `0.1.20` | `0.1.21` |\n| [hyper](https://github.com/hyperium/hyper) | `1.10.1` | `1.12.0` |\n| [gloo-timers](https://github.com/rustwasm/gloo) | `0.4.0` | `0.4.1` |\n| [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark) | `0.13.4` | `0.13.6` |\n| [uuid](https://github.com/uuid-rs/uuid) | `1.23.2` | `1.26.1` |\n| [serde_derive](https://github.com/serde-rs/serde) | `1.0.228` | `1.0.229` |\n\n\n\nUpdates `tokio` from 1.52.3 to 1.54.1\n- [Release notes](https://github.com/tokio-rs/tokio/releases)\n- [Commits](https://github.com/tokio-rs/tokio/compare/tokio-1.52.3...tokio-1.54.1)\n\nUpdates `proc-macro2` from 1.0.106 to 1.0.107\n- [Release notes](https://github.com/dtolnay/proc-macro2/releases)\n- [Commits](https://github.com/dtolnay/proc-macro2/compare/1.0.106...1.0.107)\n\nUpdates `quote` from 1.0.45 to 1.0.47\n- [Release notes](https://github.com/dtolnay/quote/releases)\n- [Commits](https://github.com/dtolnay/quote/compare/1.0.45...1.0.47)\n\nUpdates `syn` from 2.0.117 to 2.0.119\n- [Release notes](https://github.com/dtolnay/syn/releases)\n- [Commits](https://github.com/dtolnay/syn/compare/2.0.117...2.0.119)\n\nUpdates `trybuild` from 1.0.116 to 1.0.119\n- [Release notes](https://github.com/dtolnay/trybuild/releases)\n- [Commits](https://github.com/dtolnay/trybuild/compare/1.0.116...1.0.119)\n\nUpdates `clap` from 4.6.1 to 4.6.8\n- [Release notes](https://github.com/clap-rs/clap/releases)\n- [Changelog](https://github.com/clap-rs/clap/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/clap-rs/clap/compare/clap_complete-v4.6.1...clap_complete-v4.6.8)\n\nUpdates `serde` from 1.0.228 to 1.0.229\n- [Release notes](https://github.com/serde-rs/serde/releases)\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.228...v1.0.229)\n\nUpdates `serde_json` from 1.0.150 to 1.0.154\n- [Release notes](https://github.com/serde-rs/json/releases)\n- [Commits](https://github.com/serde-rs/json/compare/v1.0.150...v1.0.154)\n\nUpdates `futures` from 0.3.32 to 0.3.34\n- [Release notes](https://github.com/rust-lang/futures-rs/releases)\n- [Changelog](https://github.com/rust-lang/futures-rs/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/futures-rs/compare/0.3.32...0.3.34)\n\nUpdates `log` from 0.4.31 to 0.4.35\n- [Release notes](https://github.com/rust-lang/log/releases)\n- [Changelog](https://github.com/rust-lang/log/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/log/compare/0.4.31...v0.4.35)\n\nUpdates `getrandom` from 0.4.2 to 0.4.3\n- [Changelog](https://github.com/rust-random/getrandom/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-random/getrandom/compare/v0.4.2...v0.4.3)\n\nUpdates `rustversion` from 1.0.22 to 1.0.23\n- [Release notes](https://github.com/dtolnay/rustversion/releases)\n- [Commits](https://github.com/dtolnay/rustversion/compare/1.0.22...1.0.23)\n\nUpdates `anyhow` from 1.0.102 to 1.0.104\n- [Release notes](https://github.com/dtolnay/anyhow/releases)\n- [Commits](https://github.com/dtolnay/anyhow/compare/1.0.102...1.0.104)\n\nUpdates `chrono` from 0.4.44 to 0.4.45\n- [Release notes](https://github.com/chronotope/chrono/releases)\n- [Changelog](https://github.com/chronotope/chrono/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/chronotope/chrono/compare/v0.4.44...v0.4.45)\n\nUpdates `thiserror` from 2.0.18 to 2.0.21\n- [Release notes](https://github.com/dtolnay/thiserror/releases)\n- [Commits](https://github.com/dtolnay/thiserror/compare/2.0.18...2.0.21)\n\nUpdates `reqwest` from 0.13.4 to 0.13.5\n- [Release notes](https://github.com/seanmonstar/reqwest/releases)\n- [Changelog](https://github.com/seanmonstar/reqwest/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/seanmonstar/reqwest/compare/v0.13.4...v0.13.5)\n\nUpdates `indexmap` from 2.14.0 to 2.14.2\n- [Changelog](https://github.com/indexmap-rs/indexmap/blob/main/RELEASES.md)\n- [Commits](https://github.com/indexmap-rs/indexmap/compare/2.14.0...2.14.2)\n\nUpdates `indicatif` from 0.18.4 to 0.18.6\n- [Release notes](https://github.com/console-rs/indicatif/releases)\n- [Commits](https://github.com/console-rs/indicatif/compare/0.18.4...0.18.6)\n\nUpdates `regex` from 1.12.3 to 1.13.2\n- [Release notes](https://github.com/rust-lang/regex/releases)\n- [Changelog](https://github.com/rust-lang/regex/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/regex/compare/1.12.3...1.13.2)\n\nUpdates `toml` from 1.1.2+spec-1.1.0 to 1.2.1+spec-1.1.0\n- [Commits](https://github.com/toml-rs/toml/compare/toml-v1.1.2...toml-v1.2.1)\n\nUpdates `libc` from 0.2.186 to 0.2.191\n- [Release notes](https://github.com/rust-lang/libc/releases)\n- [Changelog](https://github.com/rust-lang/libc/blob/0.2.191/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/libc/compare/0.2.186...0.2.191)\n\nUpdates `glob` from 0.3.3 to 0.3.4\n- [Release notes](https://github.com/rust-lang/glob/releases)\n- [Changelog](https://github.com/rust-lang/glob/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/rust-lang/glob/compare/v0.3.3...v0.3.4)\n\nUpdates `bytes` from 1.11.1 to 1.12.2\n- [Release notes](https://github.com/tokio-rs/bytes/releases)\n- [Changelog](https://github.com/tokio-rs/bytes/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/tokio-rs/bytes/compare/v1.11.1...v1.12.2)\n\nUpdates `env_logger` from 0.11.10 to 0.11.11\n- [Release notes](https://github.com/rust-cli/env_logger/releases)\n- [Changelog](https://github.com/rust-cli/env_logger/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/rust-cli/env_logger/compare/v0.11.10...v0.11.11)\n\nUpdates `hyper-util` from 0.1.20 to 0.1.21\n- [Release notes](https://github.com/hyperium/hyper-util/releases)\n- [Changelog](https://github.com/hyperium/hyper-util/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/hyperium/hyper-util/compare/v0.1.20...v0.1.21)\n\nUpdates `hyper` from 1.10.1 to 1.12.0\n- [Release notes](https://github.com/hyperium/hyper/releases)\n- [Changelog](https://github.com/hyperium/hyper/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/hyperium/hyper/compare/v1.10.1...v1.12.0)\n\nUpdates `gloo-timers` from 0.4.0 to 0.4.1\n- [Release notes](https://github.com/rustwasm/gloo/releases)\n- [Changelog](https://github.com/ranile/gloo/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/rustwasm/gloo/compare/gloo-timers-v0.4.0...gloo-timers-v0.4.1)\n\nUpdates `pulldown-cmark` from 0.13.4 to 0.13.6\n- [Release notes](https://github.com/raphlinus/pulldown-cmark/releases)\n- [Commits](https://github.com/raphlinus/pulldown-cmark/compare/v0.13.4...v0.13.6)\n\nUpdates `uuid` from 1.23.2 to 1.26.1\n- [Release notes](https://github.com/uuid-rs/uuid/releases)\n- [Commits](https://github.com/uuid-rs/uuid/compare/v1.23.2...v1.26.1)\n\nUpdates `serde_derive` from 1.0.228 to 1.0.229\n- [Release notes](https://github.com/serde-rs/serde/releases)\n- [Commits](https://github.com/serde-rs/serde/compare/v1.0.228...v1.0.229)\n\n---\nupdated-dependencies:\n- dependency-name: tokio\n  dependency-version: 1.54.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: proc-macro2\n  dependency-version: 1.0.107\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: quote\n  dependency-version: 1.0.47\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: syn\n  dependency-version: 2.0.119\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: trybuild\n  dependency-version: 1.0.119\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: clap\n  dependency-version: 4.6.8\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: serde\n  dependency-version: 1.0.229\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: serde_json\n  dependency-version: 1.0.154\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: futures\n  dependency-version: 0.3.34\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: log\n  dependency-version: 0.4.35\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: getrandom\n  dependency-version: 0.4.3\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: rustversion\n  dependency-version: 1.0.23\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: anyhow\n  dependency-version: 1.0.104\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: chrono\n  dependency-version: 0.4.45\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: thiserror\n  dependency-version: 2.0.21\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: reqwest\n  dependency-version: 0.13.5\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: indexmap\n  dependency-version: 2.14.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: indicatif\n  dependency-version: 0.18.6\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: regex\n  dependency-version: 1.13.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: toml\n  dependency-version: 1.2.1+spec-1.1.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: libc\n  dependency-version: 0.2.191\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: glob\n  dependency-version: 0.3.4\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: bytes\n  dependency-version: 1.12.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: env_logger\n  dependency-version: 0.11.11\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: hyper-util\n  dependency-version: 0.1.21\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: hyper\n  dependency-version: 1.12.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: gloo-timers\n  dependency-version: 0.4.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: pulldown-cmark\n  dependency-version: 0.13.6\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n- dependency-name: uuid\n  dependency-version: 1.26.1\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n  dependency-group: cargo-deps\n- dependency-name: serde_derive\n  dependency-version: 1.0.229\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: cargo-deps\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-22T17:50:46Z",
+          "url": "https://github.com/yewstack/yew/commit/d14738a8815d372f74742c08b164e7309401ec46"
+        },
+        "date": 1795370619073,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "yew-hooks-v0.23.0-keyed 01_run1k",
+            "value": 85,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 02_replace1k",
+            "value": 98.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 63.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 04_select1k",
+            "value": 37.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 05_swap1k",
+            "value": 79.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 06_remove-one-1k",
+            "value": 51.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 07_create10k",
+            "value": 897.2,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 91.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 09_clear1k_x8",
+            "value": 50.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 21_ready-memory",
+            "value": 1.230647087097168,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 22_run-memory",
+            "value": 2.7786970138549805,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 25_run-clear-memory",
+            "value": 1.5011119842529297,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 41_size-uncompressed",
+            "value": 173.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 42_size-compressed",
+            "value": 56.4,
+            "unit": ""
+          },
+          {
+            "name": "yew-hooks-v0.23.0-keyed 43_first-paint",
+            "value": 358.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 01_run1k",
+            "value": 84.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 02_replace1k",
+            "value": 99.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 03_update10th1k_x16",
+            "value": 50.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 04_select1k",
+            "value": 12.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 05_swap1k",
+            "value": 54.5,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 06_remove-one-1k",
+            "value": 35.9,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 07_create10k",
+            "value": 959.1,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 08_create1k-after1k_x2",
+            "value": 92.3,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 09_clear1k_x8",
+            "value": 49.8,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 21_ready-memory",
+            "value": 1.219193458557129,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 22_run-memory",
+            "value": 2.7159290313720703,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 25_run-clear-memory",
+            "value": 1.583796501159668,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 41_size-uncompressed",
+            "value": 169.7,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 42_size-compressed",
+            "value": 55.6,
+            "unit": ""
+          },
+          {
+            "name": "yew-v0.23.0-keyed 43_first-paint",
+            "value": 354.7,
             "unit": ""
           }
         ]
