@@ -7,9 +7,21 @@ updates:
       day: "friday"
     open-pull-requests-limit: 2
     groups:
+       # Semver-major bumps get their own PR, so that one breaking upgrade
+       # doesn't sink the whole group.
        cargo-deps:
           patterns:
             - "*"
+          update-types:
+            - "minor"
+            - "patch"
+    ignore:
+      # The macro crates are written against syn 2; moving to syn 3 is a
+      # manual migration. prettyplease 0.3 requires syn 3.
+      - dependency-name: "syn"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prettyplease"
+        versions: [">=0.3"]
 
   - package-ecosystem: "npm"
     directory: "/website"

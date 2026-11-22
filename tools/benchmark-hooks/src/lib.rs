@@ -102,8 +102,8 @@ impl Reducible for AppState {
                 let rng = &mut new_state.rng;
                 let next_id = new_state.next_id;
                 let update_amount = min(amount, new_state.rows.len());
-                for index in 0..update_amount {
-                    new_state.rows[index] = RowData::new(next_id + index, rng);
+                for (index, row) in new_state.rows.iter_mut().enumerate().take(update_amount) {
+                    *row = RowData::new(next_id + index, rng);
                 }
                 new_state.rows.extend(
                     (update_amount..amount).map(|index| RowData::new(next_id + index, rng)),

@@ -19,3 +19,6 @@ yew = { path = "../../packages/yew", features = ["csr"] }
 yew-router = { path = "../../packages/yew-router" }
 serde = { workspace = true, features = ["derive"] }
 gloo.workspace = true
+
+[lints]
+workspace = true

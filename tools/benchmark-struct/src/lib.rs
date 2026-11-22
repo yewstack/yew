@@ -101,8 +101,8 @@ impl Component for App {
                 let rng = &mut self.rng;
                 let next_id = self.next_id;
                 let update_amount = min(amount, self.rows.len());
-                for index in 0..update_amount {
-                    self.rows[index] = RowData::new(next_id + index, rng);
+                for (index, row) in self.rows.iter_mut().enumerate().take(update_amount) {
+                    *row = RowData::new(next_id + index, rng);
                 }
                 self.rows.extend(
                     (update_amount..amount).map(|index| RowData::new(next_id + index, rng)),

@@ -22,3 +22,6 @@ workspace = true
 features = [
 	"HtmlInputElement",
 ]
+
+[lints]
+workspace = true

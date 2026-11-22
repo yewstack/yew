@@ -12,4 +12,6 @@ zxcvbn = "3.1.1"
 js-sys.workspace = true
 web-sys = { workspace = true, features = ["Event","EventTarget","InputEvent"] }
 wasm-bindgen.workspace = true
-chrono = { workspace = true, features = ["wasmbind"] }
+
+[lints]
+workspace = true

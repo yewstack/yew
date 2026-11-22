@@ -21,3 +21,6 @@ features = [
     "Node",
     "DomTokenList"
 ]
+
+[lints]
+workspace = true

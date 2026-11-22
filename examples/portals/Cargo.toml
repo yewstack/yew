@@ -22,3 +22,6 @@ features = [
     "ShadowRootInit",
     "ShadowRootMode",
 ]
+
+[lints]
+workspace = true
