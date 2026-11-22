@@ -14,7 +14,7 @@ jobs:
     name: Tests Website Snippets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # for wasm-bindgen-cli, always use stable rust
       - name: Setup toolchain
@@ -40,7 +40,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: nanasess/setup-chromedriver@v2
+      - uses: nanasess/setup-chromedriver@v3
 
       - name: Run website code snippet tests
         run: cargo test -p website-test --target wasm32-unknown-unknown
@@ -49,7 +49,7 @@ jobs:
     name: Tests Website Snippets (native)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
