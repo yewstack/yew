@@ -365,6 +365,14 @@ In order to add an event listener to one of elements manually we need the help o
 [`web-sys`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/index.html) and
 [wasm-bindgen](https://wasm-bindgen.github.io/wasm-bindgen/api/wasm_bindgen/index.html) API.
 
+:::caution
+Do not pass the `NodeRef` itself as the `use_effect_with` dependency.
+[`NodeRef`](../function-components/node-refs.mdx) compares by identity rather than by the node it
+currently points at, so two clones of the same ref always compare equal and the effect does not run
+again once the element appears. Use a dependency that actually changes, such as whether the element
+is rendered or an id, and read the node inside the effect.
+:::
+
 The examples below are going to show adding listeners for the made-up `custard` event. All events
 either unsupported by yew or custom can be represented as a
 [`web_sys::Event`](https://wasm-bindgen.github.io/wasm-bindgen/api/web_sys/struct.Event.html). If you
@@ -387,7 +395,7 @@ fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
     use_effect_with(
-        div_node_ref.clone(),
+        (),
         {
             let div_node_ref = div_node_ref.clone();
 
@@ -454,7 +462,7 @@ fn MyComponent() -> Html {
     let div_node_ref = use_node_ref();
 
     use_effect_with(
-        div_node_ref.clone(),
+        (),
         {
             let div_node_ref = div_node_ref.clone();
 

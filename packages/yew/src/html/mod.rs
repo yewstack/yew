@@ -50,6 +50,10 @@ impl IntoHtmlResult for Html {
 
 /// Wrapped Node reference for later use in Component lifecycle methods.
 ///
+/// Two `NodeRef`s compare equal when they are clones of the same ref, regardless of the node
+/// currently stored, so a `NodeRef` cannot be used as the dependency of a
+/// [`use_effect_with`](crate::use_effect_with) hook. Pass a value that changes instead.
+///
 /// # Example
 /// Focus an `<input>` element on mount.
 /// ```

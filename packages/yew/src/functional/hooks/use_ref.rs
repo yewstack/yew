@@ -150,7 +150,9 @@ where
 ///     {
 ///         let div_ref = div_ref.clone();
 ///
-///         use_effect_with(div_ref, |div_ref| {
+///         // The element below is always rendered, so `()` is enough of a dependency.
+///         // See the note below before passing a `NodeRef` itself as a dependency.
+///         use_effect_with((), move |_| {
 ///             let div = div_ref
 ///                 .cast::<HtmlElement>()
 ///                 .expect("div_ref not attached to div element");
@@ -185,6 +187,12 @@ where
 /// When conditionally rendering elements you can use `NodeRef` in conjunction with
 /// `use_effect_with` to perform actions each time an element is rendered and just before the
 /// component where the hook is used in is going to be removed from the DOM.
+///
+/// Do not pass the `NodeRef` itself as the `use_effect_with` dependency. [`NodeRef`] compares
+/// by identity, not by the node it currently points at, so two clones of the same ref are always
+/// equal and the effect will not re-run after the element appears. Pass a value that changes
+/// instead, for example the id of the element or a `bool` telling whether it is rendered.
+/// Alternatively use `use_effect` and read the node inside the closure.
 #[hook]
 pub fn use_node_ref() -> NodeRef {
     (*use_state(NodeRef::default)).clone()
