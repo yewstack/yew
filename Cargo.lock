@@ -4959,11 +4959,15 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "axum",
+ "gloo",
  "gloo-net",
  "lru",
  "serde",
  "serde_json",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-bindgen-test",
+ "web-sys",
  "yew",
  "yew-link-macro",
 ]

@@ -1,8 +1,8 @@
 use std::any::{Any, TypeId};
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
+use std::cell::OnceCell;
 use std::cell::RefCell;
 use std::collections::HashMap;
-#[cfg(target_arch = "wasm32")]
-use std::collections::HashSet;
 use std::fmt;
 use std::hash::Hash;
 #[cfg(target_arch = "wasm32")]
@@ -16,7 +16,7 @@ use lru::LruCache;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use yew::prelude::*;
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
 use yew::suspense::Suspension;
 use yew::suspense::SuspensionResult;
 pub use yew_link_macro::linked_state;
@@ -306,23 +306,34 @@ fn cache_key<T: LinkedState>(input: &T::Input) -> CacheKey {
 }
 
 #[cfg(target_arch = "wasm32")]
-type Cache = Rc<RefCell<LruCache<CacheKey, serde_json::Value>>>;
+type Cache = Rc<RefCell<LruCache<CacheKey, Rc<dyn Any>>>>;
 #[cfg(not(target_arch = "wasm32"))]
 type Cache = Rc<RefCell<HashMap<CacheKey, serde_json::Value>>>;
 
-#[cfg(target_arch = "wasm32")]
-type InFlight = Rc<RefCell<HashMap<CacheKey, Suspension>>>;
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
+type InFlight = Rc<RefCell<HashMap<CacheKey, Rc<dyn Any>>>>;
 
-#[cfg(target_arch = "wasm32")]
-type Refreshing = Rc<RefCell<HashSet<CacheKey>>>;
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
+type LinkedResult<T> = Result<Rc<T>, LinkError<<T as LinkedState>::Error>>;
+
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
+struct Request<T: LinkedState> {
+    suspension: Suspension,
+    result: OnceCell<LinkedResult<T>>,
+}
+
+#[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
+struct Query<T: LinkedState> {
+    key: CacheKey,
+    result: Option<LinkedResult<T>>,
+    request: Option<Rc<Request<T>>>,
+}
 
 #[derive(Clone)]
 struct LinkContextInner {
     cache: Cache,
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
     in_flight: InFlight,
-    #[cfg(target_arch = "wasm32")]
-    refreshing: Refreshing,
     endpoint: AttrValue,
     #[cfg(feature = "ssr")]
     resolver: Option<Arc<Resolver>>,
@@ -331,12 +342,11 @@ struct LinkContextInner {
 impl PartialEq for LinkContextInner {
     fn eq(&self, other: &Self) -> bool {
         Rc::ptr_eq(&self.cache, &other.cache) && self.endpoint == other.endpoint && {
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
             {
                 Rc::ptr_eq(&self.in_flight, &other.in_flight)
-                    && Rc::ptr_eq(&self.refreshing, &other.refreshing)
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(any(feature = "ssr", not(target_arch = "wasm32")))]
             {
                 true
             }
@@ -345,6 +355,53 @@ impl PartialEq for LinkContextInner {
 }
 
 impl LinkContextInner {
+    #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
+    fn request<T: LinkedState>(&self, key: &CacheKey, input: T::Input) -> Rc<Request<T>> {
+        if let Some(request) = self.in_flight.borrow().get(key) {
+            return request
+                .clone()
+                .downcast::<Request<T>>()
+                .expect("request type must match its cache key");
+        }
+
+        let (suspension, handle) = Suspension::new();
+        let request = Rc::new(Request {
+            suspension,
+            result: OnceCell::new(),
+        });
+        self.in_flight
+            .borrow_mut()
+            .insert(key.clone(), request.clone());
+
+        let ctx = self.clone();
+        let key = key.clone();
+        let pending = request.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            let result = ctx.fetch_remote::<T>(&input).await.map(Rc::new);
+            match &result {
+                Ok(value) => {
+                    ctx.cache.borrow_mut().put(key.clone(), value.clone());
+                }
+                Err(LinkError::Resolve(_)) => {
+                    ctx.cache.borrow_mut().pop(&key);
+                }
+                Err(LinkError::Internal(_)) => {}
+            }
+
+            // The hooks that joined this request own its result after it leaves the map.
+            assert!(pending.result.set(result).is_ok(), "request completes once");
+            {
+                let mut in_flight = ctx.in_flight.borrow_mut();
+                in_flight.remove(&key);
+                if in_flight.capacity() > in_flight.len().saturating_mul(4) {
+                    in_flight.shrink_to_fit();
+                }
+            }
+            handle.resume();
+        });
+        request
+    }
+
     #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
     async fn fetch_remote<T: LinkedState>(
         &self,
@@ -460,17 +517,13 @@ pub fn LinkProvider(props: &LinkProviderProps) -> Html {
     };
     #[cfg(not(target_arch = "wasm32"))]
     let cache: Cache = (*use_ref(|| Rc::new(RefCell::new(HashMap::new())))).clone();
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
     let in_flight: InFlight = (*use_ref(|| Rc::new(RefCell::new(HashMap::new())))).clone();
-    #[cfg(target_arch = "wasm32")]
-    let refreshing: Refreshing = (*use_ref(|| Rc::new(RefCell::new(HashSet::new())))).clone();
 
     let ctx = LinkContextInner {
         cache,
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(all(not(feature = "ssr"), target_arch = "wasm32"))]
         in_flight,
-        #[cfg(target_arch = "wasm32")]
-        refreshing,
         endpoint: props.endpoint.clone(),
         #[cfg(feature = "ssr")]
         resolver: props.resolver.as_ref().map(|r| Arc::clone(&r.0)),
@@ -500,7 +553,10 @@ pub fn LinkProvider(props: &LinkProviderProps) -> Html {
 /// the fresh data arrives.
 ///
 /// Multiple components requesting the same `(T, Input)` concurrently share a
-/// single in-flight request.
+/// single in-flight request. Each hook remembers the result for its current
+/// input, so a failed request is only retried explicitly via
+/// [`refresh`](LinkedStateHandle::refresh). A background refresh updates the
+/// hooks that requested it.
 ///
 /// # Panics
 ///
@@ -556,124 +612,95 @@ pub fn use_linked_state<T: LinkedState>(input: T::Input) -> SuspensionResult<Lin
         let prepared =
             yew::functional::use_prepared_state::<Prepared<T, T::Error>, T::Input>(input.clone())?;
 
-        let key = cache_key::<T>(&input);
-
-        if let Some(ref result) = prepared {
-            if let Ok(json_val) = serde_json::to_value(result.as_ref()) {
-                let mut cache = link_ctx.cache.borrow_mut();
-                if cache.peek(&key).is_none() {
-                    cache.put(key.clone(), json_val);
-                }
-            }
-        }
-
-        let force_update = use_force_update();
-        let has_refreshed = use_ref(|| std::cell::Cell::new(false));
-
-        let refresh = {
-            let cache = link_ctx.cache.clone();
-            let refreshing = link_ctx.refreshing.clone();
-            let key = key.clone();
-            let link_ctx = link_ctx.clone();
-            let input = input.clone();
-            let force_update = force_update.clone();
-            let has_refreshed = has_refreshed.clone();
-            Callback::from(move |()| {
-                refreshing.borrow_mut().insert(key.clone());
-                has_refreshed.set(true);
-
-                let link_ctx = link_ctx.clone();
-                let key = key.clone();
-                let cache = cache.clone();
-                let refreshing = refreshing.clone();
-                let inner_force_update = force_update.clone();
-                let input = input.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let result: Result<T, LinkError<T::Error>> =
-                        link_ctx.fetch_remote::<T>(&input).await;
-
-                    refreshing.borrow_mut().remove(&key);
-
-                    let should_cache = match &result {
-                        Ok(_) | Err(LinkError::Resolve(_)) => true,
-                        Err(LinkError::Internal(_)) => false,
-                    };
-                    if should_cache {
-                        if let Ok(json_val) = serde_json::to_value(&result) {
-                            cache.borrow_mut().put(key, json_val);
+        // Keep one query per hook. A change of input drops the previous query,
+        // even when a request for that input is still in flight.
+        let query = use_memo(input.clone(), |input| {
+            let key = cache_key::<T>(input);
+            let result = match prepared {
+                Some(prepared) => {
+                    let result = prepared.as_ref().clone().map(Rc::new);
+                    if let Ok(value) = &result {
+                        let mut cache = link_ctx.cache.borrow_mut();
+                        if cache.peek(&key).is_none() {
+                            cache.put(key.clone(), value.clone());
                         }
                     }
+                    Some(result)
+                }
+                None => link_ctx.cache.borrow_mut().get(&key).map(|value| {
+                    Ok(value
+                        .clone()
+                        .downcast::<T>()
+                        .expect("value type must match its cache key"))
+                }),
+            };
+            RefCell::new(Query {
+                key,
+                result,
+                request: None,
+            })
+        });
+        let force_update = use_force_update();
 
-                    inner_force_update.force_update();
+        let (result, refreshing) = {
+            let mut query = query.borrow_mut();
+            let Query {
+                key,
+                result,
+                request,
+            } = &mut *query;
+            if let Some(fetched) = request.as_ref().and_then(|request| request.result.get()) {
+                // A transient refresh failure keeps the previous result visible.
+                if result.is_none() || !matches!(fetched, Err(LinkError::Internal(_))) {
+                    *result = Some(fetched.clone());
+                }
+                *request = None;
+            }
+
+            match result {
+                Some(result) => (result.clone(), request.is_some()),
+                None => {
+                    return Err(request
+                        .get_or_insert_with(|| link_ctx.request::<T>(key, input.clone()))
+                        .suspension
+                        .clone());
+                }
+            }
+        };
+
+        let refresh = {
+            let query = Rc::downgrade(&query);
+            Callback::from(move |()| {
+                let Some(current) = query.upgrade() else {
+                    return;
+                };
+                let mut current = current.borrow_mut();
+                if current.request.is_some() {
+                    return;
+                }
+
+                let request = link_ctx.request::<T>(&current.key, input.clone());
+                let suspension = request.suspension.clone();
+                current.request = Some(request);
+                drop(current);
+
+                let query = query.clone();
+                let on_complete = force_update.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    suspension.await;
+                    if query.upgrade().is_some() {
+                        on_complete.force_update();
+                    }
                 });
-
                 force_update.force_update();
             })
         };
 
-        if !has_refreshed.get() {
-            if let Some(result) = prepared {
-                return Ok(LinkedStateHandle {
-                    result: match result.as_ref() {
-                        Ok(val) => Ok(Rc::new(val.clone())),
-                        Err(e) => Err(e.clone()),
-                    },
-                    refresh,
-                    refreshing: false,
-                });
-            }
-        }
-
-        let is_refreshing = link_ctx.refreshing.borrow().contains(&key);
-
-        if let Some(cached_val) = link_ctx.cache.borrow_mut().get(&key).cloned() {
-            if let Ok(result) = serde_json::from_value::<Prepared<T, T::Error>>(cached_val) {
-                return Ok(LinkedStateHandle {
-                    result: result.map(Rc::new),
-                    refresh,
-                    refreshing: is_refreshing,
-                });
-            }
-        }
-
-        if let Some(sus) = link_ctx.in_flight.borrow().get(&key).cloned() {
-            if !sus.resumed() {
-                return Err(sus);
-            }
-            if let Some(cached_val) = link_ctx.cache.borrow_mut().get(&key).cloned() {
-                if let Ok(result) = serde_json::from_value::<Prepared<T, T::Error>>(cached_val) {
-                    return Ok(LinkedStateHandle {
-                        result: result.map(Rc::new),
-                        refresh,
-                        refreshing: false,
-                    });
-                }
-            }
-        }
-
-        let sus = Suspension::from_future({
-            let link_ctx = link_ctx.clone();
-            let key = key.clone();
-            async move {
-                let result: Result<T, LinkError<T::Error>> =
-                    link_ctx.fetch_remote::<T>(&input).await;
-
-                link_ctx.in_flight.borrow_mut().remove(&key);
-
-                let should_cache = match &result {
-                    Ok(_) | Err(LinkError::Resolve(_)) => true,
-                    Err(LinkError::Internal(_)) => false,
-                };
-                if should_cache {
-                    if let Ok(json_val) = serde_json::to_value(&result) {
-                        link_ctx.cache.borrow_mut().put(key, json_val);
-                    }
-                }
-            }
-        });
-
-        link_ctx.in_flight.borrow_mut().insert(key, sus.clone());
-        Err(sus)
+        Ok(LinkedStateHandle {
+            result,
+            refresh,
+            refreshing,
+        })
     }
 }
 
