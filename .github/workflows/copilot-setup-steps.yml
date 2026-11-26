@@ -1,0 +1,40 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup MSRV toolchain with wasm target
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.84.0
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Setup Trunk
+        uses: jetli/trunk-action@v0.5.1
+        with:
+          version: "latest"
+
+      - name: Setup typos
+        uses: crate-ci/typos@v1.44.0
+
+      - uses: taiki-e/install-action@cargo-hack
+
+      - name: Install wasm-bindgen-cli
+        shell: bash
+        run: ./ci/install-wasm-bindgen-cli.sh
+
+      - name: Install cargo-make
+        run: cargo install cargo-make --locked
