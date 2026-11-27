@@ -236,7 +236,7 @@ dependencies = [
  "function_router",
  "futures 0.3.34",
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "jemallocator",
  "rand 0.10.0",
  "serde",
@@ -372,7 +372,7 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "futures 0.3.34",
- "gloo-net",
+ "gloo-net 0.7.0",
  "yew",
 ]
 
@@ -492,7 +492,7 @@ dependencies = [
  "function_router",
  "futures 0.3.34",
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "hyper",
  "hyper-util",
  "jemallocator",
@@ -620,7 +620,7 @@ name = "boids"
 version = "0.1.0"
 dependencies = [
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "rand 0.10.0",
  "serde",
  "web-sys",
@@ -975,7 +975,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 name = "counter"
 version = "0.1.1"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "js-sys",
  "wasm-bindgen",
  "yew",
@@ -1191,7 +1191,7 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 name = "dyn_create_destroy_apps"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "js-sys",
  "slab",
  "wasm-bindgen",
@@ -1213,6 +1213,18 @@ name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
+
+[[package]]
+name = "embedded-io"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ef1a6892d9eef45c8fa6b9e0086428a2cca8491aca8f787c534a3d6d0bcb3ced"
+
+[[package]]
+name = "embedded-io"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
 
 [[package]]
 name = "encode_unicode"
@@ -1304,7 +1316,7 @@ name = "file_upload"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
- "gloo",
+ "gloo 0.13.0",
  "js-sys",
  "web-sys",
  "yew",
@@ -1380,7 +1392,7 @@ version = "0.1.0"
 dependencies = [
  "getrandom 0.3.4",
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "nanoid",
  "rand 0.10.0",
  "serde",
@@ -1396,7 +1408,7 @@ version = "0.1.0"
 dependencies = [
  "getrandom 0.3.4",
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "image",
  "instant",
  "lipsum",
@@ -1413,7 +1425,7 @@ dependencies = [
 name = "function_todomvc"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "serde",
  "strum",
  "strum_macros",
@@ -1425,7 +1437,7 @@ dependencies = [
 name = "futures"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "pulldown-cmark",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -1514,7 +1526,7 @@ name = "game_of_life"
 version = "0.1.4"
 dependencies = [
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "log",
  "rand 0.10.0",
  "wasm-logger",
@@ -1600,13 +1612,32 @@ dependencies = [
  "gloo-dialogs",
  "gloo-events",
  "gloo-file",
- "gloo-history",
- "gloo-net",
+ "gloo-history 0.3.0",
+ "gloo-net 0.7.0",
  "gloo-render",
  "gloo-storage",
  "gloo-timers",
  "gloo-utils 0.3.0",
- "gloo-worker",
+ "gloo-worker 0.6.0",
+]
+
+[[package]]
+name = "gloo"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dde91ca3d312345fd0f837dda5f8dbb7af00408e259f5fe338c8bd4a8606dd7"
+dependencies = [
+ "gloo-console",
+ "gloo-dialogs",
+ "gloo-events",
+ "gloo-file",
+ "gloo-history 0.4.0",
+ "gloo-net 0.8.0",
+ "gloo-render",
+ "gloo-storage",
+ "gloo-timers",
+ "gloo-utils 0.3.0",
+ "gloo-worker 0.7.0",
 ]
 
 [[package]]
@@ -1673,10 +1704,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "gloo-history"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53d1124057b65f69c3e71e319a69f0499d21fdea3ae7c7eb55363580704298a3"
+dependencies = [
+ "getrandom 0.4.3",
+ "gloo-events",
+ "gloo-utils 0.3.0",
+ "js-sys",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_urlencoded",
+ "thiserror 2.0.21",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "gloo-net"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6420f887c48417e9e86c6cf61274eb231830cccc100e49613f7952e269a1fe1"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-sink",
+ "gloo-utils 0.3.0",
+ "http 1.4.0",
+ "js-sys",
+ "pin-project",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-net"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca0d014b3eb3645bf8e44000afb0ed0faf33b42bec5f463fa9d233b7da45feac"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -1768,6 +1838,24 @@ dependencies = [
  "gloo-worker-macros",
  "js-sys",
  "pinned",
+ "serde",
+ "thiserror 2.0.21",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-worker"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08af0f91be829acc77e7dc2cb285a35ac1b13302535941ddcdfae2333dd220bb"
+dependencies = [
+ "futures 0.3.34",
+ "gloo-worker-macros",
+ "js-sys",
+ "pinned",
+ "postcard",
  "serde",
  "thiserror 2.0.21",
  "wasm-bindgen",
@@ -2247,7 +2335,7 @@ dependencies = [
 name = "inner_html"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "web-sys",
  "yew",
 ]
@@ -2633,7 +2721,7 @@ dependencies = [
 name = "mount_point"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -2861,7 +2949,7 @@ dependencies = [
 name = "portals"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -2874,6 +2962,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6764c3b5dd454e283a30e6dfe78e9b31096d9e32036b5d1eaac7a6119ccb9a24"
 dependencies = [
  "cobs",
+ "embedded-io 0.4.0",
+ "embedded-io 0.6.1",
  "heapless",
  "serde",
 ]
@@ -3238,7 +3328,7 @@ dependencies = [
  "function_router",
  "getrandom 0.3.4",
  "getrandom 0.4.3",
- "gloo",
+ "gloo 0.13.0",
  "instant",
  "lipsum",
  "log",
@@ -3626,7 +3716,7 @@ dependencies = [
 name = "ssr-e2e-harness"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "wasm-bindgen",
  "web-sys",
  "yew",
@@ -3675,7 +3765,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 name = "suspense"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -3898,7 +3988,7 @@ dependencies = [
 name = "timer"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "js-sys",
  "wasm-bindgen",
  "yew",
@@ -3908,7 +3998,7 @@ dependencies = [
 name = "timer_functional"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "js-sys",
  "yew",
 ]
@@ -3942,7 +4032,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 name = "todomvc"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "serde",
  "serde_derive",
  "strum",
@@ -4020,7 +4110,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "661192fb77d88d35683b52df73be6ed35516a19e35988e3b0df315c36a1c6f3d"
 dependencies = [
  "futures 0.3.34",
- "gloo",
+ "gloo 0.12.0",
  "num_cpus",
  "pin-project",
  "pinned",
@@ -4236,7 +4326,7 @@ dependencies = [
 name = "two_apps"
 version = "0.1.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "yew",
 ]
 
@@ -4620,8 +4710,8 @@ dependencies = [
  "axum",
  "derive_more",
  "glob",
- "gloo",
- "gloo-net",
+ "gloo 0.13.0",
+ "gloo-net 0.7.0",
  "js-sys",
  "serde",
  "serde_json",
@@ -4898,7 +4988,7 @@ dependencies = [
  "bincode 2.0.1",
  "console_error_panic_hook",
  "futures 0.3.34",
- "gloo",
+ "gloo 0.13.0",
  "html-escape",
  "implicit-clone",
  "indexmap",
@@ -4923,7 +5013,7 @@ name = "yew-agent"
 version = "0.5.0"
 dependencies = [
  "futures 0.3.34",
- "gloo-worker",
+ "gloo-worker 0.6.0",
  "serde",
  "wasm-bindgen",
  "yew",
@@ -4959,7 +5049,7 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "axum",
- "gloo-net",
+ "gloo-net 0.7.0",
  "lru",
  "serde",
  "serde_json",
@@ -4996,7 +5086,7 @@ dependencies = [
 name = "yew-router"
 version = "0.20.0"
 dependencies = [
- "gloo",
+ "gloo 0.13.0",
  "js-sys",
  "matchit 0.9.2",
  "serde",
